@@ -1,0 +1,1130 @@
+export type TKey = typeof translations[keyof typeof translations]
+
+const translations = {
+  EN: {
+    nav: {
+      about: "About APTIC-R",
+      mission: "The Mission",
+      activities: "Activities",
+      lifeInTogo: "Life in Togo",
+      apply: "Apply",
+      faq: "FAQ",
+      partners: "Partners",
+      applyNow: "APPLY NOW",
+    },
+    hero: {
+      badge: "Agbélouvé, Togo · 6-12 months · Open Applications",
+      line1: "Volunteer in Togo.",
+      line2: "Build technology",
+      line3: "for rural communities.",
+      desc: "Join APTIC-R and work alongside rural communities to co-create practical digital and low-tech solutions for agriculture, education, and local entrepreneurship.",
+      cta1: "APPLY NOW",
+      cta2: "DISCOVER THE MISSION",
+      stat1Label: "6-12 months",
+      stat1Sub: "Mission duration",
+      stat2Label: "Agbélouvé",
+      stat2Sub: "Togo, West Africa",
+      stat3Label: "FR · EN · DE",
+      stat3Sub: "Languages",
+    },
+    dualPath: {
+      tagLine: "CHOOSE YOUR PATH",
+      titleLine: "How would you like to get involved?",
+      volunteerTag: "For Volunteers",
+      volunteerTitle: "I want to become a volunteer",
+      volunteerDesc:
+        "Students, graduates, young professionals. Apply for a 6-12 month volunteer mission in Togo and work directly with rural communities.",
+      volunteerCta: "APPLY NOW",
+      orgTag: "For Organizations",
+      orgTitle: "I represent an organization",
+      orgDesc:
+        "European volunteer-sending organizations. Explore a long-term partnership to send volunteers to APTIC-R in Togo.",
+      orgCta: "BECOME A PARTNER",
+    },
+    whyMission: {
+      tag: "Why APTIC-R",
+      title: "Why volunteer with APTIC-R?",
+      cards: [
+        {
+          title: "Rural Impact",
+          desc: "Work directly alongside rural communities in Agbélouvé. Your contributions solve real problems that affect daily life.",
+        },
+        {
+          title: "Digital Innovation",
+          desc: "Use technology to solve concrete challenges. From SMS systems to offline apps - find creative solutions that actually work.",
+        },
+        {
+          title: "Simple Technology",
+          desc: "Design affordable, repairable, and accessible solutions. Innovation doesn't need to be complex - it needs to be useful.",
+        },
+        {
+          title: "Cultural Exchange",
+          desc: "Discover Togo while learning from local communities. Build lasting relationships that transcend professional boundaries.",
+        },
+      ],
+    },
+    challenge: {
+      tag: "The Challenge",
+      title: "Technology should be accessible to everyone.",
+      p1: "In many rural communities, access to information, digital tools, and appropriate technologies remains limited. APTIC-R believes that innovation doesn't always have to be complex or expensive.",
+      p2: "Sometimes a simple SMS system, an offline application, a low-cost sensor, or a digital training programme can make all the difference.",
+      steps: [
+        {
+          tag: "PROBLEM",
+          title: "Real Field Constraints",
+          text: "Rural communities lack affordable, repairable digital tools and access to reliable agricultural insights.",
+        },
+        {
+          tag: "INNOVATION",
+          title: "Accessible Co-Creation",
+          text: "Co-creating pragmatic solutions alongside farmers - SMS systems, offline mobile apps, and low-cost sensors.",
+        },
+        {
+          tag: "IMPACT",
+          title: "Autonomous Communities",
+          text: "Open source documentation and local relay training so communities own and maintain the technology sustainably.",
+        },
+      ],
+    },
+    mission: {
+      tag: "Your Mission",
+      title: "What you will do on the ground",
+      steps: [
+        {
+          title: "Field Diagnosis",
+          desc: "Meet farmers and cooperatives. Understand local needs and existing practices before any solution is proposed.",
+        },
+        {
+          title: "Rural Hackathons",
+          desc: "Organize co-creation workshops bringing together community members, volunteers, and local innovators.",
+        },
+        {
+          title: "Prototyping",
+          desc: "Design and build low-tech solutions: sensors, apps, SMS tools, or training programmes tailored to local context.",
+        },
+        {
+          title: "Training",
+          desc: "Empower local relay actors. Transfer skills and knowledge so the community can operate solutions independently.",
+        },
+        {
+          title: "Open Source Documentation",
+          desc: "Document every solution developed in reproducible, openly accessible formats for other communities to benefit from.",
+        },
+      ],
+    },
+    build: {
+      tag: "Projects",
+      title: "What could you build?",
+      featured: {
+        badge: "IoT & Sensors",
+        title: "Smart Irrigation",
+        desc: "Design and deploy low-cost moisture sensors that help local farmers optimize water usage during the dry season. Built with Arduino and local materials.",
+      },
+      cards: [
+        { title: "Weather Alert System", badge: "2G / SMS" },
+        { title: "Offline Mobile Tools", badge: "Mobile" },
+        { title: "Agricultural Dashboards", badge: "Data Vis" },
+        { title: "Inventory Management", badge: "Coop Tools" },
+      ],
+    },
+    profiles: {
+      tag: "Profiles Sought",
+      title: "Could it be you?",
+      subtitle:
+        "We welcome volunteers from a wide range of backgrounds. What matters most is curiosity, adaptability, and the desire to contribute.",
+      cta: "CHECK YOUR ELIGIBILITY",
+      categories: [
+        {
+          title: "Digital & IT",
+          tags: "Computer Science · Web Development · Mobile · Data · Cybersecurity",
+        },
+        {
+          title: "Agriculture",
+          tags: "Agronomy · Agriculture · Environment · Rural Development",
+        },
+        {
+          title: "Creative",
+          tags: "UI/UX Design · Graphic Design · Content Creation · Communication",
+        },
+        {
+          title: "Engineering / Fabrication",
+          tags: "Mechanical · Electronics · IoT · Solar Energy · Woodworking",
+        },
+      ],
+    },
+    notExpert: {
+      title: "You don't need to know everything.",
+      subtitle: "All it takes is the desire to learn.",
+      cta: "APPLY NOW",
+      qualities: ["CURIOUS", "AUTONOMOUS", "PATIENT", "CREATIVE", "OPEN", "TEAM PLAYER", "FIELD-ORIENTED"],
+    },
+    week: {
+      tag: "Weekly Rhythm",
+      title: "A week with APTIC-R",
+      dayLabels: ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"],
+      days: [
+        {
+          activity: "Digital Innovation",
+          desc: "Morning workshop on local digital needs. Mapping sessions with community representatives.",
+        },
+        {
+          activity: "Field Visit",
+          desc: "Visit farmers, cooperatives, schools. Observe, listen, understand local realities.",
+        },
+        {
+          activity: "Prototyping",
+          desc: "Hands-on making session: build, test, iterate on solutions conceived with the community.",
+        },
+        {
+          activity: "Training",
+          desc: "Train local relay actors on the tools and systems developed during the week.",
+        },
+        {
+          activity: "Rural Innovation Lab",
+          desc: "Weekly showcase: present progress, gather feedback, plan next iteration.",
+        },
+        {
+          activity: "Cultural Discovery",
+          desc: "Explore Agbélouvé and surroundings. Language lessons, community events, cultural immersion.",
+        },
+        {
+          activity: "Rest",
+          desc: "Time for reflection, personal projects, reading, or simply enjoying the environment.",
+        },
+      ],
+    },
+    lifeInTogo: {
+      tag: "Life in Togo",
+      title: "More than a volunteer mission. A life experience.",
+      items: [
+        {
+          label: "Togolese Culture",
+          desc: "Rich traditions, hospitable communities, authentic social fabric.",
+        },
+        {
+          label: "Tropical Environment",
+          desc: "Lush landscapes, warm climate, rich agricultural biodiversity.",
+        },
+        {
+          label: "Gastronomy",
+          desc: "Local cuisine, fresh farm produce, shared community meals.",
+        },
+        {
+          label: "Languages",
+          desc: "French as official working language, Ewé, Kabiyé and local dialects.",
+        },
+        {
+          label: "Human Connections",
+          desc: "Profound relationships built with local families and cooperatives.",
+        },
+        {
+          label: "Discovery",
+          desc: "Local markets, crafts, ceremonies, and historical heritage.",
+        },
+      ],
+    },
+    agbelouve: {
+      tag: "Your Base",
+      title: "Agbélouvé, Togo",
+      desc: "A welcoming rural town in the Maritime Region, Agbélouvé sits at the heart of agricultural Togo. The APTIC-R office is located here, surrounded by farming communities, local cooperatives, and a growing network of digital innovation actors.",
+      facts: [
+        { label: "Location", value: "Maritime Region, Togo" },
+        { label: "Environment", value: "Tropical climate, agricultural area" },
+        { label: "Access", value: "Close to Lomé (~80 km)" },
+        { label: "Agriculture", value: "Subsistence & cash crops" },
+        { label: "Community", value: "Active local cooperatives" },
+        { label: "Living Conditions", value: "Accommodation provided locally" },
+      ],
+    },
+    support: {
+      tag: "Your Support",
+      title: "You won't be alone.",
+      subtitle:
+        "APTIC-R provides a full support framework for all volunteers throughout their mission.",
+      tableTitle: "What's included?",
+      tableSummary: "Framework Summary",
+      statusConfirmed: "Confirmed",
+      statusPending: "Pending",
+      statusVariable: "Variable",
+      items: [
+        { label: "Accommodation", value: "Provided" },
+        { label: "Meals", value: "Local arrangements" },
+        { label: "Transport", value: "Local travel covered" },
+        { label: "Mentorship", value: "APTIC-R mentor" },
+        { label: "Communication", value: "Local SIM + Internet" },
+        { label: "Security", value: "On-site support" },
+        { label: "Health", value: "Arrival orientation" },
+        { label: "Accompaniment", value: "Full mission support" },
+      ],
+      tableItems: [
+        ["Mission duration", "6 to 12 months", "Confirmed"],
+        ["Accommodation", "Pending local details", "Pending"],
+        ["Meals", "Pending local details", "Pending"],
+        ["Local transport", "Pending local details", "Pending"],
+        ["Insurance", "Program dependent", "Variable"],
+        ["International travel", "Program dependent", "Variable"],
+        ["Visa", "Program dependent", "Variable"],
+        ["Allowance", "Program dependent", "Variable"],
+        ["Local mentorship", "Yes - permanent contact person", "Confirmed"],
+      ],
+    },
+    appProcess: {
+      tag: "How to apply",
+      title: "The application process",
+      stepLabel: "Step",
+      cta: "START YOUR APPLICATION",
+      steps: [
+        {
+          title: "Discover",
+          desc: "Explore the mission, the projects, and daily life in Agbélouvé.",
+        },
+        {
+          title: "Apply",
+          desc: "Complete our multi-step application form. It takes 15-20 minutes.",
+        },
+        {
+          title: "Interview",
+          desc: "A video call with the APTIC-R team to get to know you better.",
+        },
+        {
+          title: "Selection",
+          desc: "Assessment and selection based on profile, motivation, and availability.",
+        },
+        {
+          title: "Preparation",
+          desc: "Pre-departure briefing, administrative preparation, and cultural orientation.",
+        },
+        {
+          title: "Welcome to Togo",
+          desc: "Arrival in Agbélouvé, integration, and start of your mission.",
+        },
+      ],
+    },
+    partners: {
+      titlePart1: "BUILDING BRIDGES BETWEEN",
+      titlePart2: "EUROPE AND TOGO",
+      tag: "European Partners",
+      title: "EUROPEAN\nPARTNERSHIPS",
+      desc: "Building long-term bridges\nbetween Europe and rural communities in Togo.",
+      countries: ["France", "Germany", "Belgium", "Europe"],
+      cta: "BECOME A PARTNER",
+    },
+    testimonials: {
+      tag: "Volunteer Stories",
+      title: "Voices from the field",
+      disclaimer:
+        "These testimonials are illustrative. Verified content to be provided by APTIC-R.",
+      cards: [
+        {
+          name: "Jonas M.",
+          country: "Germany",
+          role: "Digital Innovation",
+          quote:
+            "Working with farmers on their SMS weather alert system was unlike anything I had done in a university lab. Real constraints inspired creative, low-tech solutions.",
+          initials: "JM",
+        },
+        {
+          name: "Claire D.",
+          country: "France",
+          role: "Rural Tech",
+          quote:
+            "J'avais peur de ne pas avoir un profil assez technique. Mais APTIC-R m'a montré que la pédagogie, l'écoute et l'animation d'ateliers sont des compétences indispensables.",
+          initials: "CD",
+        },
+        {
+          name: "Thomas L.",
+          country: "Belgium",
+          role: "Low-Tech Agri",
+          quote:
+            "As an agronomy student, I learned more about sustainable soil management and community collaboration in 9 months in Agbélouvé than during years of study.",
+          initials: "TL",
+        },
+      ],
+    },
+    faq: {
+      tag: "FAQ",
+      title: "Frequently asked questions",
+    },
+    finalCta: {
+      title: "Ready to make an impact?",
+      p1: "Your skills can become powerful tools for rural communities.",
+      p2: "Your experience can become an opportunity for someone else.",
+      p3: "Your next adventure could begin in Togo.",
+      cta1: "APPLY NOW",
+      cta2: "BECOME A PARTNER",
+    },
+    footer: {
+      tagline: "Association pour la Promotion des TIC en milieu Rural au Togo.",
+      tagline2:
+        "We connect European volunteers with rural communities to co-create practical digital and low-tech solutions.",
+      nav: "Navigation",
+      contact: "Contact",
+      email: "Email",
+      emailValue: "contact@apticr.tg",
+      emailNote: "(to be defined)",
+      address: "Address",
+      addressValue: "Agbélouvé, Togo",
+      languages: "Languages",
+      privacy: "Privacy Policy",
+      terms: "Terms of Use",
+      cookies: "Cookie Policy",
+      copyright:
+        "© 2025 APTIC-R - Association pour la Promotion des TIC en milieu Rural au Togo.",
+    },
+  },
+
+  FR: {
+    nav: {
+      about: "À propos",
+      mission: "La Mission",
+      activities: "Activités",
+      lifeInTogo: "Vie au Togo",
+      apply: "Postuler",
+      faq: "FAQ",
+      partners: "Partenaires",
+      applyNow: "POSTULEZ",
+    },
+    hero: {
+      badge: "Agbélouvé, Togo · 6-12 mois · Candidatures ouvertes",
+      line1: "Volontaire au Togo.",
+      line2: "Bâtissez la technologie",
+      line3: "pour les communautés rurales.",
+      desc: "Rejoignez APTIC-R et travaillez avec les communautés rurales pour développer des solutions numériques et low-tech pratiques pour l'agriculture, l'éducation et l'entrepreneuriat local.",
+      cta1: "POSTULEZ MAINTENANT",
+      cta2: "DÉCOUVRIR LA MISSION",
+      stat1Label: "6-12 mois",
+      stat1Sub: "Durée de mission",
+      stat2Label: "Agbélouvé",
+      stat2Sub: "Togo, Afrique de l'Ouest",
+      stat3Label: "FR · EN · DE",
+      stat3Sub: "Langues",
+    },
+    dualPath: {
+      tagLine: "CHOISISSEZ VOTRE VOIE",
+      titleLine: "Comment souhaitez-vous vous engager ?",
+      volunteerTag: "Pour les Volontaires",
+      volunteerTitle: "Je veux devenir volontaire",
+      volunteerDesc:
+        "Étudiants, diplômés, jeunes professionnels. Postulez pour une mission de 6 à 12 mois au Togo et travaillez directement avec les communautés rurales.",
+      volunteerCta: "POSTULEZ DÈS MAINTENANT",
+      orgTag: "Pour les Organisations",
+      orgTitle: "Je représente une organisation",
+      orgDesc:
+        "Organisations européennes d'envoi de volontaires. Explorez un partenariat de long terme pour envoyer des volontaires chez APTIC-R au Togo.",
+      orgCta: "DEVENEZ PARTENAIRE",
+    },
+    whyMission: {
+      tag: "Pourquoi APTIC-R",
+      title: "Pourquoi faire du bénévolat avec APTIC-R ?",
+      cards: [
+        {
+          title: "Impact rural",
+          desc: "Travaillez directement avec les communautés rurales d'Agbélouvé. Vos contributions résolvent des problèmes réels qui affectent la vie quotidienne.",
+        },
+        {
+          title: "Innovation numérique",
+          desc: "Utilisez la technologie pour résoudre des défis concrets. Des systèmes SMS aux applications hors ligne - trouvez des solutions créatives qui fonctionnent vraiment.",
+        },
+        {
+          title: "Technologie simple",
+          desc: "Concevez des solutions abordables, réparables et accessibles. L'innovation n'a pas besoin d'être complexe - elle doit être utile.",
+        },
+        {
+          title: "Échange culturel",
+          desc: "Découvrez le Togo tout en apprenant auprès des communautés locales. Construisez des liens durables qui transcendent les frontières professionnelles.",
+        },
+      ],
+    },
+    challenge: {
+      tag: "Le Défi",
+      title: "La technologie devrait être accessible à tous.",
+      p1: "Dans de nombreuses communautés rurales, l'accès à l'information, aux outils numériques et aux technologies appropriées reste limité. APTIC-R estime que l'innovation ne doit pas toujours être complexe ou coûteuse.",
+      p2: "Parfois, un simple système de SMS, une application hors ligne, un capteur à bas coût ou un programme de formation numérique peuvent faire toute la différence.",
+      steps: [
+        {
+          tag: "PROBLÈME",
+          title: "Contraintes réelles",
+          text: "Les communautés rurales manquent d'outils numériques abordables, réparables et d'informations agricoles fiables.",
+        },
+        {
+          tag: "INNOVATION",
+          title: "Co-création accessible",
+          text: "Co-création de solutions pragmatiques avec les agriculteurs : systèmes SMS, applis hors ligne et capteurs low-cost.",
+        },
+        {
+          tag: "IMPACT",
+          title: "Communautés autonomes",
+          text: "Documentation open source et formation de relais locaux pour une appropriation durable de la technologie.",
+        },
+      ],
+    },
+    mission: {
+      tag: "Votre Mission",
+      title: "Ce que vous ferez sur le terrain",
+      steps: [
+        {
+          title: "Diagnostic sur le terrain",
+          desc: "Rencontrer les agriculteurs et coopératives. Comprendre les besoins locaux et les pratiques existantes avant de proposer une solution.",
+        },
+        {
+          title: "Hackathons ruraux",
+          desc: "Organiser des ateliers de co-création réunissant membres de la communauté, volontaires et innovateurs locaux.",
+        },
+        {
+          title: "Prototypage",
+          desc: "Concevoir et construire des solutions low-tech : capteurs, applications, outils SMS, ou programmes de formation adaptés au contexte local.",
+        },
+        {
+          title: "Formation",
+          desc: "Former les relais locaux. Transférer les compétences et les connaissances pour que la communauté puisse opérer les solutions de manière indépendante.",
+        },
+        {
+          title: "Documentation open source",
+          desc: "Documenter chaque solution développée dans des formats reproductibles et librement accessibles pour que d'autres communautés puissent en bénéficier.",
+        },
+      ],
+    },
+    build: {
+      tag: "Projets",
+      title: "Que pourriez-vous construire ?",
+      featured: {
+        badge: "IoT & Capteurs",
+        title: "Irrigation intelligente",
+        desc: "Concevoir et déployer des capteurs d'humidité low-cost pour aider les agriculteurs à optimiser l'eau en saison sèche. Fabriqué avec Arduino et des matériaux locaux.",
+      },
+      cards: [
+        { title: "Système d'alerte météo", badge: "2G / SMS" },
+        { title: "Outils mobiles hors ligne", badge: "Mobile" },
+        { title: "Tableaux de bord agricoles", badge: "Data Vis" },
+        { title: "Gestion des stocks", badge: "Coop Tools" },
+      ],
+    },
+    profiles: {
+      tag: "Profils recherchés",
+      title: "Et si c'était vous ?",
+      subtitle:
+        "Nous accueillons des volontaires de tous horizons. Ce qui compte le plus : la curiosité, l'adaptabilité et l'envie de contribuer.",
+      cta: "VÉRIFIER MON ÉLIGIBILITÉ",
+      categories: [
+        {
+          title: "Numérique & IT",
+          tags: "Informatique · Développement Web · Mobile · Data · Cybersécurité",
+        },
+        {
+          title: "Agriculture",
+          tags: "Agronomie · Agriculture · Environnement · Développement rural",
+        },
+        {
+          title: "Créatif",
+          tags: "Design UI/UX · Graphisme · Création de contenu · Communication",
+        },
+        {
+          title: "Ingénierie / Fabrication",
+          tags: "Mécanique · Électronique · IoT · Énergie solaire · Menuiserie",
+        },
+      ],
+    },
+    notExpert: {
+      title: "Vous n'êtes pas obligé de tout savoir.",
+      subtitle: "Il suffit d'avoir envie d'apprendre.",
+      cta: "POSTULEZ MAINTENANT",
+      qualities: ["CURIEUX", "AUTONOME", "PATIENT", "CRÉATIF", "OUVERT", "ESPRIT D'ÉQUIPE", "TERRAIN"],
+    },
+    week: {
+      tag: "Rythme hebdomadaire",
+      title: "Une semaine avec APTIC-R",
+      dayLabels: ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"],
+      days: [
+        {
+          activity: "Innovation numérique",
+          desc: "Atelier matinal sur les besoins numériques locaux. Sessions de cartographie avec des représentants de la communauté.",
+        },
+        {
+          activity: "Visite sur le terrain",
+          desc: "Visite des agriculteurs, coopératives, écoles. Observer, écouter, comprendre les réalités locales.",
+        },
+        {
+          activity: "Prototypage",
+          desc: "Session de fabrication pratique : construire, tester, itérer sur les solutions conçues avec la communauté.",
+        },
+        {
+          activity: "Formation",
+          desc: "Former les relais locaux sur les outils et systèmes développés pendant la semaine.",
+        },
+        {
+          activity: "Laboratoire d'innovation rurale",
+          desc: "Présentation hebdomadaire : montrer les progrès, recueillir les retours, planifier la prochaine itération.",
+        },
+        {
+          activity: "Découverte culturelle",
+          desc: "Explorer Agbélouvé et ses environs. Cours de langue, événements communautaires, immersion culturelle.",
+        },
+        {
+          activity: "Repos",
+          desc: "Temps pour la réflexion, les projets personnels, la lecture ou simplement profiter de l'environnement.",
+        },
+      ],
+    },
+    lifeInTogo: {
+      tag: "Vie au Togo",
+      title: "Bien plus qu'une mission de bénévolat. Une expérience de vie.",
+      items: [
+        {
+          label: "Culture togolaise",
+          desc: "Traditions riches, communautés accueillantes, tissu social authentique.",
+        },
+        {
+          label: "Environnement tropical",
+          desc: "Paysages luxuriants, climat chaud, riche biodiversité agricole.",
+        },
+        {
+          label: "Gastronomie",
+          desc: "Cuisine locale, produits frais, repas communautaires partagés.",
+        },
+        {
+          label: "Langues",
+          desc: "Français comme langue de travail, Ewé, Kabiyé et dialectes locaux.",
+        },
+        {
+          label: "Liens humains",
+          desc: "Relations profondes tissées avec les familles locales et coopératives.",
+        },
+        {
+          label: "Découverte",
+          desc: "Marchés locaux, artisanat, cérémonies et patrimoine historique.",
+        },
+      ],
+    },
+    agbelouve: {
+      tag: "Votre base",
+      title: "Agbélouvé, Togo",
+      desc: "Une ville rurale accueillante de la Région Maritime, Agbélouvé se situe au cœur du Togo agricole. Le bureau d'APTIC-R y est installé, entouré de communautés agricoles, de coopératives locales et d'un réseau croissant d'acteurs de l'innovation numérique.",
+      facts: [
+        { label: "Localisation", value: "Région Maritime, Togo" },
+        { label: "Environnement", value: "Climat tropical, zone agricole" },
+        { label: "Accès", value: "Proche de Lomé (~80 km)" },
+        { label: "Agriculture", value: "Cultures vivrières & de rente" },
+        { label: "Communauté", value: "Coopératives locales actives" },
+        { label: "Conditions de vie", value: "Logement fourni sur place" },
+      ],
+    },
+    support: {
+      tag: "Votre soutien",
+      title: "Vous ne serez pas seul.",
+      subtitle:
+        "APTIC-R fournit un cadre de soutien complet à tous les volontaires tout au long de leur mission.",
+      tableTitle: "Qu'est-ce qui est inclus ?",
+      tableSummary: "Résumé du cadre",
+      statusConfirmed: "Confirmé",
+      statusPending: "En attente",
+      statusVariable: "Variable",
+      items: [
+        { label: "Logement", value: "Fourni" },
+        { label: "Repas", value: "Arrangements locaux" },
+        { label: "Transport", value: "Déplacements locaux couverts" },
+        { label: "Mentorat", value: "Mentor APTIC-R" },
+        { label: "Communication", value: "SIM locale + Internet" },
+        { label: "Sécurité", value: "Soutien sur place" },
+        { label: "Santé", value: "Orientation à l'arrivée" },
+        {
+          label: "Accompagnement",
+          value: "Soutien tout au long de la mission",
+        },
+      ],
+      tableItems: [
+        ["Durée de mission", "6 à 12 mois", "Confirmé"],
+        ["Logement", "En attente de détails locaux", "En attente"],
+        ["Repas", "En attente de détails locaux", "En attente"],
+        ["Transport local", "En attente de détails locaux", "En attente"],
+        ["Assurance", "Selon le programme", "Variable"],
+        ["Voyage international", "Selon le programme", "Variable"],
+        ["Visa", "Selon le programme", "Variable"],
+        ["Indemnité", "Selon le programme", "Variable"],
+        ["Mentorat local", "Oui - personne de contact permanente", "Confirmé"],
+      ],
+    },
+    appProcess: {
+      tag: "Comment postuler",
+      title: "Le processus de candidature",
+      stepLabel: "Étape",
+      cta: "COMMENCER MA CANDIDATURE",
+      steps: [
+        {
+          title: "Découvrir",
+          desc: "Explorer la mission, les projets et la vie quotidienne à Agbélouvé.",
+        },
+        {
+          title: "Postuler",
+          desc: "Remplir notre formulaire de candidature en plusieurs étapes. Cela prend 15 à 20 minutes.",
+        },
+        {
+          title: "Entretien",
+          desc: "Un appel vidéo avec l'équipe APTIC-R pour mieux vous connaître.",
+        },
+        {
+          title: "Sélection",
+          desc: "Évaluation et sélection basées sur le profil, la motivation et la disponibilité.",
+        },
+        {
+          title: "Préparation",
+          desc: "Séance d'information avant le départ, préparation administrative et orientation culturelle.",
+        },
+        {
+          title: "Bienvenue au Togo",
+          desc: "Arrivée à Agbélouvé, intégration et début de votre mission.",
+        },
+      ],
+    },
+    partners: {
+      titlePart1: "CRÉER DES PONTS ENTRE",
+      titlePart2: "L'EUROPE ET LE TOGO",
+      tag: "Partenaires européens",
+      title: "PARTENARIATS\nEUROPÉENS",
+      desc: "Construire des ponts à long terme\nentre l'Europe et les communautés rurales au Togo.",
+      countries: ["France", "Allemagne", "Belgique", "Europe"],
+      cta: "DEVENEZ PARTENAIRE",
+    },
+    testimonials: {
+      tag: "Histoires de volontaires",
+      title: "Voix du terrain",
+      disclaimer:
+        "Ces témoignages sont illustratifs. Contenu à valider et remplacer par APTIC-R.",
+      cards: [
+        {
+          name: "Jonas M.",
+          country: "Allemagne",
+          role: "Innovation Digitale",
+          quote:
+            "Travailler avec les agriculteurs sur leur système d'alerte météo SMS ne ressemblait à rien de ce que j'avais fait en labo. Les vraies contraintes inspirent des solutions créatives et low-tech.",
+          initials: "JM",
+        },
+        {
+          name: "Claire D.",
+          country: "France",
+          role: "Tech Rurale",
+          quote:
+            "J'avais peur de ne pas avoir un profil assez technique. Mais APTIC-R m'a montré que la pédagogie, l'écoute et l'animation d'ateliers sont des compétences indispensables.",
+          initials: "CD",
+        },
+        {
+          name: "Thomas L.",
+          country: "Belgique",
+          role: "Agri Low-Tech",
+          quote:
+            "En tant qu'étudiant en agronomie, j'ai plus appris sur la gestion durable des sols et la collaboration communautaire en 9 mois à Agbélouvé que pendant des années d'études.",
+          initials: "TL",
+        },
+      ],
+    },
+    faq: {
+      tag: "FAQ",
+      title: "Questions fréquentes",
+    },
+    finalCta: {
+      title: "Prêt à avoir un impact ?",
+      p1: "Vos compétences peuvent devenir des outils précieux pour les communautés rurales.",
+      p2: "Votre expérience peut devenir une opportunité pour quelqu'un d'autre.",
+      p3: "Votre prochaine aventure pourrait commencer au Togo.",
+      cta1: "POSTULEZ DÈS MAINTENANT",
+      cta2: "DEVENEZ PARTENAIRE",
+    },
+    footer: {
+      tagline: "Association pour la Promotion des TIC en milieu Rural au Togo.",
+      tagline2:
+        "Nous connectons les volontaires européens aux communautés rurales pour co-créer des solutions numériques et low-tech pratiques.",
+      nav: "Navigation",
+      contact: "Contact",
+      email: "E-mail",
+      emailValue: "contact@apticr.tg",
+      emailNote: "(à définir)",
+      address: "Adresse",
+      addressValue: "Agbélouvé, Togo",
+      languages: "Langues",
+      privacy: "Politique de confidentialité",
+      terms: "Conditions d'utilisation",
+      cookies: "Politique de cookies",
+      copyright:
+        "© 2025 APTIC-R - Association pour la Promotion des TIC en milieu Rural au Togo.",
+    },
+  },
+
+  DE: {
+    nav: {
+      about: "Über APTIC-R",
+      mission: "Die Mission",
+      activities: "Aktivitäten",
+      lifeInTogo: "Leben in Togo",
+      apply: "Bewerben",
+      faq: "FAQ",
+      partners: "Partner",
+      applyNow: "BEWERBEN",
+    },
+    hero: {
+      badge: "Agbélouvé, Togo · 6-12 Monate · Bewerbungen offen",
+      line1: "Freiwillig in Togo.",
+      line2: "Technologie aufbauen",
+      line3: "für ländliche Gemeinschaften.",
+      desc: "Treten Sie APTIC-R bei und arbeiten Sie gemeinsam mit ländlichen Gemeinschaften, um praktische digitale und Low-Tech-Lösungen für Landwirtschaft, Bildung und lokales Unternehmertum zu entwickeln.",
+      cta1: "JETZT BEWERBEN",
+      cta2: "MISSION ENTDECKEN",
+      stat1Label: "6-12 Monate",
+      stat1Sub: "Missionsdauer",
+      stat2Label: "Agbélouvé",
+      stat2Sub: "Togo, Westafrika",
+      stat3Label: "FR · EN · DE",
+      stat3Sub: "Sprachen",
+    },
+    dualPath: {
+      tagLine: "WÄHLEN SIE IHREN WEG",
+      titleLine: "Wie möchten Sie sich engagieren?",
+      volunteerTag: "Für Freiwillige",
+      volunteerTitle: "Ich möchte Freiwilliger werden",
+      volunteerDesc:
+        "Studierende, Absolventen, Berufseinsteiger. Bewerben Sie sich für eine 6-12-monatige Freiwilligenmission in Togo und arbeiten Sie direkt mit ländlichen Gemeinschaften.",
+      volunteerCta: "JETZT BEWERBEN",
+      orgTag: "Für Organisationen",
+      orgTitle: "Ich vertrete eine Organisation",
+      orgDesc:
+        "Europäische Entsendeorganisationen. Erkunden Sie eine langfristige Partnerschaft zur Entsendung von Freiwilligen zu APTIC-R in Togo.",
+      orgCta: "PARTNER WERDEN",
+    },
+    whyMission: {
+      tag: "Warum APTIC-R",
+      title: "Warum als Freiwilliger bei APTIC-R?",
+      cards: [
+        {
+          title: "Ländliche Wirkung",
+          desc: "Arbeiten Sie direkt mit ländlichen Gemeinschaften in Agbélouvé. Ihre Beiträge lösen echte Probleme, die das tägliche Leben beeinflussen.",
+        },
+        {
+          title: "Digitale Innovation",
+          desc: "Nutzen Sie Technologie zur Lösung konkreter Herausforderungen. Von SMS-Systemen bis zu Offline-Apps - finden Sie kreative Lösungen, die wirklich funktionieren.",
+        },
+        {
+          title: "Einfache Technologie",
+          desc: "Gestalten Sie erschwingliche, reparierbare und zugängliche Lösungen. Innovation muss nicht komplex sein - sie muss nützlich sein.",
+        },
+        {
+          title: "Kulturaustausch",
+          desc: "Entdecken Sie Togo und lernen Sie von lokalen Gemeinschaften. Bauen Sie dauerhafte Beziehungen auf, die professionelle Grenzen überschreiten.",
+        },
+      ],
+    },
+    challenge: {
+      tag: "Die Herausforderung",
+      title: "Technologie sollte für alle zugänglich sein.",
+      p1: "In vielen ländlichen Gemeinschaften ist der Zugang zu Informationen, digitalen Werkzeugen und geeigneten Technologien noch begrenzt. APTIC-R glaubt, dass Innovation nicht immer komplex oder teuer sein muss.",
+      p2: "Manchmal kann ein einfaches SMS-System, eine Offline-Anwendung, ein kostengünstiger Sensor oder ein digitales Trainingsprogramm den entscheidenden Unterschied machen.",
+      steps: [
+        {
+          tag: "PROBLEM",
+          title: "Reale Feldbedingungen",
+          text: "Ländlichen Gemeinden fehlen erschwingliche, reparierbare digitale Werkzeuge und zuverlässige landwirtschaftliche Daten.",
+        },
+        {
+          tag: "INNOVATION",
+          title: "Zugängliche Co-Kreation",
+          text: "Gemeinsame Entwicklung pragmatischer Lösungen mit Bauern - SMS-Systeme, Offline-Apps und Low-Cost-Sensoren.",
+        },
+        {
+          tag: "IMPACT",
+          title: "Autonome Gemeinden",
+          text: "Open-Source-Dokumentation und Schulung lokaler Multiplikatoren für eine nachhaltige Nutzung der Technologie.",
+        },
+      ],
+    },
+    mission: {
+      tag: "Ihre Mission",
+      title: "Was Sie vor Ort tun werden",
+      steps: [
+        {
+          title: "Felddiagnose",
+          desc: "Treffen Sie Bauern und Genossenschaften. Verstehen Sie lokale Bedürfnisse, bevor eine Lösung vorgeschlagen wird.",
+        },
+        {
+          title: "Ländliche Hackathons",
+          desc: "Organisieren Sie Co-Creation-Workshops mit Gemeindemitgliedern, Freiwilligen und lokalen Innovatoren.",
+        },
+        {
+          title: "Prototyping",
+          desc: "Entwickeln und bauen Sie Low-Tech-Lösungen: Sensoren, Apps, SMS-Tools oder Schulungsprogramme.",
+        },
+        {
+          title: "Schulung",
+          desc: "Befähigen Sie lokale Vermittler. Übertragen Sie Fähigkeiten, damit die Gemeinschaft Lösungen eigenständig betreiben kann.",
+        },
+        {
+          title: "Open-Source-Dokumentation",
+          desc: "Dokumentieren Sie jede entwickelte Lösung in reproduzierbaren, frei zugänglichen Formaten.",
+        },
+      ],
+    },
+    build: {
+      tag: "Projekte",
+      title: "Was könnten Sie entwickeln?",
+      featured: {
+        badge: "IoT & Sensoren",
+        title: "Intelligente Bewässerung",
+        desc: "Entwurf und Einsatz kostengünstiger Feuchtigkeitssensoren zur Wasseroptimierung in der Trockenzeit. Gebaut mit Arduino und lokalen Materialien.",
+      },
+      cards: [
+        { title: "Wetterwarnsystem", badge: "2G / SMS" },
+        { title: "Offline-Mobile-Tools", badge: "Mobile" },
+        { title: "Landwirtschafts-Dashboards", badge: "Data Vis" },
+        { title: "Lagerverwaltung", badge: "Coop Tools" },
+      ],
+    },
+    profiles: {
+      tag: "Gesuchte Profile",
+      title: "Könnten Sie das sein?",
+      subtitle:
+        "Wir heißen Freiwillige mit unterschiedlichsten Hintergründen willkommen. Neugier, Anpassungsfähigkeit und der Wunsch beizutragen sind am wichtigsten.",
+      cta: "EIGNUNG PRÜFEN",
+      categories: [
+        {
+          title: "Digital & IT",
+          tags: "Informatik · Webentwicklung · Mobile · Data · Cybersicherheit",
+        },
+        {
+          title: "Landwirtschaft",
+          tags: "Agronomie · Landwirtschaft · Umwelt · Ländliche Entwicklung",
+        },
+        {
+          title: "Kreativ",
+          tags: "UI/UX-Design · Grafikdesign · Inhaltserstellung · Kommunikation",
+        },
+        {
+          title: "Ingenieurwesen / Fertigung",
+          tags: "Mechanik · Elektronik · IoT · Solarenergie · Holzbearbeitung",
+        },
+      ],
+    },
+    notExpert: {
+      title: "Sie müssen nicht alles wissen.",
+      subtitle: "Es genügt, lernen zu wollen.",
+      cta: "JETZT BEWERBEN",
+      qualities: ["NEUGIERIG", "AUTONOM", "GEDULDIG", "KREATIV", "OFFEN", "TEAMPLAYER", "PRAXISORIENTIERT"],
+    },
+    week: {
+      tag: "Wöchentlicher Rhythmus",
+      title: "Eine Woche mit APTIC-R",
+      dayLabels: ["MON", "DIE", "MIT", "DON", "FRE", "SAM", "SON"],
+      days: [
+        {
+          activity: "Digitale Innovation",
+          desc: "Morgenworkshop zu lokalen digitalen Bedürfnissen. Kartierungssitzungen mit Gemeindevertretern.",
+        },
+        {
+          activity: "Feldbesuch",
+          desc: "Besuch bei Bauern, Genossenschaften, Schulen. Beobachten, zuhören, lokale Realitäten verstehen.",
+        },
+        {
+          activity: "Prototyping",
+          desc: "Praktische Machersitzung: Bauen, testen und iterieren an gemeinsam entwickelten Lösungen.",
+        },
+        {
+          activity: "Schulung",
+          desc: "Lokale Vermittler in den entwickelten Tools und Systemen schulen.",
+        },
+        {
+          activity: "Ländliches Innovationslabor",
+          desc: "Wöchentliche Präsentation: Fortschritt zeigen, Feedback sammeln, nächste Iteration planen.",
+        },
+        {
+          activity: "Kulturentdeckung",
+          desc: "Agbélouvé erkunden. Sprachkurse, Gemeinschaftsveranstaltungen, kulturelle Einblicke.",
+        },
+        {
+          activity: "Erholung",
+          desc: "Zeit für Reflexion, persönliche Projekte, Lesen oder einfach die Umgebung genießen.",
+        },
+      ],
+    },
+    lifeInTogo: {
+      tag: "Leben in Togo",
+      title: "Mehr als ein Freiwilligeneinsatz. Eine Lebenserfahrung.",
+      items: [
+        {
+          label: "Togolesische Kultur",
+          desc: "Reiche Traditionen, gastfreundliche Gemeinschaften, authentisches soziales Gefüge.",
+        },
+        {
+          label: "Tropische Umgebung",
+          desc: "Üppige Landschaften, warmes Klima, reiche landwirtschaftliche Biodiversität.",
+        },
+        {
+          label: "Gastronomie",
+          desc: "Lokale Küche, frische Produkte, gemeinsame Mahlzeiten in der Gemeinschaft.",
+        },
+        {
+          label: "Sprachen",
+          desc: "Französisch als Arbeitssprache, Ewé, Kabiyé und lokale Dialekte.",
+        },
+        {
+          label: "Menschliche Verbindungen",
+          desc: "Tiefe Beziehungen zu lokalen Familien und Genossenschaften.",
+        },
+        {
+          label: "Entdeckung",
+          desc: "Lokale Märkte, Handwerk, Zeremonien und historisches Erbe.",
+        },
+      ],
+    },
+    agbelouve: {
+      tag: "Ihr Standort",
+      title: "Agbélouvé, Togo",
+      desc: "Eine gastfreundliche Kleinstadt in der Küstenregion. Agbélouvé liegt im Herzen des landwirtschaftlichen Togos. Das APTIC-R-Büro befindet sich hier, umgeben von Bauerngemeinschaften, lokalen Genossenschaften und einem wachsenden Netzwerk digitaler Innovatoren.",
+      facts: [
+        { label: "Standort", value: "Region Maritime, Togo" },
+        {
+          label: "Umgebung",
+          value: "Tropisches Klima, landwirtschaftliches Gebiet",
+        },
+        { label: "Zugang", value: "Nah an Lomé (~80 km)" },
+        { label: "Landwirtschaft", value: "Subsistenz- & Nutzpflanzen" },
+        { label: "Gemeinschaft", value: "Aktive lokale Genossenschaften" },
+        {
+          label: "Lebensbedingungen",
+          value: "Unterkunft wird vor Ort gestellt",
+        },
+      ],
+    },
+    support: {
+      tag: "Ihre Unterstützung",
+      title: "Sie werden nicht allein sein.",
+      subtitle:
+        "APTIC-R bietet allen Freiwilligen während ihrer gesamten Mission ein vollständiges Unterstützungsrahmen.",
+      tableTitle: "Was ist inbegriffen?",
+      tableSummary: "Rahmenübersicht",
+      statusConfirmed: "Bestätigt",
+      statusPending: "Ausstehend",
+      statusVariable: "Variabel",
+      items: [
+        { label: "Unterkunft", value: "Gestellt" },
+        { label: "Verpflegung", value: "Lokale Vereinbarungen" },
+        { label: "Transport", value: "Lokale Reisen abgedeckt" },
+        { label: "Mentoring", value: "APTIC-R Mentor" },
+        { label: "Kommunikation", value: "Lokale SIM + Internet" },
+        { label: "Sicherheit", value: "Vor-Ort-Unterstützung" },
+        { label: "Gesundheit", value: "Ankunftsorientierung" },
+        { label: "Begleitung", value: "Volle Missionsunterstützung" },
+      ],
+      tableItems: [
+        ["Missionsdauer", "6 bis 12 Monate", "Bestätigt"],
+        ["Unterkunft", "Lokale Details ausstehend", "Ausstehend"],
+        ["Verpflegung", "Lokale Details ausstehend", "Ausstehend"],
+        ["Lokaler Transport", "Lokale Details ausstehend", "Ausstehend"],
+        ["Versicherung", "Programmabhängig", "Variabel"],
+        ["Internationale Reise", "Programmabhängig", "Variabel"],
+        ["Visum", "Programmabhängig", "Variabel"],
+        ["Taschengeld", "Programmabhängig", "Variabel"],
+        ["Lokales Mentoring", "Ja - feste Kontaktperson", "Bestätigt"],
+      ],
+    },
+    appProcess: {
+      tag: "Wie bewerben",
+      title: "Der Bewerbungsprozess",
+      stepLabel: "Schritt",
+      cta: "BEWERBUNG STARTEN",
+      steps: [
+        {
+          title: "Entdecken",
+          desc: "Erkunden Sie die Mission, die Projekte und das tägliche Leben in Agbélouvé.",
+        },
+        {
+          title: "Bewerben",
+          desc: "Füllen Sie unser mehrstufiges Bewerbungsformular aus. Es dauert 15-20 Minuten.",
+        },
+        {
+          title: "Gespräch",
+          desc: "Ein Videoanruf mit dem APTIC-R-Team, um Sie besser kennenzulernen.",
+        },
+        {
+          title: "Auswahl",
+          desc: "Bewertung und Auswahl nach Profil, Motivation und Verfügbarkeit.",
+        },
+        {
+          title: "Vorbereitung",
+          desc: "Abreiseinformation, administrative Vorbereitung und kulturelle Orientierung.",
+        },
+        {
+          title: "Willkommen in Togo",
+          desc: "Ankunft in Agbélouvé, Integration und Beginn Ihrer Mission.",
+        },
+      ],
+    },
+    partners: {
+      titlePart1: "BRÜCKEN BAUEN ZWISCHEN",
+      titlePart2: "EUROPA UND TOGO",
+      tag: "Europäische Partner",
+      title: "EUROPÄISCHE\nPARTNERSCHAFTEN",
+      desc: "Langfristige Brücken bauen\nzwischen Europa und ländlichen Gemeinden in Togo.",
+      countries: ["Frankreich", "Deutschland", "Belgien", "Europa"],
+      cta: "PARTNER WERDEN",
+    },
+    testimonials: {
+      tag: "Freiwilligengeschichten",
+      title: "Stimmen aus dem Feld",
+      disclaimer:
+        "Diese Erfahrungsberichte sind illustrativ. Inhalte sind durch APTIC-R zu validieren und zu ersetzen.",
+      cards: [
+        {
+          name: "Jonas M.",
+          country: "Deutschland",
+          role: "Digitale Innovation",
+          quote:
+            "Die Arbeit mit den Bauern an ihrem SMS-Wetterwarnsystem war anders als alles, was ich in einem Uni-Labor gemacht hatte. Reale Bedingungen inspirieren zu kreativen Low-Tech-Lösungen.",
+          initials: "JM",
+        },
+        {
+          name: "Claire D.",
+          country: "Frankreich",
+          role: "Ländliche Tech",
+          quote:
+            "Ich hatte Angst, nicht technisch genug zu sein. Aber APTIC-R hat mir gezeigt, dass Pädagogik, Zuhören und das Leiten von Workshops unverzichtbare Fähigkeiten sind.",
+          initials: "CD",
+        },
+        {
+          name: "Thomas L.",
+          country: "Belgien",
+          role: "Low-Tech Agri",
+          quote:
+            "Als Agrarstudent habe ich in 9 Monaten in Agbélouvé mehr über nachhaltiges Bodenmanagement und die Zusammenarbeit in der Gemeinschaft gelernt als während meiner gesamten Studienzeit.",
+          initials: "TL",
+        },
+      ],
+    },
+    faq: {
+      tag: "FAQ",
+      title: "Häufig gestellte Fragen",
+    },
+    finalCta: {
+      title: "Bereit, etwas zu bewirken?",
+      p1: "Ihre Fähigkeiten können zu wertvollen Werkzeugen für ländliche Gemeinschaften werden.",
+      p2: "Ihre Erfahrung kann zu einer Chance für jemand anderen werden.",
+      p3: "Ihr nächstes Abenteuer könnte in Togo beginnen.",
+      cta1: "JETZT BEWERBEN",
+      cta2: "PARTNER WERDEN",
+    },
+    footer: {
+      tagline: "Association pour la Promotion des TIC en milieu Rural au Togo.",
+      tagline2:
+        "Wir verbinden europäische Freiwillige mit ländlichen Gemeinschaften, um praktische digitale und Low-Tech-Lösungen gemeinsam zu entwickeln.",
+      nav: "Navigation",
+      contact: "Kontakt",
+      email: "E-Mail",
+      emailValue: "contact@apticr.tg",
+      emailNote: "(noch festzulegen)",
+      address: "Adresse",
+      addressValue: "Agbélouvé, Togo",
+      languages: "Sprachen",
+      privacy: "Datenschutzerklärung",
+      terms: "Nutzungsbedingungen",
+      cookies: "Cookie-Richtlinie",
+      copyright:
+        "© 2025 APTIC-R - Association pour la Promotion des TIC en milieu Rural au Togo.",
+    },
+  },
+} as const
+
+export default translations

@@ -1,0 +1,12 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/[lang]/apply/page": "/[lang]/apply",
+  "/[lang]/page": "/[lang]",
+  "/[lang]/partners/page": "/[lang]/partners",
+  "/[lang]/admin/applications/[id]/page": "/[lang]/admin/applications/[id]",
+  "/[lang]/admin/dashboard/page": "/[lang]/admin/dashboard",
+  "/[lang]/admin/login/page": "/[lang]/admin/login",
+  "/[lang]/admin/analytics/page": "/[lang]/admin/analytics",
+  "/[lang]/admin/applications/page": "/[lang]/admin/applications",
+  "/[lang]/admin/page": "/[lang]/admin"
+}

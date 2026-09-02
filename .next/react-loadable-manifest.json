@@ -1,0 +1,28 @@
+{
+  "..\\node_modules\\next\\dist\\client\\index.js -> ../pages/_app": {
+    "id": 472,
+    "files": [
+      "static/chunks/472.a3826d29d6854395.js"
+    ]
+  },
+  "..\\node_modules\\next\\dist\\client\\index.js -> ../pages/_error": {
+    "id": 9341,
+    "files": [
+      "static/chunks/341.d565adf9ef3b7373.js"
+    ]
+  },
+  "views\\ApplyPage.tsx -> ../lib/actions": {
+    "id": 2542,
+    "files": [
+      "static/chunks/958.16561fcaebd0d6db.js",
+      "static/chunks/542.38bbe63138c0cd78.js"
+    ]
+  },
+  "views\\PartnerPage.tsx -> ../lib/actions": {
+    "id": 2542,
+    "files": [
+      "static/chunks/958.16561fcaebd0d6db.js",
+      "static/chunks/542.38bbe63138c0cd78.js"
+    ]
+  }
+}

@@ -1,0 +1,58 @@
+"use client"
+
+import { usePathname, useRouter } from "next/navigation"
+import AdminLayout from "@/views/admin/AdminLayout"
+import type { Page } from "@/types"
+
+export default function AdminLayoutRoute({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const pathname = usePathname()
+  const router = useRouter()
+
+  const lang = pathname.split("/")[1] || "fr"
+
+  let currentPage: Page = "admin-dashboard"
+  if (pathname?.includes("/analytics")) currentPage = "admin-analytics"
+  else if (pathname?.includes("/applications"))
+    currentPage = "admin-applications"
+  else if (pathname?.includes("/login")) return <>{children}</>
+
+  const handleNavigate = (page: Page) => {
+    switch (page) {
+      case "home":
+        router.push(`/${lang}`)
+        break
+      case "admin-dashboard":
+        router.push(`/${lang}/admin/dashboard`)
+        break
+      case "admin-applications":
+        router.push(`/${lang}/admin/applications`)
+        break
+      case "admin-analytics":
+        router.push(`/${lang}/admin/analytics`)
+        break
+      case "admin-login":
+        router.push(`/${lang}/admin/login`)
+        break
+      default:
+        break
+    }
+  }
+
+  const handleLogout = () => {
+    router.push(`/${lang}/admin/login`)
+  }
+
+  return (
+    <AdminLayout
+      currentPage={currentPage}
+      navigate={handleNavigate}
+      onLogout={handleLogout}
+    >
+      {children}
+    </AdminLayout>
+  )
+}

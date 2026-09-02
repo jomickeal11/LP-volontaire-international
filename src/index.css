@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-serif: 'DM Serif Display', Georgia, serif;
+  --font-sans: 'Outfit', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+  /* Legacy tokens */
+  --color-blue-inst: #1B4F7C;
+  --color-blue-hover: #163f63;
+  --color-blue-light: #3A8BC4;
+  --color-blue-pale: #E8F2FA;
+  --color-green-nat: #2E7D52;
+  --color-green-hover: #256643;
+  --color-green-pale: #E6F4EC;
+  --color-bg-light: #F4F6F9;
+  --color-bg-mid: #EEF1F6;
+  --color-text-dark: #1A2B3C;
+  --color-text-mid: #4A5A6A;
+  --color-text-light: #7A8A9A;
+  --color-border: #D1DCE5;
+  --color-border-light: #E8ECF2;
+
+  /* Pikkas theme tokens */
+  --color-pikkas-bg: #FAFAFA;
+  --color-pikkas-text: #1A1A1A;
+  --color-pikkas-green: #319B55;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: #1A2B3C;
+  background: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*:hover {
+  scrollbar-color: #D1DCE5 transparent;
+}

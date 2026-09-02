@@ -1,0 +1,268 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum CandidateStatus {
+  NEW
+  REVIEW
+  SELECTED
+  INTERVIEW
+  CHOSEN
+  PARTNER_VALIDATION
+  PREPARATION
+  ARRIVED
+  COMPLETED
+  REJECTED
+  ARCHIVED
+}
+
+enum ExperienceDuration {
+  LESS_THAN_1_YEAR
+  ONE_TO_TWO_YEARS
+  TWO_TO_FIVE_YEARS
+  FIVE_PLUS_YEARS
+}
+
+enum MissionDuration {
+  SIX_MONTHS
+  NINE_MONTHS
+  TWELVE_MONTHS
+}
+
+enum LanguageCode {
+  FR
+  EN
+  DE
+}
+
+enum DocumentType {
+  CV
+  MOTIVATION_LETTER
+  PORTFOLIO
+  PASSPORT
+  VISA
+}
+
+// ─── 1. CANDIDATS (Profil persistant) ─────────────────────────────────────────
+model Candidate {
+  id           String        @id @default(cuid())
+  firstName    String
+  lastName     String
+  email        String        @unique
+  phone        String?
+  country      String
+  city         String?
+  dateOfBirth  DateTime
+  
+  // Relations
+  applications Application[]
+  
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([email])
+  @@index([country])
+}
+
+// ─── 2. CANDIDATURES (Applications aux missions) ──────────────────────────────
+model Application {
+  id                 String                     @id @default(cuid())
+  referenceNumber    String                     @unique // Ex: APTIC-2025-001
+  candidateId        String
+  candidate          Candidate                  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  
+  status             CandidateStatus            @default(NEW)
+  lang               LanguageCode               @default(FR)
+  
+  // Profil académique & professionnel
+  education          String?
+  fieldOfStudy       String?
+  profession         String?
+  experienceLevel    ExperienceDuration?
+  digitalSkillLevel  String?
+  
+  // Disponibilité & Mission
+  arrivalDate        DateTime?
+  duration           MissionDuration            @default(SIX_MONTHS)
+  
+  // Motivation & Expérience projet
+  motivation         String                     @db.Text
+  projectExperience  String?                    @db.Text
+  
+  // Source & Consentement RGPD
+  source             String?
+  consentData        Boolean                    @default(false)
+  
+  // Relations
+  skills             ApplicationSkill[]
+  documents          Document[]
+  notes              ApplicationNote[]
+  statusHistory      ApplicationStatusHistory[]
+  
+  assignedToId       String?
+  assignedTo         User?                      @relation("AssignedApplications", fields: [assignedToId], references: [id])
+  
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+
+  @@index([status])
+  @@index([candidateId])
+  @@index([referenceNumber])
+}
+
+// ─── 3. COMPÉTENCES (Skills normalisés) ───────────────────────────────────────
+model Skill {
+  id           String             @id @default(cuid())
+  slug         String             @unique
+  nameFr       String
+  nameEn       String
+  nameDe       String
+  category     String             // IT, AGRICULTURE, CREATIVE, ENGINEERING
+  applications ApplicationSkill[]
+}
+
+model ApplicationSkill {
+  applicationId String
+  skillId       String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  skill         Skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([applicationId, skillId])
+}
+
+// ─── 4. DOCUMENTS (Métadonnées de stockage sécurisé) ──────────────────────────
+model Document {
+  id            String       @id @default(cuid())
+  applicationId String
+  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  
+  type          DocumentType @default(CV)
+  originalName  String
+  storageKey    String       // Clé de stockage objet privé (ex: s3://apticr-docs/...)
+  fileUrl       String?      // URL signée temporaire
+  mimeType      String
+  size          Int          // Taille en octets
+  
+  createdAt     DateTime     @default(now())
+}
+
+// ─── 5. HISTORIQUE DES STATUTS (Audit Trail) ──────────────────────────────────
+model ApplicationStatusHistory {
+  id            String          @id @default(cuid())
+  applicationId String
+  application   Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  
+  fromStatus    CandidateStatus
+  toStatus      CandidateStatus
+  changedById   String?
+  changedBy     User?           @relation(fields: [changedById], references: [id])
+  changedByName String          @default("Système")
+  note          String?         @db.Text
+  changedAt     DateTime        @default(now())
+
+  @@index([applicationId])
+}
+
+// ─── 6. NOTES INTERNES ÉQUIPE ────────────────────────────────────────────────
+model ApplicationNote {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  
+  authorId      String?
+  author        User?       @relation(fields: [authorId], references: [id])
+  authorName    String      @default("Admin APTIC-R")
+  content       String      @db.Text
+  createdAt     DateTime    @default(now())
+
+  @@index([applicationId])
+}
+
+// ─── 7. PARTENAIRES & DEMANDES ORGANISATIONS ─────────────────────────────────
+model Partner {
+  id              String           @id @default(cuid())
+  orgName         String
+  country         String
+  website         String?
+  orgType         String           // NGO, University, Government Agency, Foundation
+  requests        PartnerRequest[]
+  documents       PartnerDocument[]
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([orgName])
+  @@index([country])
+}
+
+model PartnerRequest {
+  id              String            @id @default(cuid())
+  partnerId       String?
+  partner         Partner?          @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  
+  contactPerson   String
+  email           String
+  phone           String?
+  volunteerCount  String?
+  targetCountries String?
+  programme       String?
+  message         String            @db.Text
+  consent         Boolean           @default(false)
+  status          String            @default("PENDING") // PENDING, REVIEW, CONTACTED, PARTNER, ARCHIVED
+  
+  documents       PartnerDocument[]
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model PartnerDocument {
+  id               String          @id @default(cuid())
+  partnerId        String?
+  partner          Partner?        @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  partnerRequestId String?
+  partnerRequest   PartnerRequest? @relation(fields: [partnerRequestId], references: [id], onDelete: Cascade)
+  
+  originalName     String
+  storageKey       String
+  fileUrl          String?
+  mimeType         String
+  size             Int
+  
+  createdAt        DateTime        @default(now())
+}
+
+// ─── 8. UTILISATEURS & ADMINISTRATEURS ────────────────────────────────────────
+model User {
+  id                   String                     @id @default(cuid())
+  name                 String
+  email                String                     @unique
+  passwordHash         String
+  role                 String                     @default("ADMIN") // SUPERADMIN, COORDINATOR, REVIEWER
+  
+  assignedApplications Application[]              @relation("AssignedApplications")
+  statusChanges        ApplicationStatusHistory[]
+  notes                ApplicationNote[]
+  
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+}
+
+// ─── 9. ANALYTICS & EVENEMENTS FUNNEL ─────────────────────────────────────────
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  name      String   // apply_now_click, application_started, application_submitted, etc.
+  lang      String?
+  country   String?
+  source    String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([name])
+  @@index([createdAt])
+}
