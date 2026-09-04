@@ -1,5 +1,6 @@
+"use client"
 import { useState } from "react"
-
+import { loginAction } from "@/actions/auth"
 const BLUE = "#1B4F7C"
 const TEXT_DARK = "#1A2B3C"
 const TEXT_MID = "#4A5A6A"
@@ -13,21 +14,26 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
   const [forgotSent, setForgotSent] = useState(false)
   const [showForgot, setShowForgot] = useState(false)
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       setError("Please enter your email and password.")
       return
     }
     setError("")
     setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-      if (password === "wrong") {
-        setError("Invalid email or password. Please try again.")
-      } else {
+    
+    try {
+      const result = await loginAction(email, password)
+      if (result.error) {
+        setError(result.error)
+        setLoading(false)
+      } else if (result.success) {
         onLogin()
       }
-    }, 1200)
+    } catch (err) {
+      setError("A server error occurred.")
+      setLoading(false)
+    }
   }
 
   return (

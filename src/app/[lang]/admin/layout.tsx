@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation"
 import AdminLayout from "@/views/admin/AdminLayout"
 import type { Page } from "@/types"
+import { logoutAction } from "@/actions/auth"
 
 export default function AdminLayoutRoute({
   children,
@@ -42,8 +43,10 @@ export default function AdminLayoutRoute({
     }
   }
 
-  const handleLogout = () => {
-    router.push(`/${lang}/admin/login`)
+  const handleLogout = async () => {
+    await logoutAction()
+    // Use window.location.replace to clear Next.js client cache and replace history state
+    window.location.replace(`/${lang}/admin/login`)
   }
 
   return (

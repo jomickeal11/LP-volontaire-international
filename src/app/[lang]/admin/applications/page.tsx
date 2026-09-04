@@ -1,36 +1,40 @@
-"use client"
+import AdminApplicationsClientWrapper from "./AdminApplicationsClientWrapper"
+import prisma from "@/lib/prisma"
 
-import AdminApplications from "@/views/admin/AdminApplications"
-import { useRouter } from "next/navigation"
-import type { Page } from "@/types"
+export default async function AdminApplicationsPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}) {
+  const resolvedParams = await params
+  const lang = resolvedParams.lang
 
-export default function AdminApplicationsPage() {
-  const router = useRouter()
+  const rawApplications = await prisma.application.findMany({
+    include: {
+      candidate: true,
+      skills: {
+        include: { skill: true }
+      }
+    },
+    orderBy: { createdAt: 'desc' }
+  })
 
-  const handleNavigate = (page: Page) => {
-    switch (page) {
-      case "home":
-        router.push("/")
-        break
-      case "admin-dashboard":
-        router.push("/admin/dashboard")
-        break
-      case "admin-analytics":
-        router.push("/admin/analytics")
-        break
-      default:
-        break
-    }
-  }
-
-  const handleSelectCandidate = (id: string) => {
-    router.push(`/admin/applications/${id}`)
-  }
+  // Format to match the view's expected type
+  const applications = rawApplications.map(app => ({
+    id: app.id,
+    firstName: app.candidate.firstName,
+    lastName: app.candidate.lastName,
+    email: app.candidate.email,
+    country: app.candidate.country,
+    appliedAt: app.createdAt.toISOString().split('T')[0],
+    duration: app.duration === 'SIX_MONTHS' ? '6 months' : app.duration === 'NINE_MONTHS' ? '9 months' : '12 months',
+    status: app.status as any,
+    fieldOfStudy: app.fieldOfStudy || "",
+    language: app.lang,
+    skills: app.skills.map(s => s.skill.nameEn)
+  }))
 
   return (
-    <AdminApplications
-      navigate={handleNavigate}
-      onSelectCandidate={handleSelectCandidate}
-    />
+    <AdminApplicationsClientWrapper applications={applications} />
   )
 }

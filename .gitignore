@@ -1,20 +1,26 @@
 node_modules/
+.next/
 dist/
 build/
 .cache/
 .env*
-.vite/
-vite.config.*.timestamp-*
+
+# TypeScript
 *.tsbuildinfo
+
+# Logs
 *-debug.log*
 logs/
 *.log
+
+# Temp
 .claude-replay.*
 .tmp-*
 
-# Platform-managed agentplat state, not project source. In the
-# client-initiated single-repo workspace layout (make's `Path: "."` spec) the
-# repo root IS the workspace root, so these land inside this repo rather than
-# beside it.
+# Platform-managed agentplat state
 /.plugins/
 /.opencode-skills/
+
+# Documents internes
+ROADMAP_ET_ARCHITECTURE_TECHNIQUE.md
+CAHIER DES CHARGES LANDING PAGE.01.pdf

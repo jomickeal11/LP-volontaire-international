@@ -152,6 +152,16 @@ const translations = {
         },
       ],
     },
+    eligibility: {
+      title: "Check your eligibility",
+      q1: "Does your field match one of the sought profiles?",
+      q2: "Are you available for a 6 to 12-month mission?",
+      q3: "Are you ready to work directly with rural communities?",
+      q4: "Are you interested in an experience in Togo?",
+      q5: "Are you willing to learn and work as a team?",
+      successMsg: "Your profile seems to match the mission.",
+      cta: "START YOUR APPLICATION",
+    },
     notExpert: {
       title: "You don't need to know everything.",
       subtitle: "All it takes is the desire to learn.",
@@ -344,6 +354,40 @@ const translations = {
     faq: {
       tag: "FAQ",
       title: "Frequently asked questions",
+      items: [
+        {
+          q: "Do I need to speak French?",
+          a: "French is the official working language in Togo and will be very helpful on a daily basis. Some knowledge of French is recommended, though we also use English for technical work and international collaboration.",
+        },
+        {
+          q: "Do I need previous volunteer experience?",
+          a: "No prior volunteer experience is required. Motivation, autonomy, cultural sensitivity and a genuine desire to learn with rural communities are what matter most.",
+        },
+        {
+          q: "Do I need to be an IT engineer?",
+          a: "Not necessarily. APTIC-R welcomes candidates from diverse backgrounds: agronomy, communication, design, science, and engineering. Low-tech innovation requires pedagogical and organizational skills as much as technical ones.",
+        },
+        {
+          q: "Where will I live during the mission?",
+          a: "Accommodation arrangements in Agbélouvé are currently being finalized according to the specific programme. (À préciser)",
+        },
+        {
+          q: "How long does a mission last?",
+          a: "Standard mission durations range from 6 to 12 months (e.g. 6, 9, or 12 months) depending on project scope and candidate availability.",
+        },
+        {
+          q: "What about international flights, visa, and insurance?",
+          a: "Travel costs, visa, and insurance coverage depend on the sending framework and European partner program (e.g. weltwärts, European Solidarity Corps). (Selon le programme)",
+        },
+        {
+          q: "Will I have a local mentor in Agbélouvé?",
+          a: "Yes. Every international volunteer is paired with a dedicated local mentor from APTIC-R for continuous accompaniment, cultural integration, and mission follow-up.",
+        },
+        {
+          q: "What happens after I submit my application?",
+          a: "Applications are reviewed within 1 to 2 weeks. Selected candidates will be invited for an online video interview with the APTIC-R coordination team.",
+        },
+      ],
     },
     finalCta: {
       title: "Ready to make an impact?",
@@ -523,6 +567,16 @@ const translations = {
           tags: "Mécanique · Électronique · IoT · Énergie solaire · Menuiserie",
         },
       ],
+    },
+    eligibility: {
+      title: "Vérifiez votre éligibilité",
+      q1: "Votre domaine correspond-il à l'un des profils recherchés ?",
+      q2: "Êtes-vous disponible pour une mission de 6 à 12 mois ?",
+      q3: "Êtes-vous prêt à travailler directement avec des communautés rurales ?",
+      q4: "Êtes-vous intéressé par une expérience au Togo ?",
+      q5: "Avez-vous envie d'apprendre et de travailler en équipe ?",
+      successMsg: "Votre profil semble correspondre à la mission.",
+      cta: "COMMENCER VOTRE CANDIDATURE",
     },
     notExpert: {
       title: "Vous n'êtes pas obligé de tout savoir.",
@@ -719,6 +773,40 @@ const translations = {
     faq: {
       tag: "FAQ",
       title: "Questions fréquentes",
+      items: [
+        {
+          q: "Dois-je parler français ?",
+          a: "Le français est la langue de travail officielle au Togo et sera très utile au quotidien. Des bases en français sont recommandées, bien que nous utilisions aussi l'anglais pour le travail technique et la collaboration internationale.",
+        },
+        {
+          q: "Ai-je besoin d'une expérience préalable en volontariat ?",
+          a: "Aucune expérience préalable n'est requise. La motivation, l'autonomie, la sensibilité culturelle et un réel désir d'apprendre avec les communautés rurales sont les éléments les plus importants.",
+        },
+        {
+          q: "Dois-je être ingénieur informaticien ?",
+          a: "Pas nécessairement. APTIC-R accueille des candidats d'horizons divers : agronomie, communication, design, sciences et ingénierie. L'innovation low-tech requiert autant de compétences pédagogiques et organisationnelles que de compétences techniques.",
+        },
+        {
+          q: "Où vais-je vivre pendant la mission ?",
+          a: "Les modalités d'hébergement à Agbélouvé sont actuellement en cours de finalisation selon le programme spécifique.",
+        },
+        {
+          q: "Combien de temps dure une mission ?",
+          a: "La durée standard des missions varie de 6 à 12 mois (ex. 6, 9 ou 12 mois) selon l'envergure du projet et la disponibilité du candidat.",
+        },
+        {
+          q: "Qu'en est-il des vols internationaux, du visa et de l'assurance ?",
+          a: "Les frais de voyage, le visa et la couverture d'assurance dépendent de la structure d'envoi et du programme partenaire européen (ex. weltwärts, Corps Européen de Solidarité).",
+        },
+        {
+          q: "Aurai-je un mentor local à Agbélouvé ?",
+          a: "Oui. Chaque volontaire international est jumelé avec un mentor local dédié d'APTIC-R pour un accompagnement continu, l'intégration culturelle et le suivi de la mission.",
+        },
+        {
+          q: "Que se passe-t-il après avoir soumis ma candidature ?",
+          a: "Les candidatures sont examinées dans un délai de 1 à 2 semaines. Les candidats retenus seront invités à un entretien vidéo en ligne avec l'équipe de coordination d'APTIC-R.",
+        },
+      ],
     },
     finalCta: {
       title: "Prêt à avoir un impact ?",
@@ -898,6 +986,16 @@ const translations = {
           tags: "Mechanik · Elektronik · IoT · Solarenergie · Holzbearbeitung",
         },
       ],
+    },
+    eligibility: {
+      title: "Prüfen Sie Ihre Eignung",
+      q1: "Passt Ihr Bereich zu einem der gesuchten Profile?",
+      q2: "Stehen Sie für einen 6- bis 12-monatigen Einsatz zur Verfügung?",
+      q3: "Sind Sie bereit, direkt mit ländlichen Gemeinschaften zusammenzuarbeiten?",
+      q4: "Sind Sie an einer Erfahrung in Togo interessiert?",
+      q5: "Sind Sie lern- und teamfähig?",
+      successMsg: "Ihr Profil scheint zur Mission zu passen.",
+      cta: "BEWERBUNG STARTEN",
     },
     notExpert: {
       title: "Sie müssen nicht alles wissen.",
@@ -1097,6 +1195,40 @@ const translations = {
     faq: {
       tag: "FAQ",
       title: "Häufig gestellte Fragen",
+      items: [
+        {
+          q: "Muss ich Französisch sprechen?",
+          a: "Französisch ist die offizielle Arbeitssprache in Togo und im Alltag sehr hilfreich. Grundkenntnisse in Französisch werden empfohlen, obwohl wir für technische Arbeiten und internationale Zusammenarbeit auch Englisch verwenden.",
+        },
+        {
+          q: "Brauche ich vorherige Freiwilligenerfahrung?",
+          a: "Es ist keine vorherige Freiwilligenerfahrung erforderlich. Motivation, Selbstständigkeit, kulturelle Sensibilität und der echte Wunsch, mit ländlichen Gemeinschaften zu lernen, sind am wichtigsten.",
+        },
+        {
+          q: "Muss ich IT-Ingenieur sein?",
+          a: "Nicht unbedingt. APTIC-R heißt Kandidaten aus verschiedenen Bereichen willkommen: Agronomie, Kommunikation, Design, Naturwissenschaften und Ingenieurwesen. Low-Tech-Innovation erfordert ebenso pädagogische und organisatorische wie technische Fähigkeiten.",
+        },
+        {
+          q: "Wo werde ich während des Einsatzes leben?",
+          a: "Die Unterbringung in Agbélouvé wird derzeit je nach spezifischem Programm finalisiert.",
+        },
+        {
+          q: "Wie lange dauert ein Einsatz?",
+          a: "Standardeinsätze dauern in der Regel 6 bis 12 Monate (z. B. 6, 9 oder 12 Monate), abhängig vom Umfang des Projekts und der Verfügbarkeit der Kandidaten.",
+        },
+        {
+          q: "Was ist mit internationalen Flügen, Visum und Versicherung?",
+          a: "Reisekosten, Visum und Versicherungsschutz hängen von der Entsendeorganisation und dem europäischen Partnerprogramm (z. B. weltwärts, Europäisches Solidaritätskorps) ab.",
+        },
+        {
+          q: "Werde ich einen lokalen Mentor in Agbélouvé haben?",
+          a: "Ja. Jeder internationale Freiwillige wird mit einem engagierten lokalen Mentor von APTIC-R für kontinuierliche Begleitung, kulturelle Integration und Einsatzbetreuung zusammengebracht.",
+        },
+        {
+          q: "Was passiert, nachdem ich meine Bewerbung eingereicht habe?",
+          a: "Bewerbungen werden innerhalb von 1 bis 2 Wochen geprüft. Ausgewählte Kandidaten werden zu einem Online-Video-Interview mit dem Koordinationsteam von APTIC-R eingeladen.",
+        },
+      ],
     },
     finalCta: {
       title: "Bereit, etwas zu bewirken?",

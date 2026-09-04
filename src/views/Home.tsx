@@ -40,6 +40,7 @@ import {
   QuoteIcon,
   PlusIcon,
 } from "../components/Icons"
+import EligibilityModal from "../components/EligibilityModal"
 
 interface HomeProps {
   lang: Language
@@ -56,15 +57,27 @@ function Badge({
 }) {
   return (
     <div
-      className={`flex items-center gap-3 mb-6 ${
+      className={`flex items-center gap-2 mb-6 ${
         centered ? "justify-center" : ""
       }`}
     >
-      <div
-        className="w-2.5 h-2.5 rounded-full"
-        style={{ backgroundColor: "#35A85A" }}
-      />
-      <span className="text-xs font-bold uppercase tracking-[0.12em] text-[#174F7A]">
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 12 12"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="flex-shrink-0"
+      >
+        <path
+          d="M4 11H8 M6 11V5 M6 5L2.5 2 M6 5L9.5 2"
+          stroke="#35A85A"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-[#174F7A]">
         {text}
       </span>
     </div>
@@ -156,6 +169,8 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
                 backgroundColor: "transparent",
                 color: "#FFFFFF",
                 border: "1px solid rgba(255,255,255,0.55)",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
               }}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.backgroundColor =
@@ -367,14 +382,14 @@ function TheChallenge({ t }: { t: TKey }) {
                   <div className="flex flex-col gap-3">
                     <span
                       className="text-sm font-black uppercase tracking-[0.2em]"
-                      style={{ color: isCenter ? "#174F7A" : "#5E6B76" }}
+                      style={{ color: "#5E6B76" }}
                     >
                       {item.tag}
                     </span>
-                    <h3 className={`text-3xl lg:text-4xl ${isCenter ? 'font-black' : 'font-normal'}`} style={{ color: "#174F7A" }}>
+                    <h3 className="text-3xl lg:text-4xl font-bold" style={{ color: "#174F7A" }}>
                       {item.title}
                     </h3>
-                    <p className={`text-lg leading-relaxed ${isCenter ? 'font-bold' : 'font-medium'}`} style={{ color: isCenter ? "#174F7A" : "#5E6B76" }}>
+                    <p className="text-lg leading-relaxed font-medium" style={{ color: "#5E6B76" }}>
                       {item.text}
                     </p>
                   </div>
@@ -502,6 +517,7 @@ function ProfilesSought({
   t: TKey; navigate: (p: Page) => void
 }) {
   const p = t.profiles
+  const [isEligibilityOpen, setEligibilityOpen] = useState(false)
 
   return (
     <section className="py-24 lg:py-32 bg-[#FFFFFF] overflow-hidden">
@@ -553,17 +569,26 @@ function ProfilesSought({
           })}
         </div>
 
-        <div className="text-center">
+        <div className="text-center mt-12">
           <button
-            onClick={() => navigate("apply")}
-            className="inline-flex items-center gap-3 font-bold text-sm px-10 py-5 rounded-xl text-white transition-all hover:scale-105"
-            style={{ backgroundColor: "#35A85A" }}
+            onClick={() => setEligibilityOpen(true)}
+            className="inline-flex items-center gap-2 font-bold text-[13px] uppercase tracking-wider transition-opacity hover:opacity-70"
+            style={{ color: "#174F7A" }}
           >
-            <span>{p.cta}</span>
-            <ArrowRightIcon size={18} strokeWidth={1.5} />
+            <span style={{ borderBottom: "1px solid #174F7A", paddingBottom: "2px" }}>
+              {p.cta}
+            </span>
+            <ArrowRightIcon size={16} strokeWidth={2} />
           </button>
         </div>
       </div>
+      
+      <EligibilityModal 
+        isOpen={isEligibilityOpen} 
+        onClose={() => setEligibilityOpen(false)} 
+        t={t.eligibility} 
+        navigate={navigate} 
+      />
     </section>
   )
 }
@@ -598,16 +623,6 @@ function NotAnExpert({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) 
           ))}
         </div>
 
-        <div className="text-center">
-          <button
-            onClick={() => navigate("apply")}
-            className="inline-flex items-center gap-3 font-bold text-sm px-10 py-5 rounded-xl text-white transition-all hover:scale-105"
-            style={{ backgroundColor: "#35A85A" }}
-          >
-            <span>{n.cta}</span>
-            <ArrowRightIcon size={18} strokeWidth={1.5} />
-          </button>
-        </div>
       </div>
     </section>
   )
@@ -666,7 +681,7 @@ function LifeInTogo({ t }: { t: TKey }) {
     <section className="py-24 lg:py-40 bg-[#FFFFFF]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16 lg:mb-24">
         <Badge text={l.tag} centered />
-        <h2 className="text-5xl lg:text-7xl leading-tight mt-6 mb-8 text-[#174F7A] font-['DM_Serif_Display']">
+        <h2 className="text-5xl lg:text-7xl leading-tight mt-6 mb-8 text-[#174F7A] font-['DM_Serif_Display'] font-normal">
           {l.title}
         </h2>
       </div>
@@ -1055,40 +1070,7 @@ function FAQ({ t }: { t: TKey }) {
   const f = t.faq
   const [open, setOpen] = useState<number | null>(null)
 
-  const items = [
-    {
-      q: "Do I need to speak French?",
-      a: "French is the official working language in Togo and will be very helpful on a daily basis. Some knowledge of French is recommended, though we also use English for technical work and international collaboration.",
-    },
-    {
-      q: "Do I need previous volunteer experience?",
-      a: "No prior volunteer experience is required. Motivation, autonomy, cultural sensitivity and a genuine desire to learn with rural communities are what matter most.",
-    },
-    {
-      q: "Do I need to be an IT engineer?",
-      a: "Not necessarily. APTIC-R welcomes candidates from diverse backgrounds: agronomy, communication, design, science, and engineering. Low-tech innovation requires pedagogical and organizational skills as much as technical ones.",
-    },
-    {
-      q: "Where will I live during the mission?",
-      a: "Accommodation arrangements in Agbélouvé are currently being finalized according to the specific programme. (À préciser)",
-    },
-    {
-      q: "How long does a mission last?",
-      a: "Standard mission durations range from 6 to 12 months (e.g. 6, 9, or 12 months) depending on project scope and candidate availability.",
-    },
-    {
-      q: "What about international flights, visa, and insurance?",
-      a: "Travel costs, visa, and insurance coverage depend on the sending framework and European partner program (e.g. weltwärts, European Solidarity Corps). (Selon le programme)",
-    },
-    {
-      q: "Will I have a local mentor in Agbélouvé?",
-      a: "Yes. Every international volunteer is paired with a dedicated local mentor from APTIC-R for continuous accompaniment, cultural integration, and mission follow-up.",
-    },
-    {
-      q: "What happens after I submit my application?",
-      a: "Applications are reviewed within 1 to 2 weeks. Selected candidates will be invited for an online video interview with the APTIC-R coordination team.",
-    },
-  ]
+
 
   return (
     <section id="faq" className="py-24 lg:py-32 bg-[#FFFFFF]">
@@ -1101,7 +1083,7 @@ function FAQ({ t }: { t: TKey }) {
         </div>
 
         <div className="flex flex-col gap-4">
-          {items.map((item, i) => {
+          {f.items?.map((item: { q: string; a: string }, i: number) => {
             const isOpen = open === i
             return (
               <div
@@ -1180,15 +1162,13 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
           </button>
           <button
             onClick={() => navigate("partner")}
-            className="inline-flex items-center justify-center gap-3 font-bold text-lg px-12 py-6 rounded-2xl transition-all cursor-pointer hover:bg-white/20"
+            className="inline-flex items-center justify-center gap-3 font-bold text-lg px-12 py-6 rounded-2xl transition-all cursor-pointer shadow-2xl hover:scale-105 text-white"
             style={{
-              backgroundColor: "rgba(255,255,255,0.1)",
-              color: "white",
-              border: "2px solid rgba(255,255,255,0.3)",
-              backdropFilter: "blur(12px)",
+              backgroundColor: "#174F7A",
             }}
           >
             {fc.cta2}
+            <ArrowRightIcon size={18} strokeWidth={1.5} />
           </button>
         </div>
       </div>

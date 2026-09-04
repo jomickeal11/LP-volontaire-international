@@ -1,39 +1,53 @@
-"use client"
+import AdminCandidateDetailWrapper from "./AdminCandidateDetailWrapper"
+import prisma from "@/lib/prisma"
+import { notFound } from "next/navigation"
 
-import { use } from "react"
-import AdminCandidateDetail from "@/views/admin/AdminCandidateDetail"
-import { useRouter } from "next/navigation"
-import type { Page } from "@/types"
-
-export default function CandidateDetailPage({
+export default async function CandidateDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
-  const router = useRouter()
-  const resolvedParams = use(params)
-
-  const handleNavigate = (page: Page) => {
-    switch (page) {
-      case "home":
-        router.push("/")
-        break
-      case "admin-applications":
-        router.push("/admin/applications")
-        break
-      case "admin-dashboard":
-        router.push("/admin/dashboard")
-        break
-      default:
-        router.push("/admin/applications")
-        break
+  const resolvedParams = await params
+  
+  const application = await prisma.application.findUnique({
+    where: { id: resolvedParams.id },
+    include: {
+      candidate: true,
+      skills: {
+        include: { skill: true }
+      },
+      notes: true,
+      statusHistory: true
     }
+  })
+
+  if (!application) {
+    notFound()
+  }
+
+  // Serialize Dates to strings before passing to Client Component
+  const applicationData = {
+    ...application,
+    createdAt: application.createdAt.toISOString(),
+    updatedAt: application.updatedAt.toISOString(),
+    arrivalDate: application.arrivalDate?.toISOString() || null,
+    candidate: {
+      ...application.candidate,
+      dateOfBirth: application.candidate.dateOfBirth.toISOString(),
+      createdAt: application.candidate.createdAt.toISOString(),
+      updatedAt: application.candidate.updatedAt.toISOString(),
+    },
+    statusHistory: application.statusHistory.map((h: any) => ({
+      ...h,
+      changedAt: h.changedAt.toISOString(),
+    })),
+    notes: application.notes.map((n: any) => ({
+      ...n,
+      createdAt: n.createdAt.toISOString(),
+    }))
   }
 
   return (
-    <AdminCandidateDetail
-      candidateId={resolvedParams.id}
-      navigate={handleNavigate}
-    />
+    <AdminCandidateDetailWrapper application={applicationData} />
   )
 }

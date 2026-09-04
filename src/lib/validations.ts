@@ -9,42 +9,44 @@ export const candidateApplicationSchema = z.object({
   phone: z.string().optional(),
   country: z.string().min(2, "Veuillez sélectionner un pays"),
   city: z.string().optional(),
-  dob: z.string().min(4, "Veuillez renseigner votre date de naissance"),
+  dob: z
+    .string()
+    .min(1, "Veuillez renseigner votre date de naissance")
+    .refine((val) => !isNaN(Date.parse(val)), "Date de naissance invalide"),
 
   education: z.string().optional(),
   fieldOfStudy: z.string().optional(),
   profession: z.string().optional(),
-  experience: z.string().optional(),
+  experience: z.enum([
+    "LESS_THAN_1_YEAR",
+    "ONE_TO_TWO_YEARS",
+    "TWO_TO_FIVE_YEARS",
+    "FIVE_PLUS_YEARS",
+  ]).optional(),
+
+  digitalSkillLevel: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]).optional(),
 
   skills: z
     .array(z.string())
     .min(1, "Veuillez sélectionner au moins une compétence"),
 
   arrivalDate: z.string().optional(),
-  duration: z
-    .enum([
-      "6 months",
-      "9 months",
-      "12 months",
-      "6 mois",
-      "9 mois",
-      "12 mois",
-      "6 Monate",
-      "9 Monate",
-      "12 Monate",
-    ])
-    .default("6 months"),
+  duration: z.enum(["SIX_MONTHS", "NINE_MONTHS", "TWELVE_MONTHS"]).default("SIX_MONTHS"),
 
   motivation: z
     .string()
-    .min(20, "La motivation doit comporter au moins 20 caractères"),
-  projectExp: z.string().optional(),
+    .min(20, "La motivation doit comporter au moins 20 caractères")
+    .max(5000, "La motivation ne doit pas dépasser 5000 caractères"),
+  projectExp: z
+    .string()
+    .min(20, "L'expérience projet doit comporter au moins 20 caractères")
+    .max(5000, "L'expérience projet ne doit pas dépasser 5000 caractères"),
 
   cvFile: z.string().optional(),
   motivationFile: z.string().optional(),
   portfolioFile: z.string().optional(),
 
-  source: z.string().optional(),
+  source: z.string().min(1, "Veuillez indiquer comment vous avez connu APTIC-R"),
   consent: z.boolean().refine((val) => val === true, {
     message: "Le consentement au traitement des données est obligatoire",
   }),
@@ -76,16 +78,17 @@ export type PartnerRequestInput = z.infer<typeof partnerRequestSchema>
 export const updateStatusSchema = z.object({
   candidateId: z.string(),
   newStatus: z.enum([
-    "NOUVEAU",
-    "REVISION",
-    "SELECTIONNE",
-    "ENTRETIEN",
-    "CHOISI",
-    "VALIDATION_PARTENAIRES",
+    "NEW",
+    "REVIEW",
+    "SELECTED",
+    "INTERVIEW",
+    "CHOSEN",
+    "PARTNER_VALIDATION",
     "PREPARATION",
-    "ARRIVE",
-    "COMPLETE",
-    "REFUSE",
+    "ARRIVED",
+    "COMPLETED",
+    "REJECTED",
+    "ARCHIVED",
   ]),
 })
 

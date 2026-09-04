@@ -1,11 +1,6 @@
-import { useState, useEffect } from "react"
-import {
-  getLiveCandidates,
-  mapLegacyToStoreStatus,
-  statusColors,
-} from "../../data/mockCandidates"
-import type { Candidate, CandidateStatus } from "../../data/mockCandidates"
-import { store } from "../../lib/store"
+"use client"
+
+import { useState } from "react"
 import type { Page } from "../../types"
 
 const BLUE = "#1B4F7C"
@@ -26,12 +21,58 @@ const STATUS_WORKFLOW: CandidateStatus[] = [
   "COMPLETED",
 ]
 
+export type CandidateStatus =
+  | "NEW"
+  | "REVIEW"
+  | "SELECTED"
+  | "INTERVIEW"
+  | "CHOSEN"
+  | "PARTNER_VALIDATION"
+  | "PREPARATION"
+  | "ARRIVED"
+  | "COMPLETED"
+  | "REJECTED"
+  | "ARCHIVED"
+
+export const statusColors: Record<
+  CandidateStatus,
+  { bg: string; text: string; label: string }
+> = {
+  NEW: { bg: "#E8F2FA", text: "#1B4F7C", label: "NEW" },
+  REVIEW: { bg: "#FFF4E5", text: "#B25E09", label: "REVIEW" },
+  SELECTED: { bg: "#E6F4EC", text: "#2E7D52", label: "SELECTED" },
+  INTERVIEW: { bg: "#F3E8FF", text: "#6B21A8", label: "INTERVIEW" },
+  CHOSEN: { bg: "#E0F2FE", text: "#0369A1", label: "CHOSEN" },
+  PARTNER_VALIDATION: { bg: "#FEF3C7", text: "#92400E", label: "PARTNER VAL" },
+  PREPARATION: { bg: "#FFEDD5", text: "#9A3412", label: "PREPARATION" },
+  ARRIVED: { bg: "#ECFCCB", text: "#3F6212", label: "ARRIVED" },
+  COMPLETED: { bg: "#F1F5F9", text: "#334155", label: "COMPLETED" },
+  REJECTED: { bg: "#FEE2E2", text: "#991B1B", label: "REJECTED" },
+  ARCHIVED: { bg: "#F3F4F6", text: "#374151", label: "ARCHIVED" },
+}
+
+export interface CandidateUI {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  country: string
+  fieldOfStudy: string
+  language: string
+  appliedAt: string
+  duration: string
+  status: CandidateStatus
+  skills: string[]
+}
+
 interface Props {
   navigate: (p: Page) => void
   onSelectCandidate: (id: string) => void
+  applications: CandidateUI[]
+  onStatusChange: (id: string, status: CandidateStatus) => void
 }
 
-export default function AdminApplications({ onSelectCandidate }: Props) {
+export default function AdminApplications({ navigate, onSelectCandidate, applications, onStatusChange }: Props) {
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState<CandidateStatus | "">("")
   const [filterCountry, setFilterCountry] = useState("")
@@ -42,15 +83,9 @@ export default function AdminApplications({ onSelectCandidate }: Props) {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [selected, setSelected] = useState<string[]>([])
   const [page, setPage] = useState(1)
-  const [candidates, setCandidates] = useState(getLiveCandidates())
   const [exportOpen, setExportOpen] = useState(false)
 
-  useEffect(() => {
-    setCandidates(getLiveCandidates())
-    return store.subscribe(() => {
-      setCandidates(getLiveCandidates())
-    })
-  }, [])
+  const candidates = applications
 
   const PAGE_SIZE = 6
 
@@ -101,13 +136,7 @@ export default function AdminApplications({ onSelectCandidate }: Props) {
     )
 
   const changeStatus = (id: string, status: CandidateStatus) => {
-    store.updateStatus(
-      id,
-      mapLegacyToStoreStatus(status),
-      "Admin",
-      "Mis à jour depuis la liste",
-    )
-    setCandidates(getLiveCandidates())
+    onStatusChange(id, status)
   }
 
   const handleExportCSV = () => {
@@ -502,7 +531,7 @@ function CandidateRow({
   onStatusChange,
   even,
 }: {
-  candidate: Candidate
+  candidate: CandidateUI
   selected: boolean
   onToggle: () => void
   onOpen: () => void

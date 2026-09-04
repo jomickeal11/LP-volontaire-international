@@ -30,17 +30,13 @@ const STATUS_WORKFLOW: CandidateStatus[] = [
 interface Props {
   candidateId: string
   navigate: (p: Page) => void
+  application: any // Using any for fast prototyping, maps to full application record
+  onStatusChange?: (id: string, status: CandidateStatus) => void
+  onAddNote?: (id: string, note: string) => void
 }
 
-export default function AdminCandidateDetail({ candidateId, navigate }: Props) {
-  const getCandidate = () => {
-    const raw = store.getApplicationById(candidateId)
-    if (raw) return transformRecordToCandidate(raw)
-    const live = getLiveCandidates()
-    return live.find((c) => c.id === candidateId) ?? live[0]
-  }
-
-  const [candidate, setCandidate] = useState(getCandidate())
+export default function AdminCandidateDetail({ navigate, application, onStatusChange, onAddNote }: Props) {
+  const [candidate, setCandidate] = useState(application)
   const [activeTab, setActiveTab] =
     useState<"profile" | "documents" | "notes" | "history">("profile")
   const [newNote, setNewNote] = useState("")
@@ -55,35 +51,22 @@ export default function AdminCandidateDetail({ candidateId, navigate }: Props) {
     useState<CandidateStatus | null>(null)
 
   useEffect(() => {
-    const updated = getCandidate()
-    setCandidate(updated)
-    setStatus(updated.status)
-    setNotes(updated.notes)
-
-    return store.subscribe(() => {
-      const u = getCandidate()
-      setCandidate(u)
-      setStatus(u.status)
-      setNotes(u.notes)
-    })
-  }, [candidateId])
+    setCandidate(application)
+    setStatus(application.status)
+    setNotes(application.notes)
+  }, [application])
 
   const { bg, text, label } = statusColors[status]
   const currentStepIndex = STATUS_WORKFLOW.indexOf(status)
 
   const addNote = () => {
     if (!newNote.trim()) return
-    store.addNote(candidate.id, "Admin APTIC-R", newNote.trim())
+    if (onAddNote) onAddNote(candidate.id, newNote.trim())
     setNewNote("")
   }
 
   const handleStatusChange = (newStatus: CandidateStatus) => {
-    store.updateStatus(
-      candidate.id,
-      mapLegacyToStoreStatus(newStatus),
-      "Admin",
-      "Workflow transition",
-    )
+    if (onStatusChange) onStatusChange(candidate.id, newStatus)
     setStatus(newStatus)
     setConfirmStatusChange(null)
   }

@@ -31,6 +31,7 @@ function InputField({
   value,
   onChange,
   required,
+  error,
 }: {
   label: string
   type?: string
@@ -38,6 +39,7 @@ function InputField({
   value: string
   onChange: (v: string) => void
   required?: boolean
+  error?: string
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -56,13 +58,14 @@ function InputField({
         onChange={(e) => onChange(e.target.value)}
         className="w-full px-3.5 py-2.5 rounded-lg text-sm outline-none transition-all"
         style={{
-          border: "1.5px solid #D1DCE5",
+          border: error ? "1.5px solid #DC2626" : "1.5px solid #D1DCE5",
           backgroundColor: "#fff",
           color: TEXT_DARK,
         }}
-        onFocus={(e) => (e.currentTarget.style.border = `1.5px solid ${BLUE}`)}
-        onBlur={(e) => (e.currentTarget.style.border = "1.5px solid #D1DCE5")}
+        onFocus={(e) => (e.currentTarget.style.border = `1.5px solid ${error ? "#DC2626" : BLUE}`)}
+        onBlur={(e) => (e.currentTarget.style.border = error ? "1.5px solid #DC2626" : "1.5px solid #D1DCE5")}
       />
+      {error && <span className="text-xs" style={{ color: "#DC2626" }}>{error}</span>}
     </div>
   )
 }
@@ -112,17 +115,26 @@ function TextareaField({
   value,
   onChange,
   rows = 5,
+  required,
+  error,
 }: {
   label: string
   placeholder?: string
   value: string
   onChange: (v: string) => void
   rows?: number
+  required?: boolean
+  error?: string
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-sm font-semibold" style={{ color: TEXT_DARK }}>
         {label}
+        {required && (
+          <span style={{ color: "#DC2626" }} className="ml-0.5">
+            *
+          </span>
+        )}
       </label>
       <textarea
         placeholder={placeholder}
@@ -131,13 +143,14 @@ function TextareaField({
         rows={rows}
         className="w-full px-3.5 py-2.5 rounded-lg text-sm outline-none resize-none transition-all"
         style={{
-          border: "1.5px solid #D1DCE5",
+          border: error ? "1.5px solid #DC2626" : "1.5px solid #D1DCE5",
           backgroundColor: "#fff",
           color: TEXT_DARK,
         }}
-        onFocus={(e) => (e.currentTarget.style.border = `1.5px solid ${BLUE}`)}
-        onBlur={(e) => (e.currentTarget.style.border = "1.5px solid #D1DCE5")}
+        onFocus={(e) => (e.currentTarget.style.border = `1.5px solid ${error ? "#DC2626" : BLUE}`)}
+        onBlur={(e) => (e.currentTarget.style.border = error ? "1.5px solid #DC2626" : "1.5px solid #D1DCE5")}
       />
+      {error && <span className="text-xs" style={{ color: "#DC2626" }}>{error}</span>}
     </div>
   )
 }
@@ -272,12 +285,14 @@ function StepNav({
   onNext,
   nextLabel = "Continue →",
   isLast,
+  disabled,
 }: {
   step: number
   onBack: () => void
   onNext: () => void
   nextLabel?: string
   isLast?: boolean
+  disabled?: boolean
 }) {
   return (
     <div
@@ -301,16 +316,21 @@ function StepNav({
       )}
       <button
         onClick={onNext}
-        className="flex items-center gap-2 text-sm font-bold px-6 py-2.5 rounded-lg text-white transition-colors"
+        disabled={disabled}
+        className="flex items-center gap-2 text-sm font-bold px-6 py-2.5 rounded-lg text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         style={{ backgroundColor: isLast ? GREEN : BLUE }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.backgroundColor = isLast
-            ? "#256643"
-            : "#163f63")
-        }
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.backgroundColor = isLast ? GREEN : BLUE)
-        }
+        onMouseEnter={(e) => {
+          if (!disabled) {
+            e.currentTarget.style.backgroundColor = isLast
+              ? "#256643"
+              : "#163f63"
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!disabled) {
+            e.currentTarget.style.backgroundColor = isLast ? GREEN : BLUE
+          }
+        }}
       >
         {nextLabel}
       </button>
@@ -338,16 +358,17 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
     education: "",
     fieldOfStudy: "",
     profession: "",
-    experience: "1–2 years",
+    experience: "LESS_THAN_1_YEAR" as any,
+    digitalSkillLevel: "",
     skills: [] as string[],
     arrivalDate: "",
-    duration: "6 months" as const,
+    duration: "SIX_MONTHS" as any,
     motivation: "",
     projectExp: "",
     cvFile: "",
     motivationFile: "",
     portfolioFile: "",
-    source: "Website",
+    source: "",
     consent: false,
   })
 
@@ -373,51 +394,131 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
     setStep((s) => Math.max(s - 1, 1))
   }
 
+  // ── Step validation ──────────────────────────────────────────────────────
+  const isStepValid = (s: number): boolean => {
+    switch (s) {
+      case 1:
+        return (
+          form.firstName.trim().length >= 2 &&
+          form.lastName.trim().length >= 2 &&
+          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) &&
+          form.country.trim().length > 0 &&
+          form.dob.length > 0
+        )
+      case 3:
+        return form.skills.length > 0
+      case 5:
+        return form.motivation.trim().length >= 20
+      case 6:
+        return form.projectExp.trim().length >= 20
+      case 8:
+        return form.source.length > 0
+      case 9:
+        return form.consent
+      default:
+        return true
+    }
+  }
+
+  // Show inline errors when at least one required field in the step has been filled
+  const step1HasActivity = [form.firstName, form.lastName, form.email, form.dob].some(v => v.trim().length > 0)
+  const step1Errors = step1HasActivity ? {
+    firstName: form.firstName.trim().length < 2 ? "Pr\u00e9nom obligatoire (min. 2 caract\u00e8res)" : undefined,
+    lastName: form.lastName.trim().length < 2 ? "Nom obligatoire (min. 2 caract\u00e8res)" : undefined,
+    email: form.email.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) ? "Adresse e-mail invalide" : (!form.email ? "E-mail obligatoire" : undefined),
+    dob: !form.dob ? "Date de naissance obligatoire" : undefined,
+  } : {}
+
   const submit = async () => {
     setIsSubmitting(true)
     setErrorMessage("")
 
-    if (!form.consent) {
-      setErrorMessage(
-        "Veuillez accepter le traitement des données pour soumettre votre candidature.",
-      )
+    // ── Frontend validation ──────────────────────────────────────────
+    if (!form.firstName.trim() || form.firstName.trim().length < 2) {
+      setErrorMessage("Veuillez renseigner votre prénom (au moins 2 caractères).")
       setIsSubmitting(false)
       return
     }
-
+    if (!form.lastName.trim() || form.lastName.trim().length < 2) {
+      setErrorMessage("Veuillez renseigner votre nom (au moins 2 caractères).")
+      setIsSubmitting(false)
+      return
+    }
+    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      setErrorMessage("Veuillez renseigner une adresse e-mail valide.")
+      setIsSubmitting(false)
+      return
+    }
+    if (!form.country.trim()) {
+      setErrorMessage("Veuillez sélectionner un pays.")
+      setIsSubmitting(false)
+      return
+    }
+    if (!form.dob) {
+      setErrorMessage("Veuillez renseigner votre date de naissance.")
+      setIsSubmitting(false)
+      return
+    }
+    if (form.skills.length === 0) {
+      setErrorMessage("Veuillez sélectionner au moins une compétence.")
+      setIsSubmitting(false)
+      return
+    }
     if (form.motivation.trim().length < 20) {
-      setErrorMessage(
-        "Veuillez détailler votre motivation (au moins 20 caractères).",
-      )
+      setErrorMessage("Veuillez détailler votre motivation (au moins 20 caractères).")
+      setIsSubmitting(false)
+      return
+    }
+    if (form.motivation.trim().length > 5000) {
+      setErrorMessage("La motivation ne doit pas dépasser 5000 caractères.")
+      setIsSubmitting(false)
+      return
+    }
+    if (form.projectExp.trim().length < 20) {
+      setErrorMessage("Veuillez détailler votre expérience projet (au moins 20 caractères).")
+      setIsSubmitting(false)
+      return
+    }
+    if (form.projectExp.trim().length > 5000) {
+      setErrorMessage("L'expérience projet ne doit pas dépasser 5000 caractères.")
+      setIsSubmitting(false)
+      return
+    }
+    if (!form.source) {
+      setErrorMessage("Veuillez indiquer comment vous avez connu APTIC-R.")
+      setIsSubmitting(false)
+      return
+    }
+    if (!form.consent) {
+      setErrorMessage("Veuillez accepter le traitement des données pour soumettre votre candidature.")
       setIsSubmitting(false)
       return
     }
 
+    // ── Server call — no fallback values ─────────────────────────────
     const { submitCandidateApplication } = await import("../lib/actions")
     const result = await submitCandidateApplication(
       {
-        firstName: form.firstName || "Candidat",
-        lastName: form.lastName || "Volontaire",
-        email: form.email || "candidat@example.com",
-        phone: form.phone,
-        country: form.country || "France",
-        city: form.city,
-        dob: form.dob || "2000-01-01",
-        education: form.education,
-        fieldOfStudy: form.fieldOfStudy,
-        profession: form.profession,
-        experience: form.experience,
-        skills:
-          form.skills.length > 0
-            ? form.skills
-            : ["Digital Tools", "Agriculture"],
-        arrivalDate: form.arrivalDate,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim() || undefined,
+        country: form.country,
+        city: form.city.trim() || undefined,
+        dob: form.dob,
+        education: form.education.trim() || undefined,
+        fieldOfStudy: form.fieldOfStudy.trim() || undefined,
+        profession: form.profession.trim() || undefined,
+        experience: form.experience || undefined,
+        digitalSkillLevel: (form.digitalSkillLevel || undefined) as "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT" | undefined,
+        skills: form.skills,
+        arrivalDate: form.arrivalDate || undefined,
         duration: form.duration,
-        motivation: form.motivation,
-        projectExp: form.projectExp,
-        cvFile: form.cvFile || "CV_Candidat.pdf",
-        motivationFile: form.motivationFile,
-        portfolioFile: form.portfolioFile,
+        motivation: form.motivation.trim(),
+        projectExp: form.projectExp.trim(),
+        cvFile: form.cvFile || undefined,
+        motivationFile: form.motivationFile || undefined,
+        portfolioFile: form.portfolioFile || undefined,
         source: form.source,
         consent: form.consent,
       },
@@ -436,20 +537,20 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
   }
 
   const SKILLS = [
-    "Computer Science",
-    "Data Science",
-    "Web Development",
-    "Mobile Development",
-    "Cybersecurity",
-    "Agriculture",
-    "Graphic Design",
-    "Communication",
-    "Content Creation",
-    "Arduino",
-    "Raspberry Pi",
-    "IoT",
-    "Digital Education",
-    "Project Management",
+    { label: "Computer Science", slug: "computer-science" },
+    { label: "Data Science", slug: "data" },
+    { label: "Web Development", slug: "web-development" },
+    { label: "Mobile Development", slug: "mobile-development" },
+    { label: "Cybersecurity", slug: "cybersecurity" },
+    { label: "Agriculture", slug: "agriculture" },
+    { label: "Graphic Design", slug: "graphic-design" },
+    { label: "Communication", slug: "communication" },
+    { label: "Content Creation", slug: "content-creation" },
+    { label: "Arduino", slug: "arduino" },
+    { label: "Raspberry Pi", slug: "raspberry-pi" },
+    { label: "IoT", slug: "iot" },
+    { label: "Digital Education", slug: "digital-education" },
+    { label: "Project Management", slug: "project-management" },
   ]
 
   const SOURCES = [
@@ -614,6 +715,7 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                   onChange={(v) => set("firstName", v)}
                   required
                   placeholder="Maria"
+                  error={step1Errors.firstName}
                 />
                 <InputField
                   label="Last Name"
@@ -621,6 +723,7 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                   onChange={(v) => set("lastName", v)}
                   required
                   placeholder="Dupont"
+                  error={step1Errors.lastName}
                 />
                 <InputField
                   label="Email"
@@ -629,6 +732,7 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                   onChange={(v) => set("email", v)}
                   required
                   placeholder="maria@example.com"
+                  error={step1Errors.email}
                 />
                 <InputField
                   label="Phone"
@@ -667,6 +771,14 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                   onChange={(v) => set("city", v)}
                   placeholder="Paris"
                 />
+                <InputField
+                  label="Date of birth"
+                  type="date"
+                  value={form.dob}
+                  onChange={(v) => set("dob", v)}
+                  required
+                  error={step1Errors.dob}
+                />
               </div>
               <div
                 className="mt-5 p-4 rounded-xl flex items-center gap-3 text-xs"
@@ -695,7 +807,7 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                   policy and used only for the purpose of this application.
                 </span>
               </div>
-              <StepNav step={step} onBack={back} onNext={next} />
+              <StepNav step={step} onBack={back} onNext={next} disabled={!isStepValid(1)} />
             </div>
           )}
 
@@ -724,17 +836,27 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                   onChange={(v) => set("profession", v)}
                   placeholder="Student / Developer / Agronomist..."
                 />
-                <SelectField
-                  label="Level of experience"
-                  value={form.experience}
-                  onChange={(v) => set("experience", v)}
-                  options={[
-                    "Less than 1 year",
-                    "1–2 years",
-                    "2–5 years",
-                    "5+ years",
-                  ]}
-                />
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold" style={{ color: TEXT_DARK }}>
+                    Level of experience
+                  </label>
+                  <select
+                    value={form.experience}
+                    onChange={(e) => set("experience", e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-lg text-sm outline-none transition-all"
+                    style={{
+                      border: "1.5px solid #D1DCE5",
+                      backgroundColor: "#fff",
+                      color: form.experience ? TEXT_DARK : "#9AA8B4",
+                    }}
+                  >
+                    <option value="">Select...</option>
+                    <option value="LESS_THAN_1_YEAR">Less than 1 year</option>
+                    <option value="ONE_TO_TWO_YEARS">1–2 years</option>
+                    <option value="TWO_TO_FIVE_YEARS">2–5 years</option>
+                    <option value="FIVE_PLUS_YEARS">5+ years</option>
+                  </select>
+                </div>
               </div>
               <div className="mt-4">
                 <label
@@ -744,25 +866,29 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                   Digital skills level
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {["Beginner", "Intermediate", "Advanced", "Expert"].map(
-                    (level) => (
+                  {/* Digital Skills level - we keep simple string mapping for now */}
+                  {[
+                    { label: "Beginner", value: "BEGINNER" },
+                    { label: "Intermediate", value: "INTERMEDIATE" },
+                    { label: "Advanced", value: "ADVANCED" },
+                    { label: "Expert", value: "EXPERT" },
+                  ].map((level) => {
+                    const active = form.digitalSkillLevel === level.value
+                    return (
                       <button
-                        key={level}
-                        onClick={() => set("experience", level)}
+                        key={level.value}
+                        onClick={() => set("digitalSkillLevel", level.value)}
                         className="text-sm px-4 py-2 rounded-lg font-medium transition-all"
                         style={{
-                          backgroundColor:
-                            form.experience === level ? BLUE : BG,
-                          color: form.experience === level ? "white" : TEXT_MID,
-                          border: `1.5px solid ${
-                            form.experience === level ? BLUE : "#D1DCE5"
-                          }`,
+                          backgroundColor: active ? BLUE : BG,
+                          color: active ? "white" : TEXT_MID,
+                          border: `1.5px solid ${active ? BLUE : "#D1DCE5"}`,
                         }}
                       >
-                        {level}
+                        {active && "✓ "}{level.label}
                       </button>
-                    ),
-                  )}
+                    )
+                  })}
                 </div>
               </div>
               <StepNav step={step} onBack={back} onNext={next} />
@@ -780,11 +906,11 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
               </p>
               <div className="flex flex-wrap gap-2 mb-6">
                 {SKILLS.map((skill) => {
-                  const active = form.skills.includes(skill)
+                  const active = form.skills.includes(skill.slug)
                   return (
                     <button
-                      key={skill}
-                      onClick={() => toggleSkill(skill)}
+                      key={skill.slug}
+                      onClick={() => toggleSkill(skill.slug)}
                       className="text-sm px-3.5 py-2 rounded-lg font-medium transition-all"
                       style={{
                         backgroundColor: active ? BLUE : "#fff",
@@ -793,7 +919,7 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                       }}
                     >
                       {active && "✓ "}
-                      {skill}
+                      {skill.label}
                     </button>
                   )
                 })}
@@ -807,7 +933,7 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                   {form.skills.length > 1 ? "s" : ""} selected
                 </div>
               )}
-              <StepNav step={step} onBack={back} onNext={next} />
+              <StepNav step={step} onBack={back} onNext={next} disabled={!isStepValid(3)} />
             </div>
           )}
 
@@ -833,20 +959,24 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                   Mission duration
                 </label>
                 <div className="grid grid-cols-3 gap-3">
-                  {["6 months", "9 months", "12 months"].map((d) => (
+                  {[
+                    { label: "6 months", value: "SIX_MONTHS" },
+                    { label: "9 months", value: "NINE_MONTHS" },
+                    { label: "12 months", value: "TWELVE_MONTHS" },
+                  ].map((d) => (
                     <button
-                      key={d}
-                      onClick={() => set("duration", d)}
+                      key={d.value}
+                      onClick={() => set("duration", d.value)}
                       className="p-4 rounded-xl text-sm font-semibold transition-all text-center"
                       style={{
-                        backgroundColor: form.duration === d ? BLUE : "#fff",
-                        color: form.duration === d ? "white" : TEXT_DARK,
+                        backgroundColor: form.duration === d.value ? BLUE : "#fff",
+                        color: form.duration === d.value ? "white" : TEXT_DARK,
                         border: `2px solid ${
-                          form.duration === d ? BLUE : "#D1DCE5"
+                          form.duration === d.value ? BLUE : "#D1DCE5"
                         }`,
                       }}
                     >
-                      {d}
+                      {d.label}
                     </button>
                   ))}
                 </div>
@@ -871,13 +1001,18 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                 value={form.motivation}
                 onChange={(v) => set("motivation", v)}
                 rows={8}
+                required
+                error={form.motivation.length > 0 && form.motivation.trim().length < 20 ? "Minimum 20 caract\u00e8res requis" : (form.motivation.trim().length > 5000 ? "Maximum 5000 caract\u00e8res" : undefined)}
               />
-              <div className="mt-2 flex justify-end">
-                <span className="text-xs" style={{ color: "#9AA8B4" }}>
-                  {form.motivation.length} characters
+              <div className="mt-2 flex justify-between">
+                <span className="text-xs" style={{ color: form.motivation.trim().length > 5000 ? "#DC2626" : "#9AA8B4" }}>
+                  {form.motivation.trim().length < 20 && form.motivation.length > 0 ? `${20 - form.motivation.trim().length} caract\u00e8res restants` : ""}
+                </span>
+                <span className="text-xs" style={{ color: form.motivation.trim().length > 5000 ? "#DC2626" : "#9AA8B4" }}>
+                  {form.motivation.length} / 5000
                 </span>
               </div>
-              <StepNav step={step} onBack={back} onNext={next} />
+              <StepNav step={step} onBack={back} onNext={next} disabled={!isStepValid(5)} />
             </div>
           )}
 
@@ -897,8 +1032,18 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                 value={form.projectExp}
                 onChange={(v) => set("projectExp", v)}
                 rows={8}
+                required
+                error={form.projectExp.length > 0 && form.projectExp.trim().length < 20 ? "Minimum 20 caract\u00e8res requis" : (form.projectExp.trim().length > 5000 ? "Maximum 5000 caract\u00e8res" : undefined)}
               />
-              <StepNav step={step} onBack={back} onNext={next} />
+              <div className="mt-2 flex justify-between">
+                <span className="text-xs" style={{ color: form.projectExp.trim().length > 5000 ? "#DC2626" : "#9AA8B4" }}>
+                  {form.projectExp.trim().length < 20 && form.projectExp.length > 0 ? `${20 - form.projectExp.trim().length} caract\u00e8res restants` : ""}
+                </span>
+                <span className="text-xs" style={{ color: form.projectExp.trim().length > 5000 ? "#DC2626" : "#9AA8B4" }}>
+                  {form.projectExp.length} / 5000
+                </span>
+              </div>
+              <StepNav step={step} onBack={back} onNext={next} disabled={!isStepValid(6)} />
             </div>
           )}
 
@@ -959,7 +1104,8 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                 step={step}
                 onBack={back}
                 onNext={next}
-                nextLabel="Review application →"
+                nextLabel="Review application \u2192"
+                disabled={!isStepValid(8)}
               />
             </div>
           )}
@@ -1130,6 +1276,7 @@ export default function ApplyPage({ lang, navigate }: ApplyPageProps) {
                   isSubmitting ? "ENVOI EN COURS..." : "SEND MY APPLICATION ✓"
                 }
                 isLast
+                disabled={isSubmitting}
               />
             </div>
           )}
