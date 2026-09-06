@@ -10,7 +10,7 @@ export async function loginAction(email?: string, password?: string) {
   }
 
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.utilisateur.findUnique({
       where: { email },
     })
 

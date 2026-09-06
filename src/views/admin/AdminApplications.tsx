@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import type { Page } from "../../types"
+import { FileTextIcon, BarChartIcon } from "../../components/Icons"
+
 
 const BLUE = "#1B4F7C"
 const GREEN = "#2E7D52"
@@ -217,15 +219,17 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
               >
                 <button
                   onClick={handleExportCSV}
-                  className="w-full text-left px-4 py-2.5 text-xs font-semibold transition-colors hover:bg-slate-50 text-slate-800"
+                  className="w-full flex items-center gap-2 text-left px-4 py-2.5 text-xs font-semibold transition-colors hover:bg-slate-50 text-slate-800"
                 >
-                  📄 Télécharger en CSV
+                  <FileTextIcon className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Télécharger en CSV</span>
                 </button>
                 <button
                   onClick={handleExportCSV}
-                  className="w-full text-left px-4 py-2.5 text-xs font-semibold transition-colors hover:bg-slate-50 text-slate-800 border-t border-slate-100"
+                  className="w-full flex items-center gap-2 text-left px-4 py-2.5 text-xs font-semibold transition-colors hover:bg-slate-50 text-slate-800 border-t border-slate-100"
                 >
-                  📊 Télécharger pour Excel
+                  <BarChartIcon className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Télécharger pour Excel</span>
                 </button>
               </div>
             )}

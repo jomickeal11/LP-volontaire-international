@@ -57,7 +57,7 @@ export default function ApplyRoute({
         navigate={handleNavigate}
       />
       <main className="flex-1">
-        <ApplyPage lang={language} navigate={handleNavigate} />
+        <ApplyPage lang={language} navigate={handleNavigate} setLang={handleSetLang} />
       </main>
       <Footer lang={language} navigate={handleNavigate} />
     </div>

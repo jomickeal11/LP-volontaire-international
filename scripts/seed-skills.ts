@@ -22,7 +22,7 @@ const SKILLS = [
 async function main() {
   console.log("Seeding skills...")
   for (const s of SKILLS) {
-    await prisma.skill.upsert({
+    await prisma.competence.upsert({
       where: { slug: s.slug },
       update: s,
       create: s,

@@ -52,10 +52,19 @@ export default function AdminCandidateDetailWrapper({ application }: { applicati
     skills: application.skills.map((s: any) => s.skill.nameEn),
     statusHistory: application.statusHistory ? application.statusHistory.map((h: any) => ({
       status: h.toStatus,
-      date: new Date(h.changedAt).toLocaleDateString(),
+      date: new Date(h.changedAt).toLocaleString(),
       by: h.changedByName
     })) : [],
-    notes: application.notes ? application.notes.map((n: any) => n.content) : []
+    notes: application.notes ? application.notes.map((n: any) => ({
+      content: n.content,
+      createdAt: new Date(n.createdAt).toLocaleString(),
+      author: n.authorName
+    })) : [],
+    documents: application.documents ? application.documents.map((d: any) => ({
+      id: d.id,
+      name: d.originalName,
+      type: d.type
+    })) : []
   }
 
   return (

@@ -30,7 +30,8 @@ export default function Header({
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
-  const t = translations[lang].nav
+  const currentLang = (lang || "FR").toUpperCase() as keyof typeof translations
+  const t = (translations[currentLang] || translations.FR).nav
   const router = useRouter()
 
   const NAV = [
@@ -59,6 +60,10 @@ export default function Header({
     } else {
       navigate(item.page)
     }
+  }
+
+  if (currentPage === "apply") {
+    return null
   }
 
   return (

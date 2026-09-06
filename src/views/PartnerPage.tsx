@@ -1,5 +1,7 @@
 import { useState } from "react"
 import type { Page, Language } from "../types"
+import { CheckIcon } from "../components/Icons"
+
 
 interface PartnerPageProps {
   lang: Language
@@ -550,10 +552,11 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
                       }}
                     >
                       <span
-                        className="text-sm font-medium"
+                        className="inline-flex items-center gap-1.5 text-sm font-medium"
                         style={{ color: GREEN }}
                       >
-                        ✓ {form.docFile}
+                        <CheckIcon className="w-3.5 h-3.5 shrink-0" />
+                        <span>{form.docFile}</span>
                       </span>
                       <button
                         onClick={() => set("docFile", "")}

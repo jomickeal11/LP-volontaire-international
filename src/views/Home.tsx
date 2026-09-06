@@ -1178,7 +1178,8 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
 
 // ─── Main Export ───────────────────────────────────────────────────────────────
 export default function Home({ lang, navigate }: HomeProps) {
-  const t = translations[lang]
+  const currentLang = (lang || "FR").toUpperCase() as keyof typeof translations
+  const t = translations[currentLang] || translations.FR
 
   return (
     <main>

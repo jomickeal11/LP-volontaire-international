@@ -7,14 +7,16 @@ interface FooterProps {
 }
 
 export default function Footer({ lang, navigate }: FooterProps) {
-  const t = translations[lang].footer
+  const currentLang = (lang || "FR").toUpperCase() as keyof typeof translations
+  const safeLang = translations[currentLang] ? currentLang : "FR"
+  const t = translations[safeLang].footer
 
   const FOOTER_NAV = [
-    { label: translations[lang].nav.about, page: "home" as Page },
-    { label: translations[lang].nav.mission, page: "home" as Page },
-    { label: translations[lang].nav.apply, page: "apply" as Page },
-    { label: translations[lang].nav.partners, page: "partner" as Page },
-    { label: translations[lang].nav.faq, page: "home" as Page },
+    { label: translations[safeLang].nav.about, page: "home" as Page },
+    { label: translations[safeLang].nav.mission, page: "home" as Page },
+    { label: translations[safeLang].nav.apply, page: "apply" as Page },
+    { label: translations[safeLang].nav.partners, page: "partner" as Page },
+    { label: translations[safeLang].nav.faq, page: "home" as Page },
   ]
 
   return (

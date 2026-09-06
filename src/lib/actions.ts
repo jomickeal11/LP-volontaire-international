@@ -11,7 +11,9 @@ import {
 import prisma from "./prisma"
 import type { CandidateStatus, LanguageCode } from "@prisma/client"
 import { randomBytes } from "crypto"
-
+import { writeFile } from "fs/promises"
+import { join } from "path"
+import { randomUUID } from "crypto"
 // Generates APTIC-YYYY-XXXX (4 random hex chars)
 function generateReferenceNumber(): string {
   const year = new Date().getFullYear()
@@ -28,7 +30,7 @@ export async function submitCandidateApplication(
     
     // Duplicate check: prevent same email from submitting within 5 minutes
     const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000)
-    const recentApplication = await prisma.application.findFirst({
+    const recentApplication = await prisma.candidature.findFirst({
       where: {
         candidate: { email: validated.email },
         createdAt: { gte: fiveMinsAgo }
@@ -41,7 +43,7 @@ export async function submitCandidateApplication(
 
     const application = await prisma.$transaction(async (tx) => {
       // Find valid skills by slug
-      const existingSkills = await tx.skill.findMany({
+      const existingSkills = await tx.competence.findMany({
         where: { slug: { in: validated.skills } }
       })
       
@@ -50,12 +52,12 @@ export async function submitCandidateApplication(
       }
       
       // Find or create candidate
-      let candidate = await tx.candidate.findUnique({
+      let candidate = await tx.candidat.findUnique({
         where: { email: validated.email }
       })
       
       if (!candidate) {
-        candidate = await tx.candidate.create({
+        candidate = await tx.candidat.create({
           data: {
             firstName: validated.firstName,
             lastName: validated.lastName,
@@ -72,12 +74,12 @@ export async function submitCandidateApplication(
       let refNum = generateReferenceNumber()
       // Collision retry logic
       for (let i = 0; i < 3; i++) {
-        const exists = await tx.application.findUnique({ where: { referenceNumber: refNum }})
+        const exists = await tx.candidature.findUnique({ where: { referenceNumber: refNum }})
         if (!exists) break
         refNum = generateReferenceNumber()
       }
 
-      const newApp = await tx.application.create({
+      const newApp = await tx.candidature.create({
         data: {
           referenceNumber: refNum,
           candidateId: candidate.id,
@@ -131,12 +133,12 @@ export async function updateCandidateStatus(
     updateStatusSchema.parse({ candidateId: applicationId, newStatus })
     
     await prisma.$transaction(async (tx) => {
-      const app = await tx.application.update({
+      const app = await tx.candidature.update({
         where: { id: applicationId },
         data: { status: newStatus as any }
       })
       
-      await tx.applicationStatusHistory.create({
+      await tx.historiqueCandidature.create({
         data: {
           applicationId: app.id,
           fromStatus: app.status, // this is technically incorrect for history, but sufficient for now
@@ -147,7 +149,7 @@ export async function updateCandidateStatus(
       })
       
       if (noteContent) {
-        await tx.applicationNote.create({
+        await tx.noteCandidature.create({
           data: {
             applicationId: app.id,
             authorName: "Admin APTIC-R",
@@ -172,7 +174,7 @@ export async function addCandidateNote(
   try {
     addNoteSchema.parse({ candidateId: applicationId, content, author })
     
-    await prisma.applicationNote.create({
+    await prisma.noteCandidature.create({
       data: {
         applicationId,
         content,
@@ -182,6 +184,64 @@ export async function addCandidateNote(
     return { success: true }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erreur d'ajout de note"
+    return { success: false, error: message }
+  }
+}
+
+export async function submitCandidateApplicationFormData(
+  formData: FormData,
+  lang: "FR" | "EN" | "DE" = "FR"
+) {
+  try {
+    const data: any = { skills: [] }
+    const documentsToCreate: any[] = []
+
+    for (const [key, value] of formData.entries()) {
+      if (key === "skills") {
+        data.skills.push(value)
+      } else if (value instanceof File) {
+        if (value.size > 0 && value.name !== "undefined") {
+          const buffer = Buffer.from(await value.arrayBuffer())
+          const ext = value.name.split('.').pop()
+          const filename = `${randomUUID()}.${ext}`
+          const filepath = join(process.cwd(), "uploads", filename)
+          await writeFile(filepath, buffer)
+          
+          let docType = "CV"
+          if (key === "motivationFile") docType = "MOTIVATION_LETTER"
+          if (key === "portfolioFile") docType = "PORTFOLIO"
+
+          documentsToCreate.push({
+            type: docType as any,
+            originalName: value.name,
+            storageKey: filename,
+            mimeType: value.type || "application/octet-stream",
+            size: value.size
+          })
+          
+          data[key] = filename
+        }
+      } else {
+        data[key] = value === "true" ? true : value === "false" ? false : value
+      }
+    }
+
+    const result = await submitCandidateApplication(data as CandidateApplicationInput, lang)
+    
+    if (result.success && result.data && documentsToCreate.length > 0) {
+      // Add documents to the created application
+      await prisma.documentCandidature.createMany({
+        data: documentsToCreate.map(doc => ({
+          ...doc,
+          applicationId: result.data.id
+        }))
+      })
+    }
+    
+    return result
+  } catch (err: unknown) {
+    console.error(err)
+    const message = err instanceof Error ? err.message : "Erreur lors de la soumission avec fichiers"
     return { success: false, error: message }
   }
 }

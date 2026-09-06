@@ -9,7 +9,7 @@ export default async function AdminApplicationsPage({
   const resolvedParams = await params
   const lang = resolvedParams.lang
 
-  const rawApplications = await prisma.application.findMany({
+  const rawApplications = await prisma.candidature.findMany({
     include: {
       candidate: true,
       skills: {

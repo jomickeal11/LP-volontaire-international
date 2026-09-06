@@ -9,7 +9,7 @@ export default async function CandidateDetailPage({
 }) {
   const resolvedParams = await params
   
-  const application = await prisma.application.findUnique({
+  const application = await prisma.candidature.findUnique({
     where: { id: resolvedParams.id },
     include: {
       candidate: true,

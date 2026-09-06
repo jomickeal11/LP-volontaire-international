@@ -8,6 +8,9 @@ import {
 import type { CandidateStatus } from "../../data/mockCandidates"
 import { store } from "../../lib/store"
 import type { Page } from "../../types"
+import { MapPinIcon, MailIcon, PhoneIcon, GlobeIcon, CheckIcon } from "../../components/Icons"
+
+
 
 const BLUE = "#1B4F7C"
 const GREEN = "#2E7D52"
@@ -132,15 +135,25 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
             </span>
           </div>
           <div
-            className="flex flex-wrap gap-3 text-sm mb-3"
+            className="flex flex-wrap gap-4 text-sm mb-3 items-center"
             style={{ color: TEXT_MID }}
           >
-            <span>
-              📍 {candidate.city}, {candidate.country}
+            <span className="inline-flex items-center gap-1.5">
+              <MapPinIcon className="w-4 h-4 text-slate-400" />
+              <span>{candidate.city}, {candidate.country}</span>
             </span>
-            <span>✉️ {candidate.email}</span>
-            <span>📱 {candidate.phone}</span>
-            <span>🌐 {candidate.language}</span>
+            <span className="inline-flex items-center gap-1.5">
+              <MailIcon className="w-4 h-4 text-slate-400" />
+              <span>{candidate.email}</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <PhoneIcon className="w-4 h-4 text-slate-400" />
+              <span>{candidate.phone}</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <GlobeIcon className="w-4 h-4 text-slate-400" />
+              <span>{candidate.language}</span>
+            </span>
           </div>
           <div className="flex flex-wrap gap-2">
             {candidate.skills.map((s: string) => (
@@ -176,16 +189,20 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
             </svg>
             Send email
           </button>
-          <button
-            className="flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-lg"
-            style={{
-              backgroundColor: BG,
-              color: TEXT_MID,
-              border: "1.5px solid #D1DCE5",
-            }}
-          >
-            Download CV
-          </button>
+          {candidate.documents?.find((d: any) => d.type === "CV") && (
+            <a
+              href={`/api/documents/${candidate.documents.find((d: any) => d.type === "CV").id}`}
+              download
+              className="flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors hover:bg-slate-50"
+              style={{
+                backgroundColor: BG,
+                color: TEXT_MID,
+                border: "1.5px solid #D1DCE5",
+              }}
+            >
+              Download CV
+            </a>
+          )}
         </div>
       </div>
 
@@ -227,7 +244,7 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
                         boxShadow: current ? `0 0 0 3px ${BLUE}20` : "none",
                       }}
                     >
-                      {done && !current ? "✓" : i + 1}
+                      {done && !current ? <CheckIcon className="w-3.5 h-3.5" /> : i + 1}
                     </div>
                     <span
                       className="text-xs font-medium whitespace-nowrap"
@@ -463,37 +480,32 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
 
         {activeTab === "documents" && (
           <div className="flex flex-col gap-4">
-            {[
-              {
-                name: "CV / Résumé",
-                file: `cv_${candidate.lastName.toLowerCase()}.pdf`,
-                available: true,
-              },
-              {
-                name: "Cover Letter",
-                file: `motivation_${candidate.lastName.toLowerCase()}.pdf`,
-                available: true,
-              },
-              { name: "Portfolio", file: null, available: false },
-            ].map((doc) => (
+            {(!candidate.documents || candidate.documents.length === 0) && (
+              <div className="text-center py-8">
+                <p className="text-sm" style={{ color: "#9AA8B4" }}>
+                  No documents provided.
+                </p>
+              </div>
+            )}
+            {candidate.documents?.map((doc: any) => (
               <div
-                key={doc.name}
+                key={doc.id}
                 className="flex items-center justify-between p-4 rounded-xl"
                 style={{
                   border: "1.5px solid #E8ECF2",
-                  backgroundColor: doc.available ? "#fff" : BG,
+                  backgroundColor: "#fff",
                 }}
               >
                 <div className="flex items-center gap-3">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center"
                     style={{
-                      backgroundColor: doc.available ? "#E8F2FA" : "#F4F6F9",
+                      backgroundColor: "#E8F2FA",
                     }}
                   >
                     <svg
                       className="w-5 h-5"
-                      style={{ color: doc.available ? BLUE : "#D1DCE5" }}
+                      style={{ color: BLUE }}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -509,34 +521,28 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
                   <div>
                     <div
                       className="text-sm font-semibold"
-                      style={{ color: doc.available ? TEXT_DARK : "#D1DCE5" }}
+                      style={{ color: TEXT_DARK }}
                     >
-                      {doc.name}
+                      {doc.type === "MOTIVATION_LETTER" ? "Cover Letter" : doc.type}
                     </div>
                     <div
                       className="text-xs"
-                      style={{ color: doc.available ? "#9AA8B4" : "#D1DCE5" }}
+                      style={{ color: "#9AA8B4" }}
                     >
-                      {doc.available ? doc.file : "Not provided"}
+                      {doc.name}
                     </div>
                   </div>
                 </div>
-                {doc.available && (
-                  <div className="flex gap-2">
-                    <button
-                      className="text-xs font-semibold px-3 py-1.5 rounded-lg"
-                      style={{ backgroundColor: "#E8F2FA", color: BLUE }}
-                    >
-                      View
-                    </button>
-                    <button
-                      className="text-xs font-semibold px-3 py-1.5 rounded-lg"
-                      style={{ backgroundColor: BG, color: TEXT_MID }}
-                    >
-                      Download
-                    </button>
-                  </div>
-                )}
+                <div className="flex gap-2">
+                  <a
+                    href={`/api/documents/${doc.id}`}
+                    download
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:bg-slate-50"
+                    style={{ backgroundColor: BG, color: TEXT_MID }}
+                  >
+                    Download
+                  </a>
+                </div>
               </div>
             ))}
           </div>
@@ -552,7 +558,7 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
                   </p>
                 </div>
               )}
-              {notes.map((note: string, i: number) => (
+              {notes.map((note: any, i: number) => (
                 <div
                   key={i}
                   className="flex gap-3 items-start p-4 rounded-xl"
@@ -562,17 +568,17 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
                     className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
                     style={{ backgroundColor: BLUE }}
                   >
-                    AD
+                    {note.author?.charAt(0) || "U"}
                   </div>
                   <div>
                     <div
                       className="text-xs font-semibold mb-0.5"
                       style={{ color: TEXT_MID }}
                     >
-                      Admin · Today
+                      {note.author} · {note.createdAt}
                     </div>
                     <p className="text-sm" style={{ color: TEXT_DARK }}>
-                      {note}
+                      {note.content}
                     </p>
                   </div>
                 </div>

@@ -1,6 +1,8 @@
 "use client"
 import { useState } from "react"
 import { loginAction } from "@/actions/auth"
+import { LockIcon } from "@/components/Icons"
+
 const BLUE = "#1B4F7C"
 const TEXT_DARK = "#1A2B3C"
 const TEXT_MID = "#4A5A6A"
@@ -81,13 +83,14 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
           </p>
         </div>
         <div
-          className="p-4 rounded-xl text-xs"
+          className="p-4 rounded-xl text-xs flex items-center gap-2"
           style={{
             backgroundColor: "rgba(255,255,255,0.08)",
             color: "rgba(255,255,255,0.5)",
           }}
         >
-          🔒 Restricted access. Authorised personnel only.
+          <LockIcon className="w-3.5 h-3.5 text-white/50 shrink-0" />
+          <span>Restricted access. Authorised personnel only.</span>
         </div>
       </div>
 
