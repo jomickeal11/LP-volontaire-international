@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import type { Page, Language } from "../types"
 import translations from "../i18n/translations"
 import {
@@ -17,6 +17,8 @@ import {
   InfoIcon,
   LockIcon,
   LightbulbIcon,
+  GlobeIcon,
+  SearchIcon,
 } from "../components/Icons"
 import { FREQUENT_COUNTRIES, ALL_COUNTRY_CODES } from "../data/countryPhoneCodes"
 
@@ -92,7 +94,8 @@ function InputField({
 function PhoneInputField({
   label,
   countryCode,
-  onCountryCodeChange,
+  countryIso,
+  onCountrySelect,
   phone,
   onPhoneChange,
   placeholder,
@@ -100,14 +103,67 @@ function PhoneInputField({
 }: {
   label: string
   countryCode: string
-  onCountryCodeChange: (v: string) => void
+  countryIso: string
+  onCountrySelect: (dial: string, iso: string) => void
   phone: string
   onPhoneChange: (v: string) => void
   placeholder?: string
   required?: boolean
 }) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState("")
+  const containerRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Find active country
+  const currentCountry =
+    ALL_COUNTRY_CODES.find((c) => (countryIso ? c.code === countryIso : c.dial === countryCode)) ||
+    FREQUENT_COUNTRIES.find((c) => (countryIso ? c.code === countryIso : c.dial === countryCode))
+
+  // Close when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [open])
+
+  const filteredFrequent = search.trim()
+    ? FREQUENT_COUNTRIES.filter(
+        (c) =>
+          c.name.toLowerCase().includes(search.toLowerCase()) ||
+          c.dial.includes(search) ||
+          c.code.toLowerCase().includes(search.toLowerCase())
+      )
+    : FREQUENT_COUNTRIES
+
+  const filteredAll = search.trim()
+    ? ALL_COUNTRY_CODES.filter(
+        (c) =>
+          c.name.toLowerCase().includes(search.toLowerCase()) ||
+          c.dial.includes(search) ||
+          c.code.toLowerCase().includes(search.toLowerCase())
+      )
+    : ALL_COUNTRY_CODES
+
+  const handleSelect = (c: { dial: string; code: string }) => {
+    onCountrySelect(c.dial, c.code)
+    setOpen(false)
+    setSearch("")
+    if (inputRef.current) {
+      inputRef.current.focus()
+    }
+  }
+
   return (
-    <div className="flex flex-col gap-1.5 w-full">
+    <div className="flex flex-col gap-1.5 w-full relative" ref={containerRef}>
       <label className="text-sm font-semibold flex items-center gap-1" style={{ color: TEXT_DARK }}>
         <span>{label}</span>
         {required ? (
@@ -116,66 +172,193 @@ function PhoneInputField({
           <span className="text-xs font-normal text-slate-400">— optionnel</span>
         )}
       </label>
+
       <div
-        className="flex items-center w-full rounded-xl transition-all duration-200 overflow-hidden bg-white"
+        className="flex items-center w-full rounded-xl transition-all duration-200 bg-white"
         style={{
           height: "48px",
           border: "1.5px solid #D8E2E9",
         }}
       >
-        <div className="relative shrink-0 border-r border-[#D8E2E9] bg-[#F8FAFC] h-full flex items-center">
-          <select
-            value={countryCode}
-            onChange={(e) => onCountryCodeChange(e.target.value)}
-            className="h-full pl-3 pr-7 text-xs sm:text-sm font-medium outline-none bg-transparent cursor-pointer appearance-none text-slate-700"
-            style={{ minWidth: "120px", maxWidth: "160px" }}
-            aria-label="Indicatif téléphonique international"
+        {/* Trigger Button with Flag */}
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="h-full px-3 flex items-center gap-2 border-r border-[#D8E2E9] bg-[#F8FAFC] hover:bg-[#F1F5F9] transition-colors cursor-pointer shrink-0"
+          style={{ minWidth: "105px" }}
+          aria-expanded={open}
+        >
+          {currentCountry ? (
+            <div className="flex items-center gap-1.5 min-w-0">
+              <img
+                src={`https://flagcdn.com/w40/${currentCountry.code.toLowerCase()}.png`}
+                alt={currentCountry.name}
+                className="w-5 h-3.5 object-cover rounded-xs shrink-0 shadow-2xs"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none"
+                }}
+              />
+              <span className="text-xs sm:text-sm font-semibold text-slate-800 font-mono">
+                {currentCountry.dial}
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-slate-500">
+              <GlobeIcon size={16} className="shrink-0 text-slate-400" />
+              <span className="text-xs font-medium">Indicatif</span>
+            </div>
+          )}
+          <svg
+            className={`w-3 h-3 text-slate-400 transition-transform duration-200 ml-auto ${
+              open ? "rotate-180" : ""
+            }`}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <option value="">Indicatif...</option>
-            <optgroup label="Fréquents">
-              {FREQUENT_COUNTRIES.map((c) => (
-                <option key={`freq-${c.code}-${c.dial}`} value={c.dial}>
-                  {c.name} ({c.dial})
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="Tous les pays">
-              {ALL_COUNTRY_CODES.map((c) => (
-                <option key={`all-${c.code}-${c.dial}`} value={c.dial}>
-                  {c.name} ({c.dial})
-                </option>
-              ))}
-            </optgroup>
-          </select>
-          <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
-            <svg
-              className="w-3.5 h-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
-          </div>
-        </div>
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+
+        {/* Telephone Number Input */}
         <input
+          ref={inputRef}
           type="tel"
           value={phone}
           onChange={(e) => onPhoneChange(e.target.value)}
-          placeholder={
-            countryCode === "+228"
-              ? "Ex: 90 12 34 56"
-              : countryCode
-              ? "Ex: 6 12 34 56 78"
-              : placeholder || "Ex: 90 12 34 56"
-          }
+          placeholder={placeholder || "90 12 34 56"}
           className="flex-1 h-full px-3.5 text-sm outline-none bg-transparent"
           style={{ color: TEXT_DARK }}
         />
       </div>
+
+      {/* Dropdown Popover with Flags */}
+      {open && (
+        <>
+          {/* Backdrop to close on any outside click */}
+          <div
+            className="fixed inset-0 z-40 bg-transparent"
+            onClick={(e) => {
+              e.stopPropagation()
+              setOpen(false)
+            }}
+          />
+          <div
+            className="absolute left-0 top-[76px] z-50 w-full sm:w-[360px] bg-white rounded-2xl shadow-xl border border-[#D8E2E9] overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+            style={{ maxHeight: "380px" }}
+          >
+            {/* Search bar inside dropdown */}
+            <div className="p-2.5 border-b border-slate-100 bg-[#FAFCFD]">
+              <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-slate-200 focus-within:border-[#174F7A]">
+                <SearchIcon size={14} className="text-slate-400 shrink-0" />
+                <input
+                  type="text"
+                  autoFocus
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Rechercher pays ou indicatif (ex: Togo, +228)..."
+                  className="w-full text-xs outline-none bg-transparent text-slate-800 placeholder:text-slate-400"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="text-xs text-slate-400 hover:text-slate-600 px-1 cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Scrollable list */}
+            <div className="overflow-y-auto divide-y divide-slate-50" style={{ maxHeight: "310px" }}>
+              {/* Frequent section (if not searching or search matches) */}
+              {!search && filteredFrequent.length > 0 && (
+                <div>
+                  <div className="px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">
+                    Pays fréquents
+                  </div>
+                  {filteredFrequent.map((c) => {
+                    const isSelected = countryIso === c.code || (!countryIso && countryCode === c.dial)
+                    return (
+                      <button
+                        key={`freq-${c.code}`}
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          handleSelect(c)
+                        }}
+                        onClick={() => handleSelect(c)}
+                        className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-colors cursor-pointer hover:bg-[#F0F5FA] ${
+                          isSelected ? "bg-[#EAF2F9] font-bold text-[#174F7A]" : "text-slate-700"
+                        }`}
+                      >
+                        <img
+                          src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
+                          alt={c.name}
+                          className="w-5 h-3.5 object-cover rounded-xs shrink-0 shadow-2xs"
+                          loading="lazy"
+                        />
+                        <span className="flex-1 truncate">{c.name}</span>
+                        <span className="text-slate-500 font-mono text-[11px] shrink-0 font-semibold">
+                          {c.dial}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* All countries section */}
+              <div>
+                {!search && (
+                  <div className="px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">
+                    Tous les pays
+                  </div>
+                )}
+                {filteredAll.length > 0 ? (
+                  filteredAll.map((c) => {
+                    const isSelected = countryIso === c.code || (!countryIso && countryCode === c.dial)
+                    return (
+                      <button
+                        key={`all-${c.code}`}
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          handleSelect(c)
+                        }}
+                        onClick={() => handleSelect(c)}
+                        className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-colors cursor-pointer hover:bg-[#F0F5FA] ${
+                          isSelected ? "bg-[#EAF2F9] font-bold text-[#174F7A]" : "text-slate-700"
+                        }`}
+                      >
+                        <img
+                          src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
+                          alt={c.name}
+                          className="w-5 h-3.5 object-cover rounded-xs shrink-0 shadow-2xs"
+                          loading="lazy"
+                        />
+                        <span className="flex-1 truncate">{c.name}</span>
+                        <span className="text-slate-500 font-mono text-[11px] shrink-0 font-semibold">
+                          {c.dial}
+                        </span>
+                      </button>
+                    )
+                  })
+                ) : (
+                  <div className="p-4 text-center text-xs text-slate-400">
+                    Aucun pays trouvé pour "{search}"
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -373,7 +556,8 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
     firstName: "",
     lastName: "",
     email: "",
-    phoneCountryCode: "",
+    phoneCountryCode: "+228",
+    phoneCountryIso: "TG",
     phone: "",
     country: "",
     city: "",
@@ -866,7 +1050,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       <PhoneInputField
                         label={t.apply.form.phone}
                         countryCode={form.phoneCountryCode}
-                        onCountryCodeChange={(v) => set("phoneCountryCode", v)}
+                        countryIso={form.phoneCountryIso}
+                        onCountrySelect={(dial, iso) => {
+                          setForm((f) => ({ ...f, phoneCountryCode: dial, phoneCountryIso: iso }))
+                        }}
                         phone={form.phone}
                         onPhoneChange={(v) => set("phone", v)}
                         placeholder={t.apply.form.phonePlaceholder}
