@@ -5,6 +5,7 @@ interface AdminLayoutProps {
   currentPage: Page
   navigate: (p: Page) => void
   onLogout: () => void
+  applicationsCount?: number
   children: React.ReactNode
 }
 
@@ -14,11 +15,11 @@ const BG = "#F4F6F9"
 
 const NAV_ITEMS = [
   {
-    group: "Overview",
+    group: "Vue d'ensemble",
     items: [
       {
         page: "admin-dashboard" as Page,
-        label: "Dashboard",
+        label: "Tableau de bord",
         icon: (
           <svg
             className="w-4.5 h-4.5"
@@ -39,7 +40,7 @@ const NAV_ITEMS = [
       },
       {
         page: "admin-analytics" as Page,
-        label: "Analytics",
+        label: "Statistiques",
         icon: (
           <svg
             className="w-4.5 h-4.5"
@@ -61,11 +62,11 @@ const NAV_ITEMS = [
     ],
   },
   {
-    group: "Recruitment",
+    group: "Recrutement",
     items: [
       {
         page: "admin-applications" as Page,
-        label: "Applications",
+        label: "Candidatures",
         icon: (
           <svg
             className="w-4.5 h-4.5"
@@ -93,6 +94,7 @@ export default function AdminLayout({
   currentPage,
   navigate,
   onLogout,
+  applicationsCount,
   children,
 }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -108,24 +110,24 @@ export default function AdminLayout({
     >
       {/* Logo */}
       <div
-        className="flex items-center gap-2.5 px-5 py-5"
-        style={{ borderBottom: "1px solid #E8ECF2" }}
+        className="flex items-center gap-3 px-5 py-6"
       >
         <div
-          className="w-8 h-8 rounded-md flex items-center justify-center font-bold text-sm text-white"
+          className="w-8 h-8 rounded flex items-center justify-center font-bold text-lg"
           style={{
-            backgroundColor: BLUE,
+            backgroundColor: "#174F7A",
+            color: "white",
             fontFamily: "JetBrains Mono, monospace",
           }}
         >
           A
         </div>
         <div>
-          <div className="font-bold text-sm" style={{ color: BLUE }}>
+          <div className="font-bold text-sm tracking-wide" style={{ color: "#1A2B3C" }}>
             APTIC-R
           </div>
-          <div className="text-xs" style={{ color: "#9AA8B4" }}>
-            Admin Portal
+          <div className="text-[11px] font-medium tracking-wider uppercase mt-0.5" style={{ color: "#9AA8B4" }}>
+            Portail Admin
           </div>
         </div>
       </div>
@@ -149,13 +151,13 @@ export default function AdminLayout({
                     navigate(item.page)
                     setSidebarOpen(false)
                   }}
-                  className="w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 transition-all text-left"
+                  className="w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 transition-colors text-left"
                   style={{
-                    backgroundColor: active ? "#E8F2FA" : "transparent",
-                    color: active ? BLUE : TEXT_MID,
+                    backgroundColor: active ? "#EAF3F8" : "transparent",
+                    color: active ? "#174F7A" : TEXT_MID,
                   }}
                   onMouseEnter={(e) =>
-                    !active && (e.currentTarget.style.backgroundColor = BG)
+                    !active && (e.currentTarget.style.backgroundColor = "#F5F7F9")
                   }
                   onMouseLeave={(e) =>
                     !active &&
@@ -163,21 +165,23 @@ export default function AdminLayout({
                   }
                 >
                   <div className="flex items-center gap-2.5">
-                    <span style={{ color: active ? BLUE : "#9AA8B4" }}>
+                    <span style={{ color: active ? "#174F7A" : "#9AA8B4" }}>
                       {item.icon}
                     </span>
                     <span className="text-sm font-medium">{item.label}</span>
                   </div>
-                  {"badge" in item && item.badge && (
+                  {"badge" in item && (item.badge || item.page === "admin-applications") && (
                     <span
-                      className="text-xs font-bold px-1.5 py-0.5 rounded-full"
+                      className="text-xs font-bold px-2 py-0.5 rounded-full"
                       style={{
-                        backgroundColor: BLUE,
-                        color: "white",
-                        fontSize: 10,
+                        backgroundColor: "#EEF5F8",
+                        color: "#174F7A",
+                        fontSize: 11,
                       }}
                     >
-                      {item.badge}
+                      {item.page === "admin-applications" && applicationsCount !== undefined
+                        ? applicationsCount
+                        : item.badge}
                     </span>
                   )}
                 </button>
@@ -188,26 +192,52 @@ export default function AdminLayout({
       </nav>
 
       {/* Bottom area */}
-      <div className="px-3 py-4" style={{ borderTop: "1px solid #E8ECF2" }}>
+      <div className="px-3 py-4 mt-auto">
         <div
           className="flex items-center gap-2.5 px-3 py-2 mb-2 rounded-lg"
-          style={{ backgroundColor: BG }}
         >
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-            style={{ backgroundColor: BLUE }}
-          >
-            AD
-          </div>
+          <img
+            src="https://ui-avatars.com/api/?name=Admin+Aptic&background=174F7A&color=fff"
+            alt="Admin"
+            className="w-8 h-8 rounded-full"
+          />
           <div>
-            <div className="text-xs font-semibold" style={{ color: "#1A2B3C" }}>
+            <div className="text-sm font-semibold" style={{ color: "#1A2B3C" }}>
               Admin
             </div>
-            <div className="text-xs" style={{ color: "#9AA8B4" }}>
+            <div className="text-xs" style={{ color: "#5E6B76" }}>
               APTIC-R
             </div>
           </div>
         </div>
+        <button
+          onClick={() => navigate("home")}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors mb-1"
+          style={{ color: "#9AA8B4" }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = BG
+            e.currentTarget.style.color = BLUE
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "transparent"
+            e.currentTarget.style.color = "#9AA8B4"
+          }}
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+            />
+          </svg>
+          Visiter le site
+        </button>
         <button
           onClick={onLogout}
           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors"
@@ -234,7 +264,7 @@ export default function AdminLayout({
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
             />
           </svg>
-          Sign out
+          Se déconnecter
         </button>
       </div>
     </div>
@@ -267,10 +297,10 @@ export default function AdminLayout({
       <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
         {/* Top bar */}
         <div
-          className="sticky top-0 z-30 flex items-center gap-3 px-4 lg:px-8 py-4"
+          className="sticky top-0 z-30 flex items-center gap-3 px-4 lg:px-8 py-3"
           style={{
             backgroundColor: "#fff",
-            borderBottom: "1px solid #E8ECF2",
+            borderBottom: "1px solid #EAF0F4",
             minHeight: 60,
           }}
         >
@@ -301,19 +331,18 @@ export default function AdminLayout({
               className="text-xs font-medium hidden sm:block"
               style={{ color: "#9AA8B4" }}
             >
-              APTIC-R Admin · Demo mode
+              Admin · APTIC-R
             </div>
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-              style={{ backgroundColor: BLUE }}
-            >
-              AD
-            </div>
+            <img
+              src="https://ui-avatars.com/api/?name=Admin+Aptic&background=174F7A&color=fff"
+              alt="Admin"
+              className="w-8 h-8 rounded-full shadow-sm"
+            />
           </div>
         </div>
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-8">{children}</main>
+        <main className="flex-1 p-4 lg:px-12 lg:py-8" style={{ backgroundColor: "#FFFFFF" }}>{children}</main>
       </div>
     </div>
   )

@@ -402,11 +402,60 @@ const translations = {
       steps: {
         s1: 'Personal Info', s2: 'Profile', s3: 'Skills', s4: 'Availability', s5: 'Motivation', s6: 'Experience', s7: 'Documents', s8: 'Source', s9: 'Summary'
       },
+      stepDescs: {
+        s1: 'Your contact details and civil info', s2: 'Your academic background and languages', s3: 'Select the fields where you can contribute', s4: 'Desired period and duration for your mission', s5: 'Express the reasons for your commitment', s6: 'Share a significant achievement or experience', s7: 'Upload your CV and cover letter', s8: 'Help us know how you found out about the program', s9: 'Review your application before submitting'
+      },
+      sidebar: {
+        progression: 'PROGRESSION',
+        step: 'STEP',
+        of: 'OF',
+        ofLower: 'of',
+        yourApplication: 'YOUR APPLICATION',
+        country: 'Country:',
+        duration: 'Duration:',
+        skills: 'Skills:',
+        arrival: 'Arrival:',
+        notProvided: 'Not provided',
+        toSpecify: 'To specify',
+        none: 'None',
+        selected: 'selected',
+        checks: {
+          infoComplete: 'Information complete',
+          profileComplete: 'Profile complete',
+          skillsSelected: 'Skills selected',
+          availabilityIndicated: 'Availability indicated',
+          documentsAdded: 'Documents added'
+        },
+        help: {
+          title: 'Need some light?',
+          desc: 'Any questions about the mission, Togo, or your application? Our team will gladly answer you.',
+          contactBtn: 'Contact APTIC-R'
+        }
+      },
+      review: {
+        disclaimer: 'Please review your application details carefully below before submitting to the APTIC-R coordination.',
+        sections: {
+          contact: 'Contact Info',
+          mission: 'Mission & Availability',
+          docs: 'Documents'
+        },
+        edit: 'Edit',
+        fields: {
+          name: 'Name:', email: 'Email:', phone: 'Phone:', location: 'Country / City:',
+          duration: 'Duration:', arrival: 'Desired arrival:', skills: 'Skills',
+          cv: 'CV:', letter: 'Letter:'
+        },
+        notProvided: 'Not provided',
+        none: 'None',
+        notSent: 'Not provided',
+        consentLabel: 'I certify the accuracy of the information provided and I agree that the APTIC-R association processes my personal data strictly for the evaluation of my international volunteer application.'
+      },
       header: {
         tag: 'Volunteer Application',
         title: 'Build your experience in Togo',
-        desc: 'A few minutes are enough to present your profile, skills, and motivation.',
-        context: '6–12 months · Agbélouvé, Togo · Confidential application'
+        desc: 'Take a few minutes to present your profile, skills, and motivation.',
+        context: '6–12 months · Agbélouvé, Togo · Confidential application',
+        visitSite: 'Visit website'
       },
       progress: { step: 'Step', of: 'of', complete: 'completed' },
       nav: { back: 'Back', continue: 'Continue', submit: 'Send my application', submitting: 'Sending...' },
@@ -457,7 +506,7 @@ const translations = {
         cv: 'CV / Résumé',
         coverLetter: 'Cover Letter / Lettre de motivation',
         portfolio: 'Portfolio',
-        sourceTitle: 'How did you hear about APTIC-R?',
+        sourceTitle: 'How did you hear about APTIC-R? (Optional)',
         reviewTitle: 'Review & Submit',
         reviewDesc: 'Please review your information before submitting.',
         reviewEdit: 'Edit',
@@ -497,6 +546,81 @@ const translations = {
         backOffice: 'View in Back-office →'
       }
     },
+    partner: {
+      success: {
+        title: 'Partnership request sent.',
+        thanks: 'Thank you, ',
+        received: '! Your partnership request has been received by APTIC-R.',
+        review: 'We will review your enquiry and respond to ',
+        timeframe: ' within 5 business days.',
+        backHome: 'Back to Homepage'
+      },
+      hero: {
+        tag: 'For Organizations',
+        title: 'Are you a volunteer-sending organization?',
+        desc: 'APTIC-R is seeking European organizations interested in developing long-term volunteer partnerships in Togo. Let\'s build something meaningful together.'
+      },
+      sidebar: {
+        title: 'Why partner with APTIC-R?',
+        reasons: [
+          'Structured 6–12 month missions with clear objectives',
+          'Meaningful field experience in West Africa',
+          'Long-term institutional partnership',
+          'Transparent reporting and follow-up',
+          'Open-source documentation of all projects'
+        ],
+        frameworksTitle: 'Frameworks we work with'
+      },
+      form: {
+        title: 'Partnership Request Form',
+        orgName: 'Organization name',
+        orgNamePlaceholder: 'e.g. XYZ Volunteer Organization',
+        country: 'Country',
+        website: 'Website',
+        websitePlaceholder: 'https://example.org',
+        contactPerson: 'Contact person',
+        contactPersonPlaceholder: 'e.g. John Doe',
+        email: 'Professional email',
+        emailPlaceholder: 'contact@organization.org',
+        orgType: 'Type of organization',
+        orgTypeOptions: [
+          'NGO / Association',
+          'University',
+          'Government agency',
+          'European programme body',
+          'Religious organization',
+          'Other'
+        ],
+        volunteerCount: 'Potential number of volunteers per year',
+        volunteerCountOptions: [
+          '1–2', '3–5', '5–10', '10+', 'Unknown at this stage'
+        ],
+        targetCountries: 'Target countries of volunteers',
+        targetCountriesPlaceholder: 'France, Germany, Belgium...',
+        programme: 'Volunteer programme / framework',
+        programmeOptions: [
+          'weltwärts',
+          'France Volontaires',
+          'European Solidarity Corps',
+          'Agir abcd',
+          'SCI',
+          'Internal programme',
+          'University programme',
+          'Other'
+        ],
+        message: 'Message',
+        messagePlaceholder: 'Tell us about your organization, your experience sending volunteers to West Africa, and how you envision a partnership with APTIC-R...',
+        doc: 'Presentation document',
+        optional: '— optional',
+        upload: 'Upload organization brochure or presentation',
+        remove: 'Remove',
+        consent: 'I consent to APTIC-R processing the information provided above for the purpose of evaluating a potential partnership. Our organization has the authority to submit this enquiry. I have read the ',
+        privacy: 'privacy policy',
+        submit: 'SEND PARTNERSHIP REQUEST →',
+        submitting: 'Sending request...'
+      },
+      select: 'Select...'
+    },
     footer: {
       tagline: "Association pour la Promotion des TIC en milieu Rural au Togo.",
       tagline2:
@@ -532,11 +656,60 @@ const translations = {
       steps: {
         s1: 'Informations', s2: 'Profil', s3: 'Compétences', s4: 'Disponibilité', s5: 'Motivation', s6: 'Expérience', s7: 'Documents', s8: 'Source', s9: 'Vérification'
       },
+      stepDescs: {
+        s1: 'Vos coordonnées et informations civiles', s2: 'Votre parcours académique et compétences linguistiques', s3: 'Sélectionnez les domaines dans lesquels vous pouvez contribuer', s4: 'Période et durée souhaitées pour votre mission au Togo', s5: 'Exprimez les raisons de votre engagement avec APTIC-R', s6: 'Partagez une réalisation ou une expérience marquante', s7: 'Déposez votre CV et lettre de motivation', s8: 'Aidez-nous à savoir comment vous avez découvert le programme', s9: 'Relisez votre dossier avant de transmettre votre candidature'
+      },
+      sidebar: {
+        progression: 'PROGRESSION',
+        step: 'ÉTAPE',
+        of: 'SUR',
+        ofLower: 'sur',
+        yourApplication: 'VOTRE CANDIDATURE',
+        country: 'Pays :',
+        duration: 'Durée :',
+        skills: 'Compétences :',
+        arrival: 'Arrivée :',
+        notProvided: 'Non renseigné',
+        toSpecify: 'À préciser',
+        none: 'Aucune',
+        selected: 'sélectionnée(s)',
+        checks: {
+          infoComplete: 'Informations complètes',
+          profileComplete: 'Profil complété',
+          skillsSelected: 'Compétences sélectionnées',
+          availabilityIndicated: 'Disponibilité indiquée',
+          documentsAdded: 'Documents ajoutés'
+        },
+        help: {
+          title: 'Besoin d\'un éclairage ?',
+          desc: 'Une question sur la mission, le Togo ou votre candidature ? Notre équipe vous répond avec plaisir.',
+          contactBtn: 'Contacter APTIC-R'
+        }
+      },
+      review: {
+        disclaimer: 'Veuillez vérifier attentivement les détails de votre candidature ci-dessous avant transmission à la coordination APTIC-R.',
+        sections: {
+          contact: 'Coordonnées',
+          mission: 'Mission & Disponibilité',
+          docs: 'Documents'
+        },
+        edit: 'Modifier',
+        fields: {
+          name: 'Nom :', email: 'E-mail :', phone: 'Téléphone :', location: 'Pays / Ville :',
+          duration: 'Durée :', arrival: 'Arrivée souhaitée :', skills: 'Compétences',
+          cv: 'CV :', letter: 'Lettre :'
+        },
+        notProvided: 'Non renseigné',
+        none: 'Aucune',
+        notSent: 'Non fournie',
+        consentLabel: 'J\'atteste de l\'exactitude des informations fournies et j\'accepte que l\'association APTIC-R traite mes données personnelles dans le cadre strict de l\'évaluation de ma candidature de volontariat international.'
+      },
       header: {
         tag: 'CANDIDATURE VOLONTAIRE',
         title: 'Construisez votre expérience au Togo',
         desc: 'Quelques minutes suffisent pour nous présenter votre profil, vos compétences et votre motivation.',
-        context: '6–12 mois · Agbélouvé, Togo · Candidature confidentielle'
+        context: '6–12 mois · Agbélouvé, Togo · Candidature confidentielle',
+        visitSite: 'Visiter le site'
       },
       progress: { step: 'Étape', of: 'sur', complete: 'complété' },
       nav: { back: 'Retour', continue: 'Continuer →', submit: 'Envoyer ma candidature →', submitting: 'ENVOI EN COURS...' },
@@ -587,7 +760,7 @@ const translations = {
         cv: 'CV / Résumé',
         coverLetter: 'Lettre de motivation',
         portfolio: 'Portfolio',
-        sourceTitle: 'Comment avez-vous connu APTIC-R ?',
+        sourceTitle: 'Comment avez-vous connu APTIC-R ? (Optionnel)',
         reviewTitle: 'Vérifiez votre candidature',
         reviewDesc: 'Veuillez vérifier vos informations avant de soumettre.',
         reviewEdit: 'Modifier',
@@ -626,6 +799,81 @@ const translations = {
         backHome: 'Retour à l\'accueil',
         backOffice: 'Voir dans le Back-office →'
       }
+    },
+    partner: {
+      success: {
+        title: 'Demande de partenariat envoyée.',
+        thanks: 'Merci, ',
+        received: ' ! Votre demande de partenariat a bien été reçue par APTIC-R.',
+        review: 'Nous étudierons votre demande et répondrons à ',
+        timeframe: ' sous 5 jours ouvrés.',
+        backHome: 'Retour à l\'accueil'
+      },
+      hero: {
+        tag: 'Pour les organisations',
+        title: 'Êtes-vous une organisation d\'envoi de volontaires ?',
+        desc: 'APTIC-R recherche des organisations européennes intéressées par le développement de partenariats de volontariat à long terme au Togo. Construisons ensemble quelque chose de porteur de sens.'
+      },
+      sidebar: {
+        title: 'Pourquoi devenir partenaire d\'APTIC-R ?',
+        reasons: [
+          'Missions structurées de 6 à 12 mois avec des objectifs clairs',
+          'Expérience de terrain enrichissante en Afrique de l\'Ouest',
+          'Partenariat institutionnel à long terme',
+          'Rapports et suivi transparents',
+          'Documentation open-source de tous les projets'
+        ],
+        frameworksTitle: 'Dispositifs avec lesquels nous travaillons'
+      },
+      form: {
+        title: 'Formulaire de demande de partenariat',
+        orgName: 'Nom de l\'organisation',
+        orgNamePlaceholder: 'Ex: Organisation de Volontaires XYZ',
+        country: 'Pays',
+        website: 'Site web',
+        websitePlaceholder: 'https://example.org',
+        contactPerson: 'Personne de contact',
+        contactPersonPlaceholder: 'Ex: Jean Dupont',
+        email: 'E-mail professionnel',
+        emailPlaceholder: 'contact@organisation.org',
+        orgType: 'Type d\'organisation',
+        orgTypeOptions: [
+          'ONG / Association',
+          'Université',
+          'Agence gouvernementale',
+          'Organisme de programme européen',
+          'Organisation religieuse',
+          'Autre'
+        ],
+        volunteerCount: 'Nombre potentiel de volontaires par an',
+        volunteerCountOptions: [
+          '1–2', '3–5', '5–10', '10+', 'Inconnu à ce stade'
+        ],
+        targetCountries: 'Pays cibles des volontaires',
+        targetCountriesPlaceholder: 'France, Allemagne, Belgique...',
+        programme: 'Programme de volontariat / dispositif',
+        programmeOptions: [
+          'weltwärts',
+          'France Volontaires',
+          'Corps de solidarité européen',
+          'Agir abcd',
+          'SCI',
+          'Programme interne',
+          'Programme universitaire',
+          'Autre'
+        ],
+        message: 'Message',
+        messagePlaceholder: 'Parlez-nous de votre organisation, de votre expérience dans l\'envoi de volontaires en Afrique de l\'Ouest, et de la façon dont vous envisagez un partenariat avec APTIC-R...',
+        doc: 'Document de présentation',
+        optional: '— optionnel',
+        upload: 'Ajouter une brochure ou présentation',
+        remove: 'Supprimer',
+        consent: 'Je consens à ce que APTIC-R traite les informations fournies ci-dessus dans le but d\'évaluer un partenariat potentiel. Notre organisation a l\'autorité pour soumettre cette demande. J\'ai lu la ',
+        privacy: 'politique de confidentialité',
+        submit: 'ENVOYER LA DEMANDE DE PARTENARIAT →',
+        submitting: 'Envoi en cours...'
+      },
+      select: 'Sélectionner...'
     },
     hero: {
       badge: "Agbélouvé, Togo · 6-12 mois · Candidatures ouvertes",
@@ -1015,7 +1263,6 @@ const translations = {
       cta1: "POSTULEZ DÈS MAINTENANT",
       cta2: "DEVENEZ PARTENAIRE",
     },
-
 
     footer: {
       tagline: "Association pour la Promotion des TIC en milieu Rural au Togo.",
@@ -1446,9 +1693,10 @@ const translations = {
       },
       header: {
         tag: 'Bewerbung als Freiwilliger',
-        title: 'Bewerben Sie sich als Freiwilliger bei APTIC-R',
+        title: 'Sammeln Sie Erfahrung in Togo',
         desc: 'Diese Bewerbung dauert etwa 15-20 Minuten. Alle Informationen werden vertraulich behandelt.',
-        context: 'Agbélouvé, Togo · 6–12 Monate · Vertrauliche Bewerbung'
+        context: 'Agbélouvé, Togo · 6–12 Monate · Vertrauliche Bewerbung',
+        visitSite: 'Zur Website'
       },
       progress: { step: 'Schritt', of: 'von', complete: 'abgeschlossen' },
       nav: { back: 'Zurück', continue: 'Weiter', submit: 'Bewerbung senden', submitting: 'Wird gesendet...' },
@@ -1500,7 +1748,7 @@ const translations = {
         cv: 'Lebenslauf (CV)',
         coverLetter: 'Motivationsschreiben',
         portfolio: 'Portfolio',
-        sourceTitle: 'Wie haben Sie von APTIC-R erfahren?',
+        sourceTitle: 'Wie haben Sie von APTIC-R erfahren? (Optional)',
         reviewTitle: 'Überprüfen & Absenden',
         reviewDesc: 'Bitte überprüfen Sie Ihre Informationen vor dem Absenden.',
         reviewEdit: 'Bearbeiten',
@@ -1540,6 +1788,82 @@ const translations = {
         backOffice: 'Im Back-Office ansehen →'
       }
     },
+    partner: {
+      success: {
+        title: "Partnerschaftsanfrage gesendet.",
+        thanks: "Vielen Dank, ",
+        received: "! Ihre Partnerschaftsanfrage ist bei APTIC-R eingegangen.",
+        review: "Wir werden Ihre Anfrage prüfen und uns innerhalb von 5 Werktagen unter ",
+        timeframe: " bei Ihnen melden.",
+        backHome: "Zurück zur Startseite"
+      },
+      hero: {
+        tag: "Für Organisationen",
+        title: "Sind Sie eine Entsendeorganisation für Freiwillige?",
+        desc: "APTIC-R sucht europäische Organisationen, die an einer langfristigen Partnerschaft für Freiwilligeneinsätze in Togo interessiert sind. Lassen Sie uns gemeinsam etwas Sinnvolles aufbauen."
+      },
+      sidebar: {
+        title: "Warum Partner von APTIC-R werden?",
+        reasons: [
+          "Strukturierte 6- bis 12-monatige Einsätze mit klaren Zielen",
+          "Bedeutungsvolle Praxiserfahrung in Westafrika",
+          "Langfristige institutionelle Partnerschaft",
+          "Transparente Berichterstattung und Begleitung",
+          "Open-Source-Dokumentation aller Projekte"
+        ],
+        frameworksTitle: "Programme, mit denen wir zusammenarbeiten"
+      },
+      form: {
+        title: "Formular für Partnerschaftsanfragen",
+        orgName: "Name der Organisation",
+        orgNamePlaceholder: "z. B. XYZ Freiwilligenorganisation",
+        country: "Land",
+        website: "Webseite",
+        websitePlaceholder: "https://example.org",
+        contactPerson: "Ansprechpartner/in",
+        contactPersonPlaceholder: "z. B. Max Mustermann",
+        email: "Geschäftliche E-Mail",
+        emailPlaceholder: "kontakt@organisation.org",
+        orgType: "Art der Organisation",
+        orgTypeOptions: [
+          "NGO / Verein",
+          "Universität / Hochschule",
+          "Staatliche Einrichtung",
+          "Europäisches Programm",
+          "Religiöse Organisation",
+          "Andere"
+        ],
+        volunteerCount: "Mögliche Anzahl von Freiwilligen pro Jahr",
+        volunteerCountOptions: [
+          "1–2", "3–5", "5–10", "10+", "Zu diesem Zeitpunkt noch unbekannt"
+        ],
+        targetCountries: "Zielländer der Freiwilligen",
+        targetCountriesPlaceholder: "Deutschland, Frankreich, Belgien...",
+        programme: "Freiwilligenprogramm / Rahmenwerk",
+        programmeOptions: [
+          "weltwärts",
+          "France Volontaires",
+          "Europäisches Solidaritätskorps",
+          "Agir abcd",
+          "SCI",
+          "Internes Programm",
+          "Universitäres Programm",
+          "Anderes"
+        ],
+        message: "Nachricht",
+        messagePlaceholder: "Erzählen Sie uns von Ihrer Organisation, Ihrer Erfahrung mit Freiwilligen in Westafrika und wie Sie sich eine Partnerschaft mit APTIC-R vorstellen...",
+        doc: "Präsentationsdokument",
+        optional: "— optional",
+        upload: "Broschüre oder Präsentation der Organisation hochladen",
+        remove: "Entfernen",
+        consent: "Ich bin damit einverstanden, dass APTIC-R die oben gemachten Angaben zur Bewertung einer potenziellen Partnerschaft verarbeitet. Ich habe die ",
+        privacy: "Datenschutzerklärung",
+        submit: "PARTNERSCHAFTSANFRAGE SENDEN →",
+        submitting: "Anfrage wird gesendet..."
+      },
+      select: "Auswählen..."
+    },
+
     footer: {
       tagline: "Association pour la Promotion des TIC en milieu Rural au Togo.",
       tagline2:

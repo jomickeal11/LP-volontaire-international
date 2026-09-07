@@ -200,7 +200,7 @@ export default function AdminDashboard({
           }
         />
         <KpiCard
-          label="Applications"
+          label="Candidatures"
           value={totalApplications}
           delta="Actif"
           positive
@@ -224,7 +224,7 @@ export default function AdminDashboard({
           }
         />
         <KpiCard
-          label="In Review"
+          label="En révision"
           value={inReviewCount}
           color="#C77B2B"
           icon={
@@ -246,7 +246,7 @@ export default function AdminDashboard({
           }
         />
         <KpiCard
-          label="Interviews"
+          label="Entretiens"
           value={interviewCount}
           color="#7B3FC8"
           icon={
@@ -268,7 +268,7 @@ export default function AdminDashboard({
           }
         />
         <KpiCard
-          label="Selected / Chosen"
+          label="Sélectionnés / Retenus"
           value={selectedCount}
           color={GREEN}
           icon={
@@ -290,7 +290,7 @@ export default function AdminDashboard({
           }
         />
         <KpiCard
-          label="Preparation / Val."
+          label="Préparation / Val."
           value={preparationCount}
           color="#2E7D52"
           icon={
@@ -326,10 +326,10 @@ export default function AdminDashboard({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm" style={{ color: TEXT_DARK }}>
-                Applications per month
+                Candidatures par mois
               </h3>
               <p className="text-xs" style={{ color: TEXT_MID }}>
-                January – August 2025
+                Janvier – Août 2025
               </p>
             </div>
             <span
@@ -374,7 +374,7 @@ export default function AdminDashboard({
                 dataKey="applications"
                 fill={BLUE}
                 radius={[4, 4, 0, 0]}
-                name="Applications"
+                name="Candidatures"
               />
             </BarChart>
           </ResponsiveContainer>
@@ -391,10 +391,10 @@ export default function AdminDashboard({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm" style={{ color: TEXT_DARK }}>
-                Visitor trend
+                Tendance des visiteurs
               </h3>
               <p className="text-xs" style={{ color: TEXT_MID }}>
-                Monthly unique visitors
+                Visiteurs uniques mensuels
               </p>
             </div>
           </div>
@@ -445,7 +445,7 @@ export default function AdminDashboard({
                 stroke={BLUE_LIGHT}
                 strokeWidth={2}
                 fill="url(#visitorGradient)"
-                name="Visitors"
+                name="Visiteurs"
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -463,47 +463,47 @@ export default function AdminDashboard({
           }}
         >
           <h3 className="text-sm mb-4" style={{ color: TEXT_DARK }}>
-            Recruitment pipeline
+            Pipeline de recrutement
           </h3>
           <div className="flex flex-col gap-2">
             {[
               {
-                label: "Visitors",
+                label: "Visiteurs",
                 value: 6130,
                 pct: 100,
                 color: "#E8ECF2",
                 text: "#4A5A6A",
               },
               {
-                label: "Applications",
+                label: "Candidatures",
                 value: 79,
                 pct: 65,
                 color: "#DBEAFE",
                 text: "#1E40AF",
               },
               {
-                label: "Qualified",
+                label: "Qualifiés",
                 value: 34,
                 pct: 45,
                 color: BLUE + "30",
                 text: BLUE,
               },
               {
-                label: "Interviews",
+                label: "Entretiens",
                 value: 18,
                 pct: 32,
                 color: "#E0E7FF",
                 text: "#4338CA",
               },
               {
-                label: "Selected",
+                label: "Sélectionnés",
                 value: 9,
                 pct: 20,
                 color: "#D1FAE5",
                 text: "#065F46",
               },
               {
-                label: "Arrived",
+                label: "Arrivés",
                 value: 4,
                 pct: 10,
                 color: "#E6F4EC",
@@ -551,14 +551,14 @@ export default function AdminDashboard({
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm" style={{ color: TEXT_DARK }}>
-              Applications by status
+              Candidatures par statut
             </h3>
             <button
               onClick={() => navigate("admin-applications")}
               className="text-xs font-semibold"
               style={{ color: BLUE }}
             >
-              View all →
+              Voir tout →
             </button>
           </div>
           <div className="flex flex-col gap-2 mb-6">
@@ -594,7 +594,7 @@ export default function AdminDashboard({
             }
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BLUE)}
           >
-            Manage Applications
+            Gérer les candidatures
           </button>
         </div>
       </div>

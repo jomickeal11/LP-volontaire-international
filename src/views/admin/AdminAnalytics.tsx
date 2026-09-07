@@ -22,49 +22,49 @@ const TEXT_DARK = "#1A2B3C"
 const TEXT_MID = "#4A5A6A"
 
 const countryData = [
-  { country: "Germany", applications: 22, color: BLUE },
+  { country: "Allemagne", applications: 22, color: BLUE },
   { country: "France", applications: 19, color: BLUE_LIGHT },
-  { country: "Belgium", applications: 11, color: GREEN },
-  { country: "Netherlands", applications: 8, color: "#7B3FC8" },
-  { country: "Italy", applications: 6, color: "#C77B2B" },
-  { country: "Denmark", applications: 5, color: "#3A8BC4" },
-  { country: "Austria", applications: 4, color: "#9AA8B4" },
-  { country: "Other", applications: 4, color: "#D1DCE5" },
+  { country: "Belgique", applications: 11, color: GREEN },
+  { country: "Pays-Bas", applications: 8, color: "#7B3FC8" },
+  { country: "Italie", applications: 6, color: "#C77B2B" },
+  { country: "Danemark", applications: 5, color: "#3A8BC4" },
+  { country: "Autriche", applications: 4, color: "#9AA8B4" },
+  { country: "Autres", applications: 4, color: "#D1DCE5" },
 ]
 
 const sourceData = [
   { name: "weltwärts", value: 18 },
   { name: "France Volontaires", value: 14 },
   { name: "Corps de solidarité", value: 11 },
-  { name: "University", value: 12 },
+  { name: "Université", value: 12 },
   { name: "LinkedIn", value: 8 },
   { name: "Google", value: 9 },
-  { name: "Friend", value: 4 },
-  { name: "Other", value: 3 },
+  { name: "Ami(e)", value: 4 },
+  { name: "Autres", value: 3 },
 ]
 
 const profileData = [
-  { name: "Digital & IT", value: 31, color: BLUE },
+  { name: "Numérique & IT", value: 31, color: BLUE },
   { name: "Agriculture", value: 22, color: GREEN },
-  { name: "Creative", value: 18, color: "#7B3FC8" },
-  { name: "Engineering", value: 29, color: "#C77B2B" },
+  { name: "Créatif", value: 18, color: "#7B3FC8" },
+  { name: "Ingénierie", value: 29, color: "#C77B2B" },
 ]
 
 const monthlyConversion = [
   { month: "Jan", visitors: 380, applications: 4, qualified: 2 },
-  { month: "Feb", visitors: 420, applications: 6, qualified: 3 },
+  { month: "Fév", visitors: 420, applications: 6, qualified: 3 },
   { month: "Mar", visitors: 610, applications: 9, qualified: 4 },
-  { month: "Apr", visitors: 540, applications: 7, qualified: 4 },
-  { month: "May", visitors: 820, applications: 12, qualified: 6 },
-  { month: "Jun", visitors: 1100, applications: 15, qualified: 7 },
-  { month: "Jul", visitors: 1340, applications: 18, qualified: 9 },
-  { month: "Aug", visitors: 920, applications: 8, qualified: 4 },
+  { month: "Avr", visitors: 540, applications: 7, qualified: 4 },
+  { month: "Mai", visitors: 820, applications: 12, qualified: 6 },
+  { month: "Juin", visitors: 1100, applications: 15, qualified: 7 },
+  { month: "Juil", visitors: 1340, applications: 18, qualified: 9 },
+  { month: "Aoû", visitors: 920, applications: 8, qualified: 4 },
 ]
 
 const languageData = [
-  { lang: "English", pct: 48 },
-  { lang: "French", pct: 31 },
-  { lang: "German", pct: 21 },
+  { lang: "Anglais", pct: 48 },
+  { lang: "Français", pct: 31 },
+  { lang: "Allemand", pct: 21 },
 ]
 
 function KpiCard({
@@ -109,55 +109,55 @@ function KpiCard({
 
 const FUNNEL = [
   {
-    label: "Visitors",
+    label: "Visiteurs",
     value: 6130,
     rate: null,
     color: "#E8ECF2",
     text: "#4A5A6A",
   },
   {
-    label: "CTA Click",
+    label: "Clic CTA",
     value: 1840,
     rate: "30.0%",
     color: "#DBEAFE",
     text: "#1E40AF",
   },
   {
-    label: "App. Started",
+    label: "Form. commencé",
     value: 312,
     rate: "16.9%",
     color: BLUE + "30",
     text: BLUE,
   },
   {
-    label: "App. Submitted",
+    label: "Form. soumis",
     value: 79,
     rate: "25.3%",
     color: "#E0E7FF",
     text: "#4338CA",
   },
   {
-    label: "Qualified",
+    label: "Qualifiés",
     value: 34,
     rate: "43.0%",
     color: "#D1FAE5",
     text: "#065F46",
   },
   {
-    label: "Interview",
+    label: "Entretiens",
     value: 18,
     rate: "52.9%",
     color: "#E6F4EC",
     text: GREEN,
   },
   {
-    label: "Selected",
+    label: "Sélectionnés",
     value: 9,
     rate: "50.0%",
     color: "#CCFBF1",
     text: "#065F46",
   },
-  { label: "Arrived", value: 4, rate: "44.4%", color: "#D1FAE5", text: GREEN },
+  { label: "Arrivés", value: 4, rate: "44.4%", color: "#D1FAE5", text: GREEN },
 ]
 
 export default function AdminAnalytics() {
@@ -165,10 +165,10 @@ export default function AdminAnalytics() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl mb-1" style={{ color: TEXT_DARK }}>
-          Analytics
+          Statistiques
         </h1>
         <p className="text-sm" style={{ color: TEXT_MID }}>
-          Acquisition, conversion, and engagement — January to August 2025
+          Acquisition, conversion et engagement — Janvier à Août 2025
         </p>
       </div>
 
@@ -182,27 +182,27 @@ export default function AdminAnalytics() {
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <KpiCard
-            label="Total visitors"
+            label="Visiteurs totaux"
             value="6,130"
-            sub="+18% vs previous period"
+            sub="+18% vs période préc."
             color={BLUE_LIGHT}
           />
           <KpiCard
-            label="Unique countries"
+            label="Pays uniques"
             value="14"
-            sub="European + other"
+            sub="Européens + autres"
             color={BLUE}
           />
           <KpiCard
-            label="Avg. session"
+            label="Durée moy. session"
             value="3:24"
-            sub="Minutes on site"
+            sub="Minutes sur le site"
             color="#7B3FC8"
           />
           <KpiCard
-            label="Partner requests"
+            label="Demandes partenaires"
             value="6"
-            sub="From organizations"
+            sub="Des organisations"
             color={GREEN}
           />
         </div>
@@ -218,27 +218,27 @@ export default function AdminAnalytics() {
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <KpiCard
-            label="CTA click rate"
+            label="Taux clic CTA"
             value="30.0%"
-            sub="Visitors → APPLY NOW click"
+            sub="Visiteurs → Clic POSTULER"
             color={BLUE}
           />
           <KpiCard
-            label="Form start rate"
+            label="Taux début form."
             value="16.9%"
-            sub="CTA clicks → app started"
+            sub="Clics CTA → Form. commencé"
             color="#C77B2B"
           />
           <KpiCard
-            label="Completion rate"
+            label="Taux de complétion"
             value="25.3%"
-            sub="Started → submitted"
+            sub="Commencé → Soumis"
             color="#7B3FC8"
           />
           <KpiCard
-            label="Overall conv."
+            label="Conv. globale"
             value="1.29%"
-            sub="Visitors → submitted"
+            sub="Visiteurs → Soumis"
             color={GREEN}
           />
         </div>
@@ -255,7 +255,7 @@ export default function AdminAnalytics() {
           }}
         >
           <h3 className="text-sm mb-4" style={{ color: TEXT_DARK }}>
-            Applications by country
+            Candidatures par pays
           </h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart
@@ -293,7 +293,7 @@ export default function AdminAnalytics() {
               <Bar
                 dataKey="applications"
                 radius={[0, 4, 4, 0]}
-                name="Applications"
+                name="Candidatures"
               >
                 {countryData.map((entry, i) => (
                   <Cell
@@ -315,7 +315,7 @@ export default function AdminAnalytics() {
           }}
         >
           <h3 className="text-sm mb-4" style={{ color: TEXT_DARK }}>
-            Applications by profile
+            Candidatures par profil
           </h3>
           <div className="flex items-center gap-6">
             <ResponsiveContainer width={180} height={180}>
@@ -385,7 +385,7 @@ export default function AdminAnalytics() {
         }}
       >
         <h3 className="text-sm mb-5" style={{ color: TEXT_DARK }}>
-          Full conversion funnel
+          Entonnoir de conversion complet
         </h3>
         <div className="flex flex-col gap-2">
           {FUNNEL.map((step, i) => (
@@ -443,7 +443,7 @@ export default function AdminAnalytics() {
           }}
         >
           <h3 className="text-sm mb-4" style={{ color: TEXT_DARK }}>
-            Conversion trend
+            Tendance de conversion
           </h3>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart
@@ -480,7 +480,7 @@ export default function AdminAnalytics() {
                 stroke={BLUE}
                 strokeWidth={2}
                 dot={false}
-                name="Applications"
+                name="Candidatures"
               />
               <Line
                 type="monotone"
@@ -488,7 +488,7 @@ export default function AdminAnalytics() {
                 stroke={GREEN}
                 strokeWidth={2}
                 dot={false}
-                name="Qualified"
+                name="Qualifiés"
               />
             </LineChart>
           </ResponsiveContainer>
@@ -503,7 +503,7 @@ export default function AdminAnalytics() {
           }}
         >
           <h3 className="text-sm mb-4" style={{ color: TEXT_DARK }}>
-            Traffic sources
+            Sources de trafic
           </h3>
           <div className="flex flex-col gap-2.5 mb-6">
             {sourceData.map((s) => (
@@ -543,7 +543,7 @@ export default function AdminAnalytics() {
             className="text-xs uppercase tracking-wider mb-3"
             style={{ color: "#9AA8B4" }}
           >
-            Language preference
+            Préférences linguistiques
           </h4>
           <div className="flex gap-3">
             {languageData.map((l) => (

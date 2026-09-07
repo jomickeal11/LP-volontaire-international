@@ -19,6 +19,9 @@ import {
   LightbulbIcon,
   GlobeIcon,
   SearchIcon,
+  PaletteIcon,
+  PenToolIcon,
+  SignalIcon,
 } from "../components/Icons"
 import { FREQUENT_COUNTRIES, ALL_COUNTRY_CODES } from "../data/countryPhoneCodes"
 
@@ -45,6 +48,7 @@ function InputField({
   required,
   error,
   helpText,
+  min,
 }: {
   label: string
   type?: string
@@ -54,6 +58,7 @@ function InputField({
   required?: boolean
   error?: string
   helpText?: string
+  min?: string
 }) {
   return (
     <div className="flex flex-col gap-1.5 w-full">
@@ -65,6 +70,7 @@ function InputField({
         type={type}
         placeholder={placeholder}
         value={value}
+        min={min}
         onChange={(e) => onChange(e.target.value)}
         className="w-full px-4 rounded-xl outline-none transition-all duration-200"
         style={{
@@ -543,7 +549,7 @@ function FileUpload({
 // ── Application Page Component ────────────────────────────────────────────────
 export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
   const currentLang = (lang || "FR").toUpperCase() as keyof typeof translations
-  const t = translations[currentLang] || translations.FR
+  const t: any = translations[currentLang] || translations.FR
 
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
@@ -551,8 +557,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
   const [errorMessage, setErrorMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Form state
-  const [form, setForm] = useState({
+  const defaultFormState = {
     firstName: "",
     lastName: "",
     email: "",
@@ -583,17 +588,47 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       english: "",
       german: "",
     },
+  }
+
+  // Form state initialized from localStorage if available
+  const [form, setForm] = useState(() => {
+    try {
+      const saved = localStorage.getItem("apticFormDraft")
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        return {
+          ...defaultFormState,
+          ...parsed,
+          cvFile: null,
+          motivationFile: null,
+          portfolioFile: null,
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load form draft", e)
+    }
+    return defaultFormState
   })
 
+  // Save to localStorage on change
+  useEffect(() => {
+    const formToSave = { ...form }
+    // Remove files before saving to avoid serialization errors and size limits
+    delete (formToSave as any).cvFile
+    delete (formToSave as any).motivationFile
+    delete (formToSave as any).portfolioFile
+    localStorage.setItem("apticFormDraft", JSON.stringify(formToSave))
+  }, [form])
+
   const set = (key: keyof typeof form, value: unknown) =>
-    setForm((f) => ({ ...f, [key]: value }))
+    setForm((f: typeof defaultFormState) => ({ ...f, [key]: value }))
 
   const toggleSkill = (skillSlug: string) => {
     const current = form.skills
     set(
       "skills",
       current.includes(skillSlug)
-        ? current.filter((s) => s !== skillSlug)
+        ? current.filter((s: string) => s !== skillSlug)
         : [...current, skillSlug]
     )
   }
@@ -618,6 +653,47 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
     }
   }
 
+  // Real-time progress calculation based on filled required fields
+  const progressPercentage = (() => {
+    let score = 0
+    const total = 17
+    
+    // Personal info (5)
+    if (form.firstName.trim().length >= 2) score++
+    if (form.lastName.trim().length >= 2) score++
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) score++
+    if (form.country.trim().length > 0) score++
+    if (form.dob.length > 0) score++
+    
+    // Profile (4)
+    if (form.education.trim().length > 0) score++
+    if (form.fieldOfStudy.trim().length > 0) score++
+    if (form.experience.length > 0) score++
+    if (form.digitalSkillLevel.length > 0) score++
+    
+    // Skills (1)
+    if (form.skills.length > 0) score++
+    
+    // Availability (2)
+    if (form.duration.length > 0) score++
+    if (form.arrivalDate.length > 0) score++
+    
+    // Motivation (1)
+    if (form.motivation.trim().length >= 20) score++
+    
+    // Experience (1)
+    if (form.projectExp.trim().length >= 20) score++
+    
+    // Documents (2)
+    if (form.cvFile !== null) score++
+    if (form.motivationFile !== null) score++
+    
+    // Consent (1)
+    if (form.consent) score++
+    
+    return Math.round((score / total) * 100)
+  })()
+
   // Validation
   const isStepValid = (s: number): boolean => {
     switch (s) {
@@ -629,16 +705,28 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
           form.country.trim().length > 0 &&
           form.dob.length > 0
         )
+      case 2:
+        return (
+          form.education.trim().length > 0 &&
+          form.fieldOfStudy.trim().length > 0 &&
+          form.experience.length > 0 &&
+          form.digitalSkillLevel.length > 0
+        )
       case 3:
         return form.skills.length > 0
-      case 4:
-        return form.duration.length > 0
+      case 4: {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const isDateValid =
+          form.arrivalDate.length > 0 && new Date(form.arrivalDate) >= today
+        return form.duration.length > 0 && isDateValid
+      }
       case 5:
         return form.motivation.trim().length >= 20
       case 6:
         return form.projectExp.trim().length >= 20
-      case 8:
-        return form.source.length > 0
+      case 7:
+        return form.cvFile !== null && form.motivationFile !== null
       case 9:
         return form.consent
       default:
@@ -646,20 +734,12 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
     }
   }
 
-  const step1HasActivity = [form.firstName, form.lastName, form.email, form.dob].some((v) => v.trim().length > 0)
-  const step1Errors = step1HasActivity
-    ? {
-        firstName: form.firstName.trim().length < 2 ? "Prénom obligatoire (min. 2 caractères)" : undefined,
-        lastName: form.lastName.trim().length < 2 ? "Nom obligatoire (min. 2 caractères)" : undefined,
-        email:
-          form.email.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
-            ? "Adresse e-mail invalide"
-            : !form.email
-            ? "E-mail obligatoire"
-            : undefined,
-        dob: !form.dob ? "Date de naissance obligatoire" : undefined,
-      }
-    : {}
+  const step1Errors = {
+    firstName: form.firstName.length > 0 && form.firstName.trim().length < 2 ? t.apply.errors?.firstNameReq || "Prénom obligatoire (min. 2 caractères)" : undefined,
+    lastName: form.lastName.length > 0 && form.lastName.trim().length < 2 ? t.apply.errors?.lastNameReq || "Nom obligatoire (min. 2 caractères)" : undefined,
+    email: form.email.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) ? t.apply.errors?.emailInvalid || "Adresse e-mail invalide" : undefined,
+    dob: undefined,
+  }
 
   // Submission handler
   const submit = async () => {
@@ -691,8 +771,38 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       setIsSubmitting(false)
       return
     }
+    if (!form.education.trim()) {
+      setErrorMessage("Veuillez renseigner votre formation")
+      setIsSubmitting(false)
+      return
+    }
+    if (!form.fieldOfStudy.trim()) {
+      setErrorMessage("Veuillez renseigner votre domaine d'études")
+      setIsSubmitting(false)
+      return
+    }
+    if (!form.experience) {
+      setErrorMessage("Veuillez renseigner votre niveau d'expérience")
+      setIsSubmitting(false)
+      return
+    }
+    if (!form.digitalSkillLevel) {
+      setErrorMessage("Veuillez renseigner votre niveau de compétences numériques")
+      setIsSubmitting(false)
+      return
+    }
     if (form.skills.length === 0) {
       setErrorMessage(t.apply.errors.skillsReq)
+      setIsSubmitting(false)
+      return
+    }
+    if (!form.arrivalDate) {
+      setErrorMessage("Veuillez renseigner votre date d'arrivée souhaitée")
+      setIsSubmitting(false)
+      return
+    }
+    if (!form.duration) {
+      setErrorMessage("Veuillez renseigner la durée souhaitée")
       setIsSubmitting(false)
       return
     }
@@ -716,8 +826,13 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       setIsSubmitting(false)
       return
     }
-    if (!form.source) {
-      setErrorMessage(t.apply.errors.sourceReq)
+    if (!form.cvFile) {
+      setErrorMessage("Le CV est obligatoire")
+      setIsSubmitting(false)
+      return
+    }
+    if (!form.motivationFile) {
+      setErrorMessage("La lettre de motivation est obligatoire")
       setIsSubmitting(false)
       return
     }
@@ -746,7 +861,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       if (form.experience) formData.append("experience", form.experience)
       if (form.digitalSkillLevel) formData.append("digitalSkillLevel", form.digitalSkillLevel)
 
-      form.skills.forEach((skill) => formData.append("skills", skill))
+      form.skills.forEach((skill: string) => formData.append("skills", skill))
 
       if (form.arrivalDate) formData.append("arrivalDate", form.arrivalDate)
       formData.append("duration", form.duration)
@@ -762,6 +877,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       const result = await submitCandidateApplicationFormData(formData, lang)
       setIsSubmitting(false)
       if (result.success && result.data) {
+        localStorage.removeItem("apticFormDraft")
         setSubmittedRef(result.data.referenceNumber)
         setSubmitted(true)
         window.scrollTo({ top: 0, behavior: "smooth" })
@@ -776,29 +892,32 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
 
   // Step definitions
   const STEPS_CONFIG = [
-    { num: 1, label: t.apply.steps?.s1 || "Informations", title: t.apply.form?.personalInfo || "Informations personnelles", desc: "Vos coordonnées et informations civiles" },
-    { num: 2, label: t.apply.steps?.s2 || "Profil", title: t.apply.form?.profile || "Profil & Formation", desc: "Votre parcours académique et compétences linguistiques" },
-    { num: 3, label: t.apply.steps?.s3 || "Compétences", title: t.apply.form?.skillsTitle || "Compétences & Domaines", desc: "Sélectionnez les domaines dans lesquels vous pouvez contribuer" },
-    { num: 4, label: t.apply.steps?.s4 || "Disponibilité", title: t.apply.form?.availability || "Disponibilité & Durée", desc: "Période et durée souhaitées pour votre mission au Togo" },
-    { num: 5, label: t.apply.steps?.s5 || "Motivation", title: t.apply.form?.motivationTitle || "Votre Motivation", desc: "Exprimez les raisons de votre engagement avec APTIC-R" },
-    { num: 6, label: t.apply.steps?.s6 || "Expérience", title: t.apply.form?.expTitle || "Expérience & Projets", desc: "Partagez une réalisation ou une expérience marquante" },
-    { num: 7, label: t.apply.steps?.s7 || "Documents", title: t.apply.form?.docsTitle || "Documents & Pièces jointes", desc: "Déposez votre CV et lettre de motivation" },
-    { num: 8, label: t.apply.steps?.s8 || "Source", title: t.apply.form?.sourceTitle || "Comment nous avez-vous connus ?", desc: "Aidez-nous à savoir comment vous avez découvert le programme" },
-    { num: 9, label: t.apply.steps?.s9 || "Vérification", title: t.apply.form?.reviewTitle || "Vérification & Envoi", desc: "Relisez votre dossier avant de transmettre votre candidature" },
+    { num: 1, label: t.apply.steps?.s1 || "Informations", title: t.apply.form?.personalInfo || "Informations personnelles", desc: t.apply.stepDescs?.s1 || "Vos coordonnées et informations civiles" },
+    { num: 2, label: t.apply.steps?.s2 || "Profil", title: t.apply.form?.profile || "Profil & Formation", desc: t.apply.stepDescs?.s2 || "Votre parcours académique et compétences linguistiques" },
+    { num: 3, label: t.apply.steps?.s3 || "Compétences", title: t.apply.form?.skillsTitle || "Compétences & Domaines", desc: t.apply.stepDescs?.s3 || "Sélectionnez les domaines dans lesquels vous pouvez contribuer" },
+    { num: 4, label: t.apply.steps?.s4 || "Disponibilité", title: t.apply.form?.availability || "Disponibilité & Durée", desc: t.apply.stepDescs?.s4 || "Période et durée souhaitées pour votre mission au Togo" },
+    { num: 5, label: t.apply.steps?.s5 || "Motivation", title: t.apply.form?.motivationTitle || "Votre Motivation", desc: t.apply.stepDescs?.s5 || "Exprimez les raisons de votre engagement avec APTIC-R" },
+    { num: 6, label: t.apply.steps?.s6 || "Expérience", title: t.apply.form?.expTitle || "Expérience & Projets", desc: t.apply.stepDescs?.s6 || "Partagez une réalisation ou une expérience marquante" },
+    { num: 7, label: t.apply.steps?.s7 || "Documents", title: t.apply.form?.docsTitle || "Documents & Pièces jointes", desc: t.apply.stepDescs?.s7 || "Déposez votre CV et lettre de motivation" },
+    { num: 8, label: t.apply.steps?.s8 || "Source", title: t.apply.form?.sourceTitle || "Comment nous avez-vous connus ?", desc: t.apply.stepDescs?.s8 || "Aidez-nous à savoir comment vous avez découvert le programme" },
+    { num: 9, label: t.apply.steps?.s9 || "Vérification", title: t.apply.form?.reviewTitle || "Vérification & Envoi", desc: t.apply.stepDescs?.s9 || "Relisez votre dossier avant de transmettre votre candidature" },
   ]
 
   // Skills catalogue with SVG library icons
   const SKILLS_CATALOGUE = [
-    { slug: "computer-science", title: "Informatique & Systèmes", desc: "Architecture, réseau, infrastructure & outils", icon: MonitorIcon },
-    { slug: "data", title: "Données & Analyse", desc: "Traitement de données agricoles, SIG & reporting", icon: BarChartIcon },
-    { slug: "web-development", title: "Développement Web", desc: "Applications web, CMS, portails & API", icon: CodeIcon },
-    { slug: "mobile-development", title: "Développement Mobile", desc: "Applications Android, offline-first & alertes SMS", icon: SmartphoneIcon },
-    { slug: "agriculture", title: "Agriculture & Agroécologie", desc: "Suivi des cultures, maraîchage & durabilité", icon: WheatIcon },
-    { slug: "iot", title: "IoT & Systèmes embarqués", desc: "Arduino, Raspberry Pi, capteurs LoRa & météo", icon: CpuIcon },
-    { slug: "cybersecurity", title: "Cybersécurité & Réseaux", desc: "Sécurisation des postes et données locales", icon: ShieldIcon },
-    { slug: "digital-education", title: "Éducation Numérique", desc: "Pédagogie, animation d'ateliers & formation", icon: GraduationCapIcon },
-    { slug: "communication", title: "Communication & Médias", desc: "Photos, vidéos, réseaux & récits de terrain", icon: MessageSquareIcon },
-    { slug: "project-management", title: "Gestion de Projet", desc: "Coordination, organisation & lien associatif", icon: FileTextIcon },
+    { slug: "computer-science", title: "Informatique", desc: "Architecture, réseau, infrastructure & outils", icon: MonitorIcon },
+    { slug: "data", title: "Données", desc: "Traitement de données agricoles, SIG & reporting", icon: BarChartIcon },
+    { slug: "web-development", title: "Développement web", desc: "Applications web, CMS, portails & API", icon: CodeIcon },
+    { slug: "mobile-development", title: "Développement mobile", desc: "Applications Android, offline-first & alertes SMS", icon: SmartphoneIcon },
+    { slug: "agriculture", title: "Agriculture", desc: "Suivi des cultures, maraîchage & durabilité", icon: WheatIcon },
+    { slug: "graphic-design", title: "Conception graphique", desc: "Design visuel, illustration & identité de marque", icon: PaletteIcon },
+    { slug: "communication", title: "Communication", desc: "Réseaux sociaux, relations publiques & stratégie", icon: MessageSquareIcon },
+    { slug: "content-creation", title: "Création de contenu", desc: "Photos, vidéos, rédaction & récits de terrain", icon: PenToolIcon },
+    { slug: "arduino", title: "Arduino", desc: "Microcontrôleurs, prototypage & capteurs basiques", icon: CpuIcon },
+    { slug: "raspberry-pi", title: "Raspberry Pi", desc: "Mini-ordinateurs, serveurs locaux & automatisation", icon: CpuIcon },
+    { slug: "iot", title: "IoT", desc: "Internet des objets, connectivité & réseaux LoRa", icon: SignalIcon },
+    { slug: "digital-education", title: "Éducation numérique", desc: "Pédagogie, animation d'ateliers & formation", icon: GraduationCapIcon },
+    { slug: "project-management", title: "Gestion de projet", desc: "Coordination, organisation & lien associatif", icon: FileTextIcon },
   ]
 
   const SOURCES_LIST = [
@@ -817,12 +936,12 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
   // Helper duration label
   const durationText =
     form.duration === "SIX_MONTHS"
-      ? "6 mois"
+      ? t.apply.form.durationOptions?.SIX_MONTHS || "6 mois"
       : form.duration === "NINE_MONTHS"
-      ? "9 mois"
+      ? t.apply.form.durationOptions?.NINE_MONTHS || "9 mois"
       : form.duration === "TWELVE_MONTHS"
-      ? "12 mois"
-      : "À préciser"
+      ? t.apply.form.durationOptions?.TWELVE_MONTHS || "12 mois"
+      : t.apply.sidebar?.toSpecify || "À préciser"
 
   // ── Success State ───────────────────────────────────────────────────────────
   if (submitted) {
@@ -863,12 +982,6 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
             >
               {t.apply.success.backHome}
             </button>
-            <button
-              onClick={() => navigate("admin-applications")}
-              className="font-semibold text-sm px-5 py-3.5 rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-            >
-              {t.apply.success.backOffice}
-            </button>
           </div>
         </div>
       </div>
@@ -905,14 +1018,18 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
             </div>
           </button>
 
-          {/* Droite : CANDIDATURE + Sélecteur FR EN DE */}
-          <div className="flex items-center gap-4">
-            <span
-              className="text-[12px] font-bold tracking-[0.14em] uppercase hidden sm:inline-block"
-              style={{ color: BLUE }}
+          {/* Droite : Bouton Visite + Sélecteur FR EN DE */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button
+              onClick={() => navigate("home")}
+              className="hidden sm:flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors cursor-pointer hover:opacity-80"
+              style={{ color: BLUE, backgroundColor: "#E8F2FA" }}
             >
-              CANDIDATURE
-            </span>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              {t.apply.header?.visitSite || "Visiter le site"}
+            </button>
 
             <div className="h-4 w-[1px] bg-slate-200 hidden sm:block" />
 
@@ -989,10 +1106,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                 <div className="mb-8 pb-6 border-b border-slate-100">
                   <div className="flex items-center gap-2 mb-2.5">
                     <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-[#E8F2FA] text-[#174F7A]">
-                      ÉTAPE {step} SUR 9
+                      {t.apply.sidebar?.step || "ÉTAPE"} {step} {t.apply.sidebar?.ofUpper || "SUR"} 9
                     </span>
                     <span className="text-[11px] font-medium text-slate-400">
-                      · {Math.round((step / 9) * 100)} %
+                      · {progressPercentage} %
                     </span>
                   </div>
 
@@ -1008,7 +1125,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                     <div
                       className="h-full transition-all duration-500 rounded-full"
                       style={{
-                        width: `${Math.round((step / 9) * 100)}%`,
+                        width: `${progressPercentage}%`,
                         backgroundColor: GREEN,
                       }}
                     />
@@ -1052,7 +1169,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         countryCode={form.phoneCountryCode}
                         countryIso={form.phoneCountryIso}
                         onCountrySelect={(dial, iso) => {
-                          setForm((f) => ({ ...f, phoneCountryCode: dial, phoneCountryIso: iso }))
+                          setForm((f: typeof defaultFormState) => ({ ...f, phoneCountryCode: dial, phoneCountryIso: iso }))
                         }}
                         phone={form.phone}
                         onPhoneChange={(v) => set("phone", v)}
@@ -1113,12 +1230,14 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         value={form.education}
                         onChange={(v) => set("education", v)}
                         placeholder={t.apply.form.educationPlaceholder}
+                        required
                       />
                       <InputField
                         label={t.apply.form.field}
                         value={form.fieldOfStudy}
                         onChange={(v) => set("fieldOfStudy", v)}
                         placeholder={t.apply.form.fieldPlaceholder}
+                        required
                       />
                     </div>
 
@@ -1128,11 +1247,13 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         value={form.profession}
                         onChange={(v) => set("profession", v)}
                         placeholder={t.apply.form.professionPlaceholder}
+                        required
                       />
                       <SelectField
                         label="Niveau d'expérience globale"
                         value={form.experience}
                         onChange={(v) => set("experience", v)}
+                        required
                         options={[
                           { label: "Étudiant / Débutant (moins d'1 an)", value: "LESS_THAN_1_YEAR" },
                           { label: "Junior (1 à 2 ans)", value: "ONE_TO_TWO_YEARS" },
@@ -1142,9 +1263,25 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       />
                     </div>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <SelectField
+                        label={t.apply.form.digitalSkill}
+                        value={form.digitalSkillLevel}
+                        onChange={(v) => set("digitalSkillLevel", v)}
+                        required
+                        options={[
+                          { label: t.apply.form.digitalOptions.BEGINNER, value: "BEGINNER" },
+                          { label: t.apply.form.digitalOptions.INTERMEDIATE, value: "INTERMEDIATE" },
+                          { label: t.apply.form.digitalOptions.ADVANCED, value: "ADVANCED" },
+                          { label: t.apply.form.digitalOptions.EXPERT, value: "EXPERT" },
+                        ]}
+                      />
+                    </div>
+
                     <div>
-                      <label className="text-sm font-semibold mb-3 block text-slate-800">
-                        Niveau de langues
+                      <label className="text-sm font-semibold mb-3 flex items-center gap-1 text-slate-800">
+                        <span>Niveau de langues</span>
+                        <span className="text-red-500 font-bold">*</span>
                       </label>
                       <div className="space-y-3 pt-1">
                         {[
@@ -1263,8 +1400,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         label="Date d'arrivée souhaitée au Togo"
                         type="date"
                         value={form.arrivalDate}
+                        min={new Date().toISOString().split("T")[0]}
                         onChange={(v) => set("arrivalDate", v)}
                         helpText="Indiquez une date indicative de début souhaitée"
+                        required
                       />
                     </div>
 
@@ -1375,7 +1514,6 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                     />
                     <FileUpload
                       label={t.apply.form.coverLetter}
-                      optional
                       fileName={form.motivationFile?.name || ""}
                       onFile={(f) => set("motivationFile", f)}
                     />
@@ -1422,7 +1560,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                 {step === 9 && (
                   <div className="space-y-6">
                     <p className="text-sm text-slate-600">
-                      Veuillez vérifier attentivement les détails de votre candidature ci-dessous avant transmission à la coordination APTIC-R.
+                      {t.apply.review?.disclaimer || "Veuillez vérifier attentivement les détails de votre candidature ci-dessous avant transmission à la coordination APTIC-R."}
                     </p>
 
                     {/* Synthèse épurée sans sous-cartes (pas d'effet dashboard) */}
@@ -1430,29 +1568,29 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       {/* Section Coordonnées */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">Coordonnées</span>
-                          <button type="button" onClick={() => goToStep(1)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">Modifier</button>
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">{t.apply.review?.sections?.contact || "Coordonnées"}</span>
+                          <button type="button" onClick={() => goToStep(1)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">{t.apply.review?.edit || "Modifier"}</button>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 text-xs sm:text-sm">
-                          <div><span className="text-slate-400">Nom :</span> <strong className="text-slate-800 ml-1">{form.firstName} {form.lastName}</strong></div>
-                          <div><span className="text-slate-400">E-mail :</span> <strong className="text-slate-800 ml-1">{form.email}</strong></div>
-                          <div><span className="text-slate-400">Téléphone :</span> <strong className="text-slate-800 ml-1">{form.phoneCountryCode ? `${form.phoneCountryCode} ${form.phone}`.trim() : form.phone || "Non renseigné"}</strong></div>
-                          <div><span className="text-slate-400">Pays / Ville :</span> <strong className="text-slate-800 ml-1">{form.country} {form.city ? `(${form.city})` : ""}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.name || "Nom :"}</span> <strong className="text-slate-800 ml-1">{form.firstName} {form.lastName}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.email || "E-mail :"}</span> <strong className="text-slate-800 ml-1">{form.email}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.phone || "Téléphone :"}</span> <strong className="text-slate-800 ml-1">{form.phoneCountryCode ? `${form.phoneCountryCode} ${form.phone}`.trim() : form.phone || (t.apply.review?.notProvided || "Non renseigné")}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.location || "Pays / Ville :"}</span> <strong className="text-slate-800 ml-1">{form.country} {form.city ? `(${form.city})` : ""}</strong></div>
                         </div>
                       </div>
 
                       {/* Section Mission */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">Mission & Disponibilité</span>
-                          <button type="button" onClick={() => goToStep(4)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">Modifier</button>
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">{t.apply.review?.sections?.mission || "Mission & Disponibilité"}</span>
+                          <button type="button" onClick={() => goToStep(4)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">{t.apply.review?.edit || "Modifier"}</button>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 text-xs sm:text-sm">
-                          <div><span className="text-slate-400">Durée :</span> <strong className="text-slate-800 ml-1">{durationText}</strong></div>
-                          <div><span className="text-slate-400">Arrivée souhaitée :</span> <strong className="text-slate-800 ml-1">{form.arrivalDate || "À convenir"}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.duration || "Durée :"}</span> <strong className="text-slate-800 ml-1">{durationText}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.arrival || "Arrivée souhaitée :"}</span> <strong className="text-slate-800 ml-1">{form.arrivalDate || (t.apply.sidebar?.toSpecify || "À convenir")}</strong></div>
                           <div className="sm:col-span-2">
-                            <span className="text-slate-400">Compétences ({form.skills.length}) :</span>{" "}
-                            <strong className="text-slate-800 ml-1">{form.skills.join(", ") || "Aucune"}</strong>
+                            <span className="text-slate-400">{t.apply.review?.fields?.skills || "Compétences"} ({form.skills.length}) :</span>{" "}
+                            <strong className="text-slate-800 ml-1">{form.skills.join(", ") || (t.apply.review?.none || "Aucune")}</strong>
                           </div>
                         </div>
                       </div>
@@ -1460,12 +1598,12 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       {/* Section Pièces jointes */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">Documents</span>
-                          <button type="button" onClick={() => goToStep(7)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">Modifier</button>
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">{t.apply.review?.sections?.docs || "Documents"}</span>
+                          <button type="button" onClick={() => goToStep(7)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">{t.apply.review?.edit || "Modifier"}</button>
                         </div>
                         <div className="text-xs sm:text-sm space-y-1">
-                          <div><span className="text-slate-400">CV :</span> <strong className="text-slate-800 ml-1">{form.cvFile ? form.cvFile.name : "Non transmis"}</strong></div>
-                          <div><span className="text-slate-400">Lettre :</span> <strong className="text-slate-800 ml-1">{form.motivationFile ? form.motivationFile.name : "Non fournie"}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.cv || "CV :"}</span> <strong className="text-slate-800 ml-1">{form.cvFile ? form.cvFile.name : (t.apply.review?.notSent || "Non transmis")}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.letter || "Lettre :"}</span> <strong className="text-slate-800 ml-1">{form.motivationFile ? form.motivationFile.name : (t.apply.review?.notSent || "Non fournie")}</strong></div>
                         </div>
                       </div>
                     </div>
@@ -1480,7 +1618,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           className="mt-1 w-4 h-4 rounded text-[#174F7A] cursor-pointer"
                         />
                         <span className="text-xs text-slate-600 leading-relaxed">
-                          J'atteste de l'exactitude des informations fournies et j'accepte que l'association APTIC-R traite mes données personnelles dans le cadre strict de l'évaluation de ma candidature de volontariat international.
+                          {t.apply.review?.consentLabel || "J'atteste de l'exactitude des informations fournies et j'accepte que l'association APTIC-R traite mes données personnelles dans le cadre strict de l'évaluation de ma candidature de volontariat international."}
                         </span>
                       </label>
                     </div>
@@ -1510,16 +1648,28 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                   )}
 
                   {step < 9 ? (
-                    <button
-                      type="button"
-                      onClick={next}
-                      disabled={!isStepValid(step)}
-                      className="px-8 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
-                      style={{ backgroundColor: GREEN }}
-                    >
-                      <span>Continuer</span>
-                      <span>→</span>
-                    </button>
+                    <div className="flex gap-3 items-center justify-end">
+                      {progressPercentage === 100 && (
+                        <button
+                          type="button"
+                          onClick={() => goToStep(9)}
+                          className="px-4 sm:px-6 py-3.5 rounded-xl text-sm font-bold text-[#174F7A] bg-white border border-[#D8E2E9] hover:bg-slate-50 transition-all cursor-pointer"
+                        >
+                          <span className="hidden sm:inline">Retourner à la fin</span>
+                          <span className="sm:hidden">À la fin</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={next}
+                        disabled={!isStepValid(step)}
+                        className="px-8 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
+                        style={{ backgroundColor: GREEN }}
+                      >
+                        <span>Continuer</span>
+                        <span>→</span>
+                      </button>
+                    </div>
                   ) : (
                     <button
                       type="button"
@@ -1551,10 +1701,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                 <div className="text-xs font-bold uppercase tracking-wider text-[#174F7A] mb-5 flex items-center justify-between pb-3 border-b border-slate-100">
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#174F7A]" />
-                    PROGRESSION
+                    {t.apply.sidebar?.progression || "PROGRESSION"}
                   </span>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#E8F2FA] text-[#174F7A]">
-                    {step} sur 9
+                    {step} {t.apply.sidebar?.ofLower || "sur"} 9
                   </span>
                 </div>
 
@@ -1574,7 +1724,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       >
                         {/* Point d'état avec fort contraste */}
                         <div
-                          className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all absolute -left-6 bg-white"
+                          className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all absolute bg-white ${isCurrent ? '-left-[14px]' : '-left-6'}`}
                           style={{
                             backgroundColor: isCompleted ? GREEN : isCurrent ? BLUE : "#FFFFFF",
                             color: isCompleted || isCurrent ? "#FFFFFF" : "#64748B",
@@ -1609,30 +1759,30 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#D8E2E9]">
                 <div className="text-xs font-bold uppercase tracking-wider text-[#174F7A] mb-4 pb-2.5 border-b border-slate-100 flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#35A85A]" />
-                  VOTRE CANDIDATURE
+                  {t.apply.sidebar?.yourApplication || "VOTRE CANDIDATURE"}
                 </div>
 
                 <div className="space-y-2.5 text-xs">
                   <div className="flex items-center justify-between py-1">
-                    <span className="text-[#5E6B76] font-medium">Pays :</span>
-                    <strong className="text-[#1A2B3C] font-bold">{form.country || "Non renseigné"}</strong>
+                    <span className="text-[#5E6B76] font-medium">{t.apply.sidebar?.country || "Pays :"}</span>
+                    <strong className="text-[#1A2B3C] font-bold">{form.country || (t.apply.sidebar?.notProvided || "Non renseigné")}</strong>
                   </div>
 
                   <div className="flex items-center justify-between py-1 border-t border-slate-100">
-                    <span className="text-[#5E6B76] font-medium">Durée :</span>
+                    <span className="text-[#5E6B76] font-medium">{t.apply.sidebar?.duration || "Durée :"}</span>
                     <strong className="text-[#1A2B3C] font-bold">{durationText}</strong>
                   </div>
 
                   <div className="flex items-center justify-between py-1 border-t border-slate-100">
-                    <span className="text-[#5E6B76] font-medium">Compétences :</span>
+                    <span className="text-[#5E6B76] font-medium">{t.apply.sidebar?.skills || "Compétences :"}</span>
                     <strong className="text-[#1A2B3C] font-bold">
-                      {form.skills.length > 0 ? `${form.skills.length} sélectionnée${form.skills.length > 1 ? "s" : ""}` : "0"}
+                      {form.skills.length > 0 ? `${form.skills.length} ${(t.apply.sidebar?.selected || "sélectionnée(s)")}` : "0"}
                     </strong>
                   </div>
 
                   <div className="flex items-center justify-between py-1 border-t border-slate-100">
-                    <span className="text-[#5E6B76] font-medium">Arrivée :</span>
-                    <strong className="text-[#1A2B3C] font-bold">{form.arrivalDate || "À préciser"}</strong>
+                    <span className="text-[#5E6B76] font-medium">{t.apply.sidebar?.arrival || "Arrivée :"}</span>
+                    <strong className="text-[#1A2B3C] font-bold">{form.arrivalDate || (t.apply.sidebar?.toSpecify || "À préciser")}</strong>
                   </div>
                 </div>
 
@@ -1640,23 +1790,23 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                   <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-[11px]">
                     <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
-                      <span>Informations complètes</span>
+                      <span>{(t.apply as any).sidebar?.checks?.infoComplete || "Informations complètes"}</span>
                     </div>
                     <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
-                      <span>Profil complété</span>
+                      <span>{(t.apply as any).sidebar?.checks?.profileComplete || "Profil complété"}</span>
                     </div>
                     <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
-                      <span>Compétences sélectionnées</span>
+                      <span>{(t.apply as any).sidebar?.checks?.skillsSelected || "Compétences sélectionnées"}</span>
                     </div>
                     <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
-                      <span>Disponibilité indiquée</span>
+                      <span>{(t.apply as any).sidebar?.checks?.availabilityIndicated || "Disponibilité indiquée"}</span>
                     </div>
                     <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
-                      <span>Documents ajoutés</span>
+                      <span>{(t.apply as any).sidebar?.checks?.documentsAdded || "Documents ajoutés"}</span>
                     </div>
                   </div>
                 )}
@@ -1666,10 +1816,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
               <div className="bg-[#F8FAFC] rounded-3xl p-6 shadow-sm border border-[#D8E2E9]">
                 <div className="text-sm font-bold text-[#1A2B3C] mb-1.5 flex items-center gap-2">
                   <LightbulbIcon size={17} className="text-[#174F7A] shrink-0" />
-                  <span>Besoin d'un éclairage ?</span>
+                  <span>{(t.apply as any).sidebar?.help?.title || "Besoin d'un éclairage ?"}</span>
                 </div>
                 <p className="text-xs text-slate-500 leading-relaxed mb-4">
-                  Une question sur la mission, le Togo ou votre candidature ? Notre équipe vous répond avec plaisir.
+                  {(t.apply as any).sidebar?.help?.desc || "Une question sur la mission, le Togo ou votre candidature ? Notre équipe vous répond avec plaisir."}
                 </p>
                 <a
                   href="mailto:contact@apticr.tg?subject=Question%20Candidature%20Volontaire"
@@ -1678,7 +1828,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                   <svg className="w-4 h-4 text-[#174F7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <span>Contacter APTIC-R</span>
+                  <span>{(t.apply as any).sidebar?.help?.contactBtn || "Contacter APTIC-R"}</span>
                 </a>
               </div>
 

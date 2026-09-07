@@ -80,14 +80,14 @@ model Candidature {
   lang   LanguageCode    @default(FR)
 
   // Profil académique & professionnel
-  education         String?
-  fieldOfStudy      String?
-  profession        String?
-  experienceLevel   ExperienceDuration?
-  digitalSkillLevel String?
+  education         String
+  fieldOfStudy      String
+  profession        String
+  experienceLevel   ExperienceDuration
+  digitalSkillLevel String
 
   // Disponibilité & Mission
-  arrivalDate DateTime?
+  arrivalDate DateTime
   duration    MissionDuration @default(SIX_MONTHS)
 
   // Motivation & Expérience projet

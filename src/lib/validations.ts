@@ -14,24 +14,32 @@ export const candidateApplicationSchema = z.object({
     .min(1, "Veuillez renseigner votre date de naissance")
     .refine((val) => !isNaN(Date.parse(val)), "Date de naissance invalide"),
 
-  education: z.string().optional(),
-  fieldOfStudy: z.string().optional(),
-  profession: z.string().optional(),
+  education: z.string().min(1, "Veuillez renseigner votre formation"),
+  fieldOfStudy: z.string().min(1, "Veuillez renseigner votre domaine d'études"),
+  profession: z.string().min(1, "Veuillez renseigner votre profession"),
   experience: z.enum([
     "LESS_THAN_1_YEAR",
     "ONE_TO_TWO_YEARS",
     "TWO_TO_FIVE_YEARS",
     "FIVE_PLUS_YEARS",
-  ]).optional(),
+  ]),
 
-  digitalSkillLevel: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]).optional(),
+  digitalSkillLevel: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]),
 
   skills: z
     .array(z.string())
     .min(1, "Veuillez sélectionner au moins une compétence"),
 
-  arrivalDate: z.string().optional(),
-  duration: z.enum(["SIX_MONTHS", "NINE_MONTHS", "TWELVE_MONTHS"]).default("SIX_MONTHS"),
+  arrivalDate: z
+    .string()
+    .min(1, "Veuillez renseigner votre date d'arrivée souhaitée")
+    .refine((val) => {
+      const date = new Date(val)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      return date >= today
+    }, "La date d'arrivée ne peut pas être dans le passé"),
+  duration: z.enum(["SIX_MONTHS", "NINE_MONTHS", "TWELVE_MONTHS"]),
 
   motivation: z
     .string()
@@ -42,11 +50,11 @@ export const candidateApplicationSchema = z.object({
     .min(20, "L'expérience projet doit comporter au moins 20 caractères")
     .max(5000, "L'expérience projet ne doit pas dépasser 5000 caractères"),
 
-  cvFile: z.string().optional(),
-  motivationFile: z.string().optional(),
+  cvFile: z.string().min(1, "Le CV est obligatoire"),
+  motivationFile: z.string().min(1, "La lettre de motivation est obligatoire"),
   portfolioFile: z.string().optional(),
 
-  source: z.string().min(1, "Veuillez indiquer comment vous avez connu APTIC-R"),
+  source: z.string().optional(),
   consent: z.boolean().refine((val) => val === true, {
     message: "Le consentement au traitement des données est obligatoire",
   }),

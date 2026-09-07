@@ -17,7 +17,8 @@ export default async function CandidateDetailPage({
         include: { skill: true }
       },
       notes: true,
-      statusHistory: true
+      statusHistory: true,
+      documents: true
     }
   })
 

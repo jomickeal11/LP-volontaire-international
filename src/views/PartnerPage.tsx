@@ -62,11 +62,13 @@ function SelectField({
   options,
   value,
   onChange,
+  placeholder = "Select...",
 }: {
   label: string
-  options: string[]
+  options: readonly string[]
   value: string
   onChange: (v: string) => void
+  placeholder?: string
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -85,7 +87,7 @@ function SelectField({
         onFocus={(e) => (e.currentTarget.style.border = `1.5px solid ${BLUE}`)}
         onBlur={(e) => (e.currentTarget.style.border = "1.5px solid #D1DCE5")}
       >
-        <option value="">Select...</option>
+        <option value="">{placeholder}</option>
         {options.map((o) => (
           <option key={o} value={o}>
             {o}
@@ -96,7 +98,11 @@ function SelectField({
   )
 }
 
-export default function PartnerPage({ navigate }: PartnerPageProps) {
+import translations from "../i18n/translations"
+
+export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
+  const currentLang = (lang || "FR").toUpperCase() as keyof typeof translations
+  const t = translations[currentLang] || translations.FR
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
@@ -121,16 +127,16 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
     setLoading(true)
     const { submitPartnerRequest } = await import("../lib/actions")
     await submitPartnerRequest({
-      orgName: form.orgName || "Organisation",
+      orgName: form.orgName || t.partner.form.orgName,
       country: form.country || "France",
       website: form.website || undefined,
-      contactPerson: form.contactPerson || "Contact",
+      contactPerson: form.contactPerson || t.partner.form.contactPerson,
       email: form.email || "contact@example.org",
       orgType: form.orgType || "NGO / Association",
       volunteerCount: form.volunteerCount,
       targetCountries: form.targetCountries,
       programme: form.programme,
-      message: form.message || "Demande de partenariat avec APTIC-R",
+      message: form.message || t.partner.form.title,
       docFile: form.docFile,
       consent: form.consent,
     })
@@ -171,22 +177,21 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
               color: TEXT_DARK,
             }}
           >
-            Partnership request sent.
+            {t.partner.success.title}
           </h1>
           <p className="text-base mb-2" style={{ color: TEXT_MID }}>
-            Thank you, <strong>{form.orgName}</strong>! Your partnership request
-            has been received by APTIC-R.
+            {t.partner.success.thanks}<strong>{form.orgName}</strong>{t.partner.success.received}
           </p>
           <p className="text-sm mb-8" style={{ color: "#9AA8B4" }}>
-            We will review your enquiry and respond to{" "}
-            <strong>{form.email}</strong> within 5 business days.
+            {t.partner.success.review}
+            <strong>{form.email}</strong>{t.partner.success.timeframe}
           </p>
           <button
             onClick={() => navigate("home")}
             className="font-semibold text-sm px-6 py-3 rounded-lg text-white transition-colors"
             style={{ backgroundColor: BLUE }}
           >
-            Back to Homepage
+            {t.partner.success.backHome}
           </button>
         </div>
       </div>
@@ -213,21 +218,19 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
               color: "rgba(255,255,255,0.8)",
             }}
           >
-            For Organizations
+            {t.partner.hero.tag}
           </div>
           <h1
             className="text-4xl lg:text-5xl text-white mb-4"
             style={{ fontFamily: "DM Serif Display, Georgia, serif" }}
           >
-            Are you a volunteer-sending organization?
+            {t.partner.hero.title}
           </h1>
           <p
             className="text-lg max-w-2xl"
             style={{ color: "rgba(255,255,255,0.75)" }}
           >
-            APTIC-R is seeking European organizations interested in developing
-            long-term volunteer partnerships in Togo. Let's build something
-            meaningful together.
+            {t.partner.hero.desc}
           </p>
         </div>
       </div>
@@ -244,116 +247,48 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
               }}
             >
               <h3 className="text-base mb-4" style={{ color: TEXT_DARK }}>
-                Why partner with APTIC-R?
+                {t.partner.sidebar.title}
               </h3>
               <ul className="flex flex-col gap-3.5">
-                {[
-                  {
-                    icon: (
-                      <svg
-                        className="w-4 h-4"
-                        style={{ color: BLUE }}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle cx="12" cy="12" r="10" strokeWidth={1.5} />
-                        <circle cx="12" cy="12" r="6" strokeWidth={1.5} />
-                        <circle cx="12" cy="12" r="2" strokeWidth={1.5} />
-                      </svg>
-                    ),
-                    text: "Structured 6–12 month missions with clear objectives",
-                  },
-                  {
-                    icon: (
-                      <svg
-                        className="w-4 h-4"
-                        style={{ color: BLUE }}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle cx="12" cy="12" r="10" strokeWidth={1.5} />
-                        <path
-                          strokeWidth={1.5}
-                          d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"
-                        />
-                      </svg>
-                    ),
-                    text: "Meaningful field experience in West Africa",
-                  },
-                  {
-                    icon: (
-                      <svg
-                        className="w-4 h-4"
-                        style={{ color: BLUE }}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"
-                        />
-                        <circle cx="9" cy="7" r="4" strokeWidth={1.5} />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
-                        />
-                      </svg>
-                    ),
-                    text: "Long-term institutional partnership",
-                  },
-                  {
-                    icon: (
-                      <svg
-                        className="w-4 h-4"
-                        style={{ color: BLUE }}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                        />
-                      </svg>
-                    ),
-                    text: "Transparent reporting and follow-up",
-                  },
-                  {
-                    icon: (
-                      <svg
-                        className="w-4 h-4"
-                        style={{ color: BLUE }}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
-                        />
-                      </svg>
-                    ),
-                    text: "Open-source documentation of all projects",
-                  },
-                ].map((item) => (
+                {t.partner.sidebar.reasons.map((text, idx) => (
                   <li
-                    key={item.text}
+                    key={text}
                     className="flex gap-3 items-start text-sm"
                     style={{ color: TEXT_MID }}
                   >
-                    <span className="flex-shrink-0 mt-0.5">{item.icon}</span>
-                    <span>{item.text}</span>
+                    <span className="flex-shrink-0 mt-0.5">
+                      {idx === 0 && (
+                        <svg className="w-4 h-4" style={{ color: BLUE }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10" strokeWidth={1.5} />
+                          <circle cx="12" cy="12" r="6" strokeWidth={1.5} />
+                          <circle cx="12" cy="12" r="2" strokeWidth={1.5} />
+                        </svg>
+                      )}
+                      {idx === 1 && (
+                        <svg className="w-4 h-4" style={{ color: BLUE }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10" strokeWidth={1.5} />
+                          <path strokeWidth={1.5} d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+                        </svg>
+                      )}
+                      {idx === 2 && (
+                        <svg className="w-4 h-4" style={{ color: BLUE }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+                          <circle cx="9" cy="7" r="4" strokeWidth={1.5} />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                        </svg>
+                      )}
+                      {idx === 3 && (
+                        <svg className="w-4 h-4" style={{ color: BLUE }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                      )}
+                      {idx === 4 && (
+                        <svg className="w-4 h-4" style={{ color: BLUE }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                      )}
+                    </span>
+                    <span>{text}</span>
                   </li>
                 ))}
               </ul>
@@ -364,7 +299,7 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
               style={{ backgroundColor: BG, border: "1.5px solid #E8ECF2" }}
             >
               <h3 className="text-base mb-3" style={{ color: TEXT_DARK }}>
-                Frameworks we work with
+                {t.partner.sidebar.frameworksTitle}
               </h3>
               <div className="flex flex-wrap gap-2">
                 {[
@@ -397,20 +332,21 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
               }}
             >
               <h2 className="text-xl mb-6" style={{ color: TEXT_DARK }}>
-                Partnership Request Form
+                {t.partner.form.title}
               </h2>
 
               <div className="flex flex-col gap-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field
-                    label="Organization name"
+                    label={t.partner.form.orgName}
                     value={form.orgName}
                     onChange={(v) => set("orgName", v)}
                     required
-                    placeholder="Organisation de Volontaires XYZ"
+                    placeholder={t.partner.form.orgNamePlaceholder}
                   />
                   <SelectField
-                    label="Country"
+                    label={t.partner.form.country}
+                    placeholder={t.partner.select}
                     value={form.country}
                     onChange={(v) => set("country", v)}
                     options={[
@@ -432,74 +368,55 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
                     ]}
                   />
                   <Field
-                    label="Website"
+                    label={t.partner.form.website}
                     type="url"
                     value={form.website}
                     onChange={(v) => set("website", v)}
-                    placeholder="https://example.org"
+                    placeholder={t.partner.form.websitePlaceholder}
                   />
                   <Field
-                    label="Contact person"
+                    label={t.partner.form.contactPerson}
                     value={form.contactPerson}
                     onChange={(v) => set("contactPerson", v)}
                     required
-                    placeholder="Jean Dupont"
+                    placeholder={t.partner.form.contactPersonPlaceholder}
                   />
                   <Field
-                    label="Professional email"
+                    label={t.partner.form.email}
                     type="email"
                     value={form.email}
                     onChange={(v) => set("email", v)}
                     required
-                    placeholder="contact@organisation.org"
+                    placeholder={t.partner.form.emailPlaceholder}
                   />
                   <SelectField
-                    label="Type of organization"
+                    label={t.partner.form.orgType}
+                    placeholder={t.partner.select}
                     value={form.orgType}
                     onChange={(v) => set("orgType", v)}
-                    options={[
-                      "NGO / Association",
-                      "University",
-                      "Government agency",
-                      "European programme body",
-                      "Religious organization",
-                      "Other",
-                    ]}
+                    options={t.partner.form.orgTypeOptions}
                   />
                   <SelectField
-                    label="Potential number of volunteers per year"
+                    label={t.partner.form.volunteerCount}
+                    placeholder={t.partner.select}
                     value={form.volunteerCount}
                     onChange={(v) => set("volunteerCount", v)}
-                    options={[
-                      "1–2",
-                      "3–5",
-                      "5–10",
-                      "10+",
-                      "Unknown at this stage",
-                    ]}
+                    options={t.partner.form.volunteerCountOptions}
                   />
                   <Field
-                    label="Target countries of volunteers"
+                    label={t.partner.form.targetCountries}
                     value={form.targetCountries}
                     onChange={(v) => set("targetCountries", v)}
-                    placeholder="France, Germany, Belgium..."
+                    placeholder={t.partner.form.targetCountriesPlaceholder}
                   />
                 </div>
 
                 <SelectField
-                  label="Volunteer programme / framework"
+                  label={t.partner.form.programme}
+                  placeholder={t.partner.select}
                   value={form.programme}
                   onChange={(v) => set("programme", v)}
-                  options={[
-                    "weltwärts",
-                    "France Volontaires",
-                    "Corps de solidarité européen",
-                    "Agir abcd",
-                    "SCI",
-                    "Internal programme",
-                    "University programme",
-                    "Other",
-                  ]}
+                  options={t.partner.form.programmeOptions}
                 />
 
                 <div className="flex flex-col gap-1.5">
@@ -507,10 +424,10 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
                     className="text-sm font-semibold"
                     style={{ color: TEXT_DARK }}
                   >
-                    Message
+                    {t.partner.form.message}
                   </label>
                   <textarea
-                    placeholder="Tell us about your organization, your experience sending volunteers to West Africa, and how you envision a partnership with APTIC-R..."
+                    placeholder={t.partner.form.messagePlaceholder}
                     value={form.message}
                     onChange={(e) => set("message", e.target.value)}
                     rows={5}
@@ -535,12 +452,12 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
                     className="text-sm font-semibold"
                     style={{ color: TEXT_DARK }}
                   >
-                    Presentation document{" "}
+                    {t.partner.form.doc}{" "}
                     <span
                       className="text-xs font-normal"
                       style={{ color: "#9AA8B4" }}
                     >
-                      — optional
+                      {t.partner.form.optional}
                     </span>
                   </label>
                   {form.docFile ? (
@@ -563,7 +480,7 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
                         className="text-xs px-2 py-0.5 rounded"
                         style={{ color: "#DC2626", backgroundColor: "#FEE2E2" }}
                       >
-                        Remove
+                        {t.partner.form.remove}
                       </button>
                     </div>
                   ) : (
@@ -589,7 +506,7 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
                         />
                       </svg>
                       <span className="text-sm" style={{ color: TEXT_MID }}>
-                        Upload organization brochure or presentation
+                        {t.partner.form.upload}
                       </span>
                       <input
                         type="file"
@@ -623,12 +540,9 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
                       className="text-xs leading-relaxed"
                       style={{ color: TEXT_MID }}
                     >
-                      I consent to APTIC-R processing the information provided
-                      above for the purpose of evaluating a potential
-                      partnership. Our organization has the authority to submit
-                      this enquiry. I have read the{" "}
+                      {t.partner.form.consent}
                       <button className="underline" style={{ color: BLUE }}>
-                        privacy policy
+                        {t.partner.form.privacy}
                       </button>
                       .
                     </span>
@@ -647,10 +561,10 @@ export default function PartnerPage({ navigate }: PartnerPageProps) {
                   {loading ? (
                     <>
                       <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                      Sending request...
+                      {t.partner.form.submitting}
                     </>
                   ) : (
-                    "SEND PARTNERSHIP REQUEST →"
+                    t.partner.form.submit
                   )}
                 </button>
               </div>

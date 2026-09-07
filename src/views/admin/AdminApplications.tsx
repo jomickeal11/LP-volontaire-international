@@ -40,17 +40,17 @@ export const statusColors: Record<
   CandidateStatus,
   { bg: string; text: string; label: string }
 > = {
-  NEW: { bg: "#E8F2FA", text: "#1B4F7C", label: "NEW" },
-  REVIEW: { bg: "#FFF4E5", text: "#B25E09", label: "REVIEW" },
-  SELECTED: { bg: "#E6F4EC", text: "#2E7D52", label: "SELECTED" },
-  INTERVIEW: { bg: "#F3E8FF", text: "#6B21A8", label: "INTERVIEW" },
-  CHOSEN: { bg: "#E0F2FE", text: "#0369A1", label: "CHOSEN" },
-  PARTNER_VALIDATION: { bg: "#FEF3C7", text: "#92400E", label: "PARTNER VAL" },
-  PREPARATION: { bg: "#FFEDD5", text: "#9A3412", label: "PREPARATION" },
-  ARRIVED: { bg: "#ECFCCB", text: "#3F6212", label: "ARRIVED" },
-  COMPLETED: { bg: "#F1F5F9", text: "#334155", label: "COMPLETED" },
-  REJECTED: { bg: "#FEE2E2", text: "#991B1B", label: "REJECTED" },
-  ARCHIVED: { bg: "#F3F4F6", text: "#374151", label: "ARCHIVED" },
+  NEW: { bg: "#E8F2FA", text: "#1B4F7C", label: "NOUVEAU" },
+  REVIEW: { bg: "#FFF4E5", text: "#B25E09", label: "EN RÉVISION" },
+  SELECTED: { bg: "#E6F4EC", text: "#2E7D52", label: "SÉLECTIONNÉ" },
+  INTERVIEW: { bg: "#F3E8FF", text: "#6B21A8", label: "ENTRETIEN" },
+  CHOSEN: { bg: "#E0F2FE", text: "#0369A1", label: "RETENU" },
+  PARTNER_VALIDATION: { bg: "#FEF3C7", text: "#92400E", label: "VAL. PARTENAIRE" },
+  PREPARATION: { bg: "#FFEDD5", text: "#9A3412", label: "PRÉPARATION" },
+  ARRIVED: { bg: "#ECFCCB", text: "#3F6212", label: "ARRIVÉ" },
+  COMPLETED: { bg: "#F1F5F9", text: "#334155", label: "TERMINÉ" },
+  REJECTED: { bg: "#FEE2E2", text: "#991B1B", label: "REFUSÉ" },
+  ARCHIVED: { bg: "#F3F4F6", text: "#374151", label: "ARCHIVÉ" },
 }
 
 export interface CandidateUI {
@@ -78,6 +78,7 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState<CandidateStatus | "">("")
   const [filterCountry, setFilterCountry] = useState("")
+  const [filterSkill, setFilterSkill] = useState("")
   const [filterDuration, setFilterDuration] = useState("")
   const [sortBy, setSortBy] = useState<"appliedAt" | "lastName" | "status">(
     "appliedAt",
@@ -103,8 +104,9 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
           .includes(q)
       const matchStatus = !filterStatus || c.status === filterStatus
       const matchCountry = !filterCountry || c.country === filterCountry
+      const matchSkill = !filterSkill || c.skills.includes(filterSkill)
       const matchDuration = !filterDuration || c.duration === filterDuration
-      return matchSearch && matchStatus && matchCountry && matchDuration
+      return matchSearch && matchStatus && matchCountry && matchSkill && matchDuration
     })
     .sort((a, b) => {
       let cmp = 0
@@ -171,11 +173,10 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl" style={{ color: TEXT_DARK }}>
-            Applications
+            Candidatures
           </h1>
           <p className="text-sm" style={{ color: TEXT_MID }}>
-            {filtered.length} candidate{filtered.length !== 1 ? "s" : ""} ·{" "}
-            {candidates.length} total
+            {filtered.length} candidature{filtered.length > 1 ? "s" : ""}
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -184,7 +185,7 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
               style={{ backgroundColor: "#E8F2FA", color: BLUE }}
             >
-              <span className="font-semibold">{selected.length} selected</span>
+              <span className="font-semibold">{selected.length} sélectionné(s)</span>
             </div>
           )}
           <div className="relative">
@@ -210,7 +211,7 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
                   d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                 />
               </svg>
-              Export
+              Exporter
             </button>
             {exportOpen && (
               <div
@@ -259,7 +260,7 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
           </svg>
           <input
             type="text"
-            placeholder="Search by name, email, country..."
+            placeholder="Rechercher par nom, e-mail, pays..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
@@ -293,7 +294,7 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
             color: TEXT_DARK,
           }}
         >
-          <option value="">All statuses</option>
+          <option value="">Tous les statuts</option>
           {STATUS_WORKFLOW.map((s) => (
             <option key={s} value={s}>
               {statusColors[s].label}
@@ -314,10 +315,31 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
             color: TEXT_DARK,
           }}
         >
-          <option value="">All countries</option>
+          <option value="">Tous les pays</option>
           {countries.map((c) => (
             <option key={c} value={c}>
               {c}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={filterSkill}
+          onChange={(e) => {
+            setFilterSkill(e.target.value)
+            setPage(1)
+          }}
+          className="px-3 py-2 rounded-lg text-sm outline-none"
+          style={{
+            border: "1.5px solid #D1DCE5",
+            backgroundColor: BG,
+            color: TEXT_DARK,
+          }}
+        >
+          <option value="">Toutes les compétences</option>
+          {[...new Set(candidates.flatMap((c) => c.skills))].map((s) => (
+            <option key={s} value={s}>
+              {s}
             </option>
           ))}
         </select>
@@ -335,10 +357,10 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
             color: TEXT_DARK,
           }}
         >
-          <option value="">All durations</option>
-          <option>6 months</option>
-          <option>9 months</option>
-          <option>12 months</option>
+          <option value="">Toutes les durées</option>
+          <option value="SIX_MONTHS">6 mois</option>
+          <option value="NINE_MONTHS">9 mois</option>
+          <option value="TWELVE_MONTHS">12 mois</option>
         </select>
 
         {(search || filterStatus || filterCountry || filterDuration) && (
@@ -347,13 +369,14 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
               setSearch("")
               setFilterStatus("")
               setFilterCountry("")
+              setFilterSkill("")
               setFilterDuration("")
               setPage(1)
             }}
             className="text-xs font-semibold px-3 py-2 rounded-lg"
             style={{ color: "#DC2626", backgroundColor: "#FEE2E2" }}
           >
-            Clear filters
+            Effacer les filtres
           </button>
         )}
       </div>
@@ -391,26 +414,26 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
                   style={{ color: "#9AA8B4" }}
                   onClick={() => toggleSort("lastName")}
                 >
-                  Candidate <SortIcon field="lastName" />
+                  Candidat <SortIcon field="lastName" />
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider"
                   style={{ color: "#9AA8B4" }}
                 >
-                  Skills
+                  Compétences
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider cursor-pointer select-none"
                   style={{ color: "#9AA8B4" }}
                   onClick={() => toggleSort("appliedAt")}
                 >
-                  Applied <SortIcon field="appliedAt" />
+                  Candidature <SortIcon field="appliedAt" />
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider"
                   style={{ color: "#9AA8B4" }}
                 >
-                  Duration
+                  Durée
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider cursor-pointer select-none"
@@ -450,7 +473,7 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
                         className="text-sm font-medium"
                         style={{ color: TEXT_MID }}
                       >
-                        No applications match your filters.
+                        Aucune candidature ne correspond à vos filtres.
                       </p>
                     </div>
                   </td>
@@ -478,8 +501,8 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
             style={{ borderTop: "1px solid #E8ECF2" }}
           >
             <span className="text-xs" style={{ color: TEXT_MID }}>
-              Showing {(page - 1) * PAGE_SIZE + 1}–
-              {Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
+              Affichage {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–
+              {Math.min(page * PAGE_SIZE, filtered.length)} sur {filtered.length}
             </span>
             <div className="flex gap-1">
               <button
@@ -492,7 +515,7 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
                   cursor: page === 1 ? "not-allowed" : "pointer",
                 }}
               >
-                ← Prev
+                ← Précédent
               </button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                 <button
@@ -517,7 +540,7 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
                   cursor: page === totalPages ? "not-allowed" : "pointer",
                 }}
               >
-                Next →
+                Suivant →
               </button>
             </div>
           </div>
@@ -592,7 +615,7 @@ function CandidateRow({
         </div>
       </td>
       <td className="px-4 py-3">
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1" title={c.skills.join(", ")}>
           {c.skills.slice(0, 2).map((s) => (
             <span
               key={s}
@@ -709,7 +732,7 @@ function CandidateRow({
               e.currentTarget.style.backgroundColor = "transparent"
               e.currentTarget.style.color = "#9AA8B4"
             }}
-            title="View profile"
+            title="Voir la candidature"
           >
             <svg
               className="w-4 h-4"
@@ -742,7 +765,7 @@ function CandidateRow({
               e.currentTarget.style.backgroundColor = "transparent"
               e.currentTarget.style.color = "#9AA8B4"
             }}
-            title="Send email"
+            title="Contacter le candidat"
           >
             <svg
               className="w-4 h-4"

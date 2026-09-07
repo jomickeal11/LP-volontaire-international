@@ -4,6 +4,8 @@ import { usePathname, useRouter } from "next/navigation"
 import AdminLayout from "@/views/admin/AdminLayout"
 import type { Page } from "@/types"
 import { logoutAction } from "@/actions/auth"
+import { getApplicationsCount } from "@/lib/actions"
+import { useEffect, useState } from "react"
 
 export default function AdminLayoutRoute({
   children,
@@ -12,6 +14,11 @@ export default function AdminLayoutRoute({
 }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [appCount, setAppCount] = useState<number>()
+
+  useEffect(() => {
+    getApplicationsCount().then(setAppCount).catch(console.error)
+  }, [])
 
   const lang = pathname.split("/")[1] || "fr"
 
@@ -54,6 +61,7 @@ export default function AdminLayoutRoute({
       currentPage={currentPage}
       navigate={handleNavigate}
       onLogout={handleLogout}
+      applicationsCount={appCount}
     >
       {children}
     </AdminLayout>

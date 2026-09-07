@@ -42,14 +42,24 @@ export async function submitCandidateApplication(
     }
 
     const application = await prisma.$transaction(async (tx) => {
-      // Find valid skills by slug
-      const existingSkills = await tx.competence.findMany({
-        where: { slug: { in: validated.skills } }
-      })
-      
-      if (existingSkills.length !== validated.skills.length) {
-        throw new Error("Certaines compétences sélectionnées sont invalides.")
-      }
+      // Ensure skills exist or create them dynamically
+      const existingSkills = await Promise.all(
+        validated.skills.map(async (slug) => {
+          let skill = await tx.competence.findUnique({ where: { slug } })
+          if (!skill) {
+            skill = await tx.competence.create({
+              data: {
+                slug,
+                nameFr: slug,
+                nameEn: slug,
+                nameDe: slug,
+                category: "GENERAL",
+              },
+            })
+          }
+          return skill
+        })
+      )
       
       // Find or create candidate
       let candidate = await tx.candidat.findUnique({
@@ -90,7 +100,7 @@ export async function submitCandidateApplication(
           profession: validated.profession,
           experienceLevel: validated.experience as any,
           digitalSkillLevel: validated.digitalSkillLevel,
-          arrivalDate: validated.arrivalDate ? new Date(validated.arrivalDate) : null,
+          arrivalDate: validated.arrivalDate ? new Date(validated.arrivalDate) : new Date(),
           duration: validated.duration as any,
           motivation: validated.motivation,
           projectExperience: validated.projectExp,
@@ -188,6 +198,18 @@ export async function addCandidateNote(
   }
 }
 
+export async function deleteCandidateNote(noteId: string) {
+  try {
+    await prisma.noteCandidature.delete({
+      where: { id: noteId }
+    })
+    return { success: true }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Erreur de suppression de note"
+    return { success: false, error: message }
+  }
+}
+
 export async function submitCandidateApplicationFormData(
   formData: FormData,
   lang: "FR" | "EN" | "DE" = "FR"
@@ -244,4 +266,8 @@ export async function submitCandidateApplicationFormData(
     const message = err instanceof Error ? err.message : "Erreur lors de la soumission avec fichiers"
     return { success: false, error: message }
   }
+}
+
+export async function getApplicationsCount() {
+  return await prisma.candidature.count()
 }
