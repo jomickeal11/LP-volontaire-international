@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react"
+"use client"
+
+import { useState } from "react"
 import {
-  AreaChart,
-  Area,
   BarChart,
   Bar,
   XAxis,
@@ -10,592 +10,663 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts"
-import { getLiveCandidates } from "../../data/mockCandidates"
-import { store } from "../../lib/store"
 import type { Page } from "../../types"
+import type { DashboardData } from "../../lib/dashboard"
 
-const BLUE = "#1B4F7C"
-const BLUE_LIGHT = "#3A8BC4"
-const GREEN = "#2E7D52"
-const BG = "#F4F6F9"
-const TEXT_DARK = "#1A2B3C"
-const TEXT_MID = "#4A5A6A"
-
-const monthlyData = [
-  { month: "Jan", applications: 4, visitors: 380 },
-  { month: "Feb", applications: 6, visitors: 420 },
-  { month: "Mar", applications: 9, visitors: 610 },
-  { month: "Apr", applications: 7, visitors: 540 },
-  { month: "May", applications: 12, visitors: 820 },
-  { month: "Jun", applications: 15, visitors: 1100 },
-  { month: "Jul", applications: 18, visitors: 1340 },
-  { month: "Aug", applications: 8, visitors: 920 },
-]
+// APTIC-R Official Brand Tokens
+const BLUE = "#174F7A"
+const GREEN = "#35A85A"
+const BG = "#F5F7F9"
+const TEXT_DARK = "#0F172A"
+const TEXT_MID = "#475569"
+const BORDER = "#EAF0F4"
 
 function KpiCard({
   label,
   value,
-  delta,
-  positive,
+  sublabel,
   icon,
   color,
+  highlight = false,
 }: {
   label: string
-  value: string | number
-  delta?: string
-  positive?: boolean
+  value: number | string
+  sublabel?: string
   icon: React.ReactNode
   color: string
+  highlight?: boolean
 }) {
   return (
     <div
-      className="flex flex-col p-5 rounded-xl bg-white"
+      className="flex flex-col p-4 rounded-xl bg-white transition-all shadow-xs"
       style={{
-        border: "1.5px solid #E8ECF2",
-        boxShadow: "0 1px 8px rgba(27,79,124,0.05)",
+        border: `1px solid ${highlight ? color + "30" : BORDER}`,
+        backgroundColor: highlight ? "#F8FAFC" : "#FFFFFF",
       }}
     >
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          {label}
+        </span>
         <div
-          className="w-9 h-9 rounded-lg flex items-center justify-center"
-          style={{ backgroundColor: color + "18", color }}
+          className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+          style={{ backgroundColor: color + "14", color }}
         >
           {icon}
         </div>
-        {delta && (
-          <span
-            className="text-xs font-semibold px-2 py-0.5 rounded-full"
-            style={{
-              backgroundColor: positive ? "#E6F4EC" : "#FEE2E2",
-              color: positive ? GREEN : "#DC2626",
-            }}
-          >
-            {positive ? "↑" : "↓"} {delta}
-          </span>
-        )}
       </div>
       <div
-        className="text-2xl font-bold mb-0.5"
-        style={{ fontFamily: "JetBrains Mono, monospace", color: TEXT_DARK }}
+        className="text-2xl font-bold font-mono tracking-tight"
+        style={{ color: TEXT_DARK }}
       >
         {value}
       </div>
-      <div className="text-xs font-medium" style={{ color: TEXT_MID }}>
-        {label}
-      </div>
+      {sublabel && (
+        <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1 font-medium">
+          {sublabel}
+        </div>
+      )}
     </div>
   )
 }
 
 export default function AdminDashboard({
+  data,
   navigate,
 }: {
+  data: DashboardData
   navigate: (p: Page) => void
 }) {
-  const [candidates, setCandidates] = useState(getLiveCandidates())
+  const {
+    overview,
+    monthlyTrend,
+    funnel,
+    statusBreakdown,
+    countryDistribution,
+    languageDistribution,
+    durationDistribution,
+    professionDistribution,
+    fieldDistribution,
+    sourceDistribution,
+    analyticsSource,
+  } = data
 
-  useEffect(() => {
-    setCandidates(getLiveCandidates())
-    return store.subscribe(() => {
-      setCandidates(getLiveCandidates())
-    })
-  }, [])
-
-  const totalApplications = candidates.length
-  const inReviewCount = candidates.filter(
-    (c) => c.status === "REVIEW" || c.status === "NEW",
-  ).length
-  const interviewCount = candidates.filter(
-    (c) => c.status === "INTERVIEW",
-  ).length
-  const selectedCount = candidates.filter(
-    (c) => c.status === "SELECTED" || c.status === "CHOSEN",
-  ).length
-  const preparationCount = candidates.filter(
-    (c) => c.status === "PREPARATION" || c.status === "PARTNER_VALIDATION",
-  ).length
-  const arrivedCount = candidates.filter((c) => c.status === "ARRIVED").length
-
-  const statusData = [
-    {
-      name: "Nouveau",
-      value: candidates.filter((c) => c.status === "NEW").length,
-      color: "#EEF1F6",
-      textColor: "#4A5A6A",
-    },
-    {
-      name: "Révision",
-      value: candidates.filter((c) => c.status === "REVIEW").length,
-      color: "#FEF3C7",
-      textColor: "#92400E",
-    },
-    {
-      name: "Sélectionné",
-      value: candidates.filter((c) => c.status === "SELECTED").length,
-      color: "#DBEAFE",
-      textColor: "#1E40AF",
-    },
-    {
-      name: "Entretien",
-      value: candidates.filter((c) => c.status === "INTERVIEW").length,
-      color: "#E0E7FF",
-      textColor: "#4338CA",
-    },
-    {
-      name: "Choisi",
-      value: candidates.filter((c) => c.status === "CHOSEN").length,
-      color: "#D1FAE5",
-      textColor: "#065F46",
-    },
-    {
-      name: "Val. Partenaire",
-      value: candidates.filter((c) => c.status === "PARTNER_VALIDATION").length,
-      color: "#FDE68A",
-      textColor: "#78350F",
-    },
-    {
-      name: "Préparation",
-      value: candidates.filter((c) => c.status === "PREPARATION").length,
-      color: "#E6F4EC",
-      textColor: "#2E7D52",
-    },
-  ]
+  const [activeAnalysisTab, setActiveAnalysisTab] = useState<"geo" | "lang" | "source">("geo")
 
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl mb-1" style={{ color: TEXT_DARK }}>
-          Dashboard
-        </h1>
-        <p className="text-sm" style={{ color: TEXT_MID }}>
-          Overview of APTIC-R volunteer recruitment — August 2025
-        </p>
+    <div className="space-y-6 pb-12">
+      {/* 1. Header with Metadata & Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1 border-b border-slate-200/60">
+        <div>
+          <div className="flex items-center gap-2.5 mb-1">
+            <h1 className="text-xl font-bold tracking-tight" style={{ color: TEXT_DARK }}>
+              Tableau de bord de recrutement
+            </h1>
+            <span
+              className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border"
+              style={{
+                backgroundColor: "#E6F4EC",
+                color: GREEN,
+                borderColor: "#C6E7D1",
+              }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              PostgreSQL Direct
+            </span>
+          </div>
+          <p className="text-xs text-slate-500">
+            Pilotage opérationnel du Programme Volontaire International APTIC-R.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => navigate("admin-applications")}
+            className="inline-flex items-center gap-2 text-xs font-semibold px-3.5 py-2 rounded-lg text-white transition-colors cursor-pointer shadow-xs"
+            style={{ backgroundColor: BLUE }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#123f63")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BLUE)}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            Consulter les candidatures
+          </button>
+        </div>
       </div>
 
-      {/* KPI grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+      {/* 2. Core Recruitment KPI Grid (Mapped 1:1 to Business Statuses) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
         <KpiCard
-          label="Total Visitors"
-          value="6,130"
-          delta="18%"
-          positive
-          color={BLUE_LIGHT}
+          label="Total Candidatures"
+          value={overview.totalApplications}
+          sublabel="Base totale active"
+          color={BLUE}
           icon={
-            <svg
-              className="w-4.5 h-4.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              width={18}
-              height={18}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.75}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-              />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           }
         />
         <KpiCard
-          label="Candidatures"
-          value={totalApplications}
-          delta="Actif"
-          positive
+          label="Nouvelles"
+          value={overview.newApplications}
+          sublabel="Statut : NOUVEAU"
           color={BLUE}
           icon={
-            <svg
-              className="w-4.5 h-4.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              width={18}
-              height={18}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.75}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
           }
         />
         <KpiCard
           label="En révision"
-          value={inReviewCount}
-          color="#C77B2B"
+          value={overview.inReview}
+          sublabel="Statut : RÉVISION"
+          color={BLUE}
           icon={
-            <svg
-              className="w-4.5 h-4.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              width={18}
-              height={18}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.75}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
           }
         />
         <KpiCard
           label="Entretiens"
-          value={interviewCount}
-          color="#7B3FC8"
+          value={overview.interviews}
+          sublabel="Statut : ENTRETIEN"
+          color={BLUE}
           icon={
-            <svg
-              className="w-4.5 h-4.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              width={18}
-              height={18}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.75}
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-              />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           }
         />
         <KpiCard
-          label="Sélectionnés / Retenus"
-          value={selectedCount}
+          label="Sélectionnés"
+          value={overview.selected}
+          sublabel="Statut : SÉLECTIONNÉ / RETENU"
+          color={GREEN}
+          highlight
+          icon={
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
+        />
+        <KpiCard
+          label="Arrivés au Togo"
+          value={overview.arrived}
+          sublabel="Statut : ARRIVÉ"
           color={GREEN}
           icon={
-            <svg
-              className="w-4.5 h-4.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              width={18}
-              height={18}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.75}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          }
-        />
-        <KpiCard
-          label="Préparation / Val."
-          value={preparationCount}
-          color="#2E7D52"
-          icon={
-            <svg
-              className="w-4.5 h-4.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              width={18}
-              height={18}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.75}
-                d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           }
         />
       </div>
 
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Applications chart */}
+      {/* 3. Section: Évolution temporelle & Pipeline de recrutement */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Évolution temporelle réelle (Candidatures par mois) */}
         <div
-          className="bg-white rounded-xl p-5"
-          style={{
-            border: "1.5px solid #E8ECF2",
-            boxShadow: "0 1px 8px rgba(27,79,124,0.05)",
-          }}
+          className="bg-white rounded-xl p-5 shadow-xs flex flex-col justify-between"
+          style={{ border: `1px solid ${BORDER}` }}
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm" style={{ color: TEXT_DARK }}>
-                Candidatures par mois
+              <h3 className="text-sm font-bold" style={{ color: TEXT_DARK }}>
+                Évolution des dépôts de candidature
               </h3>
-              <p className="text-xs" style={{ color: TEXT_MID }}>
-                Janvier – Août 2025
+              <p className="text-[11px] text-slate-500">
+                Volume mensuel basé sur la date d'enregistrement (<code className="font-mono text-[10px]">createdAt</code>).
               </p>
             </div>
-            <span
-              className="text-xs font-bold px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: "#E6F4EC", color: GREEN }}
-            >
-              ↑ +22%
+            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+              6 derniers mois
             </span>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart
-              data={monthlyData}
-              margin={{ top: 0, right: 0, bottom: 0, left: -20 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#F0F3F7"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 11, fill: "#9AA8B4" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: "#9AA8B4" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  border: "1px solid #E8ECF2",
-                  borderRadius: 8,
-                  fontSize: 12,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                }}
-                itemStyle={{ color: TEXT_DARK }}
-                labelStyle={{ color: TEXT_MID, fontWeight: 600 }}
-              />
-              <Bar
-                dataKey="applications"
-                fill={BLUE}
-                radius={[4, 4, 0, 0]}
-                name="Candidatures"
-              />
-            </BarChart>
-          </ResponsiveContainer>
+
+          <div className="h-56 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyTrend} margin={{ top: 10, right: 10, bottom: 0, left: -25 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 11, fill: "#64748B" }}
+                  axisLine={{ stroke: "#E2E8F0" }}
+                  tickLine={false}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 11, fill: "#64748B" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#FFFFFF",
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: 8,
+                    fontSize: 12,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+                  }}
+                  itemStyle={{ color: BLUE, fontWeight: 600 }}
+                  labelStyle={{ color: TEXT_DARK, fontWeight: 700 }}
+                />
+                <Bar
+                  dataKey="applications"
+                  name="Candidatures reçues"
+                  fill={BLUE}
+                  radius={[4, 4, 0, 0]}
+                  barSize={32}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="pt-3 mt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>Dernière mise à jour : Temps réel</span>
+            <span className="font-semibold text-slate-700">
+              Total période : {overview.totalApplications}
+            </span>
+          </div>
         </div>
 
-        {/* Visitors chart */}
+        {/* Pipeline de recrutement (Funnel réel des étapes franchies) */}
         <div
-          className="bg-white rounded-xl p-5"
-          style={{
-            border: "1.5px solid #E8ECF2",
-            boxShadow: "0 1px 8px rgba(27,79,124,0.05)",
-          }}
+          className="bg-white rounded-xl p-5 shadow-xs flex flex-col justify-between"
+          style={{ border: `1px solid ${BORDER}` }}
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="text-sm" style={{ color: TEXT_DARK }}>
-                Tendance des visiteurs
+              <h3 className="text-sm font-bold" style={{ color: TEXT_DARK }}>
+                Répartition par étape du parcours
               </h3>
-              <p className="text-xs" style={{ color: TEXT_MID }}>
-                Visiteurs uniques mensuels
+              <p className="text-[11px] text-slate-500">
+                Nombre de candidatures actives actuellement à chaque étape.
               </p>
             </div>
+            <span className="text-xs text-slate-400 font-medium">Temps réel</span>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart
-              data={monthlyData}
-              margin={{ top: 0, right: 0, bottom: 0, left: -20 }}
-            >
-              <defs>
-                <linearGradient
-                  id="visitorGradient"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop offset="5%" stopColor={BLUE_LIGHT} stopOpacity={0.15} />
-                  <stop offset="95%" stopColor={BLUE_LIGHT} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#F0F3F7"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 11, fill: "#9AA8B4" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: "#9AA8B4" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  border: "1px solid #E8ECF2",
-                  borderRadius: 8,
-                  fontSize: 12,
-                }}
-                itemStyle={{ color: TEXT_DARK }}
-              />
-              <Area
-                type="monotone"
-                dataKey="visitors"
-                stroke={BLUE_LIGHT}
-                strokeWidth={2}
-                fill="url(#visitorGradient)"
-                name="Visiteurs"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
 
-      {/* Funnel + Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Pipeline funnel */}
-        <div
-          className="bg-white rounded-xl p-5"
-          style={{
-            border: "1.5px solid #E8ECF2",
-            boxShadow: "0 1px 8px rgba(27,79,124,0.05)",
-          }}
-        >
-          <h3 className="text-sm mb-4" style={{ color: TEXT_DARK }}>
-            Pipeline de recrutement
-          </h3>
-          <div className="flex flex-col gap-2">
-            {[
-              {
-                label: "Visiteurs",
-                value: 6130,
-                pct: 100,
-                color: "#E8ECF2",
-                text: "#4A5A6A",
-              },
-              {
-                label: "Candidatures",
-                value: 79,
-                pct: 65,
-                color: "#DBEAFE",
-                text: "#1E40AF",
-              },
-              {
-                label: "Qualifiés",
-                value: 34,
-                pct: 45,
-                color: BLUE + "30",
-                text: BLUE,
-              },
-              {
-                label: "Entretiens",
-                value: 18,
-                pct: 32,
-                color: "#E0E7FF",
-                text: "#4338CA",
-              },
-              {
-                label: "Sélectionnés",
-                value: 9,
-                pct: 20,
-                color: "#D1FAE5",
-                text: "#065F46",
-              },
-              {
-                label: "Arrivés",
-                value: 4,
-                pct: 10,
-                color: "#E6F4EC",
-                text: GREEN,
-              },
-            ].map((row) => (
-              <div key={row.label} className="flex items-center gap-3">
+          <div className="divide-y divide-slate-100 py-1">
+            {funnel.map((step, idx) => {
+              const hasCount = step.count > 0
+              return (
                 <div
-                  className="w-24 text-xs font-medium text-right flex-shrink-0"
-                  style={{ color: TEXT_MID }}
+                  key={step.stage}
+                  className={`flex items-center justify-between py-2.5 px-2 rounded-lg transition-colors ${
+                    hasCount ? "bg-slate-50/70" : "hover:bg-slate-50/40"
+                  }`}
                 >
-                  {row.label}
-                </div>
-                <div
-                  className="flex-1 h-7 rounded"
-                  style={{ backgroundColor: "#F4F6F9" }}
-                >
-                  <div
-                    className="h-full rounded flex items-center px-2 transition-all"
-                    style={{ width: `${row.pct}%`, backgroundColor: row.color }}
-                  >
+                  <div className="flex items-center gap-3 min-w-0 pr-2">
                     <span
-                      className="text-xs font-bold"
-                      style={{
-                        color: row.text,
-                        fontFamily: "JetBrains Mono, monospace",
-                      }}
+                      className={`w-5 h-5 rounded-full text-[11px] font-mono font-bold inline-flex items-center justify-center shrink-0 ${
+                        hasCount
+                          ? idx === 0
+                            ? "bg-[#174F7A] text-white"
+                            : "bg-[#35A85A] text-white"
+                          : "bg-slate-100 text-slate-400"
+                      }`}
                     >
-                      {row.value.toLocaleString()}
+                      {idx + 1}
+                    </span>
+                    <span
+                      className={`text-xs truncate ${
+                        hasCount ? "font-semibold text-slate-800" : "text-slate-500 font-normal"
+                      }`}
+                    >
+                      {step.stage}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-4 shrink-0 font-mono">
+                    <span
+                      className={`text-xs font-bold text-right min-w-[20px] ${
+                        hasCount ? "text-slate-900" : "text-slate-400"
+                      }`}
+                    >
+                      {step.count}
+                    </span>
+                    <span
+                      className={`text-[11px] font-semibold text-right min-w-[42px] px-1.5 py-0.5 rounded ${
+                        hasCount
+                          ? idx === 3
+                            ? "bg-emerald-50 text-[#35A85A]"
+                            : "bg-blue-50 text-[#174F7A]"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      {step.percentage} %
                     </span>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
+          </div>
+
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Règle : 100% basé sur le statut actuel du dossier</span>
+            <span className="text-slate-600 font-medium">Données réelles</span>
           </div>
         </div>
+      </div>
 
-        {/* Applications by status + quick actions */}
+      {/* 4. Analyses demandées par le cahier : Statuts, Origine / Langue / Source, Métier & Durée */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Colonne 1 : Statuts opérationnels */}
         <div
-          className="bg-white rounded-xl p-5"
-          style={{
-            border: "1.5px solid #E8ECF2",
-            boxShadow: "0 1px 8px rgba(27,79,124,0.05)",
-          }}
+          className="bg-white rounded-xl p-5 shadow-xs flex flex-col justify-between"
+          style={{ border: `1px solid ${BORDER}` }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm" style={{ color: TEXT_DARK }}>
+            <h3 className="text-sm font-bold" style={{ color: TEXT_DARK }}>
               Candidatures par statut
             </h3>
             <button
               onClick={() => navigate("admin-applications")}
-              className="text-xs font-semibold"
+              className="text-xs font-semibold hover:underline cursor-pointer"
               style={{ color: BLUE }}
             >
-              Voir tout →
+              Gérer tout →
             </button>
           </div>
-          <div className="flex flex-col gap-2 mb-6">
-            {statusData.map((s) => (
-              <div key={s.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="text-xs font-bold px-2 py-0.5 rounded-md"
-                    style={{ backgroundColor: s.color, color: s.textColor }}
-                  >
-                    {s.name}
-                  </span>
-                </div>
+
+          <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+            {statusBreakdown.map((item) => (
+              <div
+                key={item.status}
+                className="flex items-center justify-between py-1 px-2 rounded-lg hover:bg-slate-50 transition-colors"
+              >
                 <span
-                  className="text-sm font-bold"
-                  style={{
-                    fontFamily: "JetBrains Mono, monospace",
-                    color: TEXT_DARK,
-                  }}
+                  className="text-xs font-semibold px-2 py-0.5 rounded-md"
+                  style={{ backgroundColor: item.color, color: item.textColor }}
                 >
-                  {s.value}
+                  {item.label}
+                </span>
+                <span className="text-xs font-mono font-bold text-slate-800">
+                  {item.count}
                 </span>
               </div>
             ))}
           </div>
 
-          <button
-            onClick={() => navigate("admin-applications")}
-            className="w-full py-2.5 text-sm font-semibold rounded-lg text-white transition-colors"
-            style={{ backgroundColor: BLUE }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#163f63")
-            }
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BLUE)}
-          >
-            Gérer les candidatures
-          </button>
+          <div className="pt-3 mt-3 border-t border-slate-100">
+            <button
+              onClick={() => navigate("admin-applications")}
+              className="w-full py-2 text-xs font-semibold rounded-lg text-white text-center transition-colors cursor-pointer"
+              style={{ backgroundColor: BLUE }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#123f63")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BLUE)}
+            >
+              Ouvrir la liste détaillée
+            </button>
+          </div>
+        </div>
+
+        {/* Colonne 2 : Géographie, Langues & Canaux de recrutement (Sources) */}
+        <div
+          className="bg-white rounded-xl p-5 shadow-xs flex flex-col justify-between"
+          style={{ border: `1px solid ${BORDER}` }}
+        >
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold" style={{ color: TEXT_DARK }}>
+                Origine & Acquisition
+              </h3>
+              <div className="flex items-center bg-slate-100 p-0.5 rounded-md text-[11px] font-semibold">
+                <button
+                  onClick={() => setActiveAnalysisTab("geo")}
+                  className={`px-2 py-0.5 rounded cursor-pointer transition-all ${
+                    activeAnalysisTab === "geo" ? "bg-white text-slate-800 shadow-2xs" : "text-slate-500"
+                  }`}
+                >
+                  Pays
+                </button>
+                <button
+                  onClick={() => setActiveAnalysisTab("lang")}
+                  className={`px-2 py-0.5 rounded cursor-pointer transition-all ${
+                    activeAnalysisTab === "lang" ? "bg-white text-slate-800 shadow-2xs" : "text-slate-500"
+                  }`}
+                >
+                  Langues
+                </button>
+                <button
+                  onClick={() => setActiveAnalysisTab("source")}
+                  className={`px-2 py-0.5 rounded cursor-pointer transition-all ${
+                    activeAnalysisTab === "source" ? "bg-white text-slate-800 shadow-2xs" : "text-slate-500"
+                  }`}
+                >
+                  Sources
+                </button>
+              </div>
+            </div>
+
+            {activeAnalysisTab === "geo" && (
+              <div className="space-y-3">
+                <p className="text-[11px] text-slate-400">
+                  Répartition des candidats selon le pays de résidence déclaré.
+                </p>
+                {countryDistribution.length === 0 ? (
+                  <div className="text-xs text-slate-400 py-8 text-center italic">
+                    Aucune donnée géographique enregistrée
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {countryDistribution.slice(0, 5).map((c) => (
+                      <div key={c.country} className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span className="font-medium text-slate-700">{c.country}</span>
+                          <span className="font-mono font-semibold text-slate-900">
+                            {c.count} ({c.percentage}%)
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${c.percentage}%`,
+                              backgroundColor: BLUE,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeAnalysisTab === "lang" && (
+              <div className="space-y-3">
+                <p className="text-[11px] text-slate-400">
+                  Langue choisie par les candidats lors du dépôt de dossier.
+                </p>
+                <div className="space-y-2">
+                  {languageDistribution.map((l) => (
+                    <div key={l.lang} className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="font-medium text-slate-700">{l.label}</span>
+                        <span className="font-mono font-semibold text-slate-900">
+                          {l.count} ({l.percentage}%)
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${l.percentage}%`,
+                            backgroundColor: GREEN,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeAnalysisTab === "source" && (
+              <div className="space-y-3">
+                <p className="text-[11px] text-slate-400">
+                  Canal par lequel le candidat a découvert le programme.
+                </p>
+                <div className="space-y-2">
+                  {sourceDistribution.length === 0 ? (
+                    <div className="text-xs text-slate-400 py-8 text-center italic">
+                      Aucune source déclarée
+                    </div>
+                  ) : (
+                    sourceDistribution.map((s) => (
+                      <div key={s.source} className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span className="font-medium text-slate-700 truncate max-w-[170px]">{s.source}</span>
+                          <span className="font-mono font-semibold text-slate-900">
+                            {s.count} ({s.percentage}%)
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${s.percentage}%`,
+                              backgroundColor: BLUE,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-3 border-t border-slate-100 text-[11px] text-slate-400 flex justify-between">
+            <span>Analyses du cahier des charges</span>
+            <span>Total : {overview.totalApplications}</span>
+          </div>
+        </div>
+
+        {/* Colonne 3 : Métiers & Durée souhaitée (conforme au cahier) */}
+        <div
+          className="bg-white rounded-xl p-5 shadow-xs flex flex-col justify-between"
+          style={{ border: `1px solid ${BORDER}` }}
+        >
+          <div>
+            <h3 className="text-sm font-bold mb-1" style={{ color: TEXT_DARK }}>
+              Métiers & Durée souhaitée
+            </h3>
+            <p className="text-[11px] text-slate-400 mb-4">
+              Profils professionnels déclarés et engagement souhaité.
+            </p>
+
+            <div className="space-y-4">
+              {/* Durée souhaitée */}
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                  Durée de mission souhaitée
+                </span>
+                <div className="grid grid-cols-3 gap-2">
+                  {durationDistribution.map((d) => (
+                    <div
+                      key={d.duration}
+                      className="p-2 rounded-lg bg-slate-50 border border-slate-100 text-center"
+                    >
+                      <div className="text-[11px] text-slate-500 font-medium">{d.label}</div>
+                      <div className="text-sm font-mono font-bold text-slate-800">{d.count}</div>
+                      <div className="text-[10px] text-slate-400 font-mono">{d.percentage}%</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Métiers / Professions */}
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                  Métiers & Professions déclarés
+                </span>
+                <div className="space-y-1.5">
+                  {professionDistribution.length === 0 ? (
+                    <span className="text-xs text-slate-400 italic">Aucune profession renseignée</span>
+                  ) : (
+                    professionDistribution.map((p) => (
+                      <div
+                        key={p.profession}
+                        className="flex items-center justify-between text-xs py-1 px-2 rounded bg-slate-50 border border-slate-100"
+                      >
+                        <span className="font-medium text-slate-700 truncate max-w-[180px]">
+                          {p.profession}
+                        </span>
+                        <span className="font-mono font-semibold text-slate-900">
+                          {p.count}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Domaines d'études complémentaires */}
+              {fieldDistribution.length > 0 && (
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                    Filières d'études
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {fieldDistribution.map((f) => (
+                      <span
+                        key={f.field}
+                        className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium"
+                      >
+                        <span>{f.field}</span>
+                        <span className="font-mono font-bold text-slate-900">({f.count})</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-slate-100 text-[11px] text-slate-400">
+            Champs <code className="font-mono text-[10px]">profession</code> & <code className="font-mono text-[10px]">duration</code>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Section Trafic Web & Audience (Ségrégation claire Analytics / PostgreSQL) */}
+      <div
+        className="rounded-xl p-4 bg-white border shadow-xs"
+        style={{ borderColor: BORDER }}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 border border-slate-200">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs font-bold text-slate-800">
+                  Trafic & Visiteurs Web (Google Analytics 4)
+                </h4>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                  {analyticsSource.connected ? "Connecté" : "Analytics non connecté"}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                {analyticsSource.message}
+              </p>
+            </div>
+          </div>
+
+          <div className="text-xs text-slate-400 font-mono self-end sm:self-auto shrink-0">
+            Aucun chiffre fictif affiché
+          </div>
         </div>
       </div>
     </div>

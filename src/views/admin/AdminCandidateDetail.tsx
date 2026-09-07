@@ -21,8 +21,8 @@ const TEXT_MID = "#4A5A6A"
 const STATUS_WORKFLOW: CandidateStatus[] = [
   "NEW",
   "REVIEW",
-  "SELECTED",
   "INTERVIEW",
+  "SELECTED",
   "CHOSEN",
   "PARTNER_VALIDATION",
   "PREPARATION",

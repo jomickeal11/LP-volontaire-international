@@ -84,7 +84,7 @@ const NAV_ITEMS = [
             />
           </svg>
         ),
-        badge: 8,
+        badge: undefined,
       },
     ],
   },
