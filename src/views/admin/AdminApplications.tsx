@@ -573,12 +573,20 @@ function CandidateRow({
 
   return (
     <tr
+      onClick={onOpen}
+      className="cursor-pointer transition-colors group"
       style={{
         backgroundColor: selected ? "#E8F2FA" : even ? "#fff" : "#FAFBFC",
         borderBottom: "1px solid #F0F3F7",
       }}
+      onMouseEnter={(e) => {
+        if (!selected) e.currentTarget.style.backgroundColor = "#F4F7FA"
+      }}
+      onMouseLeave={(e) => {
+        if (!selected) e.currentTarget.style.backgroundColor = even ? "#fff" : "#FAFBFC"
+      }}
     >
-      <td className="px-4 py-3">
+      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
         <input
           type="checkbox"
           checked={selected}
@@ -596,13 +604,12 @@ function CandidateRow({
             {c.lastName.charAt(0)}
           </div>
           <div>
-            <button
-              onClick={onOpen}
-              className="text-sm font-semibold hover:underline text-left"
+            <div
+              className="text-sm font-semibold group-hover:text-[#174F7A] transition-colors"
               style={{ color: "#1A2B3C" }}
             >
               {c.firstName} {c.lastName}
-            </button>
+            </div>
             <div
               className="text-xs flex items-center gap-1"
               style={{ color: "#9AA8B4" }}
@@ -647,78 +654,15 @@ function CandidateRow({
         </span>
       </td>
       <td className="px-4 py-3">
-        <div className="relative inline-block">
-          <button
-            onClick={() => setStatusMenu(!statusMenu)}
-            className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-md transition-colors"
-            style={{ backgroundColor: bg, color: text }}
-          >
-            {label}
-            <svg
-              className="w-3 h-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-          {statusMenu && (
-            <div
-              className="absolute left-0 top-full mt-1 z-30 rounded-xl overflow-hidden"
-              style={{
-                backgroundColor: "#fff",
-                border: "1px solid #E8ECF2",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-                minWidth: 160,
-              }}
-            >
-              {([
-                "NEW",
-                "REVIEW",
-                "SELECTED",
-                "INTERVIEW",
-                "CHOSEN",
-                "PARTNER_VALIDATION",
-                "PREPARATION",
-                "ARRIVED",
-                "COMPLETED",
-              ] as CandidateStatus[]).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => {
-                    onStatusChange(s)
-                    setStatusMenu(false)
-                  }}
-                  className="w-full text-left px-3 py-2 flex items-center gap-2"
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#F4F6F9")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "transparent")
-                  }
-                >
-                  <span
-                    className="text-xs font-bold px-2 py-0.5 rounded-md"
-                    style={{
-                      backgroundColor: statusColors[s].bg,
-                      color: statusColors[s].text,
-                    }}
-                  >
-                    {statusColors[s].label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Static non-editable status badge */}
+        <span
+          className="inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-md tracking-wide"
+          style={{ backgroundColor: bg, color: text }}
+        >
+          {label}
+        </span>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-1">
           <button
             onClick={onOpen}

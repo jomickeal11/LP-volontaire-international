@@ -342,7 +342,7 @@ export default function AdminLayout({
         </div>
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:px-12 lg:py-8" style={{ backgroundColor: "#FFFFFF" }}>{children}</main>
+        <main className="flex-1 p-4 lg:px-12 lg:py-8" style={{ backgroundColor: "#F5F7F9" }}>{children}</main>
       </div>
     </div>
   )
