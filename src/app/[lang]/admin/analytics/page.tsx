@@ -1,7 +1,9 @@
-"use client"
+import AdminAnalyticsClientWrapper from "./AdminAnalyticsClientWrapper"
+import { getAnalyticsPageStats } from "@/lib/dashboard"
 
-import AdminAnalytics from "@/views/admin/AdminAnalytics"
+export const dynamic = "force-dynamic"
 
-export default function AdminAnalyticsPage() {
-  return <AdminAnalytics />
+export default async function AdminAnalyticsPage() {
+  const data = await getAnalyticsPageStats(30)
+  return <AdminAnalyticsClientWrapper data={data} />
 }

@@ -319,9 +319,9 @@ model AnalyticsEvent {
 | **Phase 4** | Multilingue international (FR / EN / DE + `hreflang`) | ✅ Validé | **100%** | — |
 | **Phase 5** | Formulaire Candidature (9 étapes) & Backend | 🟨 Fonctionnel | **85%** | Haute |
 | **Phase 6** | Espace Partenariats Organisations | 🟨 Fonctionnel | **85%** | Haute |
-| **Phase 7** | Back-office Administrateur (KPI, Listes, Fiches) | ✅ Fonctionnel | **90%** | Moyenne |
+| **Phase 7** | Back-office Administrateur (KPI, Listes, Fiches, Exports CSV) | ✅ Validé | **100%** | — |
 | **Phase 8** | Workflow Candidatures (9 statuts, Notes, Historique) | 🟨 En cours | **75%** | Moyenne |
-| **Phase 9** | Analytics & Télémétrie | 🟨 Partiel | **60%** | Moyenne |
+| **Phase 9** | Analytics & Télémétrie (Page dédiée, Funnel, GA4/Postgres) | ✅ Opérationnel | **90%** | Faible |
 | **Phase 10** | Mails transactionnels, Stockage Cloud S3 & Déploiement Prod | 🟥 À faire | **20%** | Haute |
 
 ---
@@ -374,15 +374,15 @@ model AnalyticsEvent {
 - **Ce qui manque pour 100% :**
   - [ ] **Mails transactionnels réels** : Confirmation automatique à l'organisme et alerte email aux coordinateurs APTIC-R.
 
-#### Phase 7 — Back-office Administrateur (90% ✅)
+#### Phase 7 — Back-office Administrateur (100% ✅)
 - [x] Authentification sécurisée administrateur.
 - [x] Dashboard avec indicateurs clés (KPIs) en temps réel.
 - [x] Vue "Candidatures" : tableau de tous les postulants avec filtres et recherche.
 - [x] Vue "Candidats" : vue ciblée sur les volontaires retenus/sélectionnés.
 - [x] Vue "Partenaires" & "Demandes de partenariat" avec fiches détaillées.
 - [x] Fiche candidat détaillée avec historique des statuts et ajout de notes internes.
-- **Ce qui manque pour 100% :**
-  - [ ] **Export CSV / Excel** : Bouton d'export de la liste des candidatures et candidats filtrés.
+- [x] Bouton pour exporter les données en csv/ excel
+
 
 #### Phase 8 — Workflow des Candidatures (75% 🟨)
 - [x] Transition d'état parmi les 9 statuts officiels.
@@ -392,11 +392,18 @@ model AnalyticsEvent {
   - [ ] **Emails automatiques sur changement de statut** (ex: notification d'invitation à l'entretien vidéo).
   - [ ] **Assignation d'un dossier** à un coordinateur spécifique de l'équipe (champ `assignedToId`).
 
-#### Phase 9 — Analytics & Télémétrie (60% 🟨)
-- [x] Page dashboard Analytics avec graphiques de répartition.
-- [x] Modèle de données Prisma `AnalyticsEvent`.
+#### Phase 9 — Analytics & Télémétrie (90% ✅)
+- [x] Page `/admin/analytics` dédiée distincte du dashboard opérationnel.
+- [x] Bloc Acquisition avec distinction claire GA4 (visiteurs, sessions, trafic, sources) vs PostgreSQL.
+- [x] Gestion transparente sans GA4 connecté (zéro faux chiffre, placeholders propres avec instruction de configuration).
+- [x] Bloc Conversion Funnel pleine largeur (Visiteurs → Clics « Postuler » → Formulaires commencés → Candidatures soumises).
+- [x] Bloc Conversion Partenaires (Clics « Devenir partenaire » → Début formulaire → Demandes reçues).
+- [x] Répartition Candidatures par Pays et par Langue choisie.
+- [x] Analyse de la source déclarée par les candidats (« Comment nous avez-vous découverts ? »).
+- [x] Tableau synthétique du journal des événements trackés (`apply_now_click`, `application_started`, `application_submitted`, etc.).
+- [x] Server Action `trackAnalyticsEvent` branchée sur le modèle Prisma `EvenementStatistique`.
 - **Ce qui manque pour 100% :**
-  - [ ] **Télémétrie en temps réel** : Capture effective des clics (`apply_now_click`, abandon d'étapes dans le formulaire) branchée à la base.
+  - [ ] Configuration de `NEXT_PUBLIC_GA_ID` pour activer la réception du flux direct GA4.
 
 #### Phase 10 — Déploiement Production & Sécurité (20% 🟥)
 - [x] Configuration des en-têtes HTTP de sécurité et sanitization des données.

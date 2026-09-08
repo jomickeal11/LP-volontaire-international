@@ -422,3 +422,30 @@ export async function updatePartnerRequestStatus(
     return { success: false, error: message }
   }
 }
+
+export async function trackAnalyticsEvent(
+  eventName: string,
+  data?: {
+    lang?: string
+    country?: string
+    source?: string
+    metadata?: Record<string, any>
+  }
+) {
+  try {
+    await (prisma as any).evenementStatistique.create({
+      data: {
+        name: eventName,
+        lang: data?.lang || null,
+        country: data?.country || null,
+        source: data?.source || null,
+        metadata: data?.metadata || undefined,
+      },
+    })
+    return { success: true }
+  } catch (err) {
+    // Non-blocking for UI
+    console.error("trackAnalyticsEvent error:", err)
+    return { success: false }
+  }
+}
