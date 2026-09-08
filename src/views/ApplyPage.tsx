@@ -851,27 +851,27 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       return
     }
     if (!form.education.trim()) {
-      setErrorMessage("Veuillez renseigner votre formation")
+      setErrorMessage(t.apply.errors.educationReq || "Veuillez renseigner votre formation")
       setIsSubmitting(false)
       return
     }
     if (!form.fieldOfStudy.trim()) {
-      setErrorMessage("Veuillez renseigner votre domaine d'études")
+      setErrorMessage(t.apply.errors.fieldReq || "Veuillez renseigner votre domaine d'études")
       setIsSubmitting(false)
       return
     }
     if (!form.profession.trim()) {
-      setErrorMessage("Veuillez renseigner votre profession")
+      setErrorMessage(t.apply.errors.professionReq || "Veuillez renseigner votre profession")
       setIsSubmitting(false)
       return
     }
     if (!form.experience) {
-      setErrorMessage("Veuillez renseigner votre niveau d'expérience")
+      setErrorMessage(t.apply.errors.experienceReq || "Veuillez renseigner votre niveau d'expérience")
       setIsSubmitting(false)
       return
     }
     if (!form.digitalSkillLevel) {
-      setErrorMessage("Veuillez renseigner votre niveau de compétences numériques")
+      setErrorMessage(t.apply.errors.digitalReq || "Veuillez renseigner votre niveau de compétences numériques")
       setIsSubmitting(false)
       return
     }
@@ -881,12 +881,12 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       return
     }
     if (!form.arrivalDate) {
-      setErrorMessage("Veuillez renseigner votre date d'arrivée souhaitée")
+      setErrorMessage(t.apply.errors.arrivalReq || "Veuillez renseigner votre date d'arrivée souhaitée")
       setIsSubmitting(false)
       return
     }
     if (!form.duration) {
-      setErrorMessage("Veuillez renseigner la durée souhaitée")
+      setErrorMessage(t.apply.errors.durationReq || "Veuillez renseigner la durée souhaitée")
       setIsSubmitting(false)
       return
     }
@@ -911,12 +911,12 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       return
     }
     if (!form.cvFile) {
-      setErrorMessage("Le CV est obligatoire")
+      setErrorMessage(t.apply.errors.cvReq || "Le CV est obligatoire")
       setIsSubmitting(false)
       return
     }
     if (!form.motivationFile) {
-      setErrorMessage("La lettre de motivation est obligatoire")
+      setErrorMessage(t.apply.errors.letterReq || "La lettre de motivation est obligatoire")
       setIsSubmitting(false)
       return
     }
@@ -993,34 +993,99 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
     { num: 9, label: t.apply.steps?.s9 || "Vérification", title: t.apply.form?.reviewTitle || "Vérification & Envoi", desc: t.apply.stepDescs?.s9 || "Relisez votre dossier avant de transmettre votre candidature" },
   ]
 
-  // Skills catalogue with SVG library icons
+  // Skills catalogue with multilingual titles and descriptions
   const SKILLS_CATALOGUE = [
-    { slug: "computer-science", title: "Informatique", desc: "Architecture, réseau, infrastructure & outils", icon: MonitorIcon },
-    { slug: "data", title: "Données", desc: "Traitement de données agricoles, SIG & reporting", icon: BarChartIcon },
-    { slug: "web-development", title: "Développement web", desc: "Applications web, CMS, portails & API", icon: CodeIcon },
-    { slug: "mobile-development", title: "Développement mobile", desc: "Applications Android, offline-first & alertes SMS", icon: SmartphoneIcon },
-    { slug: "agriculture", title: "Agriculture", desc: "Suivi des cultures, maraîchage & durabilité", icon: WheatIcon },
-    { slug: "graphic-design", title: "Conception graphique", desc: "Design visuel, illustration & identité de marque", icon: PaletteIcon },
-    { slug: "communication", title: "Communication", desc: "Réseaux sociaux, relations publiques & stratégie", icon: MessageSquareIcon },
-    { slug: "content-creation", title: "Création de contenu", desc: "Photos, vidéos, rédaction & récits de terrain", icon: PenToolIcon },
-    { slug: "arduino", title: "Arduino", desc: "Microcontrôleurs, prototypage & capteurs basiques", icon: CpuIcon },
-    { slug: "raspberry-pi", title: "Raspberry Pi", desc: "Mini-ordinateurs, serveurs locaux & automatisation", icon: CpuIcon },
-    { slug: "iot", title: "IoT", desc: "Internet des objets, connectivité & réseaux LoRa", icon: SignalIcon },
-    { slug: "digital-education", title: "Éducation numérique", desc: "Pédagogie, animation d'ateliers & formation", icon: GraduationCapIcon },
-    { slug: "project-management", title: "Gestion de projet", desc: "Coordination, organisation & lien associatif", icon: FileTextIcon },
+    {
+      slug: "computer-science",
+      title: currentLang === "DE" ? "Informatik" : currentLang === "EN" ? "Computer Science" : "Informatique",
+      desc: currentLang === "DE" ? "Architektur, Netzwerke, Infrastruktur & Tools" : currentLang === "EN" ? "Architecture, networking, infrastructure & tools" : "Architecture, réseau, infrastructure & outils",
+      icon: MonitorIcon
+    },
+    {
+      slug: "data",
+      title: currentLang === "DE" ? "Datenanalyse" : currentLang === "EN" ? "Data Analysis" : "Données",
+      desc: currentLang === "DE" ? "Verarbeitung landwirtschaftlicher Daten, GIS & Berichterstattung" : currentLang === "EN" ? "Agricultural data processing, GIS & reporting" : "Traitement de données agricoles, SIG & reporting",
+      icon: BarChartIcon
+    },
+    {
+      slug: "web-development",
+      title: currentLang === "DE" ? "Webentwicklung" : currentLang === "EN" ? "Web Development" : "Développement web",
+      desc: currentLang === "DE" ? "Webanwendungen, CMS, Portale & APIs" : currentLang === "EN" ? "Web applications, CMS, portals & APIs" : "Applications web, CMS, portails & API",
+      icon: CodeIcon
+    },
+    {
+      slug: "mobile-development",
+      title: currentLang === "DE" ? "Mobile Entwicklung" : currentLang === "EN" ? "Mobile Development" : "Développement mobile",
+      desc: currentLang === "DE" ? "Android-Apps, Offline-First & SMS-Warnungen" : currentLang === "EN" ? "Android apps, offline-first & SMS alerts" : "Applications Android, offline-first & alertes SMS",
+      icon: SmartphoneIcon
+    },
+    {
+      slug: "agriculture",
+      title: currentLang === "DE" ? "Landwirtschaft" : currentLang === "EN" ? "Agriculture" : "Agriculture",
+      desc: currentLang === "DE" ? "Anbaubegleitung, Gartenbau & Nachhaltigkeit" : currentLang === "EN" ? "Crop monitoring, market gardening & sustainability" : "Suivi des cultures, maraîchage & durabilité",
+      icon: WheatIcon
+    },
+    {
+      slug: "graphic-design",
+      title: currentLang === "DE" ? "Grafikdesign" : currentLang === "EN" ? "Graphic Design" : "Conception graphique",
+      desc: currentLang === "DE" ? "Visuelle Gestaltung, Illustration & Markenidentität" : currentLang === "EN" ? "Visual design, illustration & branding" : "Design visuel, illustration & identité de marque",
+      icon: PaletteIcon
+    },
+    {
+      slug: "communication",
+      title: currentLang === "DE" ? "Kommunikation" : currentLang === "EN" ? "Communication" : "Communication",
+      desc: currentLang === "DE" ? "Soziale Medien, Öffentlichkeitsarbeit & Strategie" : currentLang === "EN" ? "Social media, PR & strategy" : "Réseaux sociaux, relations publiques & stratégie",
+      icon: MessageSquareIcon
+    },
+    {
+      slug: "content-creation",
+      title: currentLang === "DE" ? "Content-Erstellung" : currentLang === "EN" ? "Content Creation" : "Création de contenu",
+      desc: currentLang === "DE" ? "Foto, Video, Text & Feldberichte" : currentLang === "EN" ? "Photo, video, writing & field storytelling" : "Photos, vidéos, rédaction & récits de terrain",
+      icon: PenToolIcon
+    },
+    {
+      slug: "arduino",
+      title: "Arduino",
+      desc: currentLang === "DE" ? "Mikrocontroller, Prototyping & Sensoren" : currentLang === "EN" ? "Microcontrollers, prototyping & basic sensors" : "Microcontrôleurs, prototypage & capteurs basiques",
+      icon: CpuIcon
+    },
+    {
+      slug: "raspberry-pi",
+      title: "Raspberry Pi",
+      desc: currentLang === "DE" ? "Einplatinencomputer, lokale Server & Automatisierung" : currentLang === "EN" ? "Mini-computers, local servers & automation" : "Mini-ordinateurs, serveurs locaux & automatisation",
+      icon: CpuIcon
+    },
+    {
+      slug: "iot",
+      title: "IoT",
+      desc: currentLang === "DE" ? "Internet der Dinge, Vernetzung & LoRa-Netzwerke" : currentLang === "EN" ? "Internet of things, connectivity & LoRa networks" : "Internet des objets, connectivité & réseaux LoRa",
+      icon: SignalIcon
+    },
+    {
+      slug: "digital-education",
+      title: currentLang === "DE" ? "Digitale Bildung" : currentLang === "EN" ? "Digital Education" : "Éducation numérique",
+      desc: currentLang === "DE" ? "Pädagogik, Workshop-Leitung & Schulungen" : currentLang === "EN" ? "Pedagogy, workshop facilitation & training" : "Pédagogie, animation d'ateliers & formation",
+      icon: GraduationCapIcon
+    },
+    {
+      slug: "project-management",
+      title: currentLang === "DE" ? "Projektmanagement" : currentLang === "EN" ? "Project Management" : "Gestion de projet",
+      desc: currentLang === "DE" ? "Koordination, Organisation & Vereinszusammenarbeit" : currentLang === "EN" ? "Coordination, organization & NGO liaisons" : "Coordination, organisation & lien associatif",
+      icon: FileTextIcon
+    },
   ]
 
   const SOURCES_LIST = [
-    "Google / Moteur de recherche",
+    currentLang === "DE" ? "Google / Suchmaschine" : currentLang === "EN" ? "Google / Search Engine" : "Google / Moteur de recherche",
     "LinkedIn",
     "Instagram",
     "Facebook",
-    "Université / École",
+    currentLang === "DE" ? "Universität / Hochschule" : currentLang === "EN" ? "University / College" : "Université / École",
     "France Volontaires",
     "weltwärts",
-    "Corps européen de solidarité",
-    "Recommandation d'un proche",
-    "Autre",
+    currentLang === "DE" ? "Europäisches Solidaritätskorps" : currentLang === "EN" ? "European Solidarity Corps" : "Corps européen de solidarité",
+    currentLang === "DE" ? "Empfehlung von Bekannten" : currentLang === "EN" ? "Friend / Colleague recommendation" : "Recommandation d'un proche",
+    currentLang === "DE" ? "Andere" : currentLang === "EN" ? "Other" : "Autre",
   ]
 
   // Helper duration label
@@ -1340,15 +1405,15 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         required
                       />
                       <SelectField
-                        label="Niveau d'expérience globale"
+                        label={t.apply.form.experience || "Niveau d'expérience globale"}
                         value={form.experience}
                         onChange={(v) => set("experience", v)}
                         required
                         options={[
-                          { label: "Étudiant / Débutant (moins d'1 an)", value: "LESS_THAN_1_YEAR" },
-                          { label: "Junior (1 à 2 ans)", value: "ONE_TO_TWO_YEARS" },
-                          { label: "Intermédiaire (2 à 5 ans)", value: "TWO_TO_FIVE_YEARS" },
-                          { label: "Expérimenté (5 ans et plus)", value: "FIVE_PLUS_YEARS" },
+                          { label: t.apply.form.expOptions?.LESS_THAN_1_YEAR || "Étudiant / Débutant (moins d'1 an)", value: "LESS_THAN_1_YEAR" },
+                          { label: t.apply.form.expOptions?.ONE_TO_TWO_YEARS || "Junior (1 à 2 ans)", value: "ONE_TO_TWO_YEARS" },
+                          { label: t.apply.form.expOptions?.TWO_TO_FIVE_YEARS || "Intermédiaire (2 à 5 ans)", value: "TWO_TO_FIVE_YEARS" },
+                          { label: t.apply.form.expOptions?.FIVE_PLUS_YEARS || "Expérimenté (5 ans et plus)", value: "FIVE_PLUS_YEARS" },
                         ]}
                       />
                     </div>
@@ -1370,24 +1435,24 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
 
                     <div>
                       <label className="text-sm font-semibold mb-3 flex items-center gap-1 text-slate-800">
-                        <span>Niveau de langues</span>
+                        <span>{currentLang === "DE" ? "Sprachkenntnisse" : currentLang === "EN" ? "Language Proficiency" : "Niveau de langues"}</span>
                         <span className="text-red-500 font-bold">*</span>
                       </label>
                       <div className="space-y-3 pt-1">
                         {[
-                          { key: "french" as const, name: "Français" },
-                          { key: "english" as const, name: "Anglais" },
-                          { key: "german" as const, name: "Allemand" },
+                          { key: "french" as const, name: currentLang === "DE" ? "Französisch" : currentLang === "EN" ? "French" : "Français" },
+                          { key: "english" as const, name: currentLang === "DE" ? "Englisch" : currentLang === "EN" ? "English" : "Anglais" },
+                          { key: "german" as const, name: currentLang === "DE" ? "Deutsch" : currentLang === "EN" ? "German" : "Allemand" },
                         ].map(({ key, name }) => (
                           <div key={key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-100 last:border-0 last:pb-0">
                             <span className="text-sm font-medium text-slate-700 w-24">{name}</span>
                             <div className="flex gap-1.5 flex-wrap">
                               {[
-                                { value: "none", label: "Aucun" },
-                                { value: "basic", label: "Notions" },
-                                { value: "intermediate", label: "Intermédiaire" },
-                                { value: "advanced", label: "Courant" },
-                                { value: "native", label: "Langue maternelle" },
+                                { value: "none", label: currentLang === "DE" ? "Keine" : currentLang === "EN" ? "None" : "Aucun" },
+                                { value: "basic", label: currentLang === "DE" ? "Grundkenntnisse" : currentLang === "EN" ? "Basic" : "Notions" },
+                                { value: "intermediate", label: currentLang === "DE" ? "Mittelstufe" : currentLang === "EN" ? "Intermediate" : "Intermédiaire" },
+                                { value: "advanced", label: currentLang === "DE" ? "Fließend" : currentLang === "EN" ? "Fluent" : "Courant" },
+                                { value: "native", label: currentLang === "DE" ? "Muttersprache" : currentLang === "EN" ? "Native" : "Langue maternelle" },
                               ].map((lvl) => {
                                 const active = form.languages[key] === lvl.value
                                 return (
@@ -1487,25 +1552,37 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                   <div className="space-y-6">
                     <div className="max-w-md">
                       <InputField
-                        label="Date d'arrivée souhaitée au Togo"
+                        label={t.apply.form.arrivalDate || "Date d'arrivée souhaitée au Togo"}
                         type="date"
                         value={form.arrivalDate}
                         min={new Date().toISOString().split("T")[0]}
                         onChange={(v) => set("arrivalDate", v)}
-                        helpText="Indiquez une date indicative de début souhaitée"
+                        helpText={currentLang === "DE" ? "Geben Sie ein gewünschtes Startdatum an" : currentLang === "EN" ? "Indicate an indicative start date" : "Indiquez une date indicative de début souhaitée"}
                         required
                       />
                     </div>
 
                     <div>
                       <label className="text-sm font-semibold mb-3 block text-slate-800">
-                        Durée de la mission
+                        {t.apply.form.duration || "Durée de la mission"}
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                         {[
-                          { label: "6 mois", value: "SIX_MONTHS", desc: "Immersion & premier projet" },
-                          { label: "9 mois", value: "NINE_MONTHS", desc: "Déploiement complet & relais" },
-                          { label: "12 mois", value: "TWELVE_MONTHS", desc: "Transmission approfondie" },
+                          {
+                            label: t.apply.form.durationOptions?.SIX_MONTHS || "6 mois",
+                            value: "SIX_MONTHS",
+                            desc: currentLang === "DE" ? "Einführung & erstes Projekt" : currentLang === "EN" ? "Immersion & first project" : "Immersion & premier projet"
+                          },
+                          {
+                            label: t.apply.form.durationOptions?.NINE_MONTHS || "9 mois",
+                            value: "NINE_MONTHS",
+                            desc: currentLang === "DE" ? "Vollständiger Einsatz & Wissenstransfer" : currentLang === "EN" ? "Full deployment & knowledge transfer" : "Déploiement complet & relais"
+                          },
+                          {
+                            label: t.apply.form.durationOptions?.TWELVE_MONTHS || "12 mois",
+                            value: "TWELVE_MONTHS",
+                            desc: currentLang === "DE" ? "Vertiefte Wirkung & Nachhaltigkeit" : currentLang === "EN" ? "Deep transmission & sustainability" : "Transmission approfondie"
+                          },
                         ].map((d) => {
                           const isSelected = form.duration === d.value
                           return (
@@ -1692,14 +1769,16 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       {/* Section Profil & Formation */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">Profil & Formation</span>
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
+                            {currentLang === "DE" ? "Profil & Ausbildung" : currentLang === "EN" ? "Profile & Background" : "Profil & Formation"}
+                          </span>
                           <button type="button" onClick={() => goToStep(2)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">{t.apply.review?.edit || "Modifier"}</button>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 text-xs sm:text-sm">
-                          <div><span className="text-slate-400">Formation :</span> <strong className="text-slate-800 ml-1">{form.education}</strong></div>
-                          <div><span className="text-slate-400">Domaine :</span> <strong className="text-slate-800 ml-1">{form.fieldOfStudy}</strong></div>
-                          <div><span className="text-slate-400">Profession :</span> <strong className="text-slate-800 ml-1">{form.profession}</strong></div>
-                          <div><span className="text-slate-400">Expérience :</span> <strong className="text-slate-800 ml-1">{form.experience}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.form.education} :</span> <strong className="text-slate-800 ml-1">{form.education}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.form.field} :</span> <strong className="text-slate-800 ml-1">{form.fieldOfStudy}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.form.profession} :</span> <strong className="text-slate-800 ml-1">{form.profession}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.form.experience} :</span> <strong className="text-slate-800 ml-1">{form.experience}</strong></div>
                         </div>
                       </div>
 
@@ -1765,7 +1844,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       onClick={back}
                       className="px-5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                     >
-                      ← Retour
+                      ← {t.apply.nav?.back || "Retour"}
                     </button>
                   ) : (
                     <div />
@@ -1779,8 +1858,12 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           onClick={() => goToStep(9)}
                           className="px-4 sm:px-6 py-3.5 rounded-xl text-sm font-bold text-[#174F7A] bg-white border border-[#D8E2E9] hover:bg-slate-50 transition-all cursor-pointer"
                         >
-                          <span className="hidden sm:inline">Retourner à la fin</span>
-                          <span className="sm:hidden">À la fin</span>
+                          <span className="hidden sm:inline">
+                            {currentLang === "DE" ? "Zum Abschluss springen" : currentLang === "EN" ? "Jump to summary" : "Retourner à la fin"}
+                          </span>
+                          <span className="sm:hidden">
+                            {currentLang === "DE" ? "Abschluss" : currentLang === "EN" ? "Summary" : "À la fin"}
+                          </span>
                         </button>
                       )}
                       <button
@@ -1790,7 +1873,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         className="px-8 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
                         style={{ backgroundColor: GREEN }}
                       >
-                        <span>Continuer</span>
+                        <span>{t.apply.nav?.continue || "Continuer"}</span>
                         <span>→</span>
                       </button>
                     </div>
@@ -1803,10 +1886,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       style={{ backgroundColor: BLUE }}
                     >
                       {isSubmitting ? (
-                        <span>Transmission en cours...</span>
+                        <span>{t.apply.nav?.submitting || "Transmission en cours..."}</span>
                       ) : (
                         <>
-                          <span>Envoyer ma candidature</span>
+                          <span>{t.apply.nav?.submit || "Envoyer ma candidature"}</span>
                           <CheckIcon size={15} strokeWidth={2.5} />
                         </>
                       )}

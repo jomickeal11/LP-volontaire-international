@@ -685,26 +685,26 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
   const STEPS = [
     {
       num: 1,
-      title: "Informations organisation",
-      desc: "Coordonnées de votre structure et personne de contact",
+      title: currentLang === "DE" ? "Organisation" : currentLang === "EN" ? "Organization Info" : "Informations organisation",
+      desc: currentLang === "DE" ? "Kontaktdaten Ihrer Einrichtung und Ansprechpartner/in" : currentLang === "EN" ? "Details of your organization and contact person" : "Coordonnées de votre structure et personne de contact",
       icon: BuildingIcon,
     },
     {
       num: 2,
-      title: "Programme / partenariat",
-      desc: "Cadre d'intervention, flux de volontaires et pays cibles",
+      title: currentLang === "DE" ? "Programm / Partnerschaft" : currentLang === "EN" ? "Program / Partnership" : "Programme / partenariat",
+      desc: currentLang === "DE" ? "Einsatzrahmen, Freiwilligenkontingent und Zielländer" : currentLang === "EN" ? "Framework, volunteer volume, and target countries" : "Cadre d'intervention, flux de volontaires et pays cibles",
       icon: UsersIcon,
     },
     {
       num: 3,
-      title: "Message & document",
-      desc: "Présentation détaillée de votre projet de partenariat",
+      title: currentLang === "DE" ? "Nachricht & Dokument" : currentLang === "EN" ? "Message & Document" : "Message & document",
+      desc: currentLang === "DE" ? "Detaillierte Vorstellung Ihres Partnerschaftsvorhabens" : currentLang === "EN" ? "Detailed presentation of your partnership project" : "Présentation détaillée de votre projet de partenariat",
       icon: FileTextIcon,
     },
     {
       num: 4,
-      title: "Vérification & Envoi",
-      desc: "Récapitulatif de votre demande avant transmission à APTIC-R",
+      title: currentLang === "DE" ? "Prüfung & Absenden" : currentLang === "EN" ? "Review & Submit" : "Vérification & Envoi",
+      desc: currentLang === "DE" ? "Zusammenfassung Ihrer Anfrage vor der Übermittlung an APTIC-R" : currentLang === "EN" ? "Summary of your request before sending to APTIC-R" : "Récapitulatif de votre demande avant transmission à APTIC-R",
       icon: CheckIcon,
     },
   ]
@@ -739,42 +739,42 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
     setErrorMessage("")
 
     if (!form.orgName.trim() || form.orgName.trim().length < 2) {
-      setErrorMessage("Le nom de l'organisation est obligatoire (min. 2 caractères).")
+      setErrorMessage(currentLang === "DE" ? "Der Name der Organisation ist erforderlich (min. 2 Zeichen)." : currentLang === "EN" ? "Organization name is required (min. 2 characters)." : "Le nom de l'organisation est obligatoire (min. 2 caractères).")
       setLoading(false)
       return
     }
     if (!form.country.trim()) {
-      setErrorMessage("Veuillez sélectionner ou renseigner le pays de l'organisation.")
+      setErrorMessage(currentLang === "DE" ? "Bitte wählen Sie das Land der Organisation aus." : currentLang === "EN" ? "Please select the organization's country." : "Veuillez sélectionner ou renseigner le pays de l'organisation.")
       setLoading(false)
       return
     }
     if (!form.contactPerson.trim() || form.contactPerson.trim().length < 2) {
-      setErrorMessage("Le nom de la personne de contact est obligatoire.")
+      setErrorMessage(currentLang === "DE" ? "Der Name der Kontaktperson ist erforderlich." : currentLang === "EN" ? "Contact person name is required." : "Le nom de la personne de contact est obligatoire.")
       setLoading(false)
       return
     }
     if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      setErrorMessage("Veuillez renseigner une adresse e-mail professionnelle valide.")
+      setErrorMessage(currentLang === "DE" ? "Bitte geben Sie eine gültige geschäftliche E-Mail-Adresse an." : currentLang === "EN" ? "Please provide a valid professional email address." : "Veuillez renseigner une adresse e-mail professionnelle valide.")
       setLoading(false)
       return
     }
     if (!form.orgType) {
-      setErrorMessage("Veuillez préciser le type d'organisation.")
+      setErrorMessage(currentLang === "DE" ? "Bitte wählen Sie die Art der Organisation aus." : currentLang === "EN" ? "Please specify the organization type." : "Veuillez préciser le type d'organisation.")
       setLoading(false)
       return
     }
     if (!form.volunteerCount) {
-      setErrorMessage("Veuillez indiquer le nombre potentiel de volontaires.")
+      setErrorMessage(currentLang === "DE" ? "Bitte geben Sie die potenzielle Anzahl der Freiwilligen an." : currentLang === "EN" ? "Please indicate the potential number of volunteers." : "Veuillez indiquer le nombre potentiel de volontaires.")
       setLoading(false)
       return
     }
     if (form.message.trim().length < 10) {
-      setErrorMessage("Votre message doit comporter au moins 10 caractères.")
+      setErrorMessage(currentLang === "DE" ? "Ihre Nachricht muss mindestens 10 Zeichen lang sein." : currentLang === "EN" ? "Your message must be at least 10 characters." : "Votre message doit comporter au moins 10 caractères.")
       setLoading(false)
       return
     }
     if (!form.consent) {
-      setErrorMessage("Veuillez accepter le consentement pour soumettre la demande.")
+      setErrorMessage(currentLang === "DE" ? "Bitte stimmen Sie den Bedingungen zu, um die Anfrage abzusenden." : currentLang === "EN" ? "Please accept the terms to submit your request." : "Veuillez accepter le consentement pour soumettre la demande.")
       setLoading(false)
       return
     }
@@ -890,26 +890,26 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
             <div className="flex-1 max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-white text-[#174F7A] border border-[#D8E2E9] shadow-2xs mb-3">
                 <span className="w-2 h-2 rounded-full bg-[#35A85A]" />
-                <span>POUR LES ORGANISATIONS</span>
+                <span>{t.partner?.hero?.tag || (currentLang === "DE" ? "FÜR ORGANISATIONEN" : currentLang === "EN" ? "FOR ORGANIZATIONS" : "POUR LES ORGANISATIONS")}</span>
               </div>
 
               <h1 className="text-3xl sm:text-4xl lg:text-[38px] font-extrabold tracking-tight text-[#1A2B3C] mb-3 leading-tight">
-                Devenez partenaire d’APTIC-R
+                {t.partner?.hero?.title || (currentLang === "DE" ? "Werden Sie Partner von APTIC-R" : currentLang === "EN" ? "Become a Partner of APTIC-R" : "Devenez partenaire d’APTIC-R")}
               </h1>
 
               <p className="text-base sm:text-lg text-slate-600 leading-relaxed mb-4">
-                APTIC-R recherche des organisations intéressées par le développement de partenariats de volontariat à long terme au Togo.
+                {t.partner?.hero?.desc || (currentLang === "DE" ? "APTIC-R sucht europäische Organisationen für langfristige Freiwilligenpartnerschaften in Togo." : currentLang === "EN" ? "APTIC-R is seeking European organizations interested in developing long-term volunteer partnerships in Togo." : "APTIC-R recherche des organisations intéressées par le développement de partenariats de volontariat à long terme au Togo.")}
               </p>
 
               <div className="flex flex-wrap gap-2 text-xs font-semibold text-[#174F7A]">
                 <span className="px-3 py-1.5 rounded-xl bg-white border border-[#D8E2E9] shadow-2xs">
-                  Missions de 6 à 12 mois
+                  {currentLang === "DE" ? "6 bis 12 Monate" : currentLang === "EN" ? "6 to 12 month missions" : "Missions de 6 à 12 mois"}
                 </span>
                 <span className="px-3 py-1.5 rounded-xl bg-white border border-[#D8E2E9] shadow-2xs">
                   Agbélouvé, Région Maritime, Togo
                 </span>
                 <span className="px-3 py-1.5 rounded-xl bg-white border border-[#D8E2E9] shadow-2xs">
-                  Partenariat institutionnel durable
+                  {currentLang === "DE" ? "Nachhaltige institutionelle Partnerschaft" : currentLang === "EN" ? "Sustainable institutional partnership" : "Partenariat institutionnel durable"}
                 </span>
               </div>
             </div>
@@ -941,7 +941,7 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                 <div className="mb-8 pb-6 border-b border-slate-100">
                   <div className="flex items-center gap-2 mb-2.5">
                     <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-[#E8F2FA] text-[#174F7A]">
-                      ÉTAPE {step} SUR 4
+                      {currentLang === "DE" ? `SCHRITT ${step} VON 4` : currentLang === "EN" ? `STEP ${step} OF 4` : `ÉTAPE ${step} SUR 4`}
                     </span>
                     <span className="text-[11px] font-medium text-slate-400">
                       · {progressPercentage} %
@@ -972,36 +972,36 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                   <div className="space-y-5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                       <InputField
-                        label="Organisation"
+                        label={t.partner?.form?.orgName || "Organisation"}
                         value={form.orgName}
                         onChange={(v) => set("orgName", v)}
                         required
-                        placeholder="Ex: Association Solidarité Internationale"
+                        placeholder={t.partner?.form?.orgNamePlaceholder || (currentLang === "DE" ? "z. B. XYZ Freiwilligenorganisation" : currentLang === "EN" ? "e.g. XYZ Volunteer Organization" : "Ex: Association Solidarité Internationale")}
                       />
                       <DatalistField
                         id="partner-country"
-                        label="Pays"
+                        label={t.partner?.form?.country || "Pays"}
                         value={form.country}
                         onChange={(v) => set("country", v)}
                         required
-                        placeholder="Sélectionner ou saisir un pays..."
+                        placeholder={currentLang === "DE" ? "Land auswählen oder eingeben..." : currentLang === "EN" ? "Select or enter a country..." : "Sélectionner ou saisir un pays..."}
                         options={[
                           "France",
-                          "Allemagne",
-                          "Belgique",
-                          "Suisse",
+                          "Allemagne / Deutschland",
+                          "Belgique / Belgium",
+                          "Suisse / Switzerland",
                           "Luxembourg",
-                          "Espagne",
-                          "Italie",
-                          "Pays-Bas",
-                          "Autriche",
-                          "Suède",
-                          "Danemark",
-                          "Norvège",
+                          "Espagne / Spain",
+                          "Italie / Italy",
+                          "Pays-Bas / Netherlands",
+                          "Autriche / Austria",
+                          "Suède / Sweden",
+                          "Danemark / Denmark",
+                          "Norvège / Norway",
                           "Portugal",
                           "Canada",
-                          "Royaume-Uni",
-                          "États-Unis",
+                          "Royaume-Uni / United Kingdom",
+                          "États-Unis / United States",
                           "Togo",
                           "Bénin",
                           "Sénégal",
@@ -1013,20 +1013,20 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                       <InputField
-                        label="Site web"
+                        label={t.partner?.form?.website || "Site web"}
                         type="url"
                         value={form.website}
                         onChange={(v) => set("website", v)}
-                        placeholder="https://organisation.org"
+                        placeholder={t.partner?.form?.websitePlaceholder || "https://organisation.org"}
                       />
                       <DatalistField
                         id="partner-org-type"
-                        label="Type d'organisation"
+                        label={t.partner?.form?.orgType || "Type d'organisation"}
                         value={form.orgType}
                         onChange={(v) => set("orgType", v)}
                         required
-                        placeholder="Sélectionner ou préciser le type..."
-                        options={[
+                        placeholder={currentLang === "DE" ? "Art der Organisation auswählen..." : currentLang === "EN" ? "Select organization type..." : "Sélectionner ou préciser le type..."}
+                        options={t.partner?.form?.orgTypeOptions || [
                           "ONG / Association",
                           "Université / Établissement d'enseignement",
                           "Organisme de programme européen (weltwärts, CES...)",
@@ -1041,25 +1041,25 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                       <InputField
-                        label="Personne de contact"
+                        label={t.partner?.form?.contactPerson || "Personne de contact"}
                         value={form.contactPerson}
                         onChange={(v) => set("contactPerson", v)}
                         required
-                        placeholder="Ex: Sophie Martin (Responsable partenariats)"
+                        placeholder={t.partner?.form?.contactPersonPlaceholder || (currentLang === "DE" ? "z. B. Max Mustermann" : currentLang === "EN" ? "e.g. John Doe" : "Ex: Sophie Martin (Responsable partenariats)")}
                       />
                       <InputField
-                        label="E-mail professionnel"
+                        label={t.partner?.form?.email || "E-mail professionnel"}
                         type="email"
                         value={form.email}
                         onChange={(v) => set("email", v)}
                         required
-                        placeholder="s.martin@organisation.org"
+                        placeholder={t.partner?.form?.emailPlaceholder || "contact@organisation.org"}
                       />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                       <PhoneInputField
-                        label="Numéro de téléphone"
+                        label={currentLang === "DE" ? "Telefonnummer" : currentLang === "EN" ? "Phone number" : "Numéro de téléphone"}
                         countryCode={form.phoneCountryCode}
                         countryIso={form.phoneCountryIso}
                         onCountrySelect={(dial, iso) => {
@@ -1077,7 +1077,13 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
 
                     <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-2">
                       <LockIcon size={13} className="shrink-0 text-slate-400" />
-                      <span>Ces coordonnées serviront uniquement à l'équipe APTIC-R pour échanger au sujet du partenariat.</span>
+                      <span>
+                        {currentLang === "DE"
+                          ? "Diese Kontaktdaten werden vom APTIC-R-Team ausschließlich für den Austausch über die Partnerschaft verwendet."
+                          : currentLang === "EN"
+                          ? "These details will only be used by the APTIC-R team to discuss the partnership."
+                          : "Ces coordonnées serviront uniquement à l'équipe APTIC-R pour échanger au sujet du partenariat."}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -1087,15 +1093,35 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                   <div className="space-y-6">
                     <div>
                       <label className="text-sm font-semibold mb-3 block text-slate-800">
-                        Nombre potentiel de volontaires par an <span className="text-red-500 font-bold">*</span>
+                        {t.partner?.form?.volunteerCount || "Nombre potentiel de volontaires par an"} <span className="text-red-500 font-bold">*</span>
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                         {[
-                          { label: "1 à 2 volontaires", value: "1–2", desc: "Premier partenariat pilote" },
-                          { label: "3 à 5 volontaires", value: "3–5", desc: "Programme régulier annuel" },
-                          { label: "5 à 10 volontaires", value: "5–10", desc: "Partenariat d'envergure" },
-                          { label: "Plus de 10", value: "10+", desc: "Réseau ou consortia" },
-                          { label: "À définir", value: "A_DEFINIR", desc: "En cours d'évaluation" },
+                          {
+                            label: currentLang === "DE" ? "1 bis 2 Freiwillige" : currentLang === "EN" ? "1 to 2 volunteers" : "1 à 2 volontaires",
+                            value: "1–2",
+                            desc: currentLang === "DE" ? "Erste Pilotpartnerschaft" : currentLang === "EN" ? "First pilot partnership" : "Premier partenariat pilote",
+                          },
+                          {
+                            label: currentLang === "DE" ? "3 bis 5 Freiwillige" : currentLang === "EN" ? "3 to 5 volunteers" : "3 à 5 volontaires",
+                            value: "3–5",
+                            desc: currentLang === "DE" ? "Reguläres Jahresprogramm" : currentLang === "EN" ? "Regular annual program" : "Programme régulier annuel",
+                          },
+                          {
+                            label: currentLang === "DE" ? "5 bis 10 Freiwillige" : currentLang === "EN" ? "5 to 10 volunteers" : "5 à 10 volontaires",
+                            value: "5–10",
+                            desc: currentLang === "DE" ? "Umfangreiche Partnerschaft" : currentLang === "EN" ? "Large-scale partnership" : "Partenariat d'envergure",
+                          },
+                          {
+                            label: currentLang === "DE" ? "Mehr als 10" : currentLang === "EN" ? "More than 10" : "Plus de 10",
+                            value: "10+",
+                            desc: currentLang === "DE" ? "Netzwerk oder Konsortium" : currentLang === "EN" ? "Network or consortium" : "Réseau ou consortia",
+                          },
+                          {
+                            label: currentLang === "DE" ? "Noch festzulegen" : currentLang === "EN" ? "To be defined" : "À définir",
+                            value: "A_DEFINIR",
+                            desc: currentLang === "DE" ? "Wird noch evaluiert" : currentLang === "EN" ? "Under evaluation" : "En cours d'évaluation",
+                          },
                         ].map((item) => {
                           const isSelected = form.volunteerCount === item.value
                           return (
@@ -1124,20 +1150,20 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                       <InputField
-                        label="Pays concernés"
+                        label={t.partner?.form?.targetCountries || "Pays concernés"}
                         value={form.targetCountries}
                         onChange={(v) => set("targetCountries", v)}
-                        placeholder="Ex: France, Allemagne, Belgique..."
-                        helpText="Pays d'origine habituels de vos volontaires"
+                        placeholder={t.partner?.form?.targetCountriesPlaceholder || "Ex: France, Allemagne, Belgique..."}
+                        helpText={currentLang === "DE" ? "Gewöhnliche Herkunftsländer Ihrer Freiwilligen" : currentLang === "EN" ? "Usual origin countries of your volunteers" : "Pays d'origine habituels de vos volontaires"}
                       />
 
                       <DatalistField
                         id="partner-programme"
-                        label="Programme de volontariat"
+                        label={t.partner?.form?.programme || "Programme de volontariat"}
                         value={form.programme}
                         onChange={(v) => set("programme", v)}
-                        placeholder="Sélectionner ou saisir un programme..."
-                        options={[
+                        placeholder={currentLang === "DE" ? "Programm auswählen oder eingeben..." : currentLang === "EN" ? "Select or enter a program..." : "Sélectionner ou saisir un programme..."}
+                        options={t.partner?.form?.programmeOptions || [
                           "weltwärts (Allemagne)",
                           "France Volontaires (VSI / Service Civique)",
                           "Corps européen de solidarité (CES)",
@@ -1157,11 +1183,15 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                   <div className="space-y-6">
                     <div>
                       <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                        Présentez brièvement votre structure, vos attentes et les objectifs que vous souhaitez donner à ce partenariat de volontariat au Togo.
+                        {currentLang === "DE"
+                          ? "Stellen Sie Ihre Organisation, Ihre Erwartungen und die Ziele vor, die Sie mit dieser Freiwilligenpartnerschaft in Togo verfolgen möchten."
+                          : currentLang === "EN"
+                          ? "Briefly describe your organization, your expectations, and the goals you envision for this volunteer partnership in Togo."
+                          : "Présentez brièvement votre structure, vos attentes et les objectifs que vous souhaitez donner à ce partenariat de volontariat au Togo."}
                       </p>
                       <TextareaField
-                        label="Message"
-                        placeholder="Ex: Notre organisation envoie chaque année des volontaires qualifiés en Afrique de l'Ouest. Nous serions très intéressés par le développement d'un partenariat structuré avec APTIC-R à Agbélouvé autour de la tech rurale et du numérique..."
+                        label={t.partner?.form?.message || "Message"}
+                        placeholder={t.partner?.form?.messagePlaceholder || "Présentez brièvement votre projet de partenariat..."}
                         value={form.message}
                         onChange={(v) => set("message", v)}
                         rows={7}
@@ -1171,10 +1201,10 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                       <div className="flex justify-between items-center text-xs text-slate-400 mt-1">
                         <span>
                           {form.message.trim().length < 10 ? (
-                            "Minimum 10 caractères"
+                            currentLang === "DE" ? "Mindestens 10 Zeichen" : currentLang === "EN" ? "Minimum 10 characters" : "Minimum 10 caractères"
                           ) : (
                             <span className="inline-flex items-center gap-1 text-[#35A85A] font-medium">
-                              <CheckIcon className="w-3.5 h-3.5" /> Longueur suffisante
+                              <CheckIcon className="w-3.5 h-3.5" /> {currentLang === "DE" ? "Ausreichende Länge" : currentLang === "EN" ? "Sufficient length" : "Longueur suffisante"}
                             </span>
                           )}
                         </span>
@@ -1184,13 +1214,17 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
 
                     <div className="pt-2">
                       <FileUpload
-                        label="Document de présentation"
+                        label={t.partner?.form?.doc || "Document de présentation"}
                         optional
                         fileName={form.docFile?.name || ""}
                         onFile={(f) => set("docFile", f)}
                       />
                       <p className="text-xs text-slate-400 mt-2">
-                        Brochure de votre organisation, accord-cadre type ou rapport d'activité annuel.
+                        {currentLang === "DE"
+                          ? "Broschüre Ihrer Organisation, Rahmenvereinbarung oder Jahresbericht."
+                          : currentLang === "EN"
+                          ? "Brochure of your organization, standard framework agreement, or annual report."
+                          : "Brochure de votre organisation, accord-cadre type ou rapport d'activité annuel."}
                       </p>
                     </div>
                   </div>
@@ -1200,7 +1234,11 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                 {step === 4 && (
                   <div className="space-y-6">
                     <p className="text-sm text-slate-600">
-                      Veuillez vérifier les informations de votre organisation avant de transmettre votre demande de partenariat à l'équipe APTIC-R.
+                      {currentLang === "DE"
+                        ? "Bitte überprüfen Sie die Angaben zu Ihrer Organisation, bevor Sie Ihre Partnerschaftsanfrage an das Team von APTIC-R senden."
+                        : currentLang === "EN"
+                        ? "Please check your organization details before sending your partnership request to the APTIC-R team."
+                        : "Veuillez vérifier les informations de votre organisation avant de transmettre votre demande de partenariat à l'équipe APTIC-R."}
                     </p>
 
                     <div className="divide-y divide-slate-100 border-y border-slate-100">
@@ -1208,24 +1246,24 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
-                            Informations organisation
+                            {STEPS[0].title}
                           </span>
                           <button
                             type="button"
                             onClick={() => goToStep(1)}
                             className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer"
                           >
-                            Modifier
+                            {currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier"}
                           </button>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 text-xs sm:text-sm">
-                          <div><span className="text-slate-400">Organisation :</span> <strong className="text-slate-800 ml-1">{form.orgName}</strong></div>
-                          <div><span className="text-slate-400">Pays :</span> <strong className="text-slate-800 ml-1">{form.country}</strong></div>
-                          <div><span className="text-slate-400">Type :</span> <strong className="text-slate-800 ml-1">{form.orgType}</strong></div>
-                          <div><span className="text-slate-400">Site web :</span> <strong className="text-slate-800 ml-1">{form.website || "Non renseigné"}</strong></div>
-                          <div><span className="text-slate-400">Contact :</span> <strong className="text-slate-800 ml-1">{form.contactPerson}</strong></div>
-                          <div><span className="text-slate-400">E-mail :</span> <strong className="text-slate-800 ml-1">{form.email}</strong></div>
-                          <div><span className="text-slate-400">Téléphone :</span> <strong className="text-slate-800 ml-1">{form.phone ? `${form.phoneCountryCode} ${form.phone}` : "Non renseigné"}</strong></div>
+                          <div><span className="text-slate-400">{t.partner?.form?.orgName || "Organisation"} :</span> <strong className="text-slate-800 ml-1">{form.orgName}</strong></div>
+                          <div><span className="text-slate-400">{t.partner?.form?.country || "Pays"} :</span> <strong className="text-slate-800 ml-1">{form.country}</strong></div>
+                          <div><span className="text-slate-400">{t.partner?.form?.orgType || "Type"} :</span> <strong className="text-slate-800 ml-1">{form.orgType}</strong></div>
+                          <div><span className="text-slate-400">{t.partner?.form?.website || "Site web"} :</span> <strong className="text-slate-800 ml-1">{form.website || (currentLang === "DE" ? "Nicht angegeben" : currentLang === "EN" ? "Not provided" : "Non renseigné")}</strong></div>
+                          <div><span className="text-slate-400">{t.partner?.form?.contactPerson || "Contact"} :</span> <strong className="text-slate-800 ml-1">{form.contactPerson}</strong></div>
+                          <div><span className="text-slate-400">{t.partner?.form?.email || "E-mail"} :</span> <strong className="text-slate-800 ml-1">{form.email}</strong></div>
+                          <div><span className="text-slate-400">{currentLang === "DE" ? "Telefon" : currentLang === "EN" ? "Phone" : "Téléphone"} :</span> <strong className="text-slate-800 ml-1">{form.phone ? `${form.phoneCountryCode} ${form.phone}` : (currentLang === "DE" ? "Nicht angegeben" : currentLang === "EN" ? "Not provided" : "Non renseigné")}</strong></div>
                         </div>
                       </div>
 
@@ -1233,20 +1271,20 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
-                            Programme & Volontariat
+                            {STEPS[1].title}
                           </span>
                           <button
                             type="button"
                             onClick={() => goToStep(2)}
                             className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer"
                           >
-                            Modifier
+                            {currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier"}
                           </button>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 text-xs sm:text-sm">
-                          <div><span className="text-slate-400">Volontaires / an :</span> <strong className="text-slate-800 ml-1">{form.volunteerCount}</strong></div>
-                          <div><span className="text-slate-400">Programme :</span> <strong className="text-slate-800 ml-1">{form.programme || "À co-construire"}</strong></div>
-                          <div className="sm:col-span-2"><span className="text-slate-400">Pays cibles :</span> <strong className="text-slate-800 ml-1">{form.targetCountries || "Tous pays européens"}</strong></div>
+                          <div><span className="text-slate-400">{currentLang === "DE" ? "Freiwillige / Jahr" : currentLang === "EN" ? "Volunteers / year" : "Volontaires / an"} :</span> <strong className="text-slate-800 ml-1">{form.volunteerCount}</strong></div>
+                          <div><span className="text-slate-400">{t.partner?.form?.programme || "Programme"} :</span> <strong className="text-slate-800 ml-1">{form.programme || (currentLang === "DE" ? "Gemeinsam zu definieren" : currentLang === "EN" ? "To be co-designed" : "À co-construire")}</strong></div>
+                          <div className="sm:col-span-2"><span className="text-slate-400">{t.partner?.form?.targetCountries || "Pays cibles"} :</span> <strong className="text-slate-800 ml-1">{form.targetCountries || (currentLang === "DE" ? "Alle europäischen Länder" : currentLang === "EN" ? "All European countries" : "Tous pays européens")}</strong></div>
                         </div>
                       </div>
 
@@ -1254,26 +1292,26 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
-                            Message & Document
+                            {STEPS[2].title}
                           </span>
                           <button
                             type="button"
                             onClick={() => goToStep(3)}
                             className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer"
                           >
-                            Modifier
+                            {currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier"}
                           </button>
                         </div>
                         <div className="text-xs sm:text-sm space-y-2">
                           <div>
-                            <span className="text-slate-400 block mb-1">Message transmis :</span>
+                            <span className="text-slate-400 block mb-1">{currentLang === "DE" ? "Übermittelte Nachricht :" : currentLang === "EN" ? "Submitted message:" : "Message transmis :"}</span>
                             <p className="p-3 bg-slate-50 rounded-xl text-slate-700 leading-relaxed whitespace-pre-wrap">
                               {form.message}
                             </p>
                           </div>
                           <div>
-                            <span className="text-slate-400">Document joint :</span>{" "}
-                            <strong className="text-slate-800 ml-1">{form.docFile ? form.docFile.name : "Aucun fichier joint"}</strong>
+                            <span className="text-slate-400">{currentLang === "DE" ? "Angehängtes Dokument :" : currentLang === "EN" ? "Attached document:" : "Document joint :"}</span>{" "}
+                            <strong className="text-slate-800 ml-1">{form.docFile ? form.docFile.name : (currentLang === "DE" ? "Keine Datei angehängt" : currentLang === "EN" ? "No file attached" : "Aucun fichier joint")}</strong>
                           </div>
                         </div>
                       </div>
@@ -1289,7 +1327,7 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                           className="mt-1 w-4 h-4 rounded text-[#174F7A] cursor-pointer"
                         />
                         <span className="text-xs text-slate-600 leading-relaxed">
-                          Je consens à ce que APTIC-R traite les informations fournies ci-dessus dans le but d'évaluer un partenariat potentiel. Notre organisation dispose de l'autorité requise pour soumettre cette demande.
+                          {t.partner?.form?.consent || "Je consens à ce que APTIC-R traite les informations fournies ci-dessus dans le but d'évaluer un partenariat potentiel. Notre organisation dispose de l'autorité requise pour soumettre cette demande."}
                         </span>
                       </label>
                     </div>
@@ -1312,7 +1350,7 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                       onClick={back}
                       className="px-5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                     >
-                      ← Retour
+                      {currentLang === "DE" ? "← Zurück" : currentLang === "EN" ? "← Back" : "← Retour"}
                     </button>
                   ) : (
                     <div />
@@ -1326,7 +1364,7 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                       className="px-8 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
                       style={{ backgroundColor: GREEN }}
                     >
-                      <span>Continuer</span>
+                      <span>{currentLang === "DE" ? "Weiter" : currentLang === "EN" ? "Continue" : "Continuer"}</span>
                       <ArrowRightIcon size={16} strokeWidth={2} />
                     </button>
                   ) : (
@@ -1340,11 +1378,11 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                       {loading ? (
                         <>
                           <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                          <span>Transmission de la demande...</span>
+                          <span>{t.partner?.form?.submitting || (currentLang === "DE" ? "Anfrage wird gesendet..." : currentLang === "EN" ? "Sending request..." : "Transmission de la demande...")}</span>
                         </>
                       ) : (
                         <>
-                          <span>Envoyer la demande</span>
+                          <span>{t.partner?.form?.submit || (currentLang === "DE" ? "Anfrage senden" : currentLang === "EN" ? "Send request" : "Envoyer la demande")}</span>
                           <CheckIcon size={16} strokeWidth={2.5} />
                         </>
                       )}
@@ -1363,10 +1401,10 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                 <div className="text-xs font-bold uppercase tracking-wider text-[#174F7A] mb-5 flex items-center justify-between pb-3 border-b border-slate-100">
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#174F7A]" />
-                    <span>PROGRESSION</span>
+                    <span>{currentLang === "DE" ? "FORTSCHRITT" : currentLang === "EN" ? "PROGRESS" : "PROGRESSION"}</span>
                   </span>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#E8F2FA] text-[#174F7A]">
-                    {step} sur 4
+                    {step} {currentLang === "DE" ? "von" : currentLang === "EN" ? "of" : "sur"} 4
                   </span>
                 </div>
 
@@ -1417,31 +1455,33 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
               >
                 <div className="text-xs font-bold uppercase tracking-wider text-[#174F7A] mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#35A85A]" />
-                  <span>CADRE PARTENAIRE</span>
+                  <span>{currentLang === "DE" ? "PARTNERRAHMEN" : currentLang === "EN" ? "PARTNER FRAMEWORK" : "CADRE PARTENAIRE"}</span>
                 </div>
                 <ul className="space-y-2.5 text-xs text-slate-700 leading-relaxed">
-                  <li className="flex items-start gap-2">
-                    <CheckIcon size={14} className="text-[#35A85A] mt-0.5 shrink-0" />
-                    <span>Missions de 6 à 12 mois adaptées à vos programmes</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckIcon size={14} className="text-[#35A85A] mt-0.5 shrink-0" />
-                    <span>Accompagnement et mentorat local continu à Agbélouvé</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckIcon size={14} className="text-[#35A85A] mt-0.5 shrink-0" />
-                    <span>Suivi transparent, rapports réguliers et conventionnement officiel</span>
-                  </li>
+                  {(t.partner?.sidebar?.reasons || [
+                    "Missions de 6 à 12 mois adaptées à vos programmes",
+                    "Accompagnement et mentorat local continu à Agbélouvé",
+                    "Suivi transparent, rapports réguliers et conventionnement officiel",
+                  ]).slice(0, 3).map((reason, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <CheckIcon size={14} className="text-[#35A85A] mt-0.5 shrink-0" />
+                      <span>{reason}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
               {/* BLOC 3 : CONTACT DIRECT */}
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#D8E2E9] text-xs">
                 <h4 className="font-bold text-sm text-[#174F7A] mb-1">
-                  Une question spécifique ?
+                  {currentLang === "DE" ? "Eine konkrete Frage?" : currentLang === "EN" ? "A specific question?" : "Une question spécifique ?"}
                 </h4>
                 <p className="text-slate-500 mb-3 leading-relaxed">
-                  Notre équipe de coordination répond directement à vos interrogations sur les aspects juridiques et logistiques.
+                  {currentLang === "DE"
+                    ? "Unser Koordinationsteam beantwortet gerne Ihre rechtlichen und logistischen Fragen."
+                    : currentLang === "EN"
+                    ? "Our coordination team directly answers your questions regarding legal and logistical aspects."
+                    : "Notre équipe de coordination répond directement à vos interrogations sur les aspects juridiques et logistiques."}
                 </p>
                 <div className="space-y-2">
                   <a
@@ -1455,7 +1495,7 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                     href="tel:+22891201990"
                     className="font-semibold text-slate-600 hover:text-[#174F7A] flex items-center gap-1.5"
                   >
-                    <span>Tél : +228 91 20 19 90</span>
+                    <span>{currentLang === "DE" ? "Tel" : "Tél"} : +228 91 20 19 90</span>
                     <span>→</span>
                   </a>
                 </div>
