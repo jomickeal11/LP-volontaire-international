@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import type { Page, Language } from "../types"
 import translations from "../i18n/translations"
 import { useRouter } from "next/navigation"
+import { trackEvent } from "../lib/tracker"
 
 interface HeaderProps {
   currentPage: Page
@@ -45,6 +46,11 @@ export default function Header({
   ]
 
   const handleNavClick = (item: typeof NAV[0]) => {
+    if (item.page === "apply") {
+      trackEvent("apply_now_click", { lang, source: "header_nav" })
+    } else if (item.page === "partner") {
+      trackEvent("partner_request_click", { lang, source: "header_nav" })
+    }
     if (item.hash) {
       if (currentPage === "home") {
         const el = document.getElementById(item.hash)
@@ -153,7 +159,10 @@ export default function Header({
             {(["FR", "EN", "DE"] as Language[]).map((l) => (
               <button
                 key={l}
-                onClick={() => setLang(l)}
+                onClick={() => {
+                  trackEvent("language_switch", { lang: l, metadata: { from: lang, to: l } })
+                  setLang(l)
+                }}
                 className="px-2 py-1 text-[9px] sm:text-[10px] font-bold rounded-full transition-all cursor-pointer uppercase"
                 style={{
                   backgroundColor: lang === l ? "rgba(23,79,122,0.06)" : "transparent",
@@ -168,7 +177,10 @@ export default function Header({
 
           {/* Primary CTA / Menu Button */}
           <button
-            onClick={() => navigate("apply")}
+            onClick={() => {
+              trackEvent("apply_now_click", { lang, source: "header_button" })
+              navigate("apply")
+            }}
             className="hidden sm:inline-flex items-center gap-2 font-bold text-[11px] px-6 py-2.5 rounded-full transition-all cursor-pointer text-white shadow-sm hover:scale-105"
             style={{ backgroundColor: "#35A85A" }}
             onMouseEnter={(e) =>

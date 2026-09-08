@@ -41,6 +41,7 @@ import {
   PlusIcon,
 } from "../components/Icons"
 import EligibilityModal from "../components/EligibilityModal"
+import { trackEvent } from "../lib/tracker"
 
 interface HomeProps {
   lang: Language
@@ -146,8 +147,11 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
-              onClick={() => navigate("apply")}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-bold text-sm px-10 py-4 rounded-xl transition-all shadow-lg"
+              onClick={() => {
+                trackEvent("apply_now_click", { source: "hero_primary" })
+                navigate("apply")
+              }}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-bold text-sm px-10 py-4 rounded-xl transition-all shadow-lg cursor-pointer"
               style={{ backgroundColor: "#35A85A", color: "#FFFFFF" }}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.backgroundColor = "#2E914E")
@@ -256,8 +260,11 @@ function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
               {d.volunteerDesc}
             </p>
             <button
-              onClick={() => navigate("apply")}
-              className="inline-flex items-center justify-center gap-3 font-bold text-sm px-8 py-4 rounded-xl transition-all text-white hover:scale-105 shadow-sm"
+              onClick={() => {
+                trackEvent("apply_now_click", { source: "dual_path_volunteer" })
+                navigate("apply")
+              }}
+              className="inline-flex items-center justify-center gap-3 font-bold text-sm px-8 py-4 rounded-xl transition-all text-white hover:scale-105 shadow-sm cursor-pointer"
               style={{ backgroundColor: "#35A85A" }}
             >
               <span>{d.volunteerCta}</span>
@@ -284,8 +291,11 @@ function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
               {d.orgDesc}
             </p>
             <button
-              onClick={() => navigate("partner")}
-              className="inline-flex items-center justify-center gap-3 font-bold text-sm px-8 py-4 rounded-xl transition-all text-white hover:scale-105 shadow-sm"
+              onClick={() => {
+                trackEvent("partner_request_click", { source: "dual_path_org" })
+                navigate("partner")
+              }}
+              className="inline-flex items-center justify-center gap-3 font-bold text-sm px-8 py-4 rounded-xl transition-all text-white hover:scale-105 shadow-sm cursor-pointer"
               style={{ backgroundColor: "#174F7A" }}
             >
               <span>{d.orgCta}</span>
@@ -1132,6 +1142,7 @@ function FAQ({ t }: { t: TKey }) {
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <a
               href="mailto:aptic.rural19@gmail.com?subject=Question%20Volontariat%20APTIC-R"
+              onClick={() => trackEvent("contact_click", { source: "faq_email" })}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#174F7A] text-white text-xs font-bold hover:bg-[#123E60] transition-colors shadow-xs"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1141,6 +1152,7 @@ function FAQ({ t }: { t: TKey }) {
             </a>
             <a
               href="tel:+22891201990"
+              onClick={() => trackEvent("contact_click", { source: "faq_phone" })}
               className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-white border border-[#D8E2E9] text-[#174F7A] text-xs font-bold hover:bg-slate-50 transition-colors shadow-2xs"
             >
               <svg className="w-4 h-4 text-[#35A85A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1185,15 +1197,21 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
 
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
           <button
-            onClick={() => navigate("apply")}
-            className="inline-flex items-center justify-center gap-3 font-black text-lg px-12 py-6 rounded-2xl text-white transition-all shadow-2xl hover:scale-105"
+            onClick={() => {
+              trackEvent("apply_now_click", { source: "final_cta_volunteer" })
+              navigate("apply")
+            }}
+            className="inline-flex items-center justify-center gap-3 font-black text-lg px-12 py-6 rounded-2xl text-white transition-all shadow-2xl hover:scale-105 cursor-pointer"
             style={{ backgroundColor: "#35A85A" }}
           >
             <span className="uppercase tracking-wide">{fc.cta1}</span>
             <ArrowRightIcon size={18} strokeWidth={1.5} />
           </button>
           <button
-            onClick={() => navigate("partner")}
+            onClick={() => {
+              trackEvent("partner_request_click", { source: "final_cta_partner" })
+              navigate("partner")
+            }}
             className="inline-flex items-center justify-center gap-3 font-bold text-lg px-12 py-6 rounded-2xl transition-all cursor-pointer shadow-2xl hover:scale-105 text-white"
             style={{
               backgroundColor: "#174F7A",

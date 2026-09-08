@@ -13,6 +13,7 @@ import {
   LockIcon,
 } from "../components/Icons"
 import { FREQUENT_COUNTRIES, ALL_COUNTRY_CODES } from "../data/countryPhoneCodes"
+import { trackEvent } from "../lib/tracker"
 
 interface PartnerPageProps {
   lang: Language
@@ -652,6 +653,11 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
     localStorage.setItem("apticPartnerFormDraft", JSON.stringify(toSave))
   }, [form])
 
+  // Track partner_request_started on page mount
+  useEffect(() => {
+    trackEvent("partner_request_started", { lang, source: "partner_page_load" })
+  }, [lang])
+
   const set = (key: keyof typeof form, value: unknown) =>
     setForm((f: typeof defaultFormState) => ({ ...f, [key]: value }))
 
@@ -802,6 +808,12 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
       setLoading(false)
 
       if (res.success && res.data) {
+        trackEvent("partner_request_submitted", {
+          lang,
+          country: form.country,
+          source: form.orgType || "organisation",
+          metadata: { orgName: form.orgName, reference: res.data.referenceNumber },
+        })
         localStorage.removeItem("apticPartnerFormDraft")
         setSubmittedRef(res.data.referenceNumber || "PART-2026-001")
         setSubmitted(true)

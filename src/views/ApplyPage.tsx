@@ -24,7 +24,7 @@ import {
   SignalIcon,
 } from "../components/Icons"
 import { FREQUENT_COUNTRIES, ALL_COUNTRY_CODES } from "../data/countryPhoneCodes"
-
+import { trackEvent } from "../lib/tracker"
 
 interface ApplyPageProps {
   lang: Language
@@ -693,6 +693,11 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
     localStorage.setItem("apticFormDraft", JSON.stringify(formToSave))
   }, [form])
 
+  // Track application_started event once on mount
+  useEffect(() => {
+    trackEvent("application_started", { lang, source: "apply_page_load" })
+  }, [lang])
+
   const set = (key: keyof typeof form, value: unknown) =>
     setForm((f: typeof defaultFormState) => ({ ...f, [key]: value }))
 
@@ -956,6 +961,12 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       const result = await submitCandidateApplicationFormData(formData, lang)
       setIsSubmitting(false)
       if (result.success && result.data) {
+        trackEvent("application_submitted", {
+          lang,
+          country: form.country,
+          source: form.source || "direct",
+          metadata: { reference: result.data.referenceNumber },
+        })
         localStorage.removeItem("apticFormDraft")
         setSubmittedRef(result.data.referenceNumber)
         setSubmitted(true)
