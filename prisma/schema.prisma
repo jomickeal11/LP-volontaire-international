@@ -201,13 +201,23 @@ model Partenaire {
 }
 
 model DemandePartenariat {
-  id        String      @id @default(cuid())
-  partnerId String?
-  partner   Partenaire? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  id              String      @id @default(cuid())
+  referenceNumber String?     @unique // Ex: PART-2026-XXXX
+  partnerId       String?
+  partner         Partenaire? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
 
+  // Informations organisation
+  orgName   String
+  country   String
+  website   String?
+  orgType   String // NGO / Association, University, Government agency, European programme body, etc.
+
+  // Informations contact
   contactPerson   String
   email           String
   phone           String?
+
+  // Programme & Partenariat
   volunteerCount  String?
   targetCountries String?
   programme       String?
@@ -219,6 +229,10 @@ model DemandePartenariat {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([orgName])
+  @@index([email])
+  @@index([status])
 }
 
 model DocumentPartenaire {

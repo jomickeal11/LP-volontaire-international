@@ -1,5 +1,6 @@
 import { useState } from "react"
 import type { Page } from "../../types"
+import { useAdminHeader, type BreadcrumbItem } from "../../lib/AdminHeaderContext"
 
 interface AdminLayoutProps {
   currentPage: Page
@@ -84,7 +85,74 @@ const NAV_ITEMS = [
             />
           </svg>
         ),
-        badge: undefined,
+      },
+      {
+        page: "admin-candidates" as Page,
+        label: "Candidats",
+        icon: (
+          <svg
+            className="w-4.5 h-4.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            width={18}
+            height={18}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
+          </svg>
+        ),
+      },
+    ],
+  },
+  {
+    group: "Partenariats",
+    items: [
+      {
+        page: "admin-partner-requests" as Page,
+        label: "Demandes",
+        icon: (
+          <svg
+            className="w-4.5 h-4.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            width={18}
+            height={18}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20"
+            />
+          </svg>
+        ),
+      },
+      {
+        page: "admin-partners" as Page,
+        label: "Partenaires",
+        icon: (
+          <svg
+            className="w-4.5 h-4.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            width={18}
+            height={18}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+            />
+          </svg>
+        ),
       },
     ],
   },
@@ -108,25 +176,20 @@ export default function AdminLayout({
         width: 240,
       }}
     >
-      {/* Logo */}
-      <div
-        className="flex items-center gap-3 px-5 py-6"
-      >
-        <div
-          className="w-8 h-8 rounded flex items-center justify-center font-bold text-lg"
-          style={{
-            backgroundColor: "#174F7A",
-            color: "white",
-            fontFamily: "JetBrains Mono, monospace",
-          }}
-        >
-          A
+      {/* Logo & Identity */}
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-[#F0F3F6]">
+        <div className="w-9 h-9 rounded-lg bg-white border border-[#E2E8F0] shadow-xs flex items-center justify-center p-1 shrink-0 overflow-hidden">
+          <img
+            src="/aptic-logo.png"
+            alt="APTIC-R"
+            className="w-full h-full object-contain"
+          />
         </div>
-        <div>
-          <div className="font-bold text-sm tracking-wide" style={{ color: "#1A2B3C" }}>
+        <div className="min-w-0">
+          <div className="font-bold text-sm tracking-tight text-[#1A2B3C] truncate">
             APTIC-R
           </div>
-          <div className="text-[11px] font-medium tracking-wider uppercase mt-0.5" style={{ color: "#9AA8B4" }}>
+          <div className="text-[11px] font-semibold tracking-wider uppercase text-[#8898AA]">
             Portail Admin
           </div>
         </div>
@@ -170,20 +233,6 @@ export default function AdminLayout({
                     </span>
                     <span className="text-sm font-medium">{item.label}</span>
                   </div>
-                  {"badge" in item && (item.badge || item.page === "admin-applications") && (
-                    <span
-                      className="text-xs font-bold px-2 py-0.5 rounded-full"
-                      style={{
-                        backgroundColor: "#EEF5F8",
-                        color: "#174F7A",
-                        fontSize: 11,
-                      }}
-                    >
-                      {item.page === "admin-applications" && applicationsCount !== undefined
-                        ? applicationsCount
-                        : item.badge}
-                    </span>
-                  )}
                 </button>
               )
             })}
@@ -270,6 +319,30 @@ export default function AdminLayout({
     </div>
   )
 
+  const { breadcrumb } = useAdminHeader()
+
+  // Default page title/breadcrumb when no custom breadcrumb is set by child page
+  const getDefaultBreadcrumb = (): BreadcrumbItem[] => {
+    switch (currentPage) {
+      case "admin-dashboard":
+        return [{ label: "Tableau de bord" }]
+      case "admin-applications":
+        return [{ label: "Candidatures" }]
+      case "admin-candidates":
+        return [{ label: "Candidats" }]
+      case "admin-analytics":
+        return [{ label: "Statistiques" }]
+      case "admin-partner-requests":
+        return [{ label: "Partenariats" }]
+      case "admin-partners":
+        return [{ label: "Partenariats" }]
+      default:
+        return [{ label: "Administration" }]
+    }
+  }
+
+  const activeBreadcrumb: BreadcrumbItem[] = breadcrumb.length > 0 ? breadcrumb : getDefaultBreadcrumb()
+
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: BG }}>
       {/* Desktop sidebar */}
@@ -296,50 +369,88 @@ export default function AdminLayout({
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
         {/* Top bar */}
-        <div
-          className="sticky top-0 z-30 flex items-center gap-3 px-4 lg:px-8 py-3"
-          style={{
-            backgroundColor: "#fff",
-            borderBottom: "1px solid #EAF0F4",
-            minHeight: 60,
-          }}
+        <header
+          className="sticky top-0 z-30 flex items-center justify-between gap-4 px-4 lg:px-8 py-3 bg-white border-b border-[#EAF0F4]"
+          style={{ minHeight: 60 }}
         >
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 rounded"
-            style={{ color: TEXT_MID }}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          {/* Left: Mobile toggle + Breadcrumb / Context */}
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-1.5 -ml-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+              aria-label="Ouvrir le menu"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
 
-          <div className="flex-1" />
-
-          <div className="flex items-center gap-3">
-            <div
-              className="text-xs font-medium hidden sm:block"
-              style={{ color: "#9AA8B4" }}
-            >
-              Admin · APTIC-R
-            </div>
-            <img
-              src="https://ui-avatars.com/api/?name=Admin+Aptic&background=174F7A&color=fff"
-              alt="Admin"
-              className="w-8 h-8 rounded-full shadow-sm"
-            />
+            {/* Breadcrumb / Context */}
+            <nav aria-label="Fil d'Ariane" className="flex items-center gap-2 truncate text-sm">
+              {activeBreadcrumb.map((item, idx) => {
+                const isLast = idx === activeBreadcrumb.length - 1
+                return (
+                  <div key={idx} className="flex items-center gap-2 truncate">
+                    {idx > 0 && (
+                      <span className="text-slate-300 select-none font-normal">/</span>
+                    )}
+                    {item.href ? (
+                      <a
+                        href={item.href}
+                        className={`truncate transition-colors ${
+                          isLast
+                            ? "font-semibold text-slate-800 hover:text-[#174F7A]"
+                            : "font-medium text-slate-500 hover:text-slate-800"
+                        }`}
+                      >
+                        {item.label}
+                      </a>
+                    ) : (
+                      <span
+                        className={`truncate ${
+                          isLast
+                            ? "font-semibold text-slate-800"
+                            : "font-medium text-slate-500"
+                        }`}
+                      >
+                        {item.label}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </nav>
           </div>
-        </div>
+
+          {/* Right: User account */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="hidden sm:flex items-center gap-2 py-1 px-2.5 rounded-full bg-slate-50 border border-slate-200/80">
+              <span className="text-xs font-semibold text-slate-700">Admin</span>
+              <span className="text-slate-300 text-xs">·</span>
+              <span className="text-xs font-medium text-slate-500">APTIC-R</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-xs select-none"
+                style={{ backgroundColor: "#174F7A" }}
+                title="Administrateur APTIC-R"
+              >
+                AA
+              </div>
+            </div>
+          </div>
+        </header>
 
         {/* Page content */}
         <main className="flex-1 p-4 lg:px-12 lg:py-8" style={{ backgroundColor: "#F5F7F9" }}>{children}</main>

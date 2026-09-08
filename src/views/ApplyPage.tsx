@@ -97,6 +97,77 @@ function InputField({
   )
 }
 
+function DatalistField({
+  id,
+  label,
+  value,
+  onChange,
+  options,
+  placeholder = "Sélectionner ou saisir...",
+  required,
+  error,
+  helpText,
+}: {
+  id: string
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: readonly string[]
+  placeholder?: string
+  required?: boolean
+  error?: string
+  helpText?: string
+}) {
+  return (
+    <div className="flex flex-col gap-1.5 w-full">
+      <label className="text-sm font-semibold flex items-center gap-1" style={{ color: TEXT_DARK }}>
+        <span>{label}</span>
+        {required && <span className="text-red-500 font-bold">*</span>}
+      </label>
+      <div className="relative w-full">
+        <input
+          id={id}
+          list={`${id}-list`}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          autoComplete="off"
+          className="w-full pl-4 pr-10 rounded-xl outline-none transition-all duration-200"
+          style={{
+            height: "48px",
+            fontSize: "14px",
+            border: error ? "1.5px solid #EF4444" : "1.5px solid #D8E2E9",
+            backgroundColor: "#FFFFFF",
+            color: TEXT_DARK,
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.border = error ? "1.5px solid #EF4444" : `1.5px solid ${BLUE}`
+            e.currentTarget.style.boxShadow = error
+              ? "0 0 0 3px rgba(239,68,68,0.12)"
+              : "0 0 0 3px rgba(23,79,122,0.10)"
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.border = error ? "1.5px solid #EF4444" : "1.5px solid #D8E2E9"
+            e.currentTarget.style.boxShadow = "none"
+          }}
+        />
+        <datalist id={`${id}-list`}>
+          {options.map((opt) => (
+            <option key={opt} value={opt} />
+          ))}
+        </datalist>
+        <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </div>
+      </div>
+      {helpText && !error && <span className="text-xs text-slate-500 leading-tight">{helpText}</span>}
+      {error && <span className="text-xs text-red-500 font-medium">{error}</span>}
+    </div>
+  )
+}
+
 function PhoneInputField({
   label,
   countryCode,
@@ -592,20 +663,22 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
 
   // Form state initialized from localStorage if available
   const [form, setForm] = useState(() => {
-    try {
-      const saved = localStorage.getItem("apticFormDraft")
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        return {
-          ...defaultFormState,
-          ...parsed,
-          cvFile: null,
-          motivationFile: null,
-          portfolioFile: null,
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("apticFormDraft")
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          return {
+            ...defaultFormState,
+            ...parsed,
+            cvFile: null,
+            motivationFile: null,
+            portfolioFile: null,
+          }
         }
+      } catch (e) {
+        console.error("Failed to load form draft", e)
       }
-    } catch (e) {
-      console.error("Failed to load form draft", e)
     }
     return defaultFormState
   })
@@ -709,6 +782,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
         return (
           form.education.trim().length > 0 &&
           form.fieldOfStudy.trim().length > 0 &&
+          form.profession.trim().length > 0 &&
           form.experience.length > 0 &&
           form.digitalSkillLevel.length > 0
         )
@@ -778,6 +852,11 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
     }
     if (!form.fieldOfStudy.trim()) {
       setErrorMessage("Veuillez renseigner votre domaine d'études")
+      setIsSubmitting(false)
+      return
+    }
+    if (!form.profession.trim()) {
+      setErrorMessage("Veuillez renseigner votre profession")
       setIsSubmitting(false)
       return
     }
@@ -1534,12 +1613,20 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {SOURCES_LIST.map((src) => {
-                        const isSelected = form.source === src
+                        const isSelected = form.source === src || (src === "Autre" && !SOURCES_LIST.slice(0, -1).includes(form.source) && form.source !== "")
                         return (
                           <button
                             key={src}
                             type="button"
-                            onClick={() => set("source", src)}
+                            onClick={() => {
+                              if (src === "Autre") {
+                                if (SOURCES_LIST.includes(form.source)) {
+                                  set("source", "Autre : ")
+                                }
+                              } else {
+                                set("source", src)
+                              }
+                            }}
                             className="p-3.5 px-4 rounded-xl text-left text-sm font-medium transition-all cursor-pointer"
                             style={{
                               backgroundColor: isSelected ? "#EAF5ED" : "#FFFFFF",
@@ -1553,6 +1640,18 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         )
                       })}
                     </div>
+
+                    {(!SOURCES_LIST.slice(0, -1).includes(form.source) && form.source !== "") && (
+                      <div className="mt-4">
+                        <InputField
+                          label="Précisez votre source"
+                          value={form.source.startsWith("Autre : ") ? form.source.replace("Autre : ", "") : form.source === "Autre" ? "" : form.source}
+                          onChange={(v) => set("source", v ? `Autre : ${v}` : "Autre")}
+                          placeholder="Ex: Événement associatif, podcast, bouche à oreille..."
+                          required
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1576,6 +1675,20 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           <div><span className="text-slate-400">{t.apply.review?.fields?.email || "E-mail :"}</span> <strong className="text-slate-800 ml-1">{form.email}</strong></div>
                           <div><span className="text-slate-400">{t.apply.review?.fields?.phone || "Téléphone :"}</span> <strong className="text-slate-800 ml-1">{form.phoneCountryCode ? `${form.phoneCountryCode} ${form.phone}`.trim() : form.phone || (t.apply.review?.notProvided || "Non renseigné")}</strong></div>
                           <div><span className="text-slate-400">{t.apply.review?.fields?.location || "Pays / Ville :"}</span> <strong className="text-slate-800 ml-1">{form.country} {form.city ? `(${form.city})` : ""}</strong></div>
+                        </div>
+                      </div>
+
+                      {/* Section Profil & Formation */}
+                      <div className="py-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">Profil & Formation</span>
+                          <button type="button" onClick={() => goToStep(2)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">{t.apply.review?.edit || "Modifier"}</button>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 text-xs sm:text-sm">
+                          <div><span className="text-slate-400">Formation :</span> <strong className="text-slate-800 ml-1">{form.education}</strong></div>
+                          <div><span className="text-slate-400">Domaine :</span> <strong className="text-slate-800 ml-1">{form.fieldOfStudy}</strong></div>
+                          <div><span className="text-slate-400">Profession :</span> <strong className="text-slate-800 ml-1">{form.profession}</strong></div>
+                          <div><span className="text-slate-400">Expérience :</span> <strong className="text-slate-800 ml-1">{form.experience}</strong></div>
                         </div>
                       </div>
 
@@ -1821,15 +1934,26 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                 <p className="text-xs text-slate-500 leading-relaxed mb-4">
                   {(t.apply as any).sidebar?.help?.desc || "Une question sur la mission, le Togo ou votre candidature ? Notre équipe vous répond avec plaisir."}
                 </p>
-                <a
-                  href="mailto:contact@apticr.tg?subject=Question%20Candidature%20Volontaire"
-                  className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#174F7A] bg-white border border-[#D8E2E9] px-4 py-2.5 rounded-xl hover:border-[#174F7A] hover:bg-[#F0F5FA] transition-all shadow-2xs w-full cursor-pointer"
-                >
-                  <svg className="w-4 h-4 text-[#174F7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  <span>{(t.apply as any).sidebar?.help?.contactBtn || "Contacter APTIC-R"}</span>
-                </a>
+                <div className="space-y-2">
+                  <a
+                    href="mailto:aptic.rural19@gmail.com?subject=Question%20Candidature%20Volontaire"
+                    className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#174F7A] bg-white border border-[#D8E2E9] px-4 py-2.5 rounded-xl hover:border-[#174F7A] hover:bg-[#F0F5FA] transition-all shadow-2xs w-full cursor-pointer"
+                  >
+                    <svg className="w-4 h-4 text-[#174F7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <span>{(t.apply as any).sidebar?.help?.contactBtn || "Contacter par email"}</span>
+                  </a>
+                  <a
+                    href="tel:+22891201990"
+                    className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-100 hover:text-[#174F7A] transition-all w-full cursor-pointer"
+                  >
+                    <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <span>+228 91 20 19 90</span>
+                  </a>
+                </div>
               </div>
 
             </aside>

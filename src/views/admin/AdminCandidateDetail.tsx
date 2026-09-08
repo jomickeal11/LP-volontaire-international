@@ -9,6 +9,7 @@ import type { CandidateStatus } from "../../data/mockCandidates"
 import { store } from "../../lib/store"
 import type { Page } from "../../types"
 import { MapPinIcon, MailIcon, PhoneIcon, GlobeIcon, CheckIcon } from "../../components/Icons"
+import { useAdminHeader } from "../../lib/AdminHeaderContext"
 
 
 
@@ -54,12 +55,22 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
     useState<CandidateStatus | null>(null)
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
   const [showAllHistory, setShowAllHistory] = useState(false)
+  const { setBreadcrumb } = useAdminHeader()
 
   useEffect(() => {
     setCandidate(application)
     setStatus(application.status)
     setNotes(application.notes || [])
   }, [application])
+
+  useEffect(() => {
+    setBreadcrumb([
+      { label: "Candidatures" },
+    ])
+    return () => {
+      setBreadcrumb([])
+    }
+  }, [setBreadcrumb])
 
   const currentStepIndex = STATUS_WORKFLOW.indexOf(status)
 
@@ -117,7 +128,7 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Retour aux candidatures
+            Candidatures
           </button>
         </div>
 

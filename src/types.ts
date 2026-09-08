@@ -1,3 +1,15 @@
-export type Page = "home" | "apply" | "partner" | "admin-login" | "admin-dashboard" | "admin-applications" | "admin-candidate" | "admin-analytics"
+export type Page =
+  | "home"
+  | "apply"
+  | "partner"
+  | "admin-login"
+  | "admin-dashboard"
+  | "admin-applications"
+  | "admin-candidate"
+  | "admin-candidates"
+  | "admin-analytics"
+  | "admin-partner-requests"
+  | "admin-partner-request-detail"
+  | "admin-partners"
 
 export type Language = "FR" | "EN" | "DE"

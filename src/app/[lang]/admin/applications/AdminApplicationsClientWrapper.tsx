@@ -1,13 +1,15 @@
 "use client"
 
 import AdminApplications, { type CandidateUI } from "@/views/admin/AdminApplications"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import type { Page } from "@/types"
 import { updateCandidateStatus } from "@/lib/actions"
 import type { CandidateStatus } from "@prisma/client"
 
 export default function AdminApplicationsClientWrapper({ applications }: { applications: CandidateUI[] }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const initialSearch = searchParams.get("search") || searchParams.get("email") || ""
 
   const handleNavigate = (page: Page) => {
     switch (page) {
@@ -42,6 +44,7 @@ export default function AdminApplicationsClientWrapper({ applications }: { appli
       navigate={handleNavigate}
       onSelectCandidate={handleSelectCandidate}
       onStatusChange={handleStatusChange}
+      initialSearch={initialSearch}
     />
   )
 }

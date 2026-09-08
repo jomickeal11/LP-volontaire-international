@@ -67,9 +67,10 @@ export const partnerRequestSchema = z.object({
   country: z.string().min(2, "Veuillez sélectionner un pays"),
   website: z.string().url("Format d'URL invalide").optional().or(z.literal("")),
   contactPerson: z.string().min(2, "Nom du contact obligatoire"),
-  email: z.string().email("Adresse e-mail invalide"),
+  email: z.string().email("Adresse e-mail professionnelle invalide"),
+  phone: z.string().optional(),
   orgType: z.string().min(2, "Veuillez préciser le type d'organisation"),
-  volunteerCount: z.string().optional(),
+  volunteerCount: z.string().min(1, "Veuillez indiquer le nombre potentiel de volontaires"),
   targetCountries: z.string().optional(),
   programme: z.string().optional(),
   message: z

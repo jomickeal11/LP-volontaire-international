@@ -130,8 +130,107 @@ export async function submitCandidateApplication(
 export async function submitPartnerRequest(
   data: PartnerRequestInput,
 ) {
-  // To be implemented properly later
-  return { success: false, error: "Not implemented with Prisma yet" }
+  try {
+    const validated = partnerRequestSchema.parse(data)
+
+    // Generate reference number PART-YYYY-XXXX
+    const year = new Date().getFullYear()
+    let refNum = `PART-${year}-${randomBytes(2).toString('hex').toUpperCase()}`
+    
+    // Check collision safely
+    for (let i = 0; i < 3; i++) {
+      try {
+        const exists = await (prisma as any).demandePartenariat.findFirst({
+          where: { referenceNumber: refNum }
+        })
+        if (!exists) break
+      } catch {
+        // If query engine hasn't reloaded the unique index yet, break to proceed
+        break
+      }
+      refNum = `PART-${year}-${randomBytes(2).toString('hex').toUpperCase()}`
+    }
+
+    const partnerRequest = await (prisma as any).demandePartenariat.create({
+      data: {
+        referenceNumber: refNum,
+        orgName: validated.orgName,
+        country: validated.country,
+        website: validated.website || null,
+        orgType: validated.orgType,
+        contactPerson: validated.contactPerson,
+        email: validated.email,
+        phone: validated.phone || null,
+        volunteerCount: validated.volunteerCount || null,
+        targetCountries: validated.targetCountries || null,
+        programme: validated.programme || null,
+        message: validated.message,
+        consent: validated.consent,
+        status: "PENDING",
+      }
+    })
+
+    return { success: true, data: partnerRequest }
+  } catch (err: unknown) {
+    console.error("submitPartnerRequest error:", err)
+    const message = err instanceof Error ? err.message : "Erreur lors de la soumission de la demande"
+    return { success: false, error: message }
+  }
+}
+
+export async function submitPartnerRequestFormData(formData: FormData) {
+  try {
+    const data: any = {}
+    let uploadedFile: {
+      originalName: string
+      storageKey: string
+      mimeType: string
+      size: number
+    } | null = null
+
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        if (value.size > 0 && value.name !== "undefined") {
+          const buffer = Buffer.from(await value.arrayBuffer())
+          const ext = value.name.split('.').pop() || "pdf"
+          const filename = `${randomUUID()}.${ext}`
+          const filepath = join(process.cwd(), "uploads", filename)
+          await writeFile(filepath, buffer)
+
+          uploadedFile = {
+            originalName: value.name,
+            storageKey: filename,
+            mimeType: value.type || "application/octet-stream",
+            size: value.size,
+          }
+          data[key] = filename
+        }
+      } else {
+        data[key] = value === "true" ? true : value === "false" ? false : value
+      }
+    }
+
+    const result = await submitPartnerRequest(data as PartnerRequestInput)
+
+    if (result.success && result.data && uploadedFile) {
+      // Create DocumentPartenaire entry linked to the partner request
+      await (prisma as any).documentPartenaire.create({
+        data: {
+          partnerRequestId: result.data.id,
+          originalName: uploadedFile.originalName,
+          storageKey: uploadedFile.storageKey,
+          mimeType: uploadedFile.mimeType,
+          size: uploadedFile.size,
+        }
+      })
+    }
+
+    return result
+  } catch (err: unknown) {
+    console.error("submitPartnerRequestFormData error:", err)
+    const message = err instanceof Error ? err.message : "Erreur lors de la soumission du dossier"
+    return { success: false, error: message }
+  }
 }
 
 export async function updateCandidateStatus(
@@ -270,4 +369,56 @@ export async function submitCandidateApplicationFormData(
 
 export async function getApplicationsCount() {
   return await prisma.candidature.count()
+}
+
+export async function getPartnerRequestsCount() {
+  try {
+    return await (prisma as any).demandePartenariat.count()
+  } catch {
+    return 0
+  }
+}
+
+export async function updatePartnerRequestStatus(
+  requestId: string,
+  newStatus: "NEW" | "REVIEW" | "APPROVED" | "REJECTED" | "ARCHIVED"
+) {
+  try {
+    const updated = await (prisma as any).demandePartenariat.update({
+      where: { id: requestId },
+      data: { status: newStatus },
+      include: { partner: true, documents: true },
+    })
+
+    // If APPROVED, ensure or link to a Partenaire entry in the database
+    if (newStatus === "APPROVED" && !updated.partnerId) {
+      // Check if partner with same name exists or create one
+      const existingPartner = await (prisma as any).partenaire.findFirst({
+        where: { orgName: updated.orgName },
+      })
+
+      let partner = existingPartner
+      if (!partner) {
+        partner = await (prisma as any).partenaire.create({
+          data: {
+            orgName: updated.orgName,
+            country: updated.country,
+            website: updated.website,
+            orgType: updated.orgType,
+          },
+        })
+      }
+
+      await (prisma as any).demandePartenariat.update({
+        where: { id: requestId },
+        data: { partnerId: partner.id },
+      })
+    }
+
+    return { success: true }
+  } catch (err: unknown) {
+    console.error("updatePartnerRequestStatus error:", err)
+    const message = err instanceof Error ? err.message : "Erreur de mise à jour du statut"
+    return { success: false, error: message }
+  }
 }

@@ -57,32 +57,39 @@ export default function Footer({ lang, navigate }: FooterProps) {
               {[
                 {
                   label: "Facebook",
+                  href: "https://www.facebook.com/ApticRural",
                   icon: "M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z",
                 },
                 {
                   label: "LinkedIn",
+                  href: "https://www.linkedin.com/company/le-tic-rural/",
                   icon: "M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z M4 6a2 2 0 100-4 2 2 0 000 4z",
                 },
                 {
                   label: "Instagram",
+                  href: "https://www.instagram.com/apticr/",
                   icon: "M8 2.1A5.9 5.9 0 002.1 8v8A5.9 5.9 0 008 21.9h8A5.9 5.9 0 0021.9 16V8A5.9 5.9 0 0016 2.1H8zm0 2h8A3.9 3.9 0 0119.9 8v8A3.9 3.9 0 0116 19.9H8A3.9 3.9 0 014.1 16V8A3.9 3.9 0 018 4.1zM12 7a5 5 0 100 10A5 5 0 0012 7zm0 2a3 3 0 110 6 3 3 0 010-6zm5.2-2.5a1.3 1.3 0 100 2.6 1.3 1.3 0 000-2.6z",
                 },
               ].map((s) => (
-                <button
+                <a
                   key={s.label}
-                  className="w-9 h-9 rounded-lg flex items-center justify-center transition-all cursor-pointer"
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-lg flex items-center justify-center transition-all cursor-pointer hover:scale-105"
                   style={{
                     backgroundColor: "rgba(255,255,255,0.06)",
                     border: "1px solid rgba(255,255,255,0.1)",
                   }}
                   onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#1B4F7C")
+                    (e.currentTarget.style.backgroundColor = "#174F7A")
                   }
                   onMouseLeave={(e) =>
                     (e.currentTarget.style.backgroundColor =
                       "rgba(255,255,255,0.06)")
                   }
                   aria-label={s.label}
+                  title={`Suivre APTIC-R sur ${s.label}`}
                 >
                   <svg
                     className="w-4 h-4 text-white"
@@ -91,7 +98,7 @@ export default function Footer({ lang, navigate }: FooterProps) {
                   >
                     <path d={s.icon} />
                   </svg>
-                </button>
+                </a>
               ))}
             </div>
           </div>
@@ -139,11 +146,29 @@ export default function Footer({ lang, navigate }: FooterProps) {
                 >
                   {t.email}
                 </span>
-                <span className="font-mono text-xs">{t.emailValue}</span>
-                <span className="ml-1 text-xs" style={{ color: "#6A7A8A" }}>
-                  {t.emailNote}
-                </span>
+                <a
+                  href={`mailto:${t.emailValue}`}
+                  className="font-mono text-xs hover:text-white transition-colors underline decoration-slate-600 underline-offset-2"
+                >
+                  {t.emailValue}
+                </a>
               </li>
+              {(t as any).phone && (t as any).phoneValue && (
+                <li className="text-sm" style={{ color: "#9AA8B4" }}>
+                  <span
+                    className="block text-xs uppercase tracking-wide mb-0.5"
+                    style={{ color: "#6A7A8A" }}
+                  >
+                    {(t as any).phone}
+                  </span>
+                  <a
+                    href={`tel:${((t as any).phoneValue as string).replace(/\s+/g, "")}`}
+                    className="font-mono text-xs hover:text-white transition-colors underline decoration-slate-600 underline-offset-2"
+                  >
+                    {(t as any).phoneValue}
+                  </a>
+                </li>
+              )}
               <li className="text-sm" style={{ color: "#9AA8B4" }}>
                 <span
                   className="block text-xs uppercase tracking-wide mb-0.5"

@@ -72,10 +72,17 @@ interface Props {
   onSelectCandidate: (id: string) => void
   applications: CandidateUI[]
   onStatusChange: (id: string, status: CandidateStatus) => void
+  initialSearch?: string
 }
 
-export default function AdminApplications({ navigate, onSelectCandidate, applications, onStatusChange }: Props) {
-  const [search, setSearch] = useState("")
+export default function AdminApplications({
+  navigate,
+  onSelectCandidate,
+  applications,
+  onStatusChange,
+  initialSearch = "",
+}: Props) {
+  const [search, setSearch] = useState(initialSearch)
   const [filterStatus, setFilterStatus] = useState<CandidateStatus | "">("")
   const [filterCountry, setFilterCountry] = useState("")
   const [filterSkill, setFilterSkill] = useState("")
@@ -86,7 +93,6 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [selected, setSelected] = useState<string[]>([])
   const [page, setPage] = useState(1)
-  const [exportOpen, setExportOpen] = useState(false)
 
   const candidates = applications
 
@@ -144,21 +150,34 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
   }
 
   const handleExportCSV = () => {
-    const headers = "ID,Prénom,Nom,Email,Pays,Filière,Statut,Durée,Date\n"
-    const rows = candidates
-      .map(
-        (c) =>
-          `"${c.id}","${c.firstName}","${c.lastName}","${c.email}","${c.country}","${c.fieldOfStudy}","${c.status}","${c.duration}","${c.appliedAt}"`,
-      )
-      .join("\n")
-    const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" })
+    const dataToExport = selected.length > 0
+      ? filtered.filter((c) => selected.includes(c.id))
+      : filtered
+
+    // \uFEFF BOM for Excel to recognize UTF-8 accented characters
+    const headers = ["ID", "Prénom", "Nom", "Email", "Pays", "Filière", "Statut", "Durée", "Date"]
+    const rows = dataToExport.map((c) => [
+      `"${(c.id || "").replace(/"/g, '""')}"`,
+      `"${(c.firstName || "").replace(/"/g, '""')}"`,
+      `"${(c.lastName || "").replace(/"/g, '""')}"`,
+      `"${(c.email || "").replace(/"/g, '""')}"`,
+      `"${(c.country || "").replace(/"/g, '""')}"`,
+      `"${(c.fieldOfStudy || "").replace(/"/g, '""')}"`,
+      `"${(c.status || "").replace(/"/g, '""')}"`,
+      `"${(c.duration || "").replace(/"/g, '""')}"`,
+      `"${(c.appliedAt || "").replace(/"/g, '""')}"`,
+    ])
+
+    const csvString = "\uFEFF" + [headers.join(";"), ...rows.map((r) => r.join(";"))].join("\r\n")
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
     link.download = `candidatures_apticr_${new Date().toISOString().split("T")[0]}.csv`
+    document.body.appendChild(link)
     link.click()
+    document.body.removeChild(link)
     URL.revokeObjectURL(url)
-    setExportOpen(false)
   }
 
   const SortIcon = ({ field }: { field: typeof sortBy }) => (
@@ -168,18 +187,18 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
   )
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+    <div className="space-y-6">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl" style={{ color: TEXT_DARK }}>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             Candidatures
           </h1>
-          <p className="text-sm" style={{ color: TEXT_MID }}>
-            {filtered.length} candidature{filtered.length > 1 ? "s" : ""}
+          <p className="text-sm text-slate-500 mt-0.5">
+            Suivi opérationnel et traitement des dossiers de candidature reçus.
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {selected.length > 0 && (
             <div
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
@@ -188,53 +207,25 @@ export default function AdminApplications({ navigate, onSelectCandidate, applica
               <span className="font-semibold">{selected.length} sélectionné(s)</span>
             </div>
           )}
-          <div className="relative">
-            <button
-              onClick={() => setExportOpen(!exportOpen)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-              style={{
-                backgroundColor: "#fff",
-                color: TEXT_MID,
-                border: "1.5px solid #D1DCE5",
-              }}
+          <button
+            onClick={handleExportCSV}
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-[#174F7A] hover:bg-[#123E60] rounded-lg shadow-xs cursor-pointer transition-colors"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.75}
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
-              </svg>
-              Exporter
-            </button>
-            {exportOpen && (
-              <div
-                className="absolute right-0 top-full mt-1 z-20 rounded-xl overflow-hidden shadow-lg bg-white"
-                style={{ border: "1px solid #E8ECF2", minWidth: 180 }}
-              >
-                <button
-                  onClick={handleExportCSV}
-                  className="w-full flex items-center gap-2 text-left px-4 py-2.5 text-xs font-semibold transition-colors hover:bg-slate-50 text-slate-800"
-                >
-                  <FileTextIcon className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Télécharger en CSV</span>
-                </button>
-                <button
-                  onClick={handleExportCSV}
-                  className="w-full flex items-center gap-2 text-left px-4 py-2.5 text-xs font-semibold transition-colors hover:bg-slate-50 text-slate-800 border-t border-slate-100"
-                >
-                  <BarChartIcon className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Télécharger pour Excel</span>
-                </button>
-              </div>
-            )}
-          </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
+            </svg>
+            Exporter en CSV
+          </button>
         </div>
       </div>
 
@@ -573,8 +564,8 @@ function CandidateRow({
 
   return (
     <tr
-      onClick={onOpen}
-      className="cursor-pointer transition-colors group"
+      onClick={onToggle}
+      className="cursor-pointer transition-colors group select-none"
       style={{
         backgroundColor: selected ? "#E8F2FA" : even ? "#fff" : "#FAFBFC",
         borderBottom: "1px solid #F0F3F7",

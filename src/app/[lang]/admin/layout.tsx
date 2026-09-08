@@ -6,6 +6,7 @@ import type { Page } from "@/types"
 import { logoutAction } from "@/actions/auth"
 import { getApplicationsCount } from "@/lib/actions"
 import { useEffect, useState } from "react"
+import { AdminHeaderProvider } from "@/lib/AdminHeaderContext"
 
 export default function AdminLayoutRoute({
   children,
@@ -24,6 +25,12 @@ export default function AdminLayoutRoute({
 
   let currentPage: Page = "admin-dashboard"
   if (pathname?.includes("/analytics")) currentPage = "admin-analytics"
+  else if (pathname?.includes("/partners/requests"))
+    currentPage = "admin-partner-requests"
+  else if (pathname?.includes("/partners"))
+    currentPage = "admin-partners"
+  else if (pathname?.includes("/candidates"))
+    currentPage = "admin-candidates"
   else if (pathname?.includes("/applications"))
     currentPage = "admin-applications"
   else if (pathname?.includes("/login")) return <>{children}</>
@@ -39,8 +46,17 @@ export default function AdminLayoutRoute({
       case "admin-applications":
         router.push(`/${lang}/admin/applications`)
         break
+      case "admin-candidates":
+        router.push(`/${lang}/admin/candidates`)
+        break
       case "admin-analytics":
         router.push(`/${lang}/admin/analytics`)
+        break
+      case "admin-partner-requests":
+        router.push(`/${lang}/admin/partners/requests`)
+        break
+      case "admin-partners":
+        router.push(`/${lang}/admin/partners`)
         break
       case "admin-login":
         router.push(`/${lang}/admin/login`)
@@ -57,13 +73,15 @@ export default function AdminLayoutRoute({
   }
 
   return (
-    <AdminLayout
-      currentPage={currentPage}
-      navigate={handleNavigate}
-      onLogout={handleLogout}
-      applicationsCount={appCount}
-    >
-      {children}
-    </AdminLayout>
+    <AdminHeaderProvider>
+      <AdminLayout
+        currentPage={currentPage}
+        navigate={handleNavigate}
+        onLogout={handleLogout}
+        applicationsCount={appCount}
+      >
+        {children}
+      </AdminLayout>
+    </AdminHeaderProvider>
   )
 }
