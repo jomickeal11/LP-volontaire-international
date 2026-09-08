@@ -306,95 +306,102 @@ model AnalyticsEvent {
 
 ---
 
-## 6. Plan d'Exécution en 11 Phases
+## 6. Plan d'Exécution en 11 Phases & État d'Avancement Réel
 
-### Phase 0 — Cadrage technique (1–2 jours)
-- Transformer le cahier des charges en spécifications fonctionnelles et techniques détaillées.
-- Définir l'arborescence des routes (`/`, `/apply`, `/partner`, `/admin/*`, `/[lang]/*`).
-- Définir la matrice des rôles et permissions (Public, Coordinateur, Admin).
-- Définir le schéma relationnel PostgreSQL et les entités Prisma.
-- Spécifier le workflow d'état des candidatures.
-- Valider l'architecture logicielle globale.
+### Synthèse Globale
 
-### Phase 1 — Figma / Design System (3–5 jours)
-- Valider la palette chromatique 90/10 (Blanc, Gris ardoise, Bleu institutionnel `#1B4F7C`, Vert naturel `#2E7D52`).
-- Finaliser la typographie (`DM Serif Display`, `Outfit`, `JetBrains Mono`).
-- Créer la bibliothèque de composants vectoriels (zéro emoji).
-- Spécifier les états UI (Default, Hover, Active, Focus, Disabled, Error, Loading).
-- Concevoir les déclinaisons responsive (Desktop 1920/1366, Tablette 768, Mobile 375).
-- Maquetter la Landing Page, le formulaire Candidat (9 étapes), le formulaire Partenaire et le Dashboard Admin.
+| Phase | Intitulé | Statut | Avancement | Priorité de finalisation |
+| :--- | :--- | :---: | :---: | :---: |
+| **Phase 0** | Cadrage technique & Architecture | ✅ Validé | **100%** | — |
+| **Phase 1** | Design System & Direction Artistique | ✅ Validé | **100%** | — |
+| **Phase 2** | Initialisation technique (Next.js 15, Prisma, Tailwind v4) | ✅ Validé | **100%** | — |
+| **Phase 3** | Site public & Landing Page (18 sections + SEO + OpenGraph) | ✅ Validé | **100%** | — |
+| **Phase 4** | Multilingue international (FR / EN / DE + `hreflang`) | ✅ Validé | **100%** | — |
+| **Phase 5** | Formulaire Candidature (9 étapes) & Backend | 🟨 Fonctionnel | **85%** | Haute |
+| **Phase 6** | Espace Partenariats Organisations | 🟨 Fonctionnel | **85%** | Haute |
+| **Phase 7** | Back-office Administrateur (KPI, Listes, Fiches) | ✅ Fonctionnel | **90%** | Moyenne |
+| **Phase 8** | Workflow Candidatures (9 statuts, Notes, Historique) | 🟨 En cours | **75%** | Moyenne |
+| **Phase 9** | Analytics & Télémétrie | 🟨 Partiel | **60%** | Moyenne |
+| **Phase 10** | Mails transactionnels, Stockage Cloud S3 & Déploiement Prod | 🟥 À faire | **20%** | Haute |
 
-### Phase 2 — Initialisation du projet (1 jour)
-- Scaffold Next.js 15 (App Router) + TypeScript + Tailwind CSS v4.
-- Configuration Prisma ORM + connexion PostgreSQL.
-- Configuration ESLint, Prettier, variables d'environnement (`.env.example`).
-- Structure modulaire des répertoires (`app/`, `components/`, `lib/`, `types/`, `actions/`).
+---
 
-### Phase 3 — Site public & Landing Page (5–7 jours)
-Développer l'ensemble des sections publiques avec direction artistique premium :
-1. `Header` fixe avec sélecteur de langue et CTA Vert.
-2. `Hero` immersif avec photo collaborative documentaire et titre serif.
-3. `DualPath` (Volontaires vs Organisations).
-4. `Why volunteer` (4 cartes blanches institutionnelles).
-5. `The Challenge` (Progression Problème $\rightarrow$ Innovation $\rightarrow$ Impact).
-6. `Your Mission` (5 étapes de co-création).
-7. `What Could You Build?` (Projet phare + 4 projets secondaires asymétriques).
-8. `Profiles Sought` (Socle visuel commun pour les 4 filières).
-9. `Not an Expert` (Section qualités avec badges vectoriels).
-10. `Week with APTIC-R` (Timeline 7 jours homogène).
-11. `Life in Togo` (Galerie photo culturelle et humaine).
-12. `Agbélouvé` (Carte, environnement et données de base).
-13. `Support` (8 cartes de soutien + Tableau transparent des inclusions).
-14. `Application process` (Timeline 6 étapes).
-15. `Partners` (Cadres de référence européens).
-16. `Testimonials` (Citations authentiques).
-17. `FAQ` (Accordéon interactif).
-18. `Final CTA` & `Footer` institutionnel.
+### Détail par Phase : Réalisé vs Ce qui manque pour 100%
 
-### Phase 4 — Multilingue (2–3 jours)
-- Intégration de la localisation FR / EN / DE.
-- Routage préfixé ou détection automatique de la langue.
-- Balises SEO `hreflang` et balises OpenGraph par langue.
-- Adaptation fluide et responsive des libellés dans les 3 langues.
+#### Phase 0 — Cadrage technique (100% ✅)
+- [x] Spécifications fonctionnelles et techniques détaillées.
+- [x] Arborescence des routes (`/`, `/apply`, `/partners`, `/admin/*`, `/[lang]/*`).
+- [x] Matrice des rôles et permissions.
+- [x] Schéma relationnel PostgreSQL et entités Prisma.
+- [x] Spécification du workflow à 9 statuts.
 
-### Phase 5 — Backend & Candidature (5–7 jours)
-- Formulaire multi-étapes avec validation Zod synchrone et persistante.
-- Server Actions pour l'enregistrement en base de données.
-- Module d'upload de fichiers (CV, lettre, portfolio) vers stockage cloud S3/Supabase avec contrôle de type MIME et taille max (10 Mo).
-- Génération d'une référence unique de candidature (`APTIC-2025-XXXX`).
-- Email automatique de confirmation au candidat et notification à l'équipe.
+#### Phase 1 — Figma / Design System (100% ✅)
+- [x] Palette chromatique institutionnelle (`#174F7A`, `#35A85A`, fond `#F5F7F9`).
+- [x] Typographies institutionnelles sans emoji.
+- [x] États UI complets (Hover, Focus, Disabled, Error, Loading).
+- [x] Responsive complet (Desktop, Tablette, Mobile).
 
-### Phase 6 — Partenariats Organisations (2–3 jours)
-- Formulaire dédié pour les organisations d'envoi européennes.
-- Validation Zod et enregistrement de la demande (`PartnerRequest`).
-- Envoi automatique de confirmation et notification interne.
+#### Phase 2 — Initialisation du projet (100% ✅)
+- [x] Next.js 15 (App Router) + TypeScript + Tailwind CSS v4.
+- [x] Configuration Prisma ORM + PostgreSQL opérationnel.
+- [x] Structure modulaire du projet (`app/`, `components/`, `lib/`, `views/`).
 
-### Phase 7 — Back-office Administrateur (5–7 jours)
-- Authentification sécurisée (NextAuth v5 / Auth.js) avec hash bcrypt et sessions JWT.
-- Table de bord central avec KPIs en temps réel (total candidatures, réparties par statut, pays, filière).
-- Tableau interactif des candidatures avec filtres avancés (statut, filière, pays, disponibilité, recherche texte).
-- Fiche candidat détaillée : consultation des données, visualisation et téléchargement sécurisé des CV/lettres.
-- Système d'ajout de notes internes pour l'équipe APTIC-R.
-- Export des données en format CSV / Excel.
+#### Phase 3 — Site public & Landing Page (100% ✅)
+- [x] Les 18 sections du cahier des charges intégrées et dynamiques.
+- [x] Coordonnées officielles intégrées (Tél, Email, Facebook, LinkedIn, Instagram).
+- [x] SEO & Réseaux sociaux : Balises OpenGraph & Twitter Cards dynamiques.
+- [x] Fichiers `robots.txt` et `sitemap.xml` dynamiques multilingues.
 
-### Phase 8 — Workflow des Candidatures (2 jours)
-- Système de transition d'état à 9 étapes avec audit trail (qui a changé quoi et quand).
-- Déclenchement d'emails automatiques lors du changement de statut (ex: convocation à l'entretien).
-- Assignation d'un candidat à un membre de l'équipe coordinatrice.
+#### Phase 4 — Multilingue (100% ✅)
+- [x] Traductions intégrales en Français (FR), Anglais (EN) et Allemand (DE).
+- [x] Sélecteur de langue interactif et persistant.
+- [x] Balises SEO canoniques `<link rel="alternate" hreflang="...">` (FR, EN, DE, x-default).
 
-### Phase 9 — Analytics & Télémétrie (2–3 jours)
-- Tracking des événements clés du funnel :
-  - `apply_now_click`
-  - `application_started`
-  - `application_step_X_completed`
-  - `application_submitted`
-  - `partner_request_submitted`
-  - `language_switch`
-- Dashboard interne de suivi des conversions et sources d'acquisition.
+#### Phase 5 — Backend & Candidature (85% 🟨)
+- [x] Formulaire multi-étapes (9 étapes) interactif avec barre de progression.
+- [x] Validation stricte Zod côté client et côté serveur.
+- [x] Génération de la référence unique (`APTIC-YYYY-XXXX`).
+- [x] Téléversement des fichiers (CV, lettre) et contrôle des formats.
+- [x] Enregistrement transactionnel en base de données relationnelle.
+- **Ce qui manque pour 100% :**
+  - [ ] **Mails transactionnels réels** : Envoi automatique de l'email de confirmation au candidat et de l'alerte à l'équipe APTIC-R.
+  - [ ] **Stockage Cloud (S3 / Supabase Storage)** : Migration du stockage disque local `/uploads` vers un bucket d'objets persistant pour la production.
 
-### Phase 10 — SEO, Sécurité, Performance & Mise en Production (3–5 jours)
-- Optimisation des performances : images WebP/AVIF avec `next/image`, minification, compression Brotli/Gzip.
-- Score Google PageSpeed > 85/100 (Mobile & Desktop).
-- Sécurisation : Rate limiting sur les formulaires, en-têtes HTTP sécurisés (CSP, HSTS, X-Frame-Options), protection CSRF.
-- Déploiement en production (Vercel / AWS / VPS), configuration DNS, certificats SSL/HTTPS.
-- Formation de l'équipe APTIC-R à la gestion quotidienne du back-office.
+#### Phase 6 — Partenariats Organisations (85% 🟨)
+- [x] Page `/partners` dédiée avec présentation des cadres de coopération.
+- [x] Formulaire complet pour organisations avec validation Zod.
+- [x] Enregistrement en base (`PartnerRequest`) et affichage dans le back-office admin.
+- **Ce qui manque pour 100% :**
+  - [ ] **Mails transactionnels réels** : Confirmation automatique à l'organisme et alerte email aux coordinateurs APTIC-R.
+
+#### Phase 7 — Back-office Administrateur (90% ✅)
+- [x] Authentification sécurisée administrateur.
+- [x] Dashboard avec indicateurs clés (KPIs) en temps réel.
+- [x] Vue "Candidatures" : tableau de tous les postulants avec filtres et recherche.
+- [x] Vue "Candidats" : vue ciblée sur les volontaires retenus/sélectionnés.
+- [x] Vue "Partenaires" & "Demandes de partenariat" avec fiches détaillées.
+- [x] Fiche candidat détaillée avec historique des statuts et ajout de notes internes.
+- **Ce qui manque pour 100% :**
+  - [ ] **Export CSV / Excel** : Bouton d'export de la liste des candidatures et candidats filtrés.
+
+#### Phase 8 — Workflow des Candidatures (75% 🟨)
+- [x] Transition d'état parmi les 9 statuts officiels.
+- [x] Historique chronologique complet des changements de statut (audit trail).
+- [x] Ajout et suivi des notes internes par candidat.
+- **Ce qui manque pour 100% :**
+  - [ ] **Emails automatiques sur changement de statut** (ex: notification d'invitation à l'entretien vidéo).
+  - [ ] **Assignation d'un dossier** à un coordinateur spécifique de l'équipe (champ `assignedToId`).
+
+#### Phase 9 — Analytics & Télémétrie (60% 🟨)
+- [x] Page dashboard Analytics avec graphiques de répartition.
+- [x] Modèle de données Prisma `AnalyticsEvent`.
+- **Ce qui manque pour 100% :**
+  - [ ] **Télémétrie en temps réel** : Capture effective des clics (`apply_now_click`, abandon d'étapes dans le formulaire) branchée à la base.
+
+#### Phase 10 — Déploiement Production & Sécurité (20% 🟥)
+- [x] Configuration des en-têtes HTTP de sécurité et sanitization des données.
+- **Ce qui manque pour 100% :**
+  - [ ] Clés API du service d'emails (Resend / SendGrid / Postmark).
+  - [ ] Hébergement de la base PostgreSQL en ligne (Supabase / Neon).
+  - [ ] Déploiement Cloud de l'application (Vercel / VPS) avec nom de domaine officiel et certificat SSL.
+
