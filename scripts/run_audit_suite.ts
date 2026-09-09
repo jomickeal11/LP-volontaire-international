@@ -385,28 +385,40 @@ async function main() {
   // =========================================================================
   console.log("\n--- [3/3] TESTS DE SÉCURITÉ (PRODUCTION-LIKE) ---")
 
-  await runTest("SECURITE", "3.1 Route Admin sans session ➔ Redirection login", async () => {
-    const res = await fetch(`${BASE_URL}/fr/admin/dashboard`, { redirect: "manual" })
+  await runTest("SECURITE", "3.1 Route Back-office sans session ➔ Redirection login", async () => {
+    const res = await fetch(`${BASE_URL}/fr/backoffice/dashboard`, { redirect: "manual" })
     if (res.status !== 307 && res.status !== 308 && res.status !== 302) {
-      throw new Error(`L'accès non authentifié à /admin/dashboard a retourné HTTP ${res.status} au lieu d'une redirection`)
+      throw new Error(`L'accès non authentifié à /backoffice/dashboard a retourné HTTP ${res.status} au lieu d'une redirection`)
     }
     const location = res.headers.get("location") || ""
-    if (!location.includes("/admin/login")) {
+    if (!location.includes("/backoffice/login")) {
       throw new Error(`Redirection vers une mauvaise cible : ${location}`)
     }
     return `HTTP ${res.status} ➔ Redirection sécurisée vers ${location}`
   })
 
-  await runTest("SECURITE", "3.2 Route Admin multilingue /en/admin sans session ➔ Redirection login", async () => {
-    const res = await fetch(`${BASE_URL}/en/admin/applications`, { redirect: "manual" })
+  await runTest("SECURITE", "3.2 Route Back-office multilingue /en/backoffice sans session ➔ Redirection login", async () => {
+    const res = await fetch(`${BASE_URL}/en/backoffice/applications`, { redirect: "manual" })
     if (res.status !== 307 && res.status !== 308 && res.status !== 302) {
       throw new Error(`Accès non authentifié a retourné HTTP ${res.status}`)
     }
     const location = res.headers.get("location") || ""
-    if (!location.includes("/en/admin/login")) {
+    if (!location.includes("/en/backoffice/login")) {
       throw new Error(`Redirection incorrecte : ${location}`)
     }
     return `HTTP ${res.status} ➔ Redirection sécurisée vers ${location}`
+  })
+
+  await runTest("SECURITE", "3.2b Redirection rétro-compatible de l'ancien /admin vers /backoffice", async () => {
+    const res = await fetch(`${BASE_URL}/fr/admin/dashboard`, { redirect: "manual" })
+    if (res.status !== 307 && res.status !== 308 && res.status !== 302) {
+      throw new Error(`L'accès à /fr/admin/dashboard a retourné HTTP ${res.status}`)
+    }
+    const location = res.headers.get("location") || ""
+    if (!location.includes("/backoffice")) {
+      throw new Error(`Redirection legacy incorrecte : ${location}`)
+    }
+    return `HTTP ${res.status} ➔ Redirection legacy transparente vers ${location}`
   })
 
   await runTest("SECURITE", "3.3 Téléchargement document sans session ➔ 401 Unauthorized", async () => {

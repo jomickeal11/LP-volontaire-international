@@ -14,10 +14,10 @@ export default function AdminDashboardClientWrapper({ data }: { data: DashboardD
         router.push("/")
         break
       case "admin-applications":
-        router.push("/admin/applications")
+        router.push("/backoffice/applications")
         break
       case "admin-analytics":
-        router.push("/admin/analytics")
+        router.push("/backoffice/statistics")
         break
       default:
         break

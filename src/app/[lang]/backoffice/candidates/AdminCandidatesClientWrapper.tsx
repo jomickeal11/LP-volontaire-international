@@ -21,22 +21,22 @@ export default function AdminCandidatesClientWrapper({
         router.push(`/${lang}`)
         break
       case "admin-dashboard":
-        router.push(`/${lang}/admin/dashboard`)
+        router.push(`/${lang}/backoffice/dashboard`)
         break
       case "admin-applications":
-        router.push(`/${lang}/admin/applications`)
+        router.push(`/${lang}/backoffice/applications`)
         break
       case "admin-candidates":
-        router.push(`/${lang}/admin/candidates`)
+        router.push(`/${lang}/backoffice/candidates`)
         break
       case "admin-analytics":
-        router.push(`/${lang}/admin/analytics`)
+        router.push(`/${lang}/backoffice/statistics`)
         break
       case "admin-partner-requests":
-        router.push(`/${lang}/admin/partners/requests`)
+        router.push(`/${lang}/backoffice/partners/requests`)
         break
       case "admin-partners":
-        router.push(`/${lang}/admin/partners`)
+        router.push(`/${lang}/backoffice/partners`)
         break
       default:
         break
@@ -46,7 +46,7 @@ export default function AdminCandidatesClientWrapper({
   const handleSelectCandidate = (candidate: CandidateDirectoryItemUI) => {
     // Navigate to applications filtered by candidate email
     const query = candidate.email || `${candidate.firstName} ${candidate.lastName}`
-    router.push(`/${lang}/admin/applications?search=${encodeURIComponent(query)}`)
+    router.push(`/${lang}/backoffice/applications?search=${encodeURIComponent(query)}`)
   }
 
   return (

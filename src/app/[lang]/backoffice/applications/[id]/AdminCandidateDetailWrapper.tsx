@@ -15,13 +15,13 @@ export default function AdminCandidateDetailWrapper({ application }: { applicati
         router.push("/")
         break
       case "admin-applications":
-        router.push("/admin/applications")
+        router.push("/backoffice/applications")
         break
       case "admin-dashboard":
-        router.push("/admin/dashboard")
+        router.push("/backoffice/dashboard")
         break
       default:
-        router.push("/admin/applications")
+        router.push("/backoffice/applications")
         break
     }
   }

@@ -29,16 +29,16 @@ export default function LandingPage({
         router.push(`/${lang}/partners`)
         break
       case "admin-login":
-        router.push(`/${lang}/admin/login`)
+        router.push(`/${lang}/backoffice/login`)
         break
       case "admin-dashboard":
-        router.push(`/${lang}/admin/dashboard`)
+        router.push(`/${lang}/backoffice/dashboard`)
         break
       case "admin-applications":
-        router.push(`/${lang}/admin/applications`)
+        router.push(`/${lang}/backoffice/applications`)
         break
       case "admin-analytics":
-        router.push(`/${lang}/admin/analytics`)
+        router.push(`/${lang}/backoffice/statistics`)
         break
       default:
         break

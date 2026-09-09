@@ -25,19 +25,19 @@ export default function AdminPartnerRequestsClientWrapper({
         router.push(`/${lang}`)
         break
       case "admin-dashboard":
-        router.push(`/${lang}/admin/dashboard`)
+        router.push(`/${lang}/backoffice/dashboard`)
         break
       case "admin-applications":
-        router.push(`/${lang}/admin/applications`)
+        router.push(`/${lang}/backoffice/applications`)
         break
       case "admin-analytics":
-        router.push(`/${lang}/admin/analytics`)
+        router.push(`/${lang}/backoffice/statistics`)
         break
       case "admin-partner-requests":
-        router.push(`/${lang}/admin/partners/requests`)
+        router.push(`/${lang}/backoffice/partners/requests`)
         break
       case "admin-partners":
-        router.push(`/${lang}/admin/partners`)
+        router.push(`/${lang}/backoffice/partners`)
         break
       default:
         break
@@ -45,7 +45,7 @@ export default function AdminPartnerRequestsClientWrapper({
   }
 
   const handleSelectRequest = (id: string) => {
-    router.push(`/${lang}/admin/partners/requests/${id}`)
+    router.push(`/${lang}/backoffice/partners/requests/${id}`)
   }
 
   const handleStatusChange = async (id: string, status: PartnerRequestStatus) => {

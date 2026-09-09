@@ -1,9 +1,8 @@
 import type { Metadata } from "next"
-import AdminClientLayout from "./AdminClientLayout"
 
 export const metadata: Metadata = {
-  title: "Administration — APTIC-R",
-  description: "Espace d'administration réservé à l'équipe de coordination APTIC-R.",
+  title: "Connexion Back-office — APTIC-R",
+  description: "Portail d'authentification réservé à l'équipe de gestion APTIC-R.",
   robots: {
     index: false,
     follow: false,
@@ -19,10 +18,10 @@ export const metadata: Metadata = {
   },
 }
 
-export default function AdminLayoutRoute({
+export default function BackofficeLoginLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return <AdminClientLayout>{children}</AdminClientLayout>
+  return <>{children}</>
 }

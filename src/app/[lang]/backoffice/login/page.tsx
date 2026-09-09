@@ -6,5 +6,5 @@ import { useRouter } from "next/navigation"
 export default function AdminLoginRoute() {
   const router = useRouter()
 
-  return <AdminLogin onLogin={() => router.push("/admin/dashboard")} />
+  return <AdminLogin onLogin={() => router.push("/backoffice/dashboard")} />
 }

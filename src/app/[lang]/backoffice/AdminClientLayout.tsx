@@ -24,7 +24,7 @@ export default function AdminClientLayout({
   const lang = pathname.split("/")[1] || "fr"
 
   let currentPage: Page = "admin-dashboard"
-  if (pathname?.includes("/analytics")) currentPage = "admin-analytics"
+  if (pathname?.includes("/analytics") || pathname?.includes("/statistics")) currentPage = "admin-analytics"
   else if (pathname?.includes("/partners/requests"))
     currentPage = "admin-partner-requests"
   else if (pathname?.includes("/partners"))
@@ -41,25 +41,25 @@ export default function AdminClientLayout({
         router.push(`/${lang}`)
         break
       case "admin-dashboard":
-        router.push(`/${lang}/admin/dashboard`)
+        router.push(`/${lang}/backoffice/dashboard`)
         break
       case "admin-applications":
-        router.push(`/${lang}/admin/applications`)
+        router.push(`/${lang}/backoffice/applications`)
         break
       case "admin-candidates":
-        router.push(`/${lang}/admin/candidates`)
+        router.push(`/${lang}/backoffice/candidates`)
         break
       case "admin-analytics":
-        router.push(`/${lang}/admin/analytics`)
+        router.push(`/${lang}/backoffice/statistics`)
         break
       case "admin-partner-requests":
-        router.push(`/${lang}/admin/partners/requests`)
+        router.push(`/${lang}/backoffice/partners/requests`)
         break
       case "admin-partners":
-        router.push(`/${lang}/admin/partners`)
+        router.push(`/${lang}/backoffice/partners`)
         break
       case "admin-login":
-        router.push(`/${lang}/admin/login`)
+        router.push(`/${lang}/backoffice/login`)
         break
       default:
         break
@@ -69,7 +69,7 @@ export default function AdminClientLayout({
   const handleLogout = async () => {
     await logoutAction()
     // Use window.location.replace to clear Next.js client cache and replace history state
-    window.location.replace(`/${lang}/admin/login`)
+    window.location.replace(`/${lang}/backoffice/login`)
   }
 
   return (

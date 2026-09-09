@@ -82,25 +82,20 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
             workflow, and analyse recruitment performance.
           </p>
         </div>
-        <div
-          className="p-4 rounded-xl text-xs flex items-center gap-2"
-          style={{
-            backgroundColor: "rgba(255,255,255,0.08)",
-            color: "rgba(255,255,255,0.5)",
-          }}
-        >
-          <LockIcon className="w-3.5 h-3.5 text-white/50 shrink-0" />
-          <span>Restricted access. Authorised personnel only.</span>
+        <div>
+          <div className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+            © 2026 APTIC-R · Tous droits réservés
+          </div>
         </div>
       </div>
 
-      {/* Right panel */}
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
+      {/* Right form */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
             <div
-              className="w-8 h-8 rounded-md flex items-center justify-center font-bold text-sm text-white"
+              className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white"
               style={{
                 backgroundColor: BLUE,
                 fontFamily: "JetBrains Mono, monospace",
@@ -109,17 +104,17 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
               A
             </div>
             <span className="font-bold text-base" style={{ color: BLUE }}>
-              APTIC-R Admin
+              APTIC-R Back-office
             </span>
           </div>
 
           {!showForgot ? (
             <div>
               <h1 className="text-2xl mb-1" style={{ color: TEXT_DARK }}>
-                Sign in
+                Connexion
               </h1>
               <p className="text-sm mb-8" style={{ color: TEXT_MID }}>
-                Administration portal — APTIC-R
+                Espace de gestion Back-office — APTIC-R
               </p>
 
               {error && (

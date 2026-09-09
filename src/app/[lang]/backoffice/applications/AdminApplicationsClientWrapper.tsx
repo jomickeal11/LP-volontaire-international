@@ -17,10 +17,10 @@ export default function AdminApplicationsClientWrapper({ applications }: { appli
         router.push("/")
         break
       case "admin-dashboard":
-        router.push("/admin/dashboard")
+        router.push("/backoffice/dashboard")
         break
       case "admin-analytics":
-        router.push("/admin/analytics")
+        router.push("/backoffice/statistics")
         break
       default:
         break
@@ -28,7 +28,7 @@ export default function AdminApplicationsClientWrapper({ applications }: { appli
   }
 
   const handleSelectCandidate = (id: string) => {
-    router.push(`/admin/applications/${id}`)
+    router.push(`/backoffice/applications/${id}`)
   }
   
   const handleStatusChange = async (id: string, status: string) => {

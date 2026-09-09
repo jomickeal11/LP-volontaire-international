@@ -23,19 +23,19 @@ export default function AdminPartnerRequestDetailWrapper({
         router.push(`/${lang}`)
         break
       case "admin-partner-requests":
-        router.push(`/${lang}/admin/partners/requests`)
+        router.push(`/${lang}/backoffice/partners/requests`)
         break
       case "admin-partners":
-        router.push(`/${lang}/admin/partners`)
+        router.push(`/${lang}/backoffice/partners`)
         break
       case "admin-applications":
-        router.push(`/${lang}/admin/applications`)
+        router.push(`/${lang}/backoffice/applications`)
         break
       case "admin-dashboard":
-        router.push(`/${lang}/admin/dashboard`)
+        router.push(`/${lang}/backoffice/dashboard`)
         break
       default:
-        router.push(`/${lang}/admin/partners/requests`)
+        router.push(`/${lang}/backoffice/partners/requests`)
         break
     }
   }

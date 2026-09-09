@@ -190,7 +190,7 @@ export default function AdminLayout({
             APTIC-R
           </div>
           <div className="text-[11px] font-semibold tracking-wider uppercase text-[#8898AA]">
-            Portail Admin
+            Back-office
           </div>
         </div>
       </div>
