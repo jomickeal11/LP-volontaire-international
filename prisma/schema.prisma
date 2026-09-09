@@ -72,7 +72,7 @@ model Candidat {
 // ─── 2. CANDIDATURES (Applications aux missions) ──────────────────────────────
 model Candidature {
   id              String   @id @default(cuid())
-  referenceNumber String   @unique // Ex: APTIC-2025-001
+  referenceNumber String   @unique // Ex: CAND-2026-XXXX
   candidateId     String
   candidate       Candidat @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 

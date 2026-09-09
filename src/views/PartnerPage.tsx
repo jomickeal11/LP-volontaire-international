@@ -631,7 +631,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
 
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
-  const [submittedRef, setSubmittedRef] = useState("PART-2026-001")
+  const [submittedRef, setSubmittedRef] = useState("PART-2026-0001")
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
 
@@ -840,7 +840,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
           metadata: { orgName: form.orgName, reference: res.data.referenceNumber },
         })
         localStorage.removeItem("apticPartnerFormDraft")
-        setSubmittedRef(res.data.referenceNumber || "PART-2026-001")
+        setSubmittedRef(res.data.referenceNumber || "PART-2026-0001")
         setSubmitted(true)
         window.scrollTo({ top: 0, behavior: "smooth" })
       } else {

@@ -50,11 +50,11 @@ function validateUploadedFile(file: File, buffer?: Buffer): { valid: boolean; er
   return { valid: true }
 }
 
-// Generates APTIC-YYYY-XXXX (4 random hex chars)
+// Generates CAND-YYYY-XXXX (4 random hex chars)
 function generateReferenceNumber(): string {
   const year = new Date().getFullYear()
   const randomStr = randomBytes(2).toString('hex').toUpperCase()
-  return `APTIC-${year}-${randomStr}`
+  return `CAND-${year}-${randomStr}`
 }
 
 export async function submitCandidateApplication(

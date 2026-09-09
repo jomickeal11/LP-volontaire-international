@@ -121,7 +121,7 @@ export default function AdminPartnerRequestDetail({
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">
-                {data.referenceNumber || "DEMANDE-PART"}
+                {data.referenceNumber || "PART-2026-0001"}
               </span>
               <span className="text-xs text-slate-400">Reçue le {data.createdAt}</span>
             </div>

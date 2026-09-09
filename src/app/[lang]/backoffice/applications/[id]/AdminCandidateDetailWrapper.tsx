@@ -70,7 +70,7 @@ export default function AdminCandidateDetailWrapper({ application }: { applicati
       : (application.experience || "—"),
     digitalSkillLevel: application.digitalSkillLevel || "—",
     languages: application.languages || null,
-    reference: application.referenceNumber || application.reference || "APTIC-2026-0001",
+    reference: application.referenceNumber || application.reference || "CAND-2026-0001",
     motivation: application.motivation || "",
     projectExperience: application.projectExperience || "—",
     skills: application.skills.map((s: any) => s.skill.nameFr || s.skill.nameEn),

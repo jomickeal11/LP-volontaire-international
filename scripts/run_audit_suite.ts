@@ -152,7 +152,7 @@ async function main() {
     }
 
     createdCandidatureId = result.data.id
-    if (!result.data.referenceNumber?.startsWith("APTIC-")) {
+    if (!result.data.referenceNumber?.startsWith("CAND-")) {
       throw new Error(`Format de référence non conforme: ${result.data.referenceNumber}`)
     }
 

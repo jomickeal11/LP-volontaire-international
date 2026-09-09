@@ -93,7 +93,7 @@ export interface PartnerRequestRecord {
 const initialApplications: ApplicationRecord[] = [
   {
     id: "APP_001",
-    referenceNumber: "APTIC-2025-001",
+    referenceNumber: "CAND-2026-0001",
     candidateId: "CAND_001",
     candidate: {
       id: "CAND_001",
@@ -193,7 +193,7 @@ const initialApplications: ApplicationRecord[] = [
   },
   {
     id: "APP_002",
-    referenceNumber: "APTIC-2025-002",
+    referenceNumber: "CAND-2026-0002",
     candidateId: "CAND_002",
     candidate: {
       id: "CAND_002",
@@ -276,7 +276,7 @@ const initialApplications: ApplicationRecord[] = [
   },
   {
     id: "APP_003",
-    referenceNumber: "APTIC-2025-003",
+    referenceNumber: "CAND-2026-0003",
     candidateId: "CAND_003",
     candidate: {
       id: "CAND_003",
@@ -358,7 +358,7 @@ const initialApplications: ApplicationRecord[] = [
   },
   {
     id: "APP_004",
-    referenceNumber: "APTIC-2025-004",
+    referenceNumber: "CAND-2026-0004",
     candidateId: "CAND_004",
     candidate: {
       id: "CAND_004",
@@ -481,7 +481,7 @@ class DataStore {
     lang: "FR" | "EN" | "DE" = "FR",
   ): ApplicationRecord {
     const nextSeq = this.applications.length + 1
-    const refNum = `APTIC-2025-${String(nextSeq).padStart(3, "0")}`
+    const refNum = `CAND-2026-${String(nextSeq).padStart(4, "0")}`
     const candId = `CAND_${String(nextSeq).padStart(3, "0")}`
     const appId = `APP_${String(nextSeq).padStart(3, "0")}`
 
