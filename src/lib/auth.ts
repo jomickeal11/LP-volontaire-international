@@ -1,4 +1,5 @@
-import { SignJWT, jwtVerify } from "jose"
+import { SignJWT } from "jose/jwt/sign"
+import { jwtVerify } from "jose/jwt/verify"
 import { cookies } from "next/headers"
 
 const secretKey = process.env.NEXTAUTH_SECRET || "default_development_secret_key"

@@ -31,6 +31,34 @@ const STATUS_WORKFLOW: CandidateStatus[] = [
   "COMPLETED",
 ]
 
+const parseCandidateLanguages = (raw: any): { label: string; level: string }[] => {
+  if (!raw) return []
+  try {
+    const obj = typeof raw === "string" ? JSON.parse(raw) : raw
+    if (!obj || typeof obj !== "object") return []
+    const levelLabels: Record<string, string> = {
+      none: "Aucun",
+      basic: "Notions",
+      intermediate: "Intermédiaire",
+      advanced: "Courant",
+      native: "Langue maternelle",
+    }
+    const res: { label: string; level: string }[] = []
+    if (obj.french) {
+      res.push({ label: "Français", level: levelLabels[obj.french] || obj.french })
+    }
+    if (obj.english) {
+      res.push({ label: "Anglais", level: levelLabels[obj.english] || obj.english })
+    }
+    if (obj.german && obj.german !== "none") {
+      res.push({ label: "Allemand", level: levelLabels[obj.german] || obj.german })
+    }
+    return res
+  } catch {
+    return []
+  }
+}
+
 interface Props {
   candidateId: string
   navigate: (p: Page) => void
@@ -455,6 +483,25 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
                     <div className="grid grid-cols-3 gap-2 items-baseline">
                       <span className="text-slate-400 text-[13px]">Niveau num.</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.digitalSkillLevel || "—"}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 items-baseline">
+                      <span className="text-slate-400 text-[13px]">Langues</span>
+                      <div className="col-span-2 flex flex-wrap gap-1.5">
+                        {(() => {
+                          const langs = parseCandidateLanguages(candidate.languages)
+                          if (langs.length === 0) {
+                            return <span className="text-slate-400 text-sm italic">—</span>
+                          }
+                          return langs.map((l) => (
+                            <span
+                              key={l.label}
+                              className="text-xs px-2.5 py-1 rounded-md font-semibold bg-[#EAF5ED] text-[#174F7A] border border-[#D8E2E9]"
+                            >
+                              <strong className="text-slate-800">{l.label} :</strong> {l.level}
+                            </span>
+                          ))
+                        })()}
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -25,6 +25,7 @@ export const candidateApplicationSchema = z.object({
   ]),
 
   digitalSkillLevel: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]),
+  languages: z.string().optional(),
 
   skills: z
     .array(z.string())
@@ -43,11 +44,11 @@ export const candidateApplicationSchema = z.object({
 
   motivation: z
     .string()
-    .min(20, "La motivation doit comporter au moins 20 caractères")
+    .min(50, "La motivation doit comporter au moins 50 caractères")
     .max(5000, "La motivation ne doit pas dépasser 5000 caractères"),
   projectExp: z
     .string()
-    .min(20, "L'expérience projet doit comporter au moins 20 caractères")
+    .min(50, "L'expérience projet doit comporter au moins 50 caractères")
     .max(5000, "L'expérience projet ne doit pas dépasser 5000 caractères"),
 
   cvFile: z.string().min(1, "Le CV est obligatoire"),
@@ -75,7 +76,7 @@ export const partnerRequestSchema = z.object({
   programme: z.string().optional(),
   message: z
     .string()
-    .min(10, "Votre message doit comporter au moins 10 caractères"),
+    .min(50, "Votre message doit comporter au moins 50 caractères"),
   docFile: z.string().optional(),
   consent: z.boolean().refine((val) => val === true, {
     message: "Le consentement est obligatoire",

@@ -92,11 +92,17 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
     <section className="relative z-10 min-h-[95vh] lg:min-h-screen flex flex-col">
       {/* Background Layer with overflow hidden */}
       <div className="absolute inset-0 overflow-hidden">
-        <img
-          src="/hero_volunteer_collab.jpg"
-          alt="Collaboration in Togo"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        <picture>
+          <source srcSet="/hero_volunteer_collab.avif" type="image/avif" />
+          <source srcSet="/hero_volunteer_collab.webp" type="image/webp" />
+          <img
+            src="/hero_volunteer_collab.jpg"
+            alt="Collaboration in Togo"
+            className="absolute inset-0 w-full h-full object-cover"
+            fetchPriority="high"
+            decoding="async"
+          />
+        </picture>
         <div
           className="absolute inset-0"
           style={{ backgroundColor: "rgba(18,59,90,0.27)" }}

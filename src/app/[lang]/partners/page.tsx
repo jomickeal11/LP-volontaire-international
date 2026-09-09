@@ -1,6 +1,5 @@
 "use client"
 
-import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import PartnerPage from "@/views/PartnerPage"
 import type { Language, Page } from "@/types"
@@ -47,14 +46,12 @@ export default function PartnersRoute({
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header
-        lang={language}
-        setLang={handleSetLang}
-        currentPage="partner"
-        navigate={handleNavigate}
-      />
       <main className="flex-1">
-        <PartnerPage lang={language} navigate={handleNavigate} />
+        <PartnerPage
+          lang={language}
+          navigate={handleNavigate}
+          setLang={handleSetLang}
+        />
       </main>
       <Footer lang={language} navigate={handleNavigate} />
     </div>

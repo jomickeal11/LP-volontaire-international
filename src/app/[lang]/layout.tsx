@@ -101,6 +101,7 @@ export async function generateMetadata({
         },
       ],
       locale: currentLang === "fr" ? "fr_FR" : currentLang === "de" ? "de_DE" : "en_US",
+      alternateLocale: currentLang === "fr" ? ["en_US", "de_DE"] : currentLang === "de" ? ["fr_FR", "en_US"] : ["fr_FR", "de_DE"],
       type: "website",
     },
     twitter: {
@@ -112,6 +113,9 @@ export async function generateMetadata({
     icons: {
       icon: "/aptic-logo.png",
       apple: "/aptic-logo.png",
+    },
+    verification: {
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "google-site-verification-apticr-code",
     },
     robots: {
       index: true,

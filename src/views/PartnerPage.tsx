@@ -174,6 +174,7 @@ function PhoneInputField({
   onPhoneChange,
   placeholder,
   required,
+  lang = "FR",
 }: {
   label: string
   countryCode: string
@@ -183,7 +184,9 @@ function PhoneInputField({
   onPhoneChange: (v: string) => void
   placeholder?: string
   required?: boolean
+  lang?: Language
 }) {
+  const currentLang = (lang || "FR").toUpperCase()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
   const containerRef = useRef<HTMLDivElement>(null)
@@ -234,6 +237,13 @@ function PhoneInputField({
     }
   }
 
+  const optionalText = currentLang === "DE" ? "— optional" : currentLang === "EN" ? "— optional" : "— optionnel"
+  const codeLabel = currentLang === "DE" ? "Vorwahl" : currentLang === "EN" ? "Code" : "Indicatif"
+  const searchPlaceholder = currentLang === "DE" ? "Land oder Vorwahl suchen..." : currentLang === "EN" ? "Search country or dial code..." : "Rechercher pays ou indicatif..."
+  const frequentLabel = currentLang === "DE" ? "Häufige Länder" : currentLang === "EN" ? "Frequent countries" : "Pays fréquents"
+  const allCountriesLabel = currentLang === "DE" ? "Alle Länder" : currentLang === "EN" ? "All countries" : "Tous les pays"
+  const noCountryText = currentLang === "DE" ? `Kein Land gefunden für "${search}"` : currentLang === "EN" ? `No country found for "${search}"` : `Aucun pays trouvé pour "${search}"`
+
   return (
     <div className="flex flex-col gap-1.5 w-full relative" ref={containerRef}>
       <label className="text-sm font-semibold flex items-center gap-1" style={{ color: TEXT_DARK }}>
@@ -241,7 +251,7 @@ function PhoneInputField({
         {required ? (
           <span className="text-red-500 font-bold">*</span>
         ) : (
-          <span className="text-xs font-normal text-slate-400">— optionnel</span>
+          <span className="text-xs font-normal text-slate-400">{optionalText}</span>
         )}
       </label>
 
@@ -276,7 +286,7 @@ function PhoneInputField({
           ) : (
             <div className="flex items-center gap-1.5 text-slate-500">
               <GlobeIcon size={16} className="shrink-0 text-slate-400" />
-              <span className="text-xs font-medium">Indicatif</span>
+              <span className="text-xs font-medium">{codeLabel}</span>
             </div>
           )}
           <svg
@@ -323,7 +333,7 @@ function PhoneInputField({
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher pays ou indicatif..."
+                placeholder={searchPlaceholder}
                 className="w-full px-3 py-2 text-xs rounded-lg outline-none bg-white border border-[#D8E2E9] focus:border-[#174F7A]"
                 autoFocus
               />
@@ -332,7 +342,7 @@ function PhoneInputField({
               {!search && (
                 <div>
                   <div className="px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">
-                    Pays fréquents
+                    {frequentLabel}
                   </div>
                   {filteredFrequent.map((c) => {
                     const isSelected = countryIso === c.code || (!countryIso && countryCode === c.dial)
@@ -362,7 +372,7 @@ function PhoneInputField({
               <div>
                 {!search && (
                   <div className="px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">
-                    Tous les pays
+                    {allCountriesLabel}
                   </div>
                 )}
                 {filteredAll.length > 0 ? (
@@ -391,7 +401,7 @@ function PhoneInputField({
                   })
                 ) : (
                   <div className="p-4 text-center text-xs text-slate-400">
-                    Aucun pays trouvé pour "{search}"
+                    {noCountryText}
                   </div>
                 )}
               </div>
@@ -410,7 +420,8 @@ function SelectField({
   onChange,
   required,
   error,
-  placeholder = "Sélectionner...",
+  placeholder,
+  lang = "FR",
 }: {
   label: string
   options: { label: string; value: string }[] | readonly string[]
@@ -419,7 +430,12 @@ function SelectField({
   required?: boolean
   error?: string
   placeholder?: string
+  lang?: Language
 }) {
+  const currentLang = (lang || "FR").toUpperCase()
+  const defaultPlaceholder = currentLang === "DE" ? "Auswählen..." : currentLang === "EN" ? "Select..." : "Sélectionner..."
+  const optionalText = currentLang === "DE" ? "— optional" : currentLang === "EN" ? "— optional" : "— optionnel"
+
   return (
     <div className="flex flex-col gap-1.5 w-full">
       <label className="text-sm font-semibold flex items-center gap-1" style={{ color: TEXT_DARK }}>
@@ -427,7 +443,7 @@ function SelectField({
         {required ? (
           <span className="text-red-500 font-bold">*</span>
         ) : (
-          <span className="text-xs font-normal text-slate-400">— optionnel</span>
+          <span className="text-xs font-normal text-slate-400">{optionalText}</span>
         )}
       </label>
       <select
@@ -532,18 +548,27 @@ function FileUpload({
   optional = true,
   fileName,
   onFile,
+  lang = "FR",
 }: {
   label: string
   optional?: boolean
   fileName: string
   onFile: (file: File | null) => void
+  lang?: Language
 }) {
+  const currentLang = (lang || "FR").toUpperCase()
+  const optionalText = currentLang === "DE" ? "— optional" : currentLang === "EN" ? "— optional" : "— optionnel"
+  const removeText = currentLang === "DE" ? "Entfernen" : currentLang === "EN" ? "Remove" : "Supprimer"
+  const clickText = currentLang === "DE" ? "Klicken zum Hochladen" : currentLang === "EN" ? "Click to upload" : "Cliquez pour ajouter un fichier"
+  const dragText = currentLang === "DE" ? "oder Drag & Drop" : currentLang === "EN" ? "or drag and drop" : "ou glissez-déposez"
+  const formatsText = currentLang === "DE" ? "PDF, DOC, DOCX oder PPT bis zu 15 MB" : currentLang === "EN" ? "PDF, DOC, DOCX or PPT up to 15 MB" : "PDF, DOC, DOCX ou PPT jusqu'à 15 Mo"
+
   return (
     <div className="flex flex-col gap-1.5 w-full">
       <label className="text-sm font-semibold flex items-center gap-1" style={{ color: TEXT_DARK }}>
         <span>{label}</span>
         {optional ? (
-          <span className="text-xs font-normal text-slate-400">— optionnel</span>
+          <span className="text-xs font-normal text-slate-400">{optionalText}</span>
         ) : (
           <span className="text-red-500 font-bold">*</span>
         )}
@@ -564,9 +589,9 @@ function FileUpload({
           <button
             type="button"
             onClick={() => onFile(null)}
-            className="text-xs font-semibold px-2.5 py-1 rounded-md text-red-600 hover:bg-red-50 transition-colors shrink-0 ml-3"
+            className="text-xs font-semibold px-2.5 py-1 rounded-md text-red-600 hover:bg-red-50 transition-colors shrink-0 ml-3 cursor-pointer"
           >
-            Supprimer
+            {removeText}
           </button>
         </div>
       ) : (
@@ -581,9 +606,9 @@ function FileUpload({
             </svg>
           </div>
           <div className="text-sm font-medium text-slate-700 text-center">
-            Cliquez pour ajouter un fichier <span className="text-slate-400 font-normal">ou glissez-déposez</span>
+            {clickText} <span className="text-slate-400 font-normal">{dragText}</span>
           </div>
-          <div className="text-xs text-slate-400">PDF, DOC, DOCX ou PPT jusqu'à 15 Mo</div>
+          <div className="text-xs text-slate-400">{formatsText}</div>
           <input
             type="file"
             className="hidden"
@@ -600,7 +625,7 @@ function FileUpload({
 }
 
 // ── Main Partner Page Component ─────────────────────────────────────────────
-export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
+export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProps) {
   const currentLang = (lang || "FR").toUpperCase() as keyof typeof translations
   const t = translations[currentLang] || translations.FR
 
@@ -723,7 +748,7 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
       case 2:
         return form.volunteerCount.trim().length > 0
       case 3:
-        return form.message.trim().length >= 10
+        return form.message.trim().length >= 50
       case 4:
         return form.consent
       default:
@@ -768,8 +793,8 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
       setLoading(false)
       return
     }
-    if (form.message.trim().length < 10) {
-      setErrorMessage(currentLang === "DE" ? "Ihre Nachricht muss mindestens 10 Zeichen lang sein." : currentLang === "EN" ? "Your message must be at least 10 characters." : "Votre message doit comporter au moins 10 caractères.")
+    if (form.message.trim().length < 50) {
+      setErrorMessage(currentLang === "DE" ? "Ihre Nachricht muss mindestens 50 Zeichen lang sein." : currentLang === "EN" ? "Your message must be at least 50 characters." : "Votre message doit comporter au moins 50 caractères.")
       setLoading(false)
       return
     }
@@ -845,19 +870,19 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
             className="inline-block text-xs font-mono font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full mb-4"
             style={{ backgroundColor: "#E8F2FA", color: BLUE }}
           >
-            Référence : {submittedRef}
+            {(t.apply?.success?.ref || (currentLang === "DE" ? "Referenz: " : currentLang === "EN" ? "Reference: " : "Référence : "))} {submittedRef}
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3 text-[#1A2B3C]">
-            {t.partner?.success?.title || "Demande de partenariat envoyée."}
+            {t.partner?.success?.title || (currentLang === "DE" ? "Partnerschaftsanfrage gesendet." : currentLang === "EN" ? "Partnership request sent." : "Demande de partenariat envoyée.")}
           </h1>
           <p className="text-sm sm:text-base mb-2 text-slate-600 leading-relaxed">
-            {t.partner?.success?.thanks || "Merci, "}<strong>{form.orgName}</strong>{t.partner?.success?.received || " ! Votre demande de partenariat a bien été reçue par APTIC-R."}
+            {t.partner?.success?.thanks || (currentLang === "DE" ? "Vielen Dank, " : currentLang === "EN" ? "Thank you, " : "Merci, ")}<strong>{form.orgName}</strong>{t.partner?.success?.received || (currentLang === "DE" ? "! Ihre Partnerschaftsanfrage ist bei APTIC-R eingegangen." : currentLang === "EN" ? "! Your partnership request has been received by APTIC-R." : " ! Votre demande de partenariat a bien été reçue par APTIC-R.")}
           </p>
           <p className="text-xs sm:text-sm mb-8 text-slate-400 leading-relaxed">
-            {t.partner?.success?.review || "Nous étudierons votre demande et répondrons à "}
+            {t.partner?.success?.review || (currentLang === "DE" ? "Wir werden Ihre Anfrage prüfen und uns innerhalb von 5 Werktagen unter " : currentLang === "EN" ? "We will review your enquiry and respond to " : "Nous étudierons votre demande et répondrons à ")}
             <strong className="text-slate-600">{form.email}</strong>
-            {t.partner?.success?.timeframe || " sous 5 jours ouvrés."}
+            {t.partner?.success?.timeframe || (currentLang === "DE" ? " bei Ihnen melden." : currentLang === "EN" ? " within 5 business days." : " sous 5 jours ouvrés.")}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -866,7 +891,7 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
               className="font-bold text-sm px-6 py-3.5 rounded-xl text-white transition-all shadow-sm hover:opacity-90 cursor-pointer"
               style={{ backgroundColor: BLUE }}
             >
-              {t.partner?.success?.backHome || "Retour à l'accueil"}
+              {t.partner?.success?.backHome || (currentLang === "DE" ? "Zurück zur Startseite" : currentLang === "EN" ? "Back to Homepage" : "Retour à l'accueil")}
             </button>
           </div>
         </div>
@@ -882,22 +907,77 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
         fontFamily: "'Plus Jakarta Sans', 'Outfit', system-ui, -apple-system, sans-serif",
       }}
     >
-      {/* ── 1. HEADER BANNER / CONTEXTE (Directement inspiré de ApplyPage) ──── */}
-      <section className="border-b" style={{ backgroundColor: BG_LIGHT, borderColor: "#EAF0F4", paddingTop: 80 }}>
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      {/* ── 1. HEADER (Simple, barre d'identité dédiée au formulaire partenaire) ── */}
+      <header className="sticky top-0 z-40 bg-white border-b" style={{ borderColor: "#EAF0F4" }}>
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          {/* Gauche : Logo + APTIC-R Partners */}
+          <button
+            onClick={() => navigate("home")}
+            className="flex items-center gap-3 cursor-pointer text-left group"
+            aria-label="APTIC-R Accueil"
+          >
+            <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-[#D8E2E9] flex items-center justify-center p-0.5 shadow-2xs group-hover:border-[#174F7A] transition-colors">
+              <img src="/aptic-logo.png" alt="APTIC-R Logo" className="w-full h-full object-contain" />
+            </div>
+            <div>
+              <div className="font-extrabold text-sm leading-none tracking-tight text-[#174F7A]">APTIC-R</div>
+              <div className="text-[9px] font-bold tracking-[0.12em] uppercase mt-0.5 text-slate-500">
+                {currentLang === "DE" ? "Partnerorganisationen" : currentLang === "EN" ? "Partner Organizations" : "Organisations Partenaires"}
+              </div>
+            </div>
+          </button>
+
+          {/* Droite : Bouton Visiter le site + Sélecteur FR EN DE */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button
+              onClick={() => navigate("home")}
+              className="hidden sm:flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors cursor-pointer hover:opacity-80"
+              style={{ color: BLUE, backgroundColor: "#E8F2FA" }}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              {currentLang === "DE" ? "Website ansehen" : currentLang === "EN" ? "Visit website" : "Visiter le site"}
+            </button>
+
+            <div className="h-4 w-[1px] bg-slate-200 hidden sm:block" />
+
+            <div className="flex items-center gap-1 bg-[#F5F7F9] p-1 rounded-lg border border-[#EAF0F4]">
+              {(["FR", "EN", "DE"] as Language[]).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setLang?.(l)}
+                  className="px-2.5 py-1 text-xs font-bold rounded-md transition-all cursor-pointer uppercase"
+                  style={{
+                    backgroundColor: currentLang === l ? "#FFFFFF" : "transparent",
+                    color: currentLang === l ? BLUE : "#5E6B76",
+                    boxShadow: currentLang === l ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                  }}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* ── 2. CONTEXTE PARTENARIAT (Bloc horizontal épuré avec photo) ── */}
+      <section className="border-b" style={{ backgroundColor: BG_LIGHT, borderColor: "#EAF0F4" }}>
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-7">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-10">
             {/* Texte de présentation */}
             <div className="flex-1 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-white text-[#174F7A] border border-[#D8E2E9] shadow-2xs mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-white text-[#174F7A] border border-[#D8E2E9] shadow-2xs mb-2.5">
                 <span className="w-2 h-2 rounded-full bg-[#35A85A]" />
                 <span>{t.partner?.hero?.tag || (currentLang === "DE" ? "FÜR ORGANISATIONEN" : currentLang === "EN" ? "FOR ORGANIZATIONS" : "POUR LES ORGANISATIONS")}</span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-[38px] font-extrabold tracking-tight text-[#1A2B3C] mb-3 leading-tight">
+              <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-extrabold tracking-tight text-[#1A2B3C] mb-2 leading-tight">
                 {t.partner?.hero?.title || (currentLang === "DE" ? "Werden Sie Partner von APTIC-R" : currentLang === "EN" ? "Become a Partner of APTIC-R" : "Devenez partenaire d’APTIC-R")}
               </h1>
 
-              <p className="text-base sm:text-lg text-slate-600 leading-relaxed mb-4">
+              <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-3">
                 {t.partner?.hero?.desc || (currentLang === "DE" ? "APTIC-R sucht europäische Organisationen für langfristige Freiwilligenpartnerschaften in Togo." : currentLang === "EN" ? "APTIC-R is seeking European organizations interested in developing long-term volunteer partnerships in Togo." : "APTIC-R recherche des organisations intéressées par le développement de partenariats de volontariat à long terme au Togo.")}
               </p>
 
@@ -914,14 +994,20 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
               </div>
             </div>
 
-            {/* Photo modeste intégrée à droite */}
-            <div className="w-full sm:w-[360px] lg:w-[400px] shrink-0">
-              <div className="h-[200px] sm:h-[220px] rounded-2xl overflow-hidden shadow-sm border-2 border-white bg-slate-200">
-                <img
-                  src="/org_meeting.jpg"
-                  alt="Partenariat organisation et volontariat Togo"
-                  className="w-full h-full object-cover object-center"
-                />
+            {/* Photo intégrée à droite */}
+            <div className="w-full sm:w-[360px] lg:w-[390px] shrink-0">
+              <div className="h-[190px] sm:h-[210px] rounded-2xl overflow-hidden shadow-sm border-2 border-white bg-slate-200">
+                <picture>
+                  <source srcSet="/org_meeting.avif" type="image/avif" />
+                  <source srcSet="/org_meeting.webp" type="image/webp" />
+                  <img
+                    src="/org_meeting.jpg"
+                    alt="Partenariat organisation et volontariat Togo"
+                    className="w-full h-full object-cover object-center"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </picture>
               </div>
             </div>
           </div>
@@ -1072,6 +1158,7 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                         phone={form.phone}
                         onPhoneChange={(v) => set("phone", v)}
                         placeholder="01 23 45 67 89"
+                        lang={lang}
                       />
                     </div>
 
@@ -1190,8 +1277,8 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                           : "Présentez brièvement votre structure, vos attentes et les objectifs que vous souhaitez donner à ce partenariat de volontariat au Togo."}
                       </p>
                       <TextareaField
-                        label={t.partner?.form?.message || "Message"}
-                        placeholder={t.partner?.form?.messagePlaceholder || "Présentez brièvement votre projet de partenariat..."}
+                        label={t.partner?.form?.message || (currentLang === "DE" ? "Nachricht" : currentLang === "EN" ? "Message" : "Message")}
+                        placeholder={t.partner?.form?.messagePlaceholder || (currentLang === "DE" ? "Stellen Sie kurz Ihr Partnerschaftsvorhaben vor..." : currentLang === "EN" ? "Briefly outline your partnership project..." : "Présentez brièvement votre projet de partenariat...")}
                         value={form.message}
                         onChange={(v) => set("message", v)}
                         rows={7}
@@ -1200,8 +1287,8 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                       />
                       <div className="flex justify-between items-center text-xs text-slate-400 mt-1">
                         <span>
-                          {form.message.trim().length < 10 ? (
-                            currentLang === "DE" ? "Mindestens 10 Zeichen" : currentLang === "EN" ? "Minimum 10 characters" : "Minimum 10 caractères"
+                          {form.message.trim().length < 50 ? (
+                            currentLang === "DE" ? "Mindestens 50 Zeichen" : currentLang === "EN" ? "Minimum 50 characters" : "Minimum 50 caractères"
                           ) : (
                             <span className="inline-flex items-center gap-1 text-[#35A85A] font-medium">
                               <CheckIcon className="w-3.5 h-3.5" /> {currentLang === "DE" ? "Ausreichende Länge" : currentLang === "EN" ? "Sufficient length" : "Longueur suffisante"}
@@ -1214,10 +1301,11 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
 
                     <div className="pt-2">
                       <FileUpload
-                        label={t.partner?.form?.doc || "Document de présentation"}
+                        label={t.partner?.form?.doc || (currentLang === "DE" ? "Präsentationsdokument" : currentLang === "EN" ? "Presentation document" : "Document de présentation")}
                         optional
                         fileName={form.docFile?.name || ""}
                         onFile={(f) => set("docFile", f)}
+                        lang={lang}
                       />
                       <p className="text-xs text-slate-400 mt-2">
                         {currentLang === "DE"
@@ -1458,11 +1546,25 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                   <span>{currentLang === "DE" ? "PARTNERRAHMEN" : currentLang === "EN" ? "PARTNER FRAMEWORK" : "CADRE PARTENAIRE"}</span>
                 </div>
                 <ul className="space-y-2.5 text-xs text-slate-700 leading-relaxed">
-                  {(t.partner?.sidebar?.reasons || [
-                    "Missions de 6 à 12 mois adaptées à vos programmes",
-                    "Accompagnement et mentorat local continu à Agbélouvé",
-                    "Suivi transparent, rapports réguliers et conventionnement officiel",
-                  ]).slice(0, 3).map((reason, idx) => (
+                  {(t.partner?.sidebar?.reasons || (
+                    currentLang === "DE"
+                      ? [
+                          "6- bis 12-monatige Einsätze, angepasst an Ihre Programme",
+                          "Kontinuierliche lokale Betreuung und Mentoring in Agbélouvé",
+                          "Transparente Begleitung, regelmäßige Berichte und offizielle Vereinbarung",
+                        ]
+                      : currentLang === "EN"
+                      ? [
+                          "6 to 12-month missions tailored to your programmes",
+                          "Continuous local support and mentoring in Agbélouvé",
+                          "Transparent monitoring, regular reports, and official agreement",
+                        ]
+                      : [
+                          "Missions de 6 à 12 mois adaptées à vos programmes",
+                          "Accompagnement et mentorat local continu à Agbélouvé",
+                          "Suivi transparent, rapports réguliers et conventionnement officiel",
+                        ]
+                  )).slice(0, 3).map((reason, idx) => (
                     <li key={idx} className="flex items-start gap-2">
                       <CheckIcon size={14} className="text-[#35A85A] mt-0.5 shrink-0" />
                       <span>{reason}</span>
@@ -1495,7 +1597,7 @@ export default function PartnerPage({ navigate, lang }: PartnerPageProps) {
                     href="tel:+22891201990"
                     className="font-semibold text-slate-600 hover:text-[#174F7A] flex items-center gap-1.5"
                   >
-                    <span>{currentLang === "DE" ? "Tel" : "Tél"} : +228 91 20 19 90</span>
+                    <span>{currentLang === "DE" ? "Tel." : currentLang === "EN" ? "Phone" : "Tél."} : +228 91 20 19 90</span>
                     <span>→</span>
                   </a>
                 </div>

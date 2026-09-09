@@ -69,6 +69,7 @@ export default function AdminCandidateDetailWrapper({ application }: { applicati
       : application.experienceLevel === 'FIVE_PLUS_YEARS' ? '5+ ans' 
       : (application.experience || "—"),
     digitalSkillLevel: application.digitalSkillLevel || "—",
+    languages: application.languages || null,
     reference: application.referenceNumber || application.reference || "APTIC-2026-0001",
     motivation: application.motivation || "",
     projectExperience: application.projectExperience || "—",

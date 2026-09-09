@@ -85,6 +85,7 @@ model Candidature {
   profession        String
   experienceLevel   ExperienceDuration
   digitalSkillLevel String
+  languages         String?            @default("{}")
 
   // Disponibilité & Mission
   arrivalDate DateTime

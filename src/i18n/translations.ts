@@ -406,7 +406,7 @@ const translations = {
         s1: 'Your contact details and civil info', s2: 'Your academic background and languages', s3: 'Select the fields where you can contribute', s4: 'Desired period and duration for your mission', s5: 'Express the reasons for your commitment', s6: 'Share a significant achievement or experience', s7: 'Upload your CV and cover letter', s8: 'Help us know how you found out about the program', s9: 'Review your application before submitting'
       },
       sidebar: {
-        progression: 'PROGRESSION',
+        progression: 'PROGRESS',
         step: 'STEP',
         of: 'OF',
         ofLower: 'of',
@@ -504,7 +504,7 @@ const translations = {
         expPlaceholder: 'e.g. Share a concrete technical project, community initiative, or associative work you have accomplished...',
         docsTitle: 'Documents',
         cv: 'CV / Résumé',
-        coverLetter: 'Cover Letter / Lettre de motivation',
+        coverLetter: 'Cover Letter',
         portfolio: 'Portfolio',
         sourceTitle: 'How did you hear about APTIC-R? (Optional)',
         reviewTitle: 'Review & Submit',
@@ -529,12 +529,13 @@ const translations = {
         professionReq: 'Please specify your profession or current status.',
         experienceReq: 'Please specify your experience level.',
         digitalReq: 'Please specify your digital skill level.',
+        languagesReq: 'Please evaluate your language proficiency (French and English are required).',
         skillsReq: 'Please select at least one skill.',
         arrivalReq: 'Please specify your desired arrival date.',
         durationReq: 'Please select your desired mission duration.',
-        motivationLen: 'Please detail your motivation (at least 20 characters).',
+        motivationLen: 'Please detail your motivation (at least 50 characters).',
         motivationMax: 'Motivation must not exceed 5000 characters.',
-        projectLen: 'Please detail your project experience (at least 20 characters).',
+        projectLen: 'Please detail your project experience (at least 50 characters).',
         projectMax: 'Project experience must not exceed 5000 characters.',
         cvReq: 'Resume / CV is required.',
         letterReq: 'Cover letter is required.',
@@ -542,6 +543,7 @@ const translations = {
         consentReq: 'Please accept the data processing terms to submit your application.',
         submitError: 'An error occurred during submission.',
         min20: 'Minimum 20 characters required',
+        min50: 'Minimum 50 characters required',
         max5000: 'Maximum 5000 characters'
       },
       success: {
@@ -793,12 +795,13 @@ const translations = {
         professionReq: 'Veuillez renseigner votre profession ou statut.',
         experienceReq: 'Veuillez renseigner votre niveau d\'expérience.',
         digitalReq: 'Veuillez renseigner votre niveau de compétences numériques.',
+        languagesReq: 'Veuillez renseigner votre niveau de langues (Français et Anglais obligatoires).',
         skillsReq: 'Veuillez sélectionner au moins une compétence.',
         arrivalReq: 'Veuillez renseigner votre date d\'arrivée souhaitée.',
         durationReq: 'Veuillez sélectionner la durée souhaitée.',
-        motivationLen: 'Veuillez détailler votre motivation (au moins 20 caractères).',
+        motivationLen: 'Veuillez détailler votre motivation (au moins 50 caractères).',
         motivationMax: 'La motivation ne doit pas dépasser 5000 caractères.',
-        projectLen: 'Veuillez détailler votre expérience projet (au moins 20 caractères).',
+        projectLen: 'Veuillez détailler votre expérience projet (au moins 50 caractères).',
         projectMax: 'L\'expérience projet ne doit pas dépasser 5000 caractères.',
         cvReq: 'Le CV est obligatoire.',
         letterReq: 'La lettre de motivation est obligatoire.',
@@ -806,6 +809,7 @@ const translations = {
         consentReq: 'Veuillez accepter les conditions de traitement des données pour soumettre votre candidature.',
         submitError: 'Une erreur s\'est produite lors de la soumission.',
         min20: 'Minimum 20 caractères requis',
+        min50: 'Minimum 50 caractères requis',
         max5000: 'Maximum 5000 caractères'
       },
       success: {
@@ -1711,6 +1715,62 @@ const translations = {
       steps: {
         s1: 'Persönliche Infos', s2: 'Profil', s3: 'Fähigkeiten', s4: 'Verfügbarkeit', s5: 'Motivation', s6: 'Erfahrung', s7: 'Dokumente', s8: 'Quelle', s9: 'Zusammenfassung'
       },
+      stepDescs: {
+        s1: 'Ihre Kontaktdaten und persönlichen Informationen',
+        s2: 'Ihr akademischer Werdegang und Sprachkenntnisse',
+        s3: 'Wählen Sie die Bereiche, in denen Sie beitragen können',
+        s4: 'Gewünschter Zeitraum und Dauer Ihres Einsatzes in Togo',
+        s5: 'Begründen Sie Ihre Motivation für den Einsatz bei APTIC-R',
+        s6: 'Teilen Sie eine bedeutende Erfahrung oder ein Projekt',
+        s7: 'Laden Sie Ihren Lebenslauf und Ihr Motivationsschreiben hoch',
+        s8: 'Helfen Sie uns zu erfahren, wie Sie auf das Programm aufmerksam wurden',
+        s9: 'Überprüfen Sie Ihre Bewerbung vor dem Absenden'
+      },
+      sidebar: {
+        progression: 'FORTSCHRITT',
+        step: 'SCHRITT',
+        of: 'VON',
+        ofLower: 'von',
+        yourApplication: 'IHRE BEWERBUNG',
+        country: 'Land:',
+        duration: 'Dauer:',
+        skills: 'Fähigkeiten:',
+        arrival: 'Ankunft:',
+        notProvided: 'Nicht angegeben',
+        toSpecify: 'Noch festzulegen',
+        none: 'Keine',
+        selected: 'ausgewählt',
+        checks: {
+          infoComplete: 'Informationen vollständig',
+          profileComplete: 'Profil ausgefüllt',
+          skillsSelected: 'Fähigkeiten ausgewählt',
+          availabilityIndicated: 'Verfügbarkeit angegeben',
+          documentsAdded: 'Dokumente hochgeladen'
+        },
+        help: {
+          title: 'Benötigen Sie Hilfe?',
+          desc: 'Fragen zum Einsatz, zu Togo oder zu Ihrer Bewerbung? Unser Team beantwortet diese gerne.',
+          contactBtn: 'APTIC-R kontaktieren'
+        }
+      },
+      review: {
+        disclaimer: 'Bitte überprüfen Sie die Angaben zu Ihrer Bewerbung sorgfältig, bevor Sie diese an das APTIC-R-Team übermitteln.',
+        sections: {
+          contact: 'Kontaktdaten',
+          mission: 'Einsatz & Verfügbarkeit',
+          docs: 'Dokumente'
+        },
+        edit: 'Bearbeiten',
+        fields: {
+          name: 'Name:', email: 'E-Mail:', phone: 'Telefon:', location: 'Land / Stadt:',
+          duration: 'Dauer:', arrival: 'Gewünschte Ankunft:', skills: 'Fähigkeiten',
+          cv: 'Lebenslauf:', letter: 'Motivationsschreiben:'
+        },
+        notProvided: 'Nicht angegeben',
+        none: 'Keine',
+        notSent: 'Nicht übermittelt',
+        consentLabel: 'Ich versichere die Richtigkeit der angegebenen Informationen und stimme zu, dass der Verein APTIC-R meine personenbezogenen Daten ausschließlich im Rahmen der Prüfung meiner Bewerbung für den internationalen Freiwilligendienst verarbeitet.'
+      },
       header: {
         tag: 'Bewerbung als Freiwilliger',
         title: 'Sammeln Sie Erfahrung in Togo',
@@ -1791,12 +1851,13 @@ const translations = {
         professionReq: 'Bitte geben Sie Ihren Beruf oder aktuellen Status an.',
         experienceReq: 'Bitte wählen Sie Ihre Erfahrungsstufe aus.',
         digitalReq: 'Bitte wählen Sie Ihr Niveau der digitalen Kompetenzen aus.',
+        languagesReq: 'Bitte bewerten Sie Ihre Sprachkenntnisse (Französisch und Englisch erforderlich).',
         skillsReq: 'Bitte wählen Sie mindestens eine Fähigkeit aus.',
         arrivalReq: 'Bitte geben Sie Ihr gewünschtes Ankunftsdatum an.',
         durationReq: 'Bitte wählen Sie die gewünschte Einsatzdauer aus.',
-        motivationLen: 'Bitte detaillieren Sie Ihre Motivation (mindestens 20 Zeichen).',
+        motivationLen: 'Bitte detaillieren Sie Ihre Motivation (mindestens 50 Zeichen).',
         motivationMax: 'Die Motivation darf 5000 Zeichen nicht überschreiten.',
-        projectLen: 'Bitte detaillieren Sie Ihre Projekterfahrung (mindestens 20 Zeichen).',
+        projectLen: 'Bitte detaillieren Sie Ihre Projekterfahrung (mindestens 50 Zeichen).',
         projectMax: 'Die Projekterfahrung darf 5000 Zeichen nicht überschreiten.',
         cvReq: 'Der Lebenslauf ist erforderlich.',
         letterReq: 'Das Motivationsschreiben ist erforderlich.',
@@ -1804,6 +1865,7 @@ const translations = {
         consentReq: 'Bitte akzeptieren Sie die Datenverarbeitungsbedingungen, um Ihre Bewerbung einzureichen.',
         submitError: 'Ein Fehler ist beim Senden aufgetreten.',
         min20: 'Mindestens 20 Zeichen erforderlich',
+        min50: 'Mindestens 50 Zeichen erforderlich',
         max5000: 'Maximal 5000 Zeichen'
       },
       success: {

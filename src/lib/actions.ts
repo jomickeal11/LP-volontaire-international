@@ -9,11 +9,47 @@ import {
   type PartnerRequestInput,
 } from "./validations"
 import prisma from "./prisma"
+import { verifySession } from "./auth"
+import { verifyMagicBytes, checkRateLimit, getClientIp } from "./security"
 import type { CandidateStatus, LanguageCode } from "@prisma/client"
-import { randomBytes } from "crypto"
+import { randomBytes, randomUUID } from "crypto"
 import { writeFile } from "fs/promises"
 import { join } from "path"
-import { randomUUID } from "crypto"
+
+// Sécurité des fichiers téléversés
+const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15 Mo max
+const ALLOWED_EXTENSIONS = new Set(["pdf", "doc", "docx", "odt", "ppt", "pptx", "jpg", "jpeg", "png"])
+
+function validateUploadedFile(file: File, buffer?: Buffer): { valid: boolean; error?: string } {
+  if (file.size > MAX_FILE_SIZE) {
+    return {
+      valid: false,
+      error: `Le fichier "${file.name}" dépasse la taille maximale autorisée de 15 Mo.`
+    }
+  }
+
+  const ext = (file.name.split(".").pop() || "").toLowerCase()
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    return {
+      valid: false,
+      error: `Format de fichier non autorisé pour "${file.name}". Formats acceptés : PDF, DOC, DOCX, ODT, PPT, PPTX, JPG, PNG.`
+    }
+  }
+
+  // Vérification cryptographique des Magic Bytes (OWASP Défense en profondeur)
+  if (buffer) {
+    const magic = verifyMagicBytes(buffer, file.name)
+    if (!magic.valid) {
+      return {
+        valid: false,
+        error: magic.reason || `Le contenu réel du fichier "${file.name}" ne correspond pas à son format annoncé.`
+      }
+    }
+  }
+
+  return { valid: true }
+}
+
 // Generates APTIC-YYYY-XXXX (4 random hex chars)
 function generateReferenceNumber(): string {
   const year = new Date().getFullYear()
@@ -100,6 +136,7 @@ export async function submitCandidateApplication(
           profession: validated.profession,
           experienceLevel: validated.experience as any,
           digitalSkillLevel: validated.digitalSkillLevel,
+          languages: validated.languages || null,
           arrivalDate: validated.arrivalDate ? new Date(validated.arrivalDate) : new Date(),
           duration: validated.duration as any,
           motivation: validated.motivation,
@@ -119,11 +156,11 @@ export async function submitCandidateApplication(
       return newApp
     })
 
-    return { success: true, data: application }
+    return { success: true as const, data: application }
   } catch (err: unknown) {
     console.error(err)
     const message = err instanceof Error ? err.message : "Erreur lors de la soumission"
-    return { success: false, error: message }
+    return { success: false as const, error: message }
   }
 }
 
@@ -170,16 +207,28 @@ export async function submitPartnerRequest(
       }
     })
 
-    return { success: true, data: partnerRequest }
+    return { success: true as const, data: partnerRequest }
   } catch (err: unknown) {
     console.error("submitPartnerRequest error:", err)
     const message = err instanceof Error ? err.message : "Erreur lors de la soumission de la demande"
-    return { success: false, error: message }
+    return { success: false as const, error: message }
   }
 }
 
-export async function submitPartnerRequestFormData(formData: FormData) {
+export async function submitPartnerRequestFormData(formData: FormData): Promise<
+  | { success: true; data: any; error?: undefined }
+  | { success: false; error: string; data?: undefined }
+> {
   try {
+    const ip = await getClientIp()
+    const rateCheck = checkRateLimit(`submit-partner:${ip}`, 10, 10 * 60 * 1000)
+    if (!rateCheck.allowed) {
+      return {
+        success: false as const,
+        error: "Trop de requêtes détectées depuis cette adresse. Veuillez patienter quelques minutes avant de renouveler votre demande."
+      }
+    }
+
     const data: any = {}
     let uploadedFile: {
       originalName: string
@@ -192,7 +241,11 @@ export async function submitPartnerRequestFormData(formData: FormData) {
       if (value instanceof File) {
         if (value.size > 0 && value.name !== "undefined") {
           const buffer = Buffer.from(await value.arrayBuffer())
-          const ext = value.name.split('.').pop() || "pdf"
+          const fileCheck = validateUploadedFile(value, buffer)
+          if (!fileCheck.valid) {
+            return { success: false as const, error: fileCheck.error || "Fichier non autorisé" }
+          }
+          const ext = (value.name.split('.').pop() || "pdf").toLowerCase()
           const filename = `${randomUUID()}.${ext}`
           const filepath = join(process.cwd(), "uploads", filename)
           await writeFile(filepath, buffer)
@@ -239,6 +292,11 @@ export async function updateCandidateStatus(
   noteContent?: string,
 ) {
   try {
+    const session = await verifySession()
+    if (!session || !session.userId) {
+      return { success: false, error: "Action non autorisée. Session administrateur requise." }
+    }
+
     updateStatusSchema.parse({ candidateId: applicationId, newStatus })
     
     await prisma.$transaction(async (tx) => {
@@ -281,6 +339,11 @@ export async function addCandidateNote(
   author = "Admin APTIC-R",
 ) {
   try {
+    const session = await verifySession()
+    if (!session || !session.userId) {
+      return { success: false, error: "Action non autorisée. Session administrateur requise." }
+    }
+
     addNoteSchema.parse({ candidateId: applicationId, content, author })
     
     await prisma.noteCandidature.create({
@@ -299,6 +362,11 @@ export async function addCandidateNote(
 
 export async function deleteCandidateNote(noteId: string) {
   try {
+    const session = await verifySession()
+    if (!session || !session.userId) {
+      return { success: false, error: "Action non autorisée. Session administrateur requise." }
+    }
+
     await prisma.noteCandidature.delete({
       where: { id: noteId }
     })
@@ -312,8 +380,20 @@ export async function deleteCandidateNote(noteId: string) {
 export async function submitCandidateApplicationFormData(
   formData: FormData,
   lang: "FR" | "EN" | "DE" = "FR"
-) {
+): Promise<
+  | { success: true; data: any; error?: undefined }
+  | { success: false; error: string; data?: undefined }
+> {
   try {
+    const ip = await getClientIp()
+    const rateCheck = checkRateLimit(`submit-candidature:${ip}`, 10, 10 * 60 * 1000)
+    if (!rateCheck.allowed) {
+      return {
+        success: false as const,
+        error: "Trop de soumissions détectées depuis cette adresse. Veuillez patienter quelques minutes avant de renouveler l'envoi."
+      }
+    }
+
     const data: any = { skills: [] }
     const documentsToCreate: any[] = []
 
@@ -323,7 +403,11 @@ export async function submitCandidateApplicationFormData(
       } else if (value instanceof File) {
         if (value.size > 0 && value.name !== "undefined") {
           const buffer = Buffer.from(await value.arrayBuffer())
-          const ext = value.name.split('.').pop()
+          const fileCheck = validateUploadedFile(value, buffer)
+          if (!fileCheck.valid) {
+            return { success: false as const, error: fileCheck.error || "Fichier non autorisé" }
+          }
+          const ext = (value.name.split('.').pop() || "pdf").toLowerCase()
           const filename = `${randomUUID()}.${ext}`
           const filepath = join(process.cwd(), "uploads", filename)
           await writeFile(filepath, buffer)
@@ -384,6 +468,11 @@ export async function updatePartnerRequestStatus(
   newStatus: "NEW" | "REVIEW" | "APPROVED" | "REJECTED" | "ARCHIVED"
 ) {
   try {
+    const session = await verifySession()
+    if (!session || !session.userId) {
+      return { success: false, error: "Action non autorisée. Session administrateur requise." }
+    }
+
     const updated = await (prisma as any).demandePartenariat.update({
       where: { id: requestId },
       data: { status: newStatus },

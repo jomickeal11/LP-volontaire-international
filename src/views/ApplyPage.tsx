@@ -38,6 +38,12 @@ const BG_LIGHT = "#F5F7F9"
 const TEXT_DARK = "#1A2B3C"
 const TEXT_MID = "#5E6B76"
 
+const LANGUAGE_LEVEL_LABELS: Record<string, Record<string, string>> = {
+  FR: { none: "Aucun", basic: "Notions", intermediate: "Intermédiaire", advanced: "Courant", native: "Langue maternelle" },
+  EN: { none: "None", basic: "Basic", intermediate: "Intermediate", advanced: "Fluent", native: "Native" },
+  DE: { none: "Keine", basic: "Grundkenntnisse", intermediate: "Mittelstufe", advanced: "Fließend", native: "Muttersprache" },
+}
+
 // ── Form Input Helpers ────────────────────────────────────────────────────────
 function InputField({
   label,
@@ -103,7 +109,7 @@ function DatalistField({
   value,
   onChange,
   options,
-  placeholder = "Sélectionner ou saisir...",
+  placeholder,
   required,
   error,
   helpText,
@@ -130,7 +136,7 @@ function DatalistField({
           list={`${id}-list`}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
+          placeholder={placeholder || "..."}
           autoComplete="off"
           className="w-full pl-4 pr-10 rounded-xl outline-none transition-all duration-200"
           style={{
@@ -177,6 +183,7 @@ function PhoneInputField({
   onPhoneChange,
   placeholder,
   required,
+  lang = "FR",
 }: {
   label: string
   countryCode: string
@@ -186,7 +193,9 @@ function PhoneInputField({
   onPhoneChange: (v: string) => void
   placeholder?: string
   required?: boolean
+  lang?: Language
 }) {
+  const currentLang = (lang || "FR").toUpperCase()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
   const containerRef = useRef<HTMLDivElement>(null)
@@ -239,6 +248,13 @@ function PhoneInputField({
     }
   }
 
+  const optionalText = currentLang === "DE" ? "— optional" : currentLang === "EN" ? "— optional" : "— optionnel"
+  const codeLabel = currentLang === "DE" ? "Vorwahl" : currentLang === "EN" ? "Code" : "Indicatif"
+  const searchPlaceholder = currentLang === "DE" ? "Land oder Vorwahl suchen (z. B. Togo, +228)..." : currentLang === "EN" ? "Search country or dial code (e.g. Togo, +228)..." : "Rechercher pays ou indicatif (ex: Togo, +228)..."
+  const frequentLabel = currentLang === "DE" ? "Häufige Länder" : currentLang === "EN" ? "Frequent countries" : "Pays fréquents"
+  const allCountriesLabel = currentLang === "DE" ? "Alle Länder" : currentLang === "EN" ? "All countries" : "Tous les pays"
+  const noCountryText = currentLang === "DE" ? `Kein Land gefunden für "${search}"` : currentLang === "EN" ? `No country found for "${search}"` : `Aucun pays trouvé pour "${search}"`
+
   return (
     <div className="flex flex-col gap-1.5 w-full relative" ref={containerRef}>
       <label className="text-sm font-semibold flex items-center gap-1" style={{ color: TEXT_DARK }}>
@@ -246,7 +262,7 @@ function PhoneInputField({
         {required ? (
           <span className="text-red-500 font-bold">*</span>
         ) : (
-          <span className="text-xs font-normal text-slate-400">— optionnel</span>
+          <span className="text-xs font-normal text-slate-400">{optionalText}</span>
         )}
       </label>
 
@@ -282,7 +298,7 @@ function PhoneInputField({
           ) : (
             <div className="flex items-center gap-1.5 text-slate-500">
               <GlobeIcon size={16} className="shrink-0 text-slate-400" />
-              <span className="text-xs font-medium">Indicatif</span>
+              <span className="text-xs font-medium">{codeLabel}</span>
             </div>
           )}
           <svg
@@ -336,7 +352,7 @@ function PhoneInputField({
                   autoFocus
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Rechercher pays ou indicatif (ex: Togo, +228)..."
+                  placeholder={searchPlaceholder}
                   className="w-full text-xs outline-none bg-transparent text-slate-800 placeholder:text-slate-400"
                 />
                 {search && (
@@ -353,11 +369,11 @@ function PhoneInputField({
 
             {/* Scrollable list */}
             <div className="overflow-y-auto divide-y divide-slate-50" style={{ maxHeight: "310px" }}>
-              {/* Frequent section (if not searching or search matches) */}
+              {/* Frequent section */}
               {!search && filteredFrequent.length > 0 && (
                 <div>
                   <div className="px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">
-                    Pays fréquents
+                    {frequentLabel}
                   </div>
                   {filteredFrequent.map((c) => {
                     const isSelected = countryIso === c.code || (!countryIso && countryCode === c.dial)
@@ -394,7 +410,7 @@ function PhoneInputField({
               <div>
                 {!search && (
                   <div className="px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">
-                    Tous les pays
+                    {allCountriesLabel}
                   </div>
                 )}
                 {filteredAll.length > 0 ? (
@@ -428,7 +444,7 @@ function PhoneInputField({
                   })
                 ) : (
                   <div className="p-4 text-center text-xs text-slate-400">
-                    Aucun pays trouvé pour "{search}"
+                    {noCountryText}
                   </div>
                 )}
               </div>
@@ -446,13 +462,18 @@ function SelectField({
   value,
   onChange,
   required,
+  lang = "FR",
 }: {
   label: string
   options: { label: string; value: string }[]
   value: string
   onChange: (v: string) => void
   required?: boolean
+  lang?: Language
 }) {
+  const currentLang = (lang || "FR").toUpperCase()
+  const selectPlaceholder = currentLang === "DE" ? "Auswählen..." : currentLang === "EN" ? "Select..." : "Sélectionner..."
+
   return (
     <div className="flex flex-col gap-1.5 w-full">
       <label className="text-sm font-semibold flex items-center gap-1" style={{ color: TEXT_DARK }}>
@@ -479,7 +500,7 @@ function SelectField({
           e.currentTarget.style.boxShadow = "none"
         }}
       >
-        <option value="">Sélectionner...</option>
+        <option value="">{selectPlaceholder}</option>
         {options.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
@@ -550,18 +571,27 @@ function FileUpload({
   optional,
   fileName,
   onFile,
+  lang = "FR",
 }: {
   label: string
   optional?: boolean
   fileName: string
   onFile: (file: File | null) => void
+  lang?: Language
 }) {
+  const currentLang = (lang || "FR").toUpperCase()
+  const optionalText = currentLang === "DE" ? "— optional" : currentLang === "EN" ? "— optional" : "— optionnel"
+  const removeText = currentLang === "DE" ? "Entfernen" : currentLang === "EN" ? "Remove" : "Supprimer"
+  const clickText = currentLang === "DE" ? "Klicken zum Hochladen" : currentLang === "EN" ? "Click to upload" : "Cliquez pour ajouter un fichier"
+  const dragText = currentLang === "DE" ? "oder Drag & Drop" : currentLang === "EN" ? "or drag and drop" : "ou glissez-déposez"
+  const formatsText = currentLang === "DE" ? "PDF, DOC oder DOCX bis zu 10 MB" : currentLang === "EN" ? "PDF, DOC or DOCX up to 10 MB" : "PDF, DOC, DOCX jusqu'à 10 Mo"
+
   return (
     <div className="flex flex-col gap-1.5 w-full">
       <label className="text-sm font-semibold flex items-center gap-1" style={{ color: TEXT_DARK }}>
         <span>{label}</span>
         {optional ? (
-          <span className="text-xs font-normal text-slate-400">— optionnel</span>
+          <span className="text-xs font-normal text-slate-400">{optionalText}</span>
         ) : (
           <span className="text-red-500 font-bold">*</span>
         )}
@@ -582,9 +612,9 @@ function FileUpload({
           <button
             type="button"
             onClick={() => onFile(null)}
-            className="text-xs font-semibold px-2.5 py-1 rounded-md text-red-600 hover:bg-red-50 transition-colors shrink-0 ml-3"
+            className="text-xs font-semibold px-2.5 py-1 rounded-md text-red-600 hover:bg-red-50 transition-colors shrink-0 ml-3 cursor-pointer"
           >
-            Supprimer
+            {removeText}
           </button>
         </div>
       ) : (
@@ -599,9 +629,9 @@ function FileUpload({
             </svg>
           </div>
           <div className="text-sm font-medium text-slate-700 text-center">
-            Cliquez pour ajouter un fichier <span className="text-slate-400 font-normal">ou glissez-déposez</span>
+            {clickText} <span className="text-slate-400 font-normal">{dragText}</span>
           </div>
-          <div className="text-xs text-slate-400">PDF, DOC, DOCX jusqu'à 10 Mo</div>
+          <div className="text-xs text-slate-400">{formatsText}</div>
           <input
             type="file"
             className="hidden"
@@ -623,10 +653,15 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
   const t: any = translations[currentLang] || translations.FR
 
   const [step, setStep] = useState(1)
+  const [maxStepReached, setMaxStepReached] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [submittedRef, setSubmittedRef] = useState("APTIC-2026-001")
   const [errorMessage, setErrorMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    setMaxStepReached((prev) => Math.max(prev, step))
+  }, [step])
 
   const defaultFormState = {
     firstName: "",
@@ -638,7 +673,6 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
     country: "",
     city: "",
     dob: "",
-    nationality: "",
     education: "",
     fieldOfStudy: "",
     profession: "",
@@ -724,7 +758,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
   }
 
   const goToStep = (targetStep: number) => {
-    if (targetStep < step) {
+    if (targetStep >= 1 && targetStep <= 9) {
       setErrorMessage("")
       setStep(targetStep)
       window.scrollTo({ top: 400, behavior: "smooth" })
@@ -734,7 +768,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
   // Real-time progress calculation based on filled required fields
   const progressPercentage = (() => {
     let score = 0
-    const total = 17
+    const total = 19
     
     // Personal info (5)
     if (form.firstName.trim().length >= 2) score++
@@ -743,11 +777,13 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
     if (form.country.trim().length > 0) score++
     if (form.dob.length > 0) score++
     
-    // Profile (4)
+    // Profile (6)
     if (form.education.trim().length > 0) score++
     if (form.fieldOfStudy.trim().length > 0) score++
+    if (form.profession.trim().length > 0) score++
     if (form.experience.length > 0) score++
     if (form.digitalSkillLevel.length > 0) score++
+    if (Boolean(form.languages.french) && Boolean(form.languages.english)) score++
     
     // Skills (1)
     if (form.skills.length > 0) score++
@@ -757,10 +793,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
     if (form.arrivalDate.length > 0) score++
     
     // Motivation (1)
-    if (form.motivation.trim().length >= 20) score++
+    if (form.motivation.trim().length >= 50) score++
     
     // Experience (1)
-    if (form.projectExp.trim().length >= 20) score++
+    if (form.projectExp.trim().length >= 50) score++
     
     // Documents (2)
     if (form.cvFile !== null) score++
@@ -789,7 +825,9 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
           form.fieldOfStudy.trim().length > 0 &&
           form.profession.trim().length > 0 &&
           form.experience.length > 0 &&
-          form.digitalSkillLevel.length > 0
+          form.digitalSkillLevel.length > 0 &&
+          Boolean(form.languages.french) &&
+          Boolean(form.languages.english)
         )
       case 3:
         return form.skills.length > 0
@@ -801,9 +839,9 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
         return form.duration.length > 0 && isDateValid
       }
       case 5:
-        return form.motivation.trim().length >= 20
+        return form.motivation.trim().length >= 50
       case 6:
-        return form.projectExp.trim().length >= 20
+        return form.projectExp.trim().length >= 50
       case 7:
         return form.cvFile !== null && form.motivationFile !== null
       case 9:
@@ -875,6 +913,11 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       setIsSubmitting(false)
       return
     }
+    if (!form.languages.french || !form.languages.english) {
+      setErrorMessage(t.apply.errors.languagesReq || (currentLang === "DE" ? "Bitte bewerten Sie Ihre Sprachkenntnisse (Französisch und Englisch erforderlich)." : currentLang === "EN" ? "Please indicate your language level (French and English are required)." : "Veuillez renseigner votre niveau de langues (Français et Anglais obligatoires)."))
+      setIsSubmitting(false)
+      return
+    }
     if (form.skills.length === 0) {
       setErrorMessage(t.apply.errors.skillsReq)
       setIsSubmitting(false)
@@ -890,7 +933,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       setIsSubmitting(false)
       return
     }
-    if (form.motivation.trim().length < 20) {
+    if (form.motivation.trim().length < 50) {
       setErrorMessage(t.apply.errors.motivationLen)
       setIsSubmitting(false)
       return
@@ -900,7 +943,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       setIsSubmitting(false)
       return
     }
-    if (form.projectExp.trim().length < 20) {
+    if (form.projectExp.trim().length < 50) {
       setErrorMessage(t.apply.errors.projectLen)
       setIsSubmitting(false)
       return
@@ -944,6 +987,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       if (form.profession.trim()) formData.append("profession", form.profession.trim())
       if (form.experience) formData.append("experience", form.experience)
       if (form.digitalSkillLevel) formData.append("digitalSkillLevel", form.digitalSkillLevel)
+      formData.append("languages", JSON.stringify(form.languages))
 
       form.skills.forEach((skill: string) => formData.append("skills", skill))
 
@@ -1123,7 +1167,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
             {t.apply.success.title}
           </h1>
           <p className="text-sm sm:text-base mb-2 text-slate-600">
-            {t.apply.success.p1_1}<strong>{form.firstName || "Candidat"}</strong>{t.apply.success.p1_2}
+            {t.apply.success.p1_1}<strong>{form.firstName || (currentLang === "DE" ? "Bewerber" : currentLang === "EN" ? "Applicant" : "Candidat")}</strong>{t.apply.success.p1_2}
           </p>
           <p className="text-xs sm:text-sm mb-8 text-slate-400">
             {t.apply.success.p2_1}<strong>{form.email}</strong>{t.apply.success.p2_2}
@@ -1237,11 +1281,17 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
             {/* Photo modeste intégrée à droite — pure, sans aucun texte dessus */}
             <div className="w-full sm:w-[360px] lg:w-[390px] shrink-0">
               <div className="h-[190px] sm:h-[210px] rounded-2xl overflow-hidden shadow-sm border-2 border-white bg-slate-200">
-                <img
-                  src="/volunteer-togo.jpg"
-                  alt="Volontaires et communauté locale au Togo"
-                  className="w-full h-full object-cover object-center"
-                />
+                <picture>
+                  <source srcSet="/volunteer-togo.avif" type="image/avif" />
+                  <source srcSet="/volunteer-togo.webp" type="image/webp" />
+                  <img
+                    src="/volunteer-togo.jpg"
+                    alt="Volontaires et communauté locale au Togo"
+                    className="w-full h-full object-cover object-center"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </picture>
               </div>
             </div>
           </div>
@@ -1261,7 +1311,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                 <div className="mb-8 pb-6 border-b border-slate-100">
                   <div className="flex items-center gap-2 mb-2.5">
                     <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-[#E8F2FA] text-[#174F7A]">
-                      {t.apply.sidebar?.step || "ÉTAPE"} {step} {t.apply.sidebar?.ofUpper || "SUR"} 9
+                      {t.apply.sidebar?.step || (currentLang === "DE" ? "SCHRITT" : currentLang === "EN" ? "STEP" : "ÉTAPE")} {step} {t.apply.sidebar?.of || (currentLang === "DE" ? "VON" : currentLang === "EN" ? "OF" : "SUR")} 9
                     </span>
                     <span className="text-[11px] font-medium text-slate-400">
                       · {progressPercentage} %
@@ -1329,6 +1379,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         phone={form.phone}
                         onPhoneChange={(v) => set("phone", v)}
                         placeholder={t.apply.form.phonePlaceholder}
+                        lang={lang}
                       />
                     </div>
 
@@ -1342,13 +1393,13 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         value={form.country}
                         onChange={(v) => set("country", v)}
                         required
-                        placeholder="Ex: Togo, France, Allemagne, Bénin..."
+                        placeholder={currentLang === "DE" ? "z. B. Togo, Deutschland, Frankreich, Benin..." : currentLang === "EN" ? "e.g. Togo, France, Germany, Ghana..." : "Ex: Togo, France, Allemagne, Bénin..."}
                       />
                       <InputField
                         label={t.apply.form.city}
                         value={form.city}
                         onChange={(v) => set("city", v)}
-                        placeholder="Ex: Lomé, Tsévié, Kpalimé, Kara..."
+                        placeholder={currentLang === "DE" ? "z. B. Lomé, Tsévié, Kpalimé, Kara..." : currentLang === "EN" ? "e.g. Lomé, Tsévié, Kpalimé, Kara..." : "Ex: Lomé, Tsévié, Kpalimé, Kara..."}
                       />
                     </div>
 
@@ -1360,12 +1411,6 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         onChange={(v) => set("dob", v)}
                         required
                         error={step1Errors.dob}
-                      />
-                      <InputField
-                        label="Nationalité"
-                        value={form.nationality}
-                        onChange={(v) => set("nationality", v)}
-                        placeholder="Ex: Togolaise, Française, Béninoise..."
                       />
                     </div>
 
@@ -1405,15 +1450,16 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         required
                       />
                       <SelectField
-                        label={t.apply.form.experience || "Niveau d'expérience globale"}
+                        label={t.apply.form.experience || (currentLang === "DE" ? "Gesamterfahrung" : currentLang === "EN" ? "Overall experience" : "Niveau d'expérience globale")}
                         value={form.experience}
                         onChange={(v) => set("experience", v)}
                         required
+                        lang={lang}
                         options={[
-                          { label: t.apply.form.expOptions?.LESS_THAN_1_YEAR || "Étudiant / Débutant (moins d'1 an)", value: "LESS_THAN_1_YEAR" },
-                          { label: t.apply.form.expOptions?.ONE_TO_TWO_YEARS || "Junior (1 à 2 ans)", value: "ONE_TO_TWO_YEARS" },
-                          { label: t.apply.form.expOptions?.TWO_TO_FIVE_YEARS || "Intermédiaire (2 à 5 ans)", value: "TWO_TO_FIVE_YEARS" },
-                          { label: t.apply.form.expOptions?.FIVE_PLUS_YEARS || "Expérimenté (5 ans et plus)", value: "FIVE_PLUS_YEARS" },
+                          { label: t.apply.form.expOptions?.LESS_THAN_1_YEAR || (currentLang === "DE" ? "Weniger als 1 Jahr" : currentLang === "EN" ? "Less than 1 year" : "Moins d'un an"), value: "LESS_THAN_1_YEAR" },
+                          { label: t.apply.form.expOptions?.ONE_TO_TWO_YEARS || (currentLang === "DE" ? "1–2 Jahre" : currentLang === "EN" ? "1–2 years" : "1–2 ans"), value: "ONE_TO_TWO_YEARS" },
+                          { label: t.apply.form.expOptions?.TWO_TO_FIVE_YEARS || (currentLang === "DE" ? "2–5 Jahre" : currentLang === "EN" ? "2–5 years" : "2–5 ans"), value: "TWO_TO_FIVE_YEARS" },
+                          { label: t.apply.form.expOptions?.FIVE_PLUS_YEARS || (currentLang === "DE" ? "5+ Jahre" : currentLang === "EN" ? "5+ years" : "5+ ans"), value: "FIVE_PLUS_YEARS" },
                         ]}
                       />
                     </div>
@@ -1424,6 +1470,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         value={form.digitalSkillLevel}
                         onChange={(v) => set("digitalSkillLevel", v)}
                         required
+                        lang={lang}
                         options={[
                           { label: t.apply.form.digitalOptions.BEGINNER, value: "BEGINNER" },
                           { label: t.apply.form.digitalOptions.INTERMEDIATE, value: "INTERMEDIATE" },
@@ -1434,18 +1481,32 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                     </div>
 
                     <div>
-                      <label className="text-sm font-semibold mb-3 flex items-center gap-1 text-slate-800">
-                        <span>{currentLang === "DE" ? "Sprachkenntnisse" : currentLang === "EN" ? "Language Proficiency" : "Niveau de langues"}</span>
-                        <span className="text-red-500 font-bold">*</span>
-                      </label>
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="text-sm font-semibold flex items-center gap-1 text-slate-800">
+                          <span>{currentLang === "DE" ? "Sprachkenntnisse" : currentLang === "EN" ? "Language Proficiency" : "Niveau de langues"}</span>
+                          <span className="text-red-500 font-bold">*</span>
+                        </label>
+                        <span className="text-xs text-slate-400">
+                          {currentLang === "DE" ? "Französisch & Englisch erforderlich" : currentLang === "EN" ? "French & English required" : "Français & Anglais obligatoires"}
+                        </span>
+                      </div>
                       <div className="space-y-3 pt-1">
                         {[
-                          { key: "french" as const, name: currentLang === "DE" ? "Französisch" : currentLang === "EN" ? "French" : "Français" },
-                          { key: "english" as const, name: currentLang === "DE" ? "Englisch" : currentLang === "EN" ? "English" : "Anglais" },
-                          { key: "german" as const, name: currentLang === "DE" ? "Deutsch" : currentLang === "EN" ? "German" : "Allemand" },
-                        ].map(({ key, name }) => (
+                          { key: "french" as const, name: currentLang === "DE" ? "Französisch" : currentLang === "EN" ? "French" : "Français", req: true },
+                          { key: "english" as const, name: currentLang === "DE" ? "Englisch" : currentLang === "EN" ? "English" : "Anglais", req: true },
+                          { key: "german" as const, name: currentLang === "DE" ? "Deutsch" : currentLang === "EN" ? "German" : "Allemand", req: false },
+                        ].map(({ key, name, req }) => (
                           <div key={key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-100 last:border-0 last:pb-0">
-                            <span className="text-sm font-medium text-slate-700 w-24">{name}</span>
+                            <span className="text-sm font-medium text-slate-700 w-28 flex items-center gap-1">
+                              {name}
+                              {req ? (
+                                <span className="text-red-500 font-bold">*</span>
+                              ) : (
+                                <span className="text-slate-400 text-xs font-normal">
+                                  ({currentLang === "DE" ? "fakultativ" : currentLang === "EN" ? "optional" : "optionnel"})
+                                </span>
+                              )}
+                            </span>
                             <div className="flex gap-1.5 flex-wrap">
                               {[
                                 { value: "none", label: currentLang === "DE" ? "Keine" : currentLang === "EN" ? "None" : "Aucun" },
@@ -1478,6 +1539,19 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           </div>
                         ))}
                       </div>
+
+                      {(!form.languages.french || !form.languages.english) && (
+                        <p className="text-xs text-amber-700 bg-amber-50/80 border border-amber-200/60 rounded-xl px-3 py-2 mt-3 flex items-center gap-2">
+                          <span className="shrink-0 font-bold">ℹ️</span>
+                          <span>
+                            {currentLang === "DE"
+                              ? "Bitte wählen Sie Ihr Niveau für Französisch und Englisch aus, um fortzufahren."
+                              : currentLang === "EN"
+                              ? "Please select your level for both French and English to continue."
+                              : "Veuillez sélectionner votre niveau en français et en anglais pour pouvoir continuer."}
+                          </span>
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1487,7 +1561,11 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                   <div>
                     <div className="mb-4">
                       <p className="text-sm text-slate-600">
-                        Sélectionnez les domaines dans lesquels vous pouvez contribuer activement lors de votre mission.
+                        {currentLang === "DE"
+                          ? "Wählen Sie die Bereiche aus, in denen Sie sich während Ihres Einsatzes aktiv einbringen können."
+                          : currentLang === "EN"
+                          ? "Select the fields where you can actively contribute during your mission."
+                          : "Sélectionnez les domaines dans lesquels vous pouvez contribuer activement lors de votre mission."}
                       </p>
                     </div>
 
@@ -1537,11 +1615,21 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         <span className="w-5 h-5 rounded-full bg-[#35A85A] text-white flex items-center justify-center shrink-0">
                           <CheckIcon size={11} strokeWidth={3} />
                         </span>
-                        <span>{form.skills.length} compétence{form.skills.length > 1 ? "s" : ""} sélectionnée{form.skills.length > 1 ? "s" : ""}</span>
+                        <span>
+                          {currentLang === "DE"
+                            ? `${form.skills.length} Fähigkeit${form.skills.length > 1 ? "en" : ""} ausgewählt`
+                            : currentLang === "EN"
+                            ? `${form.skills.length} skill${form.skills.length > 1 ? "s" : ""} selected`
+                            : `${form.skills.length} compétence${form.skills.length > 1 ? "s" : ""} sélectionnée${form.skills.length > 1 ? "s" : ""}`}
+                        </span>
                       </div>
                     ) : (
                       <div className="text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200">
-                        Veuillez choisir au moins une compétence pour continuer.
+                        {currentLang === "DE"
+                          ? "Bitte wählen Sie mindestens eine Fähigkeit aus, um fortzufahren."
+                          : currentLang === "EN"
+                          ? "Please choose at least one skill to continue."
+                          : "Veuillez choisir au moins une compétence pour continuer."}
                       </div>
                     )}
                   </div>
@@ -1628,11 +1716,11 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                     />
                     <div className="flex justify-between items-center text-xs text-slate-400">
                       <span>
-                        {form.motivation.trim().length < 20 ? (
-                          "Minimum 20 caractères"
+                        {form.motivation.trim().length < 50 ? (
+                          currentLang === "DE" ? "Mindestens 50 Zeichen" : currentLang === "EN" ? "Minimum 50 characters" : "Minimum 50 caractères"
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[#35A85A] font-medium">
-                            <CheckIcon className="w-3.5 h-3.5" /> Longueur suffisante
+                            <CheckIcon className="w-3.5 h-3.5" /> {currentLang === "DE" ? "Ausreichende Länge" : currentLang === "EN" ? "Sufficient length" : "Longueur suffisante"}
                           </span>
                         )}
                       </span>
@@ -1658,11 +1746,11 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                     />
                     <div className="flex justify-between items-center text-xs text-slate-400">
                       <span>
-                        {form.projectExp.trim().length < 20 ? (
-                          "Minimum 20 caractères"
+                        {form.projectExp.trim().length < 50 ? (
+                          currentLang === "DE" ? "Mindestens 50 Zeichen" : currentLang === "EN" ? "Minimum 50 characters" : "Minimum 50 caractères"
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[#35A85A] font-medium">
-                            <CheckIcon className="w-3.5 h-3.5" /> Longueur suffisante
+                            <CheckIcon className="w-3.5 h-3.5" /> {currentLang === "DE" ? "Ausreichende Länge" : currentLang === "EN" ? "Sufficient length" : "Longueur suffisante"}
                           </span>
                         )}
                       </span>
@@ -1678,17 +1766,20 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       label={t.apply.form.cv}
                       fileName={form.cvFile?.name || ""}
                       onFile={(f) => set("cvFile", f)}
+                      lang={lang}
                     />
                     <FileUpload
                       label={t.apply.form.coverLetter}
                       fileName={form.motivationFile?.name || ""}
                       onFile={(f) => set("motivationFile", f)}
+                      lang={lang}
                     />
                     <FileUpload
                       label={t.apply.form.portfolio}
                       optional
                       fileName={form.portfolioFile?.name || ""}
                       onFile={(f) => set("portfolioFile", f)}
+                      lang={lang}
                     />
                   </div>
                 )}
@@ -1701,15 +1792,17 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {SOURCES_LIST.map((src) => {
-                        const isSelected = form.source === src || (src === "Autre" && !SOURCES_LIST.slice(0, -1).includes(form.source) && form.source !== "")
+                        const otherLabel = currentLang === "DE" ? "Andere" : currentLang === "EN" ? "Other" : "Autre"
+                        const isOther = src === otherLabel
+                        const isSelected = form.source === src || (isOther && (form.source.startsWith(`${otherLabel} : `) || form.source.startsWith("Autre : ") || (!SOURCES_LIST.includes(form.source) && form.source !== "")))
                         return (
                           <button
                             key={src}
                             type="button"
                             onClick={() => {
-                              if (src === "Autre") {
+                              if (isOther) {
                                 if (SOURCES_LIST.includes(form.source)) {
-                                  set("source", "Autre : ")
+                                  set("source", `${otherLabel} : `)
                                 }
                               } else {
                                 set("source", src)
@@ -1729,17 +1822,23 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       })}
                     </div>
 
-                    {(!SOURCES_LIST.slice(0, -1).includes(form.source) && form.source !== "") && (
-                      <div className="mt-4">
-                        <InputField
-                          label="Précisez votre source"
-                          value={form.source.startsWith("Autre : ") ? form.source.replace("Autre : ", "") : form.source === "Autre" ? "" : form.source}
-                          onChange={(v) => set("source", v ? `Autre : ${v}` : "Autre")}
-                          placeholder="Ex: Événement associatif, podcast, bouche à oreille..."
-                          required
-                        />
-                      </div>
-                    )}
+                    {(() => {
+                      const otherLabel = currentLang === "DE" ? "Andere" : currentLang === "EN" ? "Other" : "Autre"
+                      const isOtherActive = form.source.startsWith(`${otherLabel} : `) || form.source.startsWith("Autre : ") || (!SOURCES_LIST.includes(form.source) && form.source !== "")
+                      if (!isOtherActive) return null
+                      const cleanVal = form.source.replace(`${otherLabel} : `, "").replace("Autre : ", "")
+                      return (
+                        <div className="mt-4">
+                          <InputField
+                            label={currentLang === "DE" ? "Bitte genauer angeben" : currentLang === "EN" ? "Please specify your source" : "Précisez votre source"}
+                            value={cleanVal === otherLabel || cleanVal === "Autre" ? "" : cleanVal}
+                            onChange={(v) => set("source", v ? `${otherLabel} : ${v}` : otherLabel)}
+                            placeholder={currentLang === "DE" ? "z. B. Vereinsveranstaltung, Podcast, Mundpropaganda..." : currentLang === "EN" ? "e.g. Community event, podcast, word of mouth..." : "Ex: Événement associatif, podcast, bouche à oreille..."}
+                            required
+                          />
+                        </div>
+                      )
+                    })()}
                   </div>
                 )}
 
@@ -1747,7 +1846,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                 {step === 9 && (
                   <div className="space-y-6">
                     <p className="text-sm text-slate-600">
-                      {t.apply.review?.disclaimer || "Veuillez vérifier attentivement les détails de votre candidature ci-dessous avant transmission à la coordination APTIC-R."}
+                      {t.apply.review?.disclaimer || (currentLang === "DE" ? "Bitte überprüfen Sie die Angaben zu Ihrer Bewerbung sorgfältig, bevor Sie diese an das APTIC-R-Team übermitteln." : currentLang === "EN" ? "Please review your application details carefully below before submitting to the APTIC-R coordination." : "Veuillez vérifier attentivement les détails de votre candidature ci-dessous avant transmission à la coordination APTIC-R.")}
                     </p>
 
                     {/* Synthèse épurée sans sous-cartes (pas d'effet dashboard) */}
@@ -1755,14 +1854,18 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       {/* Section Coordonnées */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">{t.apply.review?.sections?.contact || "Coordonnées"}</span>
-                          <button type="button" onClick={() => goToStep(1)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">{t.apply.review?.edit || "Modifier"}</button>
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
+                            {t.apply.review?.sections?.contact || (currentLang === "DE" ? "Kontaktdaten" : currentLang === "EN" ? "Contact Info" : "Coordonnées")}
+                          </span>
+                          <button type="button" onClick={() => goToStep(1)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">
+                            {t.apply.review?.edit || (currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier")}
+                          </button>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 text-xs sm:text-sm">
-                          <div><span className="text-slate-400">{t.apply.review?.fields?.name || "Nom :"}</span> <strong className="text-slate-800 ml-1">{form.firstName} {form.lastName}</strong></div>
-                          <div><span className="text-slate-400">{t.apply.review?.fields?.email || "E-mail :"}</span> <strong className="text-slate-800 ml-1">{form.email}</strong></div>
-                          <div><span className="text-slate-400">{t.apply.review?.fields?.phone || "Téléphone :"}</span> <strong className="text-slate-800 ml-1">{form.phoneCountryCode ? `${form.phoneCountryCode} ${form.phone}`.trim() : form.phone || (t.apply.review?.notProvided || "Non renseigné")}</strong></div>
-                          <div><span className="text-slate-400">{t.apply.review?.fields?.location || "Pays / Ville :"}</span> <strong className="text-slate-800 ml-1">{form.country} {form.city ? `(${form.city})` : ""}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.name || (currentLang === "DE" ? "Name :" : currentLang === "EN" ? "Name:" : "Nom :")}</span> <strong className="text-slate-800 ml-1">{form.firstName} {form.lastName}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.email || (currentLang === "DE" ? "E-Mail :" : currentLang === "EN" ? "Email:" : "E-mail :")}</span> <strong className="text-slate-800 ml-1">{form.email}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.phone || (currentLang === "DE" ? "Telefon :" : currentLang === "EN" ? "Phone:" : "Téléphone :")}</span> <strong className="text-slate-800 ml-1">{form.phoneCountryCode ? `${form.phoneCountryCode} ${form.phone}`.trim() : form.phone || (t.apply.review?.notProvided || (currentLang === "DE" ? "Nicht angegeben" : currentLang === "EN" ? "Not provided" : "Non renseigné"))}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.location || (currentLang === "DE" ? "Land / Stadt :" : currentLang === "EN" ? "Country / City:" : "Pays / Ville :")}</span> <strong className="text-slate-800 ml-1">{form.country} {form.city ? `(${form.city})` : ""}</strong></div>
                         </div>
                       </div>
 
@@ -1772,28 +1875,57 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
                             {currentLang === "DE" ? "Profil & Ausbildung" : currentLang === "EN" ? "Profile & Background" : "Profil & Formation"}
                           </span>
-                          <button type="button" onClick={() => goToStep(2)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">{t.apply.review?.edit || "Modifier"}</button>
+                          <button type="button" onClick={() => goToStep(2)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">
+                            {t.apply.review?.edit || (currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier")}
+                          </button>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 text-xs sm:text-sm">
                           <div><span className="text-slate-400">{t.apply.form.education} :</span> <strong className="text-slate-800 ml-1">{form.education}</strong></div>
                           <div><span className="text-slate-400">{t.apply.form.field} :</span> <strong className="text-slate-800 ml-1">{form.fieldOfStudy}</strong></div>
                           <div><span className="text-slate-400">{t.apply.form.profession} :</span> <strong className="text-slate-800 ml-1">{form.profession}</strong></div>
-                          <div><span className="text-slate-400">{t.apply.form.experience} :</span> <strong className="text-slate-800 ml-1">{form.experience}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.form.experience} :</span> <strong className="text-slate-800 ml-1">{t.apply.form.expOptions?.[form.experience as keyof typeof t.apply.form.expOptions] || form.experience}</strong></div>
+                          <div className="sm:col-span-2 pt-1.5 mt-1 border-t border-slate-100 flex flex-wrap items-center gap-2">
+                            <span className="text-slate-400">{currentLang === "DE" ? "Sprachen :" : currentLang === "EN" ? "Languages :" : "Langues :"}</span>
+                            {form.languages.french && (
+                              <span className="bg-[#EAF5ED] text-[#174F7A] font-semibold text-xs px-2 py-0.5 rounded-md border border-[#D8E2E9]">
+                                {currentLang === "DE" ? "Französisch" : currentLang === "EN" ? "French" : "Français"} : {LANGUAGE_LEVEL_LABELS[currentLang]?.[form.languages.french] || form.languages.french}
+                              </span>
+                            )}
+                            {form.languages.english && (
+                              <span className="bg-[#EAF5ED] text-[#174F7A] font-semibold text-xs px-2 py-0.5 rounded-md border border-[#D8E2E9]">
+                                {currentLang === "DE" ? "Englisch" : currentLang === "EN" ? "English" : "Anglais"} : {LANGUAGE_LEVEL_LABELS[currentLang]?.[form.languages.english] || form.languages.english}
+                              </span>
+                            )}
+                            {form.languages.german && form.languages.german !== "none" && (
+                              <span className="bg-[#EAF5ED] text-[#174F7A] font-semibold text-xs px-2 py-0.5 rounded-md border border-[#D8E2E9]">
+                                {currentLang === "DE" ? "Deutsch" : currentLang === "EN" ? "German" : "Allemand"} : {LANGUAGE_LEVEL_LABELS[currentLang]?.[form.languages.german] || form.languages.german}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
                       {/* Section Mission */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">{t.apply.review?.sections?.mission || "Mission & Disponibilité"}</span>
-                          <button type="button" onClick={() => goToStep(4)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">{t.apply.review?.edit || "Modifier"}</button>
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
+                            {t.apply.review?.sections?.mission || (currentLang === "DE" ? "Einsatz & Verfügbarkeit" : currentLang === "EN" ? "Mission & Availability" : "Mission & Disponibilité")}
+                          </span>
+                          <button type="button" onClick={() => goToStep(4)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">
+                            {t.apply.review?.edit || (currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier")}
+                          </button>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 text-xs sm:text-sm">
-                          <div><span className="text-slate-400">{t.apply.review?.fields?.duration || "Durée :"}</span> <strong className="text-slate-800 ml-1">{durationText}</strong></div>
-                          <div><span className="text-slate-400">{t.apply.review?.fields?.arrival || "Arrivée souhaitée :"}</span> <strong className="text-slate-800 ml-1">{form.arrivalDate || (t.apply.sidebar?.toSpecify || "À convenir")}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.duration || (currentLang === "DE" ? "Dauer :" : currentLang === "EN" ? "Duration:" : "Durée :")}</span> <strong className="text-slate-800 ml-1">{durationText}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.arrival || (currentLang === "DE" ? "Gewünschte Ankunft :" : currentLang === "EN" ? "Desired arrival:" : "Arrivée souhaitée :")}</span> <strong className="text-slate-800 ml-1">{form.arrivalDate || (t.apply.sidebar?.toSpecify || (currentLang === "DE" ? "Noch festzulegen" : currentLang === "EN" ? "To specify" : "À convenir"))}</strong></div>
                           <div className="sm:col-span-2">
-                            <span className="text-slate-400">{t.apply.review?.fields?.skills || "Compétences"} ({form.skills.length}) :</span>{" "}
-                            <strong className="text-slate-800 ml-1">{form.skills.join(", ") || (t.apply.review?.none || "Aucune")}</strong>
+                            <span className="text-slate-400">{t.apply.review?.fields?.skills || (currentLang === "DE" ? "Fähigkeiten" : currentLang === "EN" ? "Skills" : "Compétences")} ({form.skills.length}) :</span>{" "}
+                            <strong className="text-slate-800 ml-1">
+                              {form.skills.map((slug: string) => {
+                                const skillItem = SKILLS_CATALOGUE.find((s) => s.slug === slug)
+                                return skillItem ? skillItem.title : slug
+                              }).join(", ") || (t.apply.review?.none || (currentLang === "DE" ? "Keine" : currentLang === "EN" ? "None" : "Aucune"))}
+                            </strong>
                           </div>
                         </div>
                       </div>
@@ -1801,12 +1933,16 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       {/* Section Pièces jointes */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">{t.apply.review?.sections?.docs || "Documents"}</span>
-                          <button type="button" onClick={() => goToStep(7)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">{t.apply.review?.edit || "Modifier"}</button>
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
+                            {t.apply.review?.sections?.docs || (currentLang === "DE" ? "Dokumente" : currentLang === "EN" ? "Documents" : "Documents")}
+                          </span>
+                          <button type="button" onClick={() => goToStep(7)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">
+                            {t.apply.review?.edit || (currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier")}
+                          </button>
                         </div>
                         <div className="text-xs sm:text-sm space-y-1">
-                          <div><span className="text-slate-400">{t.apply.review?.fields?.cv || "CV :"}</span> <strong className="text-slate-800 ml-1">{form.cvFile ? form.cvFile.name : (t.apply.review?.notSent || "Non transmis")}</strong></div>
-                          <div><span className="text-slate-400">{t.apply.review?.fields?.letter || "Lettre :"}</span> <strong className="text-slate-800 ml-1">{form.motivationFile ? form.motivationFile.name : (t.apply.review?.notSent || "Non fournie")}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.cv || (currentLang === "DE" ? "Lebenslauf :" : currentLang === "EN" ? "CV:" : "CV :")}</span> <strong className="text-slate-800 ml-1">{form.cvFile ? form.cvFile.name : (t.apply.review?.notSent || (currentLang === "DE" ? "Nicht übermittelt" : currentLang === "EN" ? "Not provided" : "Non transmis"))}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.letter || (currentLang === "DE" ? "Motivationsschreiben :" : currentLang === "EN" ? "Cover letter:" : "Lettre :")}</span> <strong className="text-slate-800 ml-1">{form.motivationFile ? form.motivationFile.name : (t.apply.review?.notSent || (currentLang === "DE" ? "Nicht übermittelt" : currentLang === "EN" ? "Not provided" : "Non fournie"))}</strong></div>
                         </div>
                       </div>
                     </div>
@@ -1821,7 +1957,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           className="mt-1 w-4 h-4 rounded text-[#174F7A] cursor-pointer"
                         />
                         <span className="text-xs text-slate-600 leading-relaxed">
-                          {t.apply.review?.consentLabel || "J'atteste de l'exactitude des informations fournies et j'accepte que l'association APTIC-R traite mes données personnelles dans le cadre strict de l'évaluation de ma candidature de volontariat international."}
+                          {t.apply.review?.consentLabel || (currentLang === "DE" ? "Ich versichere die Richtigkeit der angegebenen Informationen und stimme zu, dass der Verein APTIC-R meine personenbezogenen Daten ausschließlich im Rahmen der Prüfung meiner Bewerbung für den internationalen Freiwilligendienst verarbeitet." : currentLang === "EN" ? "I certify the accuracy of the information provided and I agree that the APTIC-R association processes my personal data strictly for the evaluation of my international volunteer application." : "J'atteste de l'exactitude des informations fournies et j'accepte que l'association APTIC-R traite mes données personnelles dans le cadre strict de l'évaluation de ma candidature de volontariat international.")}
                         </span>
                       </label>
                     </div>
@@ -1844,7 +1980,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       onClick={back}
                       className="px-5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                     >
-                      ← {t.apply.nav?.back || "Retour"}
+                      ← {t.apply.nav?.back || (currentLang === "DE" ? "Zurück" : currentLang === "EN" ? "Back" : "Retour")}
                     </button>
                   ) : (
                     <div />
@@ -1852,7 +1988,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
 
                   {step < 9 ? (
                     <div className="flex gap-3 items-center justify-end">
-                      {progressPercentage === 100 && (
+                      {(progressPercentage === 100 || maxStepReached >= 9) && (
                         <button
                           type="button"
                           onClick={() => goToStep(9)}
@@ -1873,7 +2009,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         className="px-8 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
                         style={{ backgroundColor: GREEN }}
                       >
-                        <span>{t.apply.nav?.continue || "Continuer"}</span>
+                        <span>{t.apply.nav?.continue || (currentLang === "DE" ? "Weiter" : currentLang === "EN" ? "Continue" : "Continuer")}</span>
                         <span>→</span>
                       </button>
                     </div>
@@ -1886,10 +2022,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       style={{ backgroundColor: BLUE }}
                     >
                       {isSubmitting ? (
-                        <span>{t.apply.nav?.submitting || "Transmission en cours..."}</span>
+                        <span>{t.apply.nav?.submitting || (currentLang === "DE" ? "Wird gesendet..." : currentLang === "EN" ? "Sending..." : "Transmission en cours...")}</span>
                       ) : (
                         <>
-                          <span>{t.apply.nav?.submit || "Envoyer ma candidature"}</span>
+                          <span>{t.apply.nav?.submit || (currentLang === "DE" ? "Bewerbung senden" : currentLang === "EN" ? "Send my application" : "Envoyer ma candidature")}</span>
                           <CheckIcon size={15} strokeWidth={2.5} />
                         </>
                       )}
@@ -1908,10 +2044,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                 <div className="text-xs font-bold uppercase tracking-wider text-[#174F7A] mb-5 flex items-center justify-between pb-3 border-b border-slate-100">
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#174F7A]" />
-                    {t.apply.sidebar?.progression || "PROGRESSION"}
+                    {t.apply.sidebar?.progression || (currentLang === "DE" ? "FORTSCHRITT" : currentLang === "EN" ? "PROGRESS" : "PROGRESSION")}
                   </span>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#E8F2FA] text-[#174F7A]">
-                    {step} {t.apply.sidebar?.ofLower || "sur"} 9
+                    {step} {t.apply.sidebar?.ofLower || (currentLang === "DE" ? "von" : currentLang === "EN" ? "of" : "sur")} 9
                   </span>
                 </div>
 
@@ -1921,6 +2057,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                     const isCompleted = s.num < step
                     const isCurrent = s.num === step
                     const isFuture = s.num > step
+                    const isAccessible = s.num <= maxStepReached
 
                     return (
                       <div
@@ -1942,16 +2079,16 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           {isCompleted ? <CheckIcon size={11} strokeWidth={3} /> : s.num}
                         </div>
 
-                        {/* Intitulé cliquable si complété */}
+                        {/* Intitulé cliquable si accessible */}
                         <button
                           type="button"
                           onClick={() => goToStep(s.num)}
-                          disabled={!isCompleted}
+                          disabled={!isAccessible}
                           className="text-left text-xs transition-colors"
                           style={{
                             color: isCurrent ? BLUE : isCompleted ? TEXT_DARK : "#64748B",
                             fontWeight: isCurrent ? 700 : isCompleted ? 600 : 500,
-                            cursor: isCompleted ? "pointer" : "default",
+                            cursor: isAccessible ? "pointer" : "default",
                           }}
                         >
                           {s.label}
@@ -1966,30 +2103,30 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#D8E2E9]">
                 <div className="text-xs font-bold uppercase tracking-wider text-[#174F7A] mb-4 pb-2.5 border-b border-slate-100 flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#35A85A]" />
-                  {t.apply.sidebar?.yourApplication || "VOTRE CANDIDATURE"}
+                  {t.apply.sidebar?.yourApplication || (currentLang === "DE" ? "IHRE BEWERBUNG" : currentLang === "EN" ? "YOUR APPLICATION" : "VOTRE CANDIDATURE")}
                 </div>
 
                 <div className="space-y-2.5 text-xs">
                   <div className="flex items-center justify-between py-1">
-                    <span className="text-[#5E6B76] font-medium">{t.apply.sidebar?.country || "Pays :"}</span>
-                    <strong className="text-[#1A2B3C] font-bold">{form.country || (t.apply.sidebar?.notProvided || "Non renseigné")}</strong>
+                    <span className="text-[#5E6B76] font-medium">{t.apply.sidebar?.country || (currentLang === "DE" ? "Land :" : currentLang === "EN" ? "Country:" : "Pays :")}</span>
+                    <strong className="text-[#1A2B3C] font-bold">{form.country || (t.apply.sidebar?.notProvided || (currentLang === "DE" ? "Nicht angegeben" : currentLang === "EN" ? "Not provided" : "Non renseigné"))}</strong>
                   </div>
 
                   <div className="flex items-center justify-between py-1 border-t border-slate-100">
-                    <span className="text-[#5E6B76] font-medium">{t.apply.sidebar?.duration || "Durée :"}</span>
+                    <span className="text-[#5E6B76] font-medium">{t.apply.sidebar?.duration || (currentLang === "DE" ? "Dauer :" : currentLang === "EN" ? "Duration:" : "Durée :")}</span>
                     <strong className="text-[#1A2B3C] font-bold">{durationText}</strong>
                   </div>
 
                   <div className="flex items-center justify-between py-1 border-t border-slate-100">
-                    <span className="text-[#5E6B76] font-medium">{t.apply.sidebar?.skills || "Compétences :"}</span>
+                    <span className="text-[#5E6B76] font-medium">{t.apply.sidebar?.skills || (currentLang === "DE" ? "Fähigkeiten :" : currentLang === "EN" ? "Skills:" : "Compétences :")}</span>
                     <strong className="text-[#1A2B3C] font-bold">
-                      {form.skills.length > 0 ? `${form.skills.length} ${(t.apply.sidebar?.selected || "sélectionnée(s)")}` : "0"}
+                      {form.skills.length > 0 ? `${form.skills.length} ${(t.apply.sidebar?.selected || (currentLang === "DE" ? "ausgewählt" : currentLang === "EN" ? "selected" : "sélectionnée(s)"))}` : "0"}
                     </strong>
                   </div>
 
                   <div className="flex items-center justify-between py-1 border-t border-slate-100">
-                    <span className="text-[#5E6B76] font-medium">{t.apply.sidebar?.arrival || "Arrivée :"}</span>
-                    <strong className="text-[#1A2B3C] font-bold">{form.arrivalDate || (t.apply.sidebar?.toSpecify || "À préciser")}</strong>
+                    <span className="text-[#5E6B76] font-medium">{t.apply.sidebar?.arrival || (currentLang === "DE" ? "Ankunft :" : currentLang === "EN" ? "Arrival:" : "Arrivée :")}</span>
+                    <strong className="text-[#1A2B3C] font-bold">{form.arrivalDate || (t.apply.sidebar?.toSpecify || (currentLang === "DE" ? "Noch festzulegen" : currentLang === "EN" ? "To specify" : "À préciser"))}</strong>
                   </div>
                 </div>
 
@@ -1997,23 +2134,23 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                   <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-[11px]">
                     <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
-                      <span>{(t.apply as any).sidebar?.checks?.infoComplete || "Informations complètes"}</span>
+                      <span>{(t.apply as any).sidebar?.checks?.infoComplete || (currentLang === "DE" ? "Informationen vollständig" : currentLang === "EN" ? "Information complete" : "Informations complètes")}</span>
                     </div>
                     <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
-                      <span>{(t.apply as any).sidebar?.checks?.profileComplete || "Profil complété"}</span>
+                      <span>{(t.apply as any).sidebar?.checks?.profileComplete || (currentLang === "DE" ? "Profil ausgefüllt" : currentLang === "EN" ? "Profile complete" : "Profil complété")}</span>
                     </div>
                     <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
-                      <span>{(t.apply as any).sidebar?.checks?.skillsSelected || "Compétences sélectionnées"}</span>
+                      <span>{(t.apply as any).sidebar?.checks?.skillsSelected || (currentLang === "DE" ? "Fähigkeiten ausgewählt" : currentLang === "EN" ? "Skills selected" : "Compétences sélectionnées")}</span>
                     </div>
                     <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
-                      <span>{(t.apply as any).sidebar?.checks?.availabilityIndicated || "Disponibilité indiquée"}</span>
+                      <span>{(t.apply as any).sidebar?.checks?.availabilityIndicated || (currentLang === "DE" ? "Verfügbarkeit angegeben" : currentLang === "EN" ? "Availability indicated" : "Disponibilité indiquée")}</span>
                     </div>
                     <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
-                      <span>{(t.apply as any).sidebar?.checks?.documentsAdded || "Documents ajoutés"}</span>
+                      <span>{(t.apply as any).sidebar?.checks?.documentsAdded || (currentLang === "DE" ? "Dokumente hochgeladen" : currentLang === "EN" ? "Documents added" : "Documents ajoutés")}</span>
                     </div>
                   </div>
                 )}
@@ -2023,10 +2160,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
               <div className="bg-[#F8FAFC] rounded-3xl p-6 shadow-sm border border-[#D8E2E9]">
                 <div className="text-sm font-bold text-[#1A2B3C] mb-1.5 flex items-center gap-2">
                   <LightbulbIcon size={17} className="text-[#174F7A] shrink-0" />
-                  <span>{(t.apply as any).sidebar?.help?.title || "Besoin d'un éclairage ?"}</span>
+                  <span>{(t.apply as any).sidebar?.help?.title || (currentLang === "DE" ? "Benötigen Sie Hilfe?" : currentLang === "EN" ? "Need some light?" : "Besoin d'un éclairage ?")}</span>
                 </div>
                 <p className="text-xs text-slate-500 leading-relaxed mb-4">
-                  {(t.apply as any).sidebar?.help?.desc || "Une question sur la mission, le Togo ou votre candidature ? Notre équipe vous répond avec plaisir."}
+                  {(t.apply as any).sidebar?.help?.desc || (currentLang === "DE" ? "Fragen zum Einsatz, zu Togo oder zu Ihrer Bewerbung? Unser Team beantwortet diese gerne." : currentLang === "EN" ? "Any questions about the mission, Togo, or your application? Our team will gladly answer you." : "Une question sur la mission, le Togo ou votre candidature ? Notre équipe vous répond avec plaisir.")}
                 </p>
                 <div className="space-y-2">
                   <a
@@ -2036,7 +2173,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                     <svg className="w-4 h-4 text-[#174F7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    <span>{(t.apply as any).sidebar?.help?.contactBtn || "Contacter par email"}</span>
+                    <span>{(t.apply as any).sidebar?.help?.contactBtn || (currentLang === "DE" ? "Per E-Mail kontaktieren" : currentLang === "EN" ? "Contact by email" : "Contacter par email")}</span>
                   </a>
                   <a
                     href="tel:+22891201990"
