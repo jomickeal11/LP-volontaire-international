@@ -30,7 +30,7 @@ async function main() {
   console.log(`   Hôte SMTP : ${process.env.MAIL_HOST || 'sandbox.smtp.mailtrap.io'}`)
   console.log(`   Port : ${process.env.MAIL_PORT || '2525'}`)
   console.log(`   Utilisateur : ${process.env.MAIL_USER ? '*** Configuré ***' : '(Non configuré - mode simulation console)'}`)
-  console.log(`   Expéditeur (From) : ${process.env.MAIL_FROM || 'contact@aptic-rural.org'}`)
+  console.log(`   Expéditeur (From) : ${process.env.MAIL_FROM || 'aptic.rural19@gmail.com'}`)
   console.log(`   Alerte Admin : ${process.env.MAIL_ADMIN || 'aptic.rural19@gmail.com'}`)
 
   console.log("\n2. Test d'envoi d'e-mail candidat (avec référence CAND-2026-XXXX)...")

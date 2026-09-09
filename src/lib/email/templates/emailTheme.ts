@@ -67,7 +67,7 @@ export function renderEmailFooter(options?: {
   contactEmail?: string
   contactPhone?: string
 }): string {
-  const contactEmail = options?.contactEmail || "contact@aptic-rural.org"
+  const contactEmail = options?.contactEmail || "aptic.rural19@gmail.com"
   const contactPhone = options?.contactPhone || "+228 91 20 19 90"
 
   return `

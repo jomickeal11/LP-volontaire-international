@@ -33,7 +33,7 @@ async function run() {
   const provider = getEmailProvider()
   console.log("Envoi d'un e-mail unique de test vers votre Sandbox Mailtrap...")
   const res = await provider.sendEmail({
-    to: "jordan@aptic-rural.org",
+    to: "aptic.rural19@gmail.com",
     subject: emailData.subject,
     html: emailData.html,
     text: emailData.text,

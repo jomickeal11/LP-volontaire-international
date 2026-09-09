@@ -14,7 +14,7 @@ export class SmtpEmailProvider implements EmailProvider {
     const port = parseInt(process.env.MAIL_PORT || '2525', 10)
     const user = process.env.MAIL_USER?.trim()
     const pass = process.env.MAIL_PASSWORD?.trim()
-    const fromAddress = payload.from || process.env.MAIL_FROM || 'APTIC-R Volontariat International <contact@aptic-rural.org>'
+    const fromAddress = payload.from || process.env.MAIL_FROM || 'APTIC-R Volontariat International <aptic.rural19@gmail.com>'
 
     const recipients = Array.isArray(payload.to) ? payload.to : [payload.to]
 
@@ -112,21 +112,49 @@ export class SmtpEmailProvider implements EmailProvider {
         } else if (step === 7 && res.includes('354')) {
           step = 8
 
-          // Encodage RFC 2047 de l'objet pour les caractères accentués
+          // Encodage RFC 2047 de l'objet pour préserver parfaitement les accents et caractères spéciaux
           const encodedSubject = `=?UTF-8?B?${Buffer.from(payload.subject, 'utf-8').toString('base64')}?=`
+          const replyTo = payload.replyTo || fromAddress
+          const messageIdHeader = `<${Date.now()}.${Math.random().toString(36).substring(2, 9)}@aptic-rural.org>`
+          const dateHeader = new Date().toUTCString()
 
-          const emailData = [
+          const headers = [
+            `Date: ${dateHeader}`,
             `From: ${fromAddress}`,
+            `Reply-To: ${replyTo}`,
             `To: ${recipients.join(', ')}`,
             `Subject: ${encodedSubject}`,
+            `Message-ID: ${messageIdHeader}`,
             'MIME-Version: 1.0',
-            'Content-Type: text/html; charset=UTF-8',
-            'Content-Transfer-Encoding: 8bit',
-            '',
-            payload.html,
-            '.',
-            ''
-          ].join('\r\n')
+          ]
+
+          let body = ''
+
+          if (payload.text) {
+            const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
+            headers.push(`Content-Type: multipart/alternative; boundary="${boundary}"`)
+            body = [
+              `--${boundary}`,
+              'Content-Type: text/plain; charset=UTF-8',
+              'Content-Transfer-Encoding: 8bit',
+              '',
+              payload.text,
+              '',
+              `--${boundary}`,
+              'Content-Type: text/html; charset=UTF-8',
+              'Content-Transfer-Encoding: 8bit',
+              '',
+              payload.html,
+              '',
+              `--${boundary}--`,
+            ].join('\r\n')
+          } else {
+            headers.push('Content-Type: text/html; charset=UTF-8')
+            headers.push('Content-Transfer-Encoding: 8bit')
+            body = payload.html
+          }
+
+          const emailData = headers.join('\r\n') + '\r\n\r\n' + body + '\r\n.\r\n'
 
           socket.write(emailData)
         } else if (step === 8 && res.includes('250')) {

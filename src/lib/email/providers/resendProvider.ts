@@ -13,7 +13,7 @@ export class ResendEmailProvider implements EmailProvider {
   }
 
   async sendEmail(payload: EmailPayload): Promise<EmailSendResult> {
-    const fromAddress = payload.from || process.env.MAIL_FROM || 'APTIC-R Volontariat <contact@aptic-rural.org>'
+    const fromAddress = payload.from || process.env.MAIL_FROM || 'APTIC-R Volontariat <aptic.rural19@gmail.com>'
 
     if (!this.apiKey) {
       console.warn('⚠️ [ResendEmailProvider] RESEND_API_KEY non défini dans l\'environnement.')

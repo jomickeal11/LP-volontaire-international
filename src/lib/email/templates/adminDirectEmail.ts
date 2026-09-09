@@ -46,7 +46,7 @@ ${renderEmailHead(subject)}
       Coordination du Programme de Volontariat International<br>
       Association APTIC-R · Agbélouvé, Région Maritime, Togo<br>
       Tél. / WhatsApp : <a href="tel:+22891201990" style="color: inherit; text-decoration: underline;">+228 91 20 19 90</a><br>
-      Email : <a href="mailto:contact@aptic-rural.org" style="color: inherit; text-decoration: underline;">contact@aptic-rural.org</a>
+      Email : <a href="mailto:aptic.rural19@gmail.com" style="color: inherit; text-decoration: underline;">aptic.rural19@gmail.com</a>
     </div>
   </div>
 </body>
@@ -66,7 +66,7 @@ ${adminName}
 Coordination du Programme de Volontariat International
 Association APTIC-R · Agbélouvé, Région Maritime, Togo
 Tél. / WhatsApp : +228 91 20 19 90
-Email : contact@aptic-rural.org
+Email : aptic.rural19@gmail.com
   `.trim()
 
   return { subject, html, text }
