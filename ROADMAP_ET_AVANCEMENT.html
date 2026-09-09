@@ -545,11 +545,11 @@
 
       <div class="kpi-row">
         <div class="kpi-item">
-          <div class="kpi-num">88% <span>global</span></div>
+          <div class="kpi-num">95% <span>global</span></div>
           <div class="kpi-label">Taux d'achèvement</div>
         </div>
         <div class="kpi-item">
-          <div class="kpi-num">7 / 11 <span>phases</span></div>
+          <div class="kpi-num">9 / 11 <span>phases</span></div>
           <div class="kpi-label">Phases validées (100%)</div>
         </div>
         <div class="kpi-item">
@@ -658,28 +658,28 @@
               <td><span class="phase-badge">Phase 5</span></td>
               <td>
                 <div class="phase-title">Formulaire Candidature (9 étapes) & BDD</div>
-                <div class="phase-sub">Validation Zod, langues obligatoires, 50 car. min, uploads</div>
+                <div class="phase-sub">Validation Zod, langues obligatoires, 50 car. min, uploads, accusé mail</div>
               </td>
-              <td><span class="status-pill status-wip">Très avancé</span></td>
+              <td><span class="status-pill status-done">Validé</span></td>
               <td class="progress-cell">
-                <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width: 90%;"></div></div>
-                <span class="progress-label">90%</span>
+                <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width: 100%;"></div></div>
+                <span class="progress-label">100%</span>
               </td>
-              <td style="font-size: 13px;"><strong>E-mail réel</strong> de confirmation candidat à connecter</td>
+              <td style="color: var(--text-muted); font-size: 13px;">Complet — Validé (E-mails réels connectés)</td>
             </tr>
 
             <tr>
               <td><span class="phase-badge">Phase 6</span></td>
               <td>
                 <div class="phase-title">Formulaire Partenariats B2B & Espace Dédié</div>
-                <div class="phase-sub">Formulaire organisation, uploads de plaquettes, zéro faux logo</div>
+                <div class="phase-sub">Formulaire organisation, uploads de plaquettes, zéro faux logo, accusé mail</div>
               </td>
-              <td><span class="status-pill status-wip">Très avancé</span></td>
+              <td><span class="status-pill status-done">Validé</span></td>
               <td class="progress-cell">
-                <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width: 90%;"></div></div>
-                <span class="progress-label">90%</span>
+                <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width: 100%;"></div></div>
+                <span class="progress-label">100%</span>
               </td>
-              <td style="font-size: 13px;"><strong>E-mail réel</strong> de confirmation partenaire à connecter</td>
+              <td style="color: var(--text-muted); font-size: 13px;">Complet — Validé (E-mails réels connectés)</td>
             </tr>
 
             <tr>
@@ -702,12 +702,12 @@
                 <div class="phase-title">Workflow Candidatures (9 statuts & Notes)</div>
                 <div class="phase-sub">Cycle de sélection, historique d'audit, ajout de notes internes</div>
               </td>
-              <td><span class="status-pill status-wip">En place</span></td>
+              <td><span class="status-pill status-done">Validé</span></td>
               <td class="progress-cell">
-                <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width: 85%;"></div></div>
-                <span class="progress-label">85%</span>
+                <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width: 95%;"></div></div>
+                <span class="progress-label">95%</span>
               </td>
-              <td style="font-size: 13px;">Assignation de dossier à un membre de l'équipe</td>
+              <td style="color: var(--text-muted); font-size: 13px;">Workflow opérationnel — assignation optionnelle</td>
             </tr>
 
             <tr>
@@ -730,12 +730,12 @@
                 <div class="phase-title">Mails transactionnels & Déploiement Prod</div>
                 <div class="phase-sub">Envoi de mails réels, bucket Cloud S3, hébergement BDD & Vercel</div>
               </td>
-              <td><span class="status-pill status-pending">À finaliser</span></td>
+              <td><span class="status-pill status-wip">En cours</span></td>
               <td class="progress-cell">
-                <div class="progress-bar-bg"><div class="progress-bar-fill fill-red" style="width: 25%;"></div></div>
-                <span class="progress-label">25%</span>
+                <div class="progress-bar-bg"><div class="progress-bar-fill fill-amber" style="width: 70%;"></div></div>
+                <span class="progress-label">70%</span>
               </td>
-              <td style="font-size: 13px;">Service SMTP/API, Bucket S3 et mise en ligne</td>
+              <td style="font-size: 13px;">Mails transactionnels 100% branchés — Reste S3 & Hébergement</td>
             </tr>
           </tbody>
         </table>
@@ -778,6 +778,7 @@
             <li><span class="check-icon">✔</span> <strong>Seuil minimum de 50 caractères</strong> sur la motivation et l'expérience projet (client et serveur).</li>
             <li><span class="check-icon">✔</span> <strong>Téléversement sécurisé</strong> (CV, lettre, portfolio) avec streaming protégé.</li>
             <li><span class="check-icon">✔</span> <strong>Attribution de référence unique</strong> (<code>CAND-2026-XXXX</code>) et écran de succès trilingue.</li>
+            <li><span class="check-icon">✔</span> <strong>E-mails transactionnels réels</strong> : Accusé de réception officiel automatique + alerte immédiate APTIC-R.</li>
           </ul>
         </div>
 
@@ -792,6 +793,7 @@
             <li><span class="check-icon">✔</span> <strong>Formulaire organisation</strong> avec téléversement de plaquette officielle et validation Zod.</li>
             <li><span class="check-icon">✔</span> <strong>Règle stricte "Zéro faux partenaire"</strong> : Aucun logo fictif affiché, état zéro propre.</li>
             <li><span class="check-icon">✔</span> <strong>Génération de référence</strong> (<code>PART-2026-XXXX</code>) et écran de confirmation adapté.</li>
+            <li><span class="check-icon">✔</span> <strong>E-mails transactionnels réels</strong> : Accusé partenaire officiel + alerte immédiate équipe APTIC-R.</li>
           </ul>
         </div>
 
@@ -807,6 +809,21 @@
             <li><span class="check-icon">✔</span> <strong>Gestion des candidatures & Répertoire candidats</strong> avec calcul d'âge automatique et filtres combinés.</li>
             <li><span class="check-icon">✔</span> <strong>Fiches détaillées</strong> avec streaming des CVs, historique et ajout de notes internes.</li>
             <li><span class="check-icon">✔</span> <strong>Exports CSV / Excel</strong> fonctionnels sur toutes les listes.</li>
+          </ul>
+        </div>
+
+        <!-- Carte E : E-mails Transactionnels Réels -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-icon icon-blue">✉️</div>
+            <h3>E. Système d'E-mails Transactionnels</h3>
+          </div>
+          <ul class="checklist">
+            <li><span class="check-icon">✔</span> <strong>Architecture multi-fournisseur</strong> : SMTP Mailtrap Sandbox + Resend API configurés.</li>
+            <li><span class="check-icon">✔</span> <strong>Design sobre & humain</strong> : Rendu clair/sombre automatique, logo officiel APTIC-R, aucun marketing agressif.</li>
+            <li><span class="check-icon">✔</span> <strong>Conformité RFC & déliverabilité</strong> : Date, Message-ID, Reply-To, encodage UTF-8 et version texte brut.</li>
+            <li><span class="check-icon">✔</span> <strong>Messagerie Back-office connectée</strong> : Envoi direct d'e-mails aux candidats et partenaires avec journalisation interne.</li>
+            <li><span class="check-icon">✔</span> <strong>Protection quota gratuit Mailtrap</strong> : Cadencement automatique anti-flood (pause de 1,1s).</li>
           </ul>
         </div>
       </div>
@@ -826,13 +843,11 @@
         <div class="todo-card">
           <div class="todo-num">1</div>
           <div class="todo-body">
-            <h4>Système d'E-mails Transactionnels Réels</h4>
-            <p>L'écran de succès indique qu'un email de confirmation a été envoyé, mais aucun service SMTP/API n'est encore connecté pour délivrer les messages réels.</p>
+            <h4>Stockage Cloud des Fichiers pour la Production</h4>
+            <p>Les fichiers sont actuellement stockés dans le dossier local <code>/uploads</code>. C'est idéal en local, mais pour un hébergement serverless (Vercel), un stockage objet persistant est requis.</p>
             <ul class="todo-tasks">
-              <li><span class="todo-box"></span> Brancher un transporteur de mail (ex: Resend ou Nodemailer SMTP).</li>
-              <li><span class="todo-box"></span> Envoyer automatiquement l'accusé de réception au <strong>candidat</strong> avec sa référence <code>CAND-2026-XXXX</code>.</li>
-              <li><span class="todo-box"></span> Envoyer automatiquement l'accusé de réception à l'<strong>organisation partenaire</strong> (référence <code>PART-2026-XXXX</code>).</li>
-              <li><span class="todo-box"></span> Envoyer l'alerte immédiate à l'<strong>équipe APTIC-R</strong> (<code>aptic.rural19@gmail.com</code>) à chaque soumission.</li>
+              <li><span class="todo-box"></span> Connecter un bucket persistant (Cloudflare R2, Supabase Storage ou AWS S3).</li>
+              <li><span class="todo-box"></span> Conserver la route d'API de streaming sécurisé existante pour protéger les documents personnels.</li>
             </ul>
           </div>
           <div><span class="priority-badge p-high">Priorité Haute</span></div>
@@ -842,44 +857,30 @@
         <div class="todo-card">
           <div class="todo-num">2</div>
           <div class="todo-body">
-            <h4>Assignation des dossiers à un coordinateur</h4>
-            <p>La colonne <code>assignedToId</code> existe déjà en base de données Prisma, il reste à l'exposer dans l'interface de la fiche candidat dans l'admin.</p>
+            <h4>Déploiement en Production & Mise en Ligne</h4>
+            <p>Mise en ligne finale de la plateforme sur son infrastructure définitive et sécurisée.</p>
             <ul class="todo-tasks">
-              <li><span class="todo-box"></span> Ajouter un sélecteur dans la fiche candidat pour assigner le dossier à un membre de l'équipe (ex: Coordinateur IT, Agronomie).</li>
-              <li><span class="todo-box"></span> Ajouter un filtre par coordinateur dans la liste des candidatures.</li>
+              <li><span class="todo-box"></span> Héberger la base PostgreSQL en ligne (ex: Supabase / Neon).</li>
+              <li><span class="todo-box"></span> Déployer l'application web Next.js (Vercel ou VPS Ubuntu avec Docker).</li>
+              <li><span class="todo-box"></span> Configurer le nom de domaine officiel avec certificat SSL (HTTPS).</li>
+              <li><span class="todo-box"></span> Renseigner la variable <code>NEXT_PUBLIC_GA_ID</code> dans les variables de production.</li>
             </ul>
           </div>
-          <div><span class="priority-badge p-mid">Priorité Moyenne</span></div>
+          <div><span class="priority-badge p-low">Mise en Prod</span></div>
         </div>
 
         <!-- Chantier 3 -->
         <div class="todo-card">
           <div class="todo-num">3</div>
           <div class="todo-body">
-            <h4>Stockage Cloud des Fichiers pour la Production</h4>
-            <p>Les fichiers sont stockés dans le dossier local <code>/uploads</code>. C'est parfait en local, mais pour un hébergement serverless (Vercel), un stockage persistant est requis.</p>
+            <h4>Assignation des dossiers à un coordinateur</h4>
+            <p>La colonne <code>assignedToId</code> existe déjà en base de données Prisma, il reste à l'exposer dans l'interface de la fiche candidat dans l'admin.</p>
             <ul class="todo-tasks">
-              <li><span class="todo-box"></span> Connecter un bucket persistant (Supabase Storage, Cloudflare R2 ou AWS S3).</li>
-              <li><span class="todo-box"></span> Conserver la route d'API de streaming sécurisé pour ne jamais exposer publiquement les fichiers personnels.</li>
+              <li><span class="todo-box"></span> Ajouter un sélecteur dans la fiche candidat pour assigner le dossier à un membre de l'équipe.</li>
+              <li><span class="todo-box"></span> Ajouter un filtre par coordinateur dans la liste des candidatures.</li>
             </ul>
           </div>
-          <div><span class="priority-badge p-high">Priorité Haute</span></div>
-        </div>
-
-        <!-- Chantier 4 -->
-        <div class="todo-card">
-          <div class="todo-num">4</div>
-          <div class="todo-body">
-            <h4>Déploiement en Production & Clés Réelles</h4>
-            <p>Mise en ligne finale de la plateforme sur son infrastructure définitive.</p>
-            <ul class="todo-tasks">
-              <li><span class="todo-box"></span> Héberger la base PostgreSQL en ligne (ex: Supabase / Neon).</li>
-              <li><span class="todo-box"></span> Déployer l'application web Next.js (Vercel ou VPS Ubuntu avec Docker/PM2).</li>
-              <li><span class="todo-box"></span> Configurer le nom de domaine officiel (ex: <code>volontaires.apticr.tg</code>) avec certificat SSL (HTTPS).</li>
-              <li><span class="todo-box"></span> Renseigner la variable <code>NEXT_PUBLIC_GA_ID</code> dans le <code>.env</code> de production.</li>
-            </ul>
-          </div>
-          <div><span class="priority-badge p-low">Mise en Prod</span></div>
+          <div><span class="priority-badge p-mid">Priorité Moyenne</span></div>
         </div>
       </div>
     </section>
