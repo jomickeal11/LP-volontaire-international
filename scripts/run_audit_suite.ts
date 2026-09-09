@@ -141,8 +141,8 @@ async function main() {
     formData.append("source", "Site Internet officiel")
     formData.append("consent", "true")
 
-    const cvFile = new File([cvBuf], "cv_jean_volontaire.pdf", { type: "application/pdf" })
-    const letterFile = new File([letterBuf], "lettre_motivation.pdf", { type: "application/pdf" })
+    const cvFile = new File([new Uint8Array(cvBuf)], "cv_jean_volontaire.pdf", { type: "application/pdf" })
+    const letterFile = new File([new Uint8Array(letterBuf)], "lettre_motivation.pdf", { type: "application/pdf" })
     formData.append("cvFile", cvFile)
     formData.append("motivationFile", letterFile)
 
@@ -250,7 +250,7 @@ async function main() {
     formData.append("message", "Nous souhaitons établir une convention de partenariat pluriannuelle pour l'envoi de jeunes diplômés en informatique.")
     formData.append("consent", "true")
 
-    const brochureFile = new File([pdfBuf], "plaquette_fondation_2026.pdf", { type: "application/pdf" })
+    const brochureFile = new File([new Uint8Array(pdfBuf)], "plaquette_fondation_2026.pdf", { type: "application/pdf" })
     formData.append("brochure", brochureFile)
 
     const result = await submitPartnerRequestFormData(formData)
@@ -555,8 +555,8 @@ async function main() {
       fd.append("projectExp", "Expérience de plus de cinquante caractères pour franchir le schéma sans encombre.")
       fd.append("source", "Test")
       fd.append("consent", "true")
-      const cvFile = new File([cvBuf], "cv_spam.pdf", { type: "application/pdf" })
-      const letterFile = new File([letterBuf], "lettre_spam.pdf", { type: "application/pdf" })
+      const cvFile = new File([new Uint8Array(cvBuf)], "cv_spam.pdf", { type: "application/pdf" })
+      const letterFile = new File([new Uint8Array(letterBuf)], "lettre_spam.pdf", { type: "application/pdf" })
       fd.append("cvFile", cvFile)
       fd.append("motivationFile", letterFile)
       return fd
@@ -577,7 +577,7 @@ async function main() {
 
   await runTest("SECURITE", "3.9 Actions admin serveur sans session ➔ Rejetées (403/Non autorisé)", async () => {
     // Essai de mise à jour de statut sans cookie de session
-    const resStatus = await updateCandidateStatus("fake-id", "ACCEPTED")
+    const resStatus = await updateCandidateStatus("fake-id", "SELECTED" as any)
     if (resStatus.success) throw new Error("updateCandidateStatus a réussi sans session admin !")
 
     const resNote = await addCandidateNote("fake-id", "Note malveillante")
@@ -608,7 +608,7 @@ async function main() {
       await prisma.documentCandidature.deleteMany({ where: { applicationId: createdCandidatureId } })
       await prisma.noteCandidature.deleteMany({ where: { applicationId: createdCandidatureId } })
       await prisma.historiqueCandidature.deleteMany({ where: { applicationId: createdCandidatureId } })
-      await prisma.candidatureCompetence.deleteMany({ where: { candidatureId: createdCandidatureId } })
+      await (prisma as any).candidatureCompetence.deleteMany({ where: { candidatureId: createdCandidatureId } })
       await prisma.candidature.delete({ where: { id: createdCandidatureId } })
     } catch (e) {
       // Nettoyage silencieux

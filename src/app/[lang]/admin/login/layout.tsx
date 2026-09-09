@@ -1,9 +1,8 @@
 import type { Metadata } from "next"
-import AdminClientLayout from "./AdminClientLayout"
 
 export const metadata: Metadata = {
-  title: "Administration — APTIC-R",
-  description: "Espace d'administration réservé à l'équipe de coordination APTIC-R.",
+  title: "Connexion Administrateur — APTIC-R",
+  description: "Portail d'authentification réservé aux administrateurs APTIC-R.",
   robots: {
     index: false,
     follow: false,
@@ -19,10 +18,10 @@ export const metadata: Metadata = {
   },
 }
 
-export default function AdminLayoutRoute({
+export default function AdminLoginLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return <AdminClientLayout>{children}</AdminClientLayout>
+  return <>{children}</>
 }
