@@ -631,7 +631,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
 
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
-  const [submittedRef, setSubmittedRef] = useState("PART-2026-0001")
+  const [submittedRef, setSubmittedRef] = useState(`PART-${new Date().getFullYear()}-0001`)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
 

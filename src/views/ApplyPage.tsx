@@ -655,7 +655,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
   const [step, setStep] = useState(1)
   const [maxStepReached, setMaxStepReached] = useState(1)
   const [submitted, setSubmitted] = useState(false)
-  const [submittedRef, setSubmittedRef] = useState("CAND-2026-0001")
+  const [submittedRef, setSubmittedRef] = useState(`CAND-${new Date().getFullYear()}-0001`)
   const [errorMessage, setErrorMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 

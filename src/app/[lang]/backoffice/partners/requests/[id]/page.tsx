@@ -1,5 +1,6 @@
 import AdminPartnerRequestDetailWrapper from "./AdminPartnerRequestDetailWrapper"
 import prisma from "@/lib/prisma"
+import { formatDate } from "@/lib/dateUtils"
 import { notFound } from "next/navigation"
 
 export const dynamic = "force-dynamic"
@@ -45,16 +46,16 @@ export default async function PartnerRequestDetailPage({
     message: request.message,
     consent: request.consent,
     status: request.status || "NEW",
-    createdAt: new Intl.DateTimeFormat("fr-FR", {
+    createdAt: formatDate(request.createdAt, lang, {
       day: "2-digit",
       month: "long",
       year: "numeric",
-    }).format(new Date(request.createdAt)),
-    updatedAt: new Intl.DateTimeFormat("fr-FR", {
+    }),
+    updatedAt: formatDate(request.updatedAt, lang, {
       day: "2-digit",
       month: "long",
       year: "numeric",
-    }).format(new Date(request.updatedAt)),
+    }),
     partner: request.partner
       ? {
           id: request.partner.id,
@@ -68,11 +69,7 @@ export default async function PartnerRequestDetailPage({
       storageKey: doc.storageKey,
       mimeType: doc.mimeType,
       size: doc.size,
-      createdAt: new Intl.DateTimeFormat("fr-FR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }).format(new Date(doc.createdAt)),
+      createdAt: formatDate(doc.createdAt, lang),
     })),
   }
 

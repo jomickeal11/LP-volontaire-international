@@ -481,7 +481,8 @@ class DataStore {
     lang: "FR" | "EN" | "DE" = "FR",
   ): ApplicationRecord {
     const nextSeq = this.applications.length + 1
-    const refNum = `CAND-2026-${String(nextSeq).padStart(4, "0")}`
+    const year = new Date().getFullYear()
+    const refNum = `CAND-${year}-${String(nextSeq).padStart(4, "0")}`
     const candId = `CAND_${String(nextSeq).padStart(3, "0")}`
     const appId = `APP_${String(nextSeq).padStart(3, "0")}`
 

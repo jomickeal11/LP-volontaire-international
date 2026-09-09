@@ -1,5 +1,6 @@
 import AdminCandidatesClientWrapper from "./AdminCandidatesClientWrapper"
 import prisma from "@/lib/prisma"
+import { formatDate } from "@/lib/dateUtils"
 
 export const dynamic = "force-dynamic"
 
@@ -74,11 +75,7 @@ export default async function AdminCandidatesPage({
       city: c.city || null,
       dateOfBirth: c.dateOfBirth ? c.dateOfBirth.toISOString() : null,
       age,
-      createdAt: new Intl.DateTimeFormat("fr-FR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }).format(new Date(c.createdAt)),
+      createdAt: formatDate(c.createdAt, lang),
       applicationsCount: c.applications?.length || 0,
       latestApplicationId: latestApp?.id || null,
       latestStatus: latestApp?.status || null,

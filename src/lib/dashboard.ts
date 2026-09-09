@@ -1,5 +1,6 @@
 import prisma from "./prisma"
 import type { CandidateStatus, MissionDuration, LanguageCode } from "@prisma/client"
+import { getLocaleFromLang } from "./dateUtils"
 
 export interface DashboardData {
   overview: {
@@ -115,7 +116,7 @@ export interface AnalyticsPageData {
   }[]
 }
 
-export async function getDashboardStats(): Promise<DashboardData> {
+export async function getDashboardStats(lang: string = "fr"): Promise<DashboardData> {
   // 1. Fetch all candidatures with candidate and skill relations
   const applications = await prisma.candidature.findMany({
     include: {
@@ -162,16 +163,17 @@ export async function getDashboardStats(): Promise<DashboardData> {
     completed: statusCounts.COMPLETED,
   }
 
-  // 3. Monthly Trend (last 6 months dynamically generated based on createdAt)
-  const monthNamesFr = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov", "Déc"]
+  // 3. Monthly Trend (last 6 months dynamically generated based on createdAt and active lang)
   const now = new Date()
   const monthlyTrendMap: Record<string, { month: string; yearMonth: string; applications: number }> = {}
+  const locale = getLocaleFromLang(lang)
 
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
     const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+    const shortMonth = new Intl.DateTimeFormat(locale, { month: "short" }).format(d)
     monthlyTrendMap[ym] = {
-      month: `${monthNamesFr[d.getMonth()]} ${d.getFullYear().toString().slice(2)}`,
+      month: `${shortMonth} ${d.getFullYear().toString().slice(2)}`,
       yearMonth: ym,
       applications: 0,
     }
@@ -381,14 +383,10 @@ export async function getDashboardStats(): Promise<DashboardData> {
 export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Promise<AnalyticsPageData> {
   const periodLabel = `Derniers ${days} jours`
   const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
-  const locale = lang.toLowerCase().startsWith("en")
-    ? "en-US"
-    : lang.toLowerCase().startsWith("de")
-    ? "de-DE"
-    : "fr-FR"
+  const locale = getLocaleFromLang(lang)
 
   // 1. Check GA4 environment variable
-  const ga4Id = process.env.NEXT_PUBLIC_GA_ID || process.env.GA4_MEASUREMENT_ID || null
+  const ga4Id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID || process.env.GA4_MEASUREMENT_ID || null
   const isGa4Connected = Boolean(ga4Id)
 
   // 2. Query Postgres applications

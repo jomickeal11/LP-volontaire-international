@@ -264,9 +264,9 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
             </div>
 
             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-              <span className="font-mono bg-slate-50 border border-slate-100 px-1.5 py-0.2 rounded text-[11px] text-slate-600 font-semibold">
-                {candidate.reference || candidate.referenceNumber || "CAND-2026-0001"}
-              </span>
+              <div className="font-mono text-xs font-semibold text-slate-500">
+                {candidate.reference || candidate.referenceNumber || `CAND-${new Date().getFullYear()}-0001`}
+              </div>
               <span>·</span>
               <span>{candidate.country}</span>
               <span>·</span>

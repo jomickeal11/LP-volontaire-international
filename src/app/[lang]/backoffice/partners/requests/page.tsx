@@ -1,5 +1,6 @@
 import AdminPartnerRequestsClientWrapper from "./AdminPartnerRequestsClientWrapper"
 import prisma from "@/lib/prisma"
+import { formatDate } from "@/lib/dateUtils"
 
 export const dynamic = "force-dynamic"
 
@@ -38,11 +39,7 @@ export default async function AdminPartnerRequestsPage({
     programme: req.programme,
     message: req.message,
     status: req.status || "NEW",
-    createdAt: new Intl.DateTimeFormat("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    }).format(new Date(req.createdAt)),
+    createdAt: formatDate(req.createdAt, lang),
     documentsCount: req.documents?.length || 0,
   }))
 

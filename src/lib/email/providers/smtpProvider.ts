@@ -19,11 +19,10 @@ export class SmtpEmailProvider implements EmailProvider {
     const recipients = Array.isArray(payload.to) ? payload.to : [payload.to]
 
     if (!user || !pass) {
-      console.warn('⚠️ [SmtpEmailProvider] MAIL_USER ou MAIL_PASSWORD non configuré. Mode simulation actif.')
-      console.log(`📨 [SIMULATION EMAIL] Destinataire: ${recipients.join(', ')} | Objet: "${payload.subject}"`)
+      console.warn('⚠️ [SmtpEmailProvider] Identifiants SMTP manquants (MAIL_USER / MAIL_PASSWORD non configurés).')
       return {
-        success: true,
-        messageId: `simulated-${Date.now()}`
+        success: false,
+        error: 'Service e-mail non configuré (identifiants SMTP manquants)',
       }
     }
 

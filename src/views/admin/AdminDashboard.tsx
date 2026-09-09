@@ -12,6 +12,7 @@ import {
 } from "recharts"
 import type { Page } from "../../types"
 import type { DashboardData } from "../../lib/dashboard"
+import { getAdminTranslations } from "../../i18n/adminTranslations"
 
 // APTIC-R Official Brand Tokens
 const BLUE = "#174F7A"
@@ -73,10 +74,13 @@ function KpiCard({
 export default function AdminDashboard({
   data,
   navigate,
+  lang = "fr",
 }: {
   data: DashboardData
   navigate: (p: Page) => void
+  lang?: string
 }) {
+  const t = getAdminTranslations(lang)
   const {
     overview,
     monthlyTrend,
@@ -100,7 +104,7 @@ export default function AdminDashboard({
         <div>
           <div className="flex items-center gap-2.5 mb-1">
             <h1 className="text-xl font-bold tracking-tight" style={{ color: TEXT_DARK }}>
-              Tableau de bord de recrutement
+              {t.nav.dashboard}
             </h1>
             <span
               className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border"
@@ -130,7 +134,7 @@ export default function AdminDashboard({
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
-            Consulter les candidatures
+            {t.nav.applications}
           </button>
         </div>
       </div>
@@ -138,9 +142,9 @@ export default function AdminDashboard({
       {/* 2. Core Recruitment KPI Grid (Mapped 1:1 to Business Statuses) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
         <KpiCard
-          label="Total Candidatures"
+          label={t.common.totalApplications}
           value={overview.totalApplications}
-          sublabel="Base totale active"
+          sublabel="Base active"
           color={BLUE}
           icon={
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,9 +153,9 @@ export default function AdminDashboard({
           }
         />
         <KpiCard
-          label="Nouvelles"
+          label={t.common.newApplications}
           value={overview.newApplications}
-          sublabel="Statut : NOUVEAU"
+          sublabel={t.statuses.NEW}
           color={BLUE}
           icon={
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,9 +164,9 @@ export default function AdminDashboard({
           }
         />
         <KpiCard
-          label="En révision"
+          label={t.common.inReview}
           value={overview.inReview}
-          sublabel="Statut : RÉVISION"
+          sublabel={t.statuses.REVIEW}
           color={BLUE}
           icon={
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,9 +176,9 @@ export default function AdminDashboard({
           }
         />
         <KpiCard
-          label="Entretiens"
+          label={t.common.interviews}
           value={overview.interviews}
-          sublabel="Statut : ENTRETIEN"
+          sublabel={t.statuses.INTERVIEW}
           color={BLUE}
           icon={
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -183,9 +187,9 @@ export default function AdminDashboard({
           }
         />
         <KpiCard
-          label="Sélectionnés"
+          label={t.common.selectedCandidates}
           value={overview.selected}
-          sublabel="Statut : SÉLECTIONNÉ / RETENU"
+          sublabel={`${t.statuses.SELECTED} / ${t.statuses.CHOSEN}`}
           color={GREEN}
           highlight
           icon={
@@ -195,9 +199,9 @@ export default function AdminDashboard({
           }
         />
         <KpiCard
-          label="Arrivés au Togo"
+          label={t.common.arrivedTogo}
           value={overview.arrived}
-          sublabel="Statut : ARRIVÉ"
+          sublabel={t.statuses.ARRIVED}
           color={GREEN}
           icon={
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

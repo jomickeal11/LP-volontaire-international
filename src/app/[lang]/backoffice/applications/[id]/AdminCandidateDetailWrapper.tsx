@@ -6,29 +6,27 @@ import type { Page } from "@/types"
 import { updateCandidateStatus, addCandidateNote, deleteCandidateNote } from "@/lib/actions"
 import type { CandidateStatus } from "@prisma/client"
 
+import { getLocaleFromLang, formatDate } from "@/lib/dateUtils"
+
 export default function AdminCandidateDetailWrapper({ application, lang = "fr" }: { application: any; lang?: string }) {
   const router = useRouter()
 
   const targetLang = (lang || application.lang || "fr").toLowerCase()
-  const locale = targetLang.startsWith("en")
-    ? "en-US"
-    : targetLang.startsWith("de")
-    ? "de-DE"
-    : "fr-FR"
+  const locale = getLocaleFromLang(targetLang)
 
   const handleNavigate = (page: Page) => {
     switch (page) {
       case "home":
-        router.push("/")
+        router.push(`/${targetLang}`)
         break
       case "admin-applications":
-        router.push("/backoffice/applications")
+        router.push(`/${targetLang}/backoffice/applications`)
         break
       case "admin-dashboard":
-        router.push("/backoffice/dashboard")
+        router.push(`/${targetLang}/backoffice/dashboard`)
         break
       default:
-        router.push("/backoffice/applications")
+        router.push(`/${targetLang}/backoffice/applications`)
         break
     }
   }
@@ -77,19 +75,19 @@ export default function AdminCandidateDetailWrapper({ application, lang = "fr" }
       : (application.experience || "—"),
     digitalSkillLevel: application.digitalSkillLevel || "—",
     languages: application.languages || null,
-    reference: application.referenceNumber || application.reference || "CAND-2026-0001",
+    reference: application.referenceNumber || application.reference || `CAND-${new Date().getFullYear()}-0001`,
     motivation: application.motivation || "",
     projectExperience: application.projectExperience || "—",
     skills: application.skills.map((s: any) => s.skill.nameFr || s.skill.nameEn),
     statusHistory: application.statusHistory ? application.statusHistory.map((h: any) => ({
       status: h.toStatus,
-      date: new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit" }).format(new Date(h.changedAt)),
+      date: formatDate(h.changedAt, targetLang, { day: "2-digit", month: "2-digit" }),
       by: h.changedByName
     })) : [],
     notes: application.notes ? application.notes.map((n: any) => ({
       id: n.id,
       content: n.content,
-      createdAt: new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(n.createdAt)),
+      createdAt: formatDate(n.createdAt, targetLang),
       author: n.authorName
     })) : [],
     documents: application.documents ? application.documents.map((d: any) => ({
