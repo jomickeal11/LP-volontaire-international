@@ -26,15 +26,6 @@ export default function ApplyRoute({
       case "partner":
         router.push(`/${lang}/partners`)
         break
-      case "admin-login":
-        router.push(`/${lang}/backoffice/login`)
-        break
-      case "admin-applications":
-        router.push(`/${lang}/backoffice/applications`)
-        break
-      case "admin-dashboard":
-        router.push(`/${lang}/backoffice/dashboard`)
-        break
       default:
         router.push(`/${lang}`)
         break
