@@ -15,6 +15,7 @@ import type { CandidateStatus, LanguageCode } from "@prisma/client"
 import { randomBytes, randomUUID } from "crypto"
 import { writeFile } from "fs/promises"
 import { join } from "path"
+import { EmailService } from "./email"
 
 // Sécurité des fichiers téléversés
 const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15 Mo max
@@ -156,6 +157,21 @@ export async function submitCandidateApplication(
       return newApp
     })
 
+    // Envoi des e-mails transactionnels (candidat + alerte équipe APTIC-R)
+    // Asynchrone et résilient : ne bloque jamais la réponse
+    EmailService.sendCandidateApplicationEmails({
+      firstName: application.candidate.firstName,
+      lastName: application.candidate.lastName,
+      email: application.candidate.email,
+      referenceNumber: application.referenceNumber,
+      country: application.candidate.country,
+      profession: application.profession || undefined,
+      skills: application.skills.map((s: any) => s.skill.nameFr || s.skill.nameEn),
+      arrivalDate: application.arrivalDate ? new Intl.DateTimeFormat("fr-FR").format(new Date(application.arrivalDate)) : undefined,
+      duration: application.duration === "SIX_MONTHS" ? "6 mois" : application.duration === "NINE_MONTHS" ? "9 mois" : "12 mois",
+      lang: lang as "FR" | "EN" | "DE",
+    }).catch(err => console.error("Email delivery failed for candidate:", err))
+
     return { success: true as const, data: application }
   } catch (err: unknown) {
     console.error(err)
@@ -206,6 +222,16 @@ export async function submitPartnerRequest(
         status: "PENDING",
       }
     })
+
+    // Envoi des e-mails transactionnels (partenaire + alerte équipe APTIC-R)
+    EmailService.sendPartnerRequestEmails({
+      orgName: partnerRequest.orgName,
+      contactPerson: partnerRequest.contactPerson,
+      email: partnerRequest.email,
+      referenceNumber: partnerRequest.referenceNumber || refNum,
+      country: partnerRequest.country,
+      orgType: partnerRequest.orgType,
+    }).catch(err => console.error("Email delivery failed for partner request:", err))
 
     return { success: true as const, data: partnerRequest }
   } catch (err: unknown) {
