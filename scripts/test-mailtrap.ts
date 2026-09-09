@@ -1,6 +1,24 @@
-try { if (process.loadEnvFile) process.loadEnvFile() } catch {}
+import { readFileSync } from 'fs'
 import { EmailService } from '../src/lib/email'
 import { getEmailProvider } from '../src/lib/email'
+
+// Chargement automatique des variables d'environnement locales
+try {
+  const envContent = readFileSync('.env', 'utf8')
+  for (const line of envContent.split(/\r?\n/)) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const idx = trimmed.indexOf('=')
+    if (idx !== -1) {
+      const key = trimmed.substring(0, idx).trim()
+      let val = trimmed.substring(idx + 1).trim()
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.substring(1, val.length - 1)
+      }
+      process.env[key] = val
+    }
+  }
+} catch {}
 
 async function main() {
   console.log("=======================================================")
@@ -31,9 +49,10 @@ async function main() {
   console.log(`   ➔ E-mail Candidat envoyé : ${candResult.candidateEmailSent ? '✅ OUI' : '❌ NON'}`)
   console.log(`   ➔ Alerte Admin envoyée : ${candResult.adminEmailSent ? '✅ OUI' : '❌ NON'}`)
 
-  await new Promise((r) => setTimeout(r, 1500))
+  console.log("\n3. Pause de régulation (rate-limit Mailtrap Sandbox)...")
+  await new Promise((r) => setTimeout(r, 2000))
 
-  console.log("\n3. Test d'envoi d'e-mail partenaire (avec référence PART-2026-XXXX)...")
+  console.log("\n4. Test d'envoi d'e-mail partenaire (avec référence PART-2026-XXXX)...")
   const partResult = await EmailService.sendPartnerRequestEmails({
     orgName: "Fondation Européenne pour le Volontariat Solidaire",
     contactPerson: "Dr. Marie Keller",
