@@ -5,7 +5,7 @@ import { notFound } from "next/navigation"
 export default async function CandidateDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ lang: string; id: string }>
 }) {
   const resolvedParams = await params
   
@@ -49,6 +49,6 @@ export default async function CandidateDetailPage({
   }
 
   return (
-    <AdminCandidateDetailWrapper application={applicationData} />
+    <AdminCandidateDetailWrapper application={applicationData} lang={resolvedParams.lang} />
   )
 }

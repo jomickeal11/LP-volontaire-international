@@ -378,9 +378,14 @@ export async function getDashboardStats(): Promise<DashboardData> {
   }
 }
 
-export async function getAnalyticsPageStats(days = 30): Promise<AnalyticsPageData> {
+export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Promise<AnalyticsPageData> {
   const periodLabel = `Derniers ${days} jours`
   const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+  const locale = lang.toLowerCase().startsWith("en")
+    ? "en-US"
+    : lang.toLowerCase().startsWith("de")
+    ? "de-DE"
+    : "fr-FR"
 
   // 1. Check GA4 environment variable
   const ga4Id = process.env.NEXT_PUBLIC_GA_ID || process.env.GA4_MEASUREMENT_ID || null
@@ -526,7 +531,7 @@ export async function getAnalyticsPageStats(days = 30): Promise<AnalyticsPageDat
     label: eventMeta[name],
     count: eventCounts[name]?.count || (name === "application_submitted" ? applications.length : name === "partner_request_submitted" ? partnerRequestsSubmitted : 0),
     lastOccurred: eventCounts[name]?.lastDate
-      ? new Intl.DateTimeFormat("fr-FR", {
+      ? new Intl.DateTimeFormat(locale, {
           day: "2-digit",
           month: "2-digit",
           hour: "2-digit",

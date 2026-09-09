@@ -10,8 +10,7 @@ import { store } from "../../lib/store"
 import type { Page } from "../../types"
 import { MapPinIcon, MailIcon, PhoneIcon, GlobeIcon, CheckIcon } from "../../components/Icons"
 import { useAdminHeader } from "../../lib/AdminHeaderContext"
-
-
+import { sendCandidateDirectEmail } from "@/lib/actions"
 
 const BLUE = "#1B4F7C"
 const GREEN = "#2E7D52"
@@ -63,12 +62,13 @@ interface Props {
   candidateId: string
   navigate: (p: Page) => void
   application: any // Using any for fast prototyping, maps to full application record
+  locale?: string
   onStatusChange?: (id: string, status: CandidateStatus) => void
   onAddNote?: (id: string, note: string) => void
   onDeleteNote?: (id: string) => void
 }
 
-export default function AdminCandidateDetail({ navigate, application, onStatusChange, onAddNote, onDeleteNote }: Props) {
+export default function AdminCandidateDetail({ navigate, application, locale = "fr-FR", onStatusChange, onAddNote, onDeleteNote }: Props) {
   const [candidate, setCandidate] = useState(application)
   const [activeTab, setActiveTab] = useState<"profile" | "dossier">("profile")
   const [newNote, setNewNote] = useState("")
@@ -78,6 +78,7 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
   const [emailBody, setEmailBody] = useState("")
   const [emailSent, setEmailSent] = useState(false)
   const [emailLoading, setEmailLoading] = useState(false)
+  const [emailError, setEmailError] = useState<string | null>(null)
   const [status, setStatus] = useState<CandidateStatus>(candidate.status)
   const [confirmStatusChange, setConfirmStatusChange] =
     useState<CandidateStatus | null>(null)
@@ -107,7 +108,7 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
     const newNoteObj = {
       id: "temp-" + Date.now(), // Optimistic UI
       content: newNote,
-      createdAt: new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date()),
+      createdAt: new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date()),
       author: "Admin APTIC-R",
     }
     setNotes([newNoteObj, ...notes])
@@ -130,17 +131,38 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
     setConfirmStatusChange(null)
   }
 
-  const sendEmail = () => {
+  const sendEmail = async () => {
+    if (!emailSubject.trim() || !emailBody.trim()) return
     setEmailLoading(true)
-    setTimeout(() => {
+    setEmailError(null)
+
+    try {
+      const res = await sendCandidateDirectEmail({
+        candidateId: candidate.id,
+        recipientEmail: candidate.email,
+        recipientName: `${candidate.firstName} ${candidate.lastName}`,
+        subject: emailSubject,
+        message: emailBody,
+      })
+
+      if (res.success) {
+        setEmailLoading(false)
+        setEmailSent(true)
+        const noteObj = {
+          id: "email-" + Date.now(),
+          content: `Email envoyé au candidat : « ${emailSubject} »\n${emailBody}`,
+          createdAt: new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date()),
+          author: "Admin APTIC-R",
+        }
+        setNotes([noteObj, ...notes])
+      } else {
+        setEmailLoading(false)
+        setEmailError(res.error || "Une erreur est survenue lors de l'envoi de l'email.")
+      }
+    } catch (err: any) {
       setEmailLoading(false)
-      setEmailSent(true)
-      store.addNote(
-        candidate.id,
-        "Email",
-        `Email envoyé : ${emailSubject || "Contact coordination"}`,
-      )
-    }, 1200)
+      setEmailError(err?.message || "Erreur de communication avec le serveur d'emails.")
+    }
   }
 
   return (
@@ -282,7 +304,11 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
               )}
 
               <button
-                onClick={() => setEmailOpen(true)}
+                onClick={() => {
+                  setEmailError(null)
+                  setEmailSent(false)
+                  setEmailOpen(true)
+                }}
                 className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-lg text-white transition-colors shadow-2xs cursor-pointer"
                 style={{ backgroundColor: "#174F7A" }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#123d60")}
@@ -872,6 +898,7 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
           onClick={() => {
             setEmailOpen(false)
             setEmailSent(false)
+            setEmailError(null)
           }}
         >
           <div
@@ -891,14 +918,17 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
                 </div>
                 <h3 className="text-base font-bold mb-2 text-slate-900">Email envoyé</h3>
                 <p className="text-sm mb-4 text-slate-600">
-                  Votre message à {candidate.firstName} a bien été envoyé.
+                  Votre message à {candidate.firstName} a bien été envoyé via le service d&apos;email.
                 </p>
                 <button
                   onClick={() => {
                     setEmailOpen(false)
                     setEmailSent(false)
+                    setEmailError(null)
+                    setEmailSubject("")
+                    setEmailBody("")
                   }}
-                  className="text-sm font-semibold px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  className="text-sm font-semibold px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
                 >
                   Fermer
                 </button>
@@ -909,36 +939,55 @@ export default function AdminCandidateDetail({ navigate, application, onStatusCh
                 <p className="text-xs mb-4 text-slate-500">
                   Destinataire : <strong>{candidate.firstName} {candidate.lastName}</strong> ({candidate.email})
                 </p>
+
+                {emailError && (
+                  <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                    <svg className="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{emailError}</span>
+                  </div>
+                )}
+
                 <div className="flex flex-col gap-3 mb-5">
                   <input
                     type="text"
                     placeholder="Objet de l'email"
                     value={emailSubject}
-                    onChange={(e) => setEmailSubject(e.target.value)}
+                    onChange={(e) => {
+                      setEmailSubject(e.target.value)
+                      if (emailError) setEmailError(null)
+                    }}
                     className="w-full px-3.5 py-2.5 rounded-lg text-sm border border-slate-200 outline-none focus:border-blue-500"
                   />
                   <textarea
                     placeholder="Rédigez votre message..."
                     value={emailBody}
-                    onChange={(e) => setEmailBody(e.target.value)}
+                    onChange={(e) => {
+                      setEmailBody(e.target.value)
+                      if (emailError) setEmailError(null)
+                    }}
                     rows={5}
                     className="w-full px-3.5 py-2.5 rounded-lg text-sm border border-slate-200 outline-none focus:border-blue-500 resize-none"
                   />
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setEmailOpen(false)}
-                    className="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    onClick={() => {
+                      setEmailOpen(false)
+                      setEmailError(null)
+                    }}
+                    className="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
                   >
                     Annuler
                   </button>
                   <button
                     onClick={sendEmail}
-                    disabled={emailLoading || !emailSubject}
+                    disabled={emailLoading || !emailSubject.trim() || !emailBody.trim()}
                     className="flex-1 py-2.5 text-sm font-bold rounded-lg text-white flex items-center justify-center gap-2"
                     style={{
-                      backgroundColor: emailLoading ? "#9AA8B4" : "#174F7A",
-                      cursor: emailLoading ? "not-allowed" : "pointer",
+                      backgroundColor: emailLoading || !emailSubject.trim() || !emailBody.trim() ? "#9AA8B4" : "#174F7A",
+                      cursor: emailLoading || !emailSubject.trim() || !emailBody.trim() ? "not-allowed" : "pointer",
                     }}
                   >
                     {emailLoading ? "Envoi en cours..." : "Envoyer"}

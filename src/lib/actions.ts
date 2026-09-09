@@ -1,6 +1,9 @@
 "use server"
 
 import {
+  getCandidateApplicationSchema,
+  getPartnerRequestSchema,
+  formatZodError,
   candidateApplicationSchema,
   partnerRequestSchema,
   updateStatusSchema,
@@ -63,7 +66,8 @@ export async function submitCandidateApplication(
   lang: "FR" | "EN" | "DE" = "FR"
 ) {
   try {
-    const validated = candidateApplicationSchema.parse(data)
+    const schema = getCandidateApplicationSchema(lang)
+    const validated = schema.parse(data)
     
     // Duplicate check: prevent same email from submitting within 5 minutes
     const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000)
@@ -175,16 +179,18 @@ export async function submitCandidateApplication(
     return { success: true as const, data: application }
   } catch (err: unknown) {
     console.error(err)
-    const message = err instanceof Error ? err.message : "Erreur lors de la soumission"
+    const message = formatZodError(err, lang)
     return { success: false as const, error: message }
   }
 }
 
 export async function submitPartnerRequest(
   data: PartnerRequestInput,
+  lang: "FR" | "EN" | "DE" = "FR"
 ) {
   try {
-    const validated = partnerRequestSchema.parse(data)
+    const schema = getPartnerRequestSchema(lang)
+    const validated = schema.parse(data)
 
     // Generate reference number PART-YYYY-XXXX
     const year = new Date().getFullYear()
@@ -236,12 +242,15 @@ export async function submitPartnerRequest(
     return { success: true as const, data: partnerRequest }
   } catch (err: unknown) {
     console.error("submitPartnerRequest error:", err)
-    const message = err instanceof Error ? err.message : "Erreur lors de la soumission de la demande"
+    const message = formatZodError(err, lang)
     return { success: false as const, error: message }
   }
 }
 
-export async function submitPartnerRequestFormData(formData: FormData): Promise<
+export async function submitPartnerRequestFormData(
+  formData: FormData,
+  lang: "FR" | "EN" | "DE" = "FR"
+): Promise<
   | { success: true; data: any; error?: undefined }
   | { success: false; error: string; data?: undefined }
 > {
@@ -289,7 +298,7 @@ export async function submitPartnerRequestFormData(formData: FormData): Promise<
       }
     }
 
-    const result = await submitPartnerRequest(data as PartnerRequestInput)
+    const result = await submitPartnerRequest(data as PartnerRequestInput, lang)
 
     if (result.success && result.data && uploadedFile) {
       // Create DocumentPartenaire entry linked to the partner request
@@ -564,3 +573,76 @@ export async function trackAnalyticsEvent(
     return { success: false }
   }
 }
+
+/**
+ * Envoi d'un e-mail direct au candidat depuis le Back-office (action protégée par session admin).
+ */
+export async function sendCandidateDirectEmail({
+  candidateId,
+  recipientEmail,
+  recipientName,
+  subject,
+  message,
+}: {
+  candidateId: string
+  recipientEmail: string
+  recipientName: string
+  subject: string
+  message: string
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await verifySession()
+    if (!session || !session.userId) {
+      return { success: false, error: "Action non autorisée. Session administrateur requise." }
+    }
+
+    if (!recipientEmail || !subject.trim() || !message.trim()) {
+      return { success: false, error: "Destinataire, objet et message sont requis." }
+    }
+
+    const { renderAdminDirectEmail } = await import("./email/templates/adminDirectEmail")
+    const { getEmailProvider } = await import("./email")
+
+    const adminUser = await prisma.utilisateur.findUnique({
+      where: { id: session.userId },
+      select: { name: true },
+    })
+    const adminName = adminUser?.name || "Coordination APTIC-R"
+
+    const emailTemplate = renderAdminDirectEmail({
+      candidateName: recipientName,
+      subject: subject.trim(),
+      message: message.trim(),
+      adminName,
+    })
+
+    const provider = getEmailProvider()
+    const sendResult = await provider.sendEmail({
+      to: recipientEmail,
+      subject: emailTemplate.subject,
+      html: emailTemplate.html,
+      text: emailTemplate.text,
+    })
+
+    if (!sendResult.success) {
+      return { success: false, error: sendResult.error || "Échec de l'envoi de l'e-mail." }
+    }
+
+    // Enregistrer une note interne traçant l'e-mail envoyé
+    await prisma.noteCandidature.create({
+      data: {
+        applicationId: candidateId,
+        content: `✉️ E-mail envoyé au candidat : "${subject.trim()}"\n\n${message.trim()}`,
+        authorId: session.userId,
+        authorName: adminName,
+      },
+    })
+
+    return { success: true }
+  } catch (err: unknown) {
+    console.error("sendCandidateDirectEmail error:", err)
+    const errorMessage = err instanceof Error ? err.message : "Erreur lors de l'envoi de l'email"
+    return { success: false, error: errorMessage }
+  }
+}
+

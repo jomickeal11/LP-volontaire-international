@@ -6,8 +6,15 @@ import type { Page } from "@/types"
 import { updateCandidateStatus, addCandidateNote, deleteCandidateNote } from "@/lib/actions"
 import type { CandidateStatus } from "@prisma/client"
 
-export default function AdminCandidateDetailWrapper({ application }: { application: any }) {
+export default function AdminCandidateDetailWrapper({ application, lang = "fr" }: { application: any; lang?: string }) {
   const router = useRouter()
+
+  const targetLang = (lang || application.lang || "fr").toLowerCase()
+  const locale = targetLang.startsWith("en")
+    ? "en-US"
+    : targetLang.startsWith("de")
+    ? "de-DE"
+    : "fr-FR"
 
   const handleNavigate = (page: Page) => {
     switch (page) {
@@ -51,12 +58,12 @@ export default function AdminCandidateDetailWrapper({ application }: { applicati
     country: application.candidate.country,
     city: application.candidate.city,
     dob: application.candidate.dateOfBirth 
-      ? new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(application.candidate.dateOfBirth)) 
+      ? new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(new Date(application.candidate.dateOfBirth)) 
       : "",
     language: application.lang === "FR" ? "Français" : application.lang === "EN" ? "Anglais" : "Allemand",
-    appliedAt: new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(application.createdAt)),
+    appliedAt: new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(new Date(application.createdAt)),
     arrivalDate: application.arrivalDate 
-      ? new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(application.arrivalDate)) 
+      ? new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(new Date(application.arrivalDate)) 
       : "Non renseignée",
     duration: application.duration === 'SIX_MONTHS' ? '6 mois' : application.duration === 'NINE_MONTHS' ? '9 mois' : '12 mois',
     source: application.source || "Non renseignée",
@@ -76,13 +83,13 @@ export default function AdminCandidateDetailWrapper({ application }: { applicati
     skills: application.skills.map((s: any) => s.skill.nameFr || s.skill.nameEn),
     statusHistory: application.statusHistory ? application.statusHistory.map((h: any) => ({
       status: h.toStatus,
-      date: new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit" }).format(new Date(h.changedAt)),
+      date: new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit" }).format(new Date(h.changedAt)),
       by: h.changedByName
     })) : [],
     notes: application.notes ? application.notes.map((n: any) => ({
       id: n.id,
       content: n.content,
-      createdAt: new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(n.createdAt)),
+      createdAt: new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(n.createdAt)),
       author: n.authorName
     })) : [],
     documents: application.documents ? application.documents.map((d: any) => ({
@@ -97,6 +104,7 @@ export default function AdminCandidateDetailWrapper({ application }: { applicati
       candidateId={application.id}
       navigate={handleNavigate}
       application={candidateUI}
+      locale={locale}
       onStatusChange={handleStatusChange}
       onAddNote={handleAddNote}
       onDeleteNote={handleDeleteNote}

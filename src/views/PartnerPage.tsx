@@ -829,7 +829,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
         formData.append("docFile", form.docFile)
       }
 
-      const res = await submitPartnerRequestFormData(formData)
+      const res = await submitPartnerRequestFormData(formData, (lang || "FR").toUpperCase() as any)
       setLoading(false)
 
       if (res.success && res.data) {
