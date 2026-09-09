@@ -1,3 +1,10 @@
+import {
+  renderEmailHead,
+  renderEmailHeader,
+  renderReferenceBox,
+  renderEmailFooter,
+} from "./emailTheme"
+
 interface PartnerEmailParams {
   orgName: string
   contactPerson: string
@@ -19,163 +26,174 @@ export function renderPartnerConfirmationEmail({
 
   const copy = {
     FR: {
-      subject: `Accusé de réception - Demande de partenariat APTIC-R [Réf: ${referenceNumber}]`,
+      subject: `Accusé de réception - Demande de partenariat APTIC-R [${referenceNumber}]`,
       greeting: `Bonjour ${contactPerson},`,
-      title: "Demande de partenariat bien reçue",
+      title: "Accusé de réception de votre demande de partenariat",
       subtitle: "Collaboration & Accueil de Volontaires Internationaux",
-      thankYou: `Nous vous remercions pour l'intérêt porté par ${orgName} envers l'association APTIC-R pour le développement de projets de volontariat au Togo.`,
-      refLabel: "Référence officielle de votre demande",
-      detailsTitle: "Détails de l'organisation",
+      intro: `Nous vous remercions pour l'intérêt manifesté par l'organisation ${orgName} envers l'association APTIC-R dans le cadre de notre programme de volontariat international au Togo.`,
+      refLabel: "Numéro de référence du dossier partenaire",
+      summaryTitle: "Informations transmises",
       fieldOrg: "Organisation",
-      fieldContact: "Personne de contact",
+      fieldContact: "Référent",
       fieldCountry: "Pays d'implantation",
       fieldType: "Type de structure",
-      stepsTitle: "Processus d'instruction du partenariat",
-      step1: "1. Analyse de votre dossier et adéquation des profils recherchés par la direction d'APTIC-R (3 à 5 jours ouvrés).",
-      step2: "2. Échange bilatéral (visio-conférence) pour définir les modalités opérationnelles et d'accueil.",
+      nextStepsTitle: "Instruction de votre demande",
+      step1: "1. Analyse des objectifs de collaboration et des capacités d'accueil par la direction d'APTIC-R (3 à 5 jours ouvrés).",
+      step2: "2. Organisation d'un échange vidéo bilatéral afin de préciser le périmètre des missions et l'accompagnement des volontaires.",
       step3: "3. Rédaction et signature conjointe de la convention cadre de partenariat.",
-      advice: "Notre équipe de coordination reviendra vers vous très prochainement à cette adresse.",
-      footerNote: "APTIC-R · Programme Partenariats & Volontariat International · Agbélouvé, Togo.",
+      reminder: "Notre équipe de coordination reviendra vers vous très prochainement à cette adresse.",
+      footerNote: "Association APTIC-R · Pôle Partenariats & Coopération Internationale · Agbélouvé, Région Maritime, Togo.",
     },
     EN: {
-      subject: `Acknowledgment of Receipt - APTIC-R Partnership Request [Ref: ${referenceNumber}]`,
+      subject: `Acknowledgment of Receipt - Partnership Request APTIC-R [${referenceNumber}]`,
       greeting: `Dear ${contactPerson},`,
-      title: "Partnership Request Successfully Received",
-      subtitle: "Collaboration & International Volunteer Hosting",
-      thankYou: `Thank you very much for the interest of ${orgName} in collaborating with the APTIC-R association on international volunteering projects in Togo.`,
-      refLabel: "Official request reference number",
-      detailsTitle: "Organization details",
+      title: "Partnership Request Acknowledgment",
+      subtitle: "International Volunteer Hosting & Collaboration",
+      intro: `Thank you for the interest expressed by ${orgName} in collaborating with the APTIC-R association through our international volunteer program in Togo.`,
+      refLabel: "Partnership File Reference",
+      summaryTitle: "Submitted Information",
       fieldOrg: "Organization",
-      fieldContact: "Contact person",
-      fieldCountry: "Country",
-      fieldType: "Organization type",
-      stepsTitle: "Partnership review process",
-      step1: "1. Review of your organization profile and mutual volunteer goals by APTIC-R management (3 to 5 business days).",
-      step2: "2. Bilateral video meeting to define operational logistics and volunteer support.",
-      step3: "3. Drafting and joint signature of the formal partnership framework agreement.",
-      advice: "Our coordination team will contact you shortly regarding the next steps.",
-      footerNote: "APTIC-R · International Partnerships & Volunteer Coordination · Agbélouvé, Togo.",
+      fieldContact: "Contact Person",
+      fieldCountry: "Country of Operation",
+      fieldType: "Organization Type",
+      nextStepsTitle: "Next Steps",
+      step1: "1. Review of your institutional objectives and volunteer hosting criteria by APTIC-R leadership (3 to 5 business days).",
+      step2: "2. Organization of a bilateral video conference to define operational specifics and volunteer mentoring.",
+      step3: "3. Drafting and mutual signing of the partnership framework agreement.",
+      reminder: "Our coordination team will contact you shortly at this email address.",
+      footerNote: "APTIC-R Association · International Partnerships & Cooperation · Agbélouvé, Maritime Region, Togo.",
     },
     DE: {
-      subject: `Eingangsbestätigung - APTIC-R Partnerschaftsanfrage [Ref: ${referenceNumber}]`,
+      subject: `Eingangsbestätigung - Partnerschaftsanfrage APTIC-R [${referenceNumber}]`,
       greeting: `Sehr geehrte(r) ${contactPerson},`,
-      title: "Partnerschaftsanfrage erfolgreich eingegangen",
-      subtitle: "Kooperation & Internationaler Freiwilligendienst in Togo",
-      thankYou: `Vielen Dank für das Interesse von ${orgName} an einer Zusammenarbeit mit dem Verein APTIC-R.`,
-      refLabel: "Offizielle Referenznummer Ihrer Anfrage",
-      detailsTitle: "Angaben zur Organisation",
+      title: "Eingangsbestätigung Ihrer Partnerschaftsanfrage",
+      subtitle: "Kooperation & Aufnahme Internationaler Freiwilliger",
+      intro: `Vielen Dank für das Interesse von ${orgName} an einer Zusammenarbeit mit dem Verein APTIC-R im Rahmen unseres internationalen Freiwilligenprogramms in Togo.`,
+      refLabel: "Referenznummer des Vorgangs",
+      summaryTitle: "Übermittelte Angaben",
       fieldOrg: "Organisation",
       fieldContact: "Ansprechpartner(in)",
-      fieldCountry: "Land",
-      fieldType: "Organisationstyp",
-      stepsTitle: "Ablauf der Prüfung",
-      step1: "1. Prüfung Ihres Profils und Abstimmung der Einsatzmöglichkeiten durch den Vorstand von APTIC-R (3 bis 5 Werktage).",
-      step2: "2. Bilaterales Video-Gespräch zur Klärung der Rahmenbedingungen und Vor-Ort-Begleitung.",
-      step3: "3. Erstellung und beiderseitige Unterzeichnung der Partnerschaftsvereinbarung.",
-      advice: "Unser Koordinationsteam wird sich in Kürze mit Ihnen in Verbindung setzen.",
-      footerNote: "APTIC-R · Programm für internationale Partnerschaften · Agbélouvé, Togo.",
+      fieldCountry: "Sitz / Land",
+      fieldType: "Art der Organisation",
+      nextStepsTitle: "Bearbeitungsschritte",
+      step1: "1. Prüfung der gemeinsamen Zielsetzungen und Einsatzmöglichkeiten durch den Vorstand von APTIC-R (3 bis 5 Werktage).",
+      step2: "2. Bilaterales Video-Gespräch zur Abstimmung des konkreten Einsatzrahmens.",
+      step3: "3. Ausarbeitung und Unterzeichnung der Partnerschaftsvereinbarung.",
+      reminder: "Unser Koordinationsteam wird sich in Kürze unter dieser Adresse bei Ihnen melden.",
+      footerNote: "Verein APTIC-R · Partnerschaften & Internationale Zusammenarbeit · Agbélouvé, Region Maritime, Togo.",
     },
   }[currentLang as "FR" | "EN" | "DE"] || {
-    subject: `Accusé de réception - Demande de partenariat APTIC-R [Réf: ${referenceNumber}]`,
+    subject: `Accusé de réception - Demande de partenariat APTIC-R [${referenceNumber}]`,
     greeting: `Bonjour ${contactPerson},`,
-    title: "Demande de partenariat bien reçue",
-    subtitle: "Collaboration & Accueil de Volontaires Internationaux",
-    thankYou: `Nous vous remercions pour l'intérêt porté par ${orgName}.`,
-    refLabel: "Référence officielle",
-    detailsTitle: "Détails de l'organisation",
+    title: "Accusé de réception de votre demande",
+    subtitle: "Programme Partenariats APTIC-R",
+    intro: `Nous vous remercions pour l'intérêt manifesté par l'organisation ${orgName} envers l'association APTIC-R.`,
+    refLabel: "Numéro de référence",
+    summaryTitle: "Informations transmises",
     fieldOrg: "Organisation",
-    fieldContact: "Contact",
+    fieldContact: "Référent",
     fieldCountry: "Pays",
     fieldType: "Type",
-    stepsTitle: "Processus d'instruction",
-    step1: "1. Analyse de votre dossier.",
-    step2: "2. Échange bilatéral.",
-    step3: "3. Signature de la convention.",
-    advice: "Notre équipe reviendra vers vous rapidement.",
-    footerNote: "APTIC-R · Agbélouvé, Togo.",
+    nextStepsTitle: "Instruction de votre demande",
+    step1: "1. Analyse de votre dossier (3 à 5 jours ouvrés).",
+    step2: "2. Organisation d'un échange vidéo bilatéral.",
+    step3: "3. Signature de la convention cadre.",
+    reminder: "Notre équipe reviendra vers vous très prochainement.",
+    footerNote: "Association APTIC-R · Agbélouvé, Togo.",
   }
 
   const html = `
 <!DOCTYPE html>
 <html lang="${currentLang.toLowerCase()}">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${copy.title}</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #F5F7F9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1E293B; line-height: 1.6;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F5F7F9; padding: 32px 16px;">
+${renderEmailHead(copy.title)}
+<body class="email-bg" style="margin: 0; padding: 0; background-color: #F5F7F9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #183247; line-height: 1.6;">
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F5F7F9;" class="email-bg">
     <tr>
-      <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; border: 1px solid #E2E8F0; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
-          <!-- Header -->
+      <td align="center" style="padding: 40px 16px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="580" style="max-width: 580px; width: 100%; background-color: #FFFFFF; border: 1px solid #EAF0F4; border-radius: 8px; overflow: hidden;" class="email-card border-line">
+          ${renderEmailHeader(copy.subtitle)}
+
+          <!-- Contenu du message -->
           <tr>
-            <td style="background: linear-gradient(135deg, #174F7A 0%, #0F3554 100%); padding: 32px; text-align: center;">
-              <div style="font-size: 24px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px;">APTIC-R</div>
-              <div style="color: #94A3B8; font-size: 13px; font-weight: 500; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px;">Partenariats Internationaux</div>
-            </td>
-          </tr>
+            <td style="padding: 32px 32px 24px 32px;">
+              <h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 700; color: #183247; line-height: 1.3;" class="text-primary">
+                ${copy.title}
+              </h1>
 
-          <!-- Hero Body -->
-          <tr>
-            <td style="padding: 36px 32px 24px 32px;">
-              <h1 style="margin: 0 0 8px 0; font-size: 22px; font-weight: 700; color: #0F172A;">${copy.title}</h1>
-              <div style="color: #35A85A; font-size: 14px; font-weight: 600; margin-bottom: 20px;">${copy.subtitle}</div>
-              
-              <p style="margin: 0 0 16px 0; font-size: 15px; color: #334155;">${copy.greeting}</p>
-              <p style="margin: 0 0 24px 0; font-size: 15px; color: #334155;">${copy.thankYou}</p>
+              <p style="margin: 0 0 14px 0; font-size: 15px; color: #183247; line-height: 1.6;" class="text-primary">
+                ${copy.greeting}
+              </p>
 
-              <!-- Reference Badge Box -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F8FAFC; border: 1.5px dashed #CBD5E1; border-radius: 8px; margin-bottom: 28px;">
-                <tr>
-                  <td style="padding: 18px; text-align: center;">
-                    <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #64748B; letter-spacing: 0.5px;">${copy.refLabel}</div>
-                    <div style="font-size: 24px; font-weight: 800; font-family: monospace; color: #174F7A; margin-top: 6px; letter-spacing: 1.5px;">${referenceNumber}</div>
-                  </td>
-                </tr>
-              </table>
+              <p style="margin: 0 0 18px 0; font-size: 14.5px; color: #5E6B76; line-height: 1.6;" class="text-secondary">
+                ${copy.intro}
+              </p>
 
-              <!-- Details Summary -->
-              <div style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">${copy.detailsTitle}</div>
-              <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 28px; font-size: 14px;">
-                <tr style="border-bottom: 1px solid #F1F5F9;">
-                  <td style="padding: 10px 14px; color: #64748B; font-weight: 500; width: 40%;">${copy.fieldOrg}</td>
-                  <td style="padding: 10px 14px; color: #0F172A; font-weight: 600;">${orgName}</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #F1F5F9; background-color: #F8FAFC;">
-                  <td style="padding: 10px 14px; color: #64748B; font-weight: 500;">${copy.fieldContact}</td>
-                  <td style="padding: 10px 14px; color: #0F172A; font-weight: 600;">${contactPerson}</td>
-                </tr>
-                ${country ? `
-                <tr style="border-bottom: 1px solid #F1F5F9;">
-                  <td style="padding: 10px 14px; color: #64748B; font-weight: 500;">${copy.fieldCountry}</td>
-                  <td style="padding: 10px 14px; color: #0F172A; font-weight: 600;">${country}</td>
-                </tr>` : ''}
-                ${orgType ? `
-                <tr style="background-color: #F8FAFC;">
-                  <td style="padding: 10px 14px; color: #64748B; font-weight: 500;">${copy.fieldType}</td>
-                  <td style="padding: 10px 14px; color: #0F172A; font-weight: 600;">${orgType}</td>
-                </tr>` : ''}
-              </table>
+              ${renderReferenceBox(copy.refLabel, referenceNumber)}
 
-              <!-- Next Steps -->
-              <div style="background-color: #EFF6FF; border-left: 4px solid #174F7A; border-radius: 0 8px 8px 0; padding: 18px 20px; margin-bottom: 24px;">
-                <div style="font-size: 14px; font-weight: 700; color: #174F7A; margin-bottom: 10px;">${copy.stepsTitle}</div>
-                <div style="font-size: 13.5px; color: #1E293B; margin-bottom: 8px;">${copy.step1}</div>
-                <div style="font-size: 13.5px; color: #1E293B; margin-bottom: 8px;">${copy.step2}</div>
-                <div style="font-size: 13.5px; color: #1E293B;">${copy.step3}</div>
+              <!-- Tableau récapitulatif sobre -->
+              <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #183247; margin: 24px 0 8px 0;" class="text-primary">
+                ${copy.summaryTitle}
               </div>
 
-              <p style="margin: 0; font-size: 13px; color: #64748B; font-style: italic;">${copy.advice}</p>
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #EAF0F4; border-radius: 6px; font-size: 13.5px; margin-bottom: 24px;" class="border-line">
+                <tr>
+                  <td style="padding: 10px 14px; color: #5E6B76; width: 42%; border-bottom: 1px solid #EAF0F4;" class="text-secondary border-line">
+                    ${copy.fieldOrg}
+                  </td>
+                  <td style="padding: 10px 14px; color: #183247; font-weight: 600; border-bottom: 1px solid #EAF0F4;" class="text-primary border-line">
+                    ${orgName}
+                  </td>
+                </tr>
+                <tr class="table-row-even">
+                  <td style="padding: 10px 14px; color: #5E6B76; border-bottom: 1px solid #EAF0F4;" class="text-secondary border-line">
+                    ${copy.fieldContact}
+                  </td>
+                  <td style="padding: 10px 14px; color: #183247; font-weight: 600; border-bottom: 1px solid #EAF0F4;" class="text-primary border-line">
+                    ${contactPerson}
+                  </td>
+                </tr>
+                ${country ? `
+                <tr>
+                  <td style="padding: 10px 14px; color: #5E6B76; border-bottom: 1px solid #EAF0F4;" class="text-secondary border-line">
+                    ${copy.fieldCountry}
+                  </td>
+                  <td style="padding: 10px 14px; color: #183247; font-weight: 600; border-bottom: 1px solid #EAF0F4;" class="text-primary border-line">
+                    ${country}
+                  </td>
+                </tr>` : ""}
+                ${orgType ? `
+                <tr class="table-row-even">
+                  <td style="padding: 10px 14px; color: #5E6B76;" class="text-secondary">
+                    ${copy.fieldType}
+                  </td>
+                  <td style="padding: 10px 14px; color: #183247; font-weight: 600;" class="text-primary">
+                    ${orgType}
+                  </td>
+                </tr>` : ""}
+              </table>
+
+              <!-- Processus en texte sobre -->
+              <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #183247; margin-bottom: 10px;" class="text-primary">
+                ${copy.nextStepsTitle}
+              </div>
+
+              <div style="font-size: 13.5px; color: #5E6B76; line-height: 1.6; margin-bottom: 8px;" class="text-secondary">
+                ${copy.step1}
+              </div>
+              <div style="font-size: 13.5px; color: #5E6B76; line-height: 1.6; margin-bottom: 8px;" class="text-secondary">
+                ${copy.step2}
+              </div>
+              <div style="font-size: 13.5px; color: #5E6B76; line-height: 1.6; margin-bottom: 20px;" class="text-secondary">
+                ${copy.step3}
+              </div>
+
+              <p style="margin: 0; font-size: 13px; color: #5E6B76; line-height: 1.5; font-style: italic;" class="text-secondary">
+                ${copy.reminder}
+              </p>
             </td>
           </tr>
 
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #F8FAFC; border-top: 1px solid #E2E8F0; padding: 20px 32px; text-align: center; font-size: 12px; color: #94A3B8;">
-              ${copy.footerNote}
-            </td>
-          </tr>
+          ${renderEmailFooter({ customNote: copy.footerNote })}
         </table>
       </td>
     </tr>
@@ -186,27 +204,28 @@ export function renderPartnerConfirmationEmail({
 
   const text = `
 ${copy.title} - ${copy.subtitle}
---------------------------------------------------
+==================================================
 
 ${copy.greeting}
 
-${copy.thankYou}
+${copy.intro}
 
 ${copy.refLabel} : ${referenceNumber}
 
-${copy.detailsTitle} :
+${copy.summaryTitle} :
 - ${copy.fieldOrg} : ${orgName}
 - ${copy.fieldContact} : ${contactPerson}
-${country ? `- ${copy.fieldCountry} : ${country}\n` : ''}${orgType ? `- ${copy.fieldType} : ${orgType}\n` : ''}
-${copy.stepsTitle} :
+${country ? `- ${copy.fieldCountry} : ${country}\n` : ""}${orgType ? `- ${copy.fieldType} : ${orgType}\n` : ""}
+${copy.nextStepsTitle} :
 ${copy.step1}
 ${copy.step2}
 ${copy.step3}
 
-${copy.advice}
+${copy.reminder}
 
 --
 ${copy.footerNote}
+Contact : contact@aptic-rural.org
   `.trim()
 
   return { subject: copy.subject, html, text }
