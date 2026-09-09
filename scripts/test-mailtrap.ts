@@ -1,3 +1,4 @@
+try { if (process.loadEnvFile) process.loadEnvFile() } catch {}
 import { EmailService } from '../src/lib/email'
 import { getEmailProvider } from '../src/lib/email'
 
@@ -29,6 +30,8 @@ async function main() {
   })
   console.log(`   ➔ E-mail Candidat envoyé : ${candResult.candidateEmailSent ? '✅ OUI' : '❌ NON'}`)
   console.log(`   ➔ Alerte Admin envoyée : ${candResult.adminEmailSent ? '✅ OUI' : '❌ NON'}`)
+
+  await new Promise((r) => setTimeout(r, 1500))
 
   console.log("\n3. Test d'envoi d'e-mail partenaire (avec référence PART-2026-XXXX)...")
   const partResult = await EmailService.sendPartnerRequestEmails({

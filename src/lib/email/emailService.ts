@@ -71,7 +71,9 @@ export class EmailService {
       console.error('❌ [EmailService] Exception envoi candidat:', err)
     }
 
-    // 2. Notification aux coordinateurs APTIC-R
+    // 2. Notification aux coordinateurs APTIC-R (pause de 1.1s pour respecter le rate-limit Mailtrap Sandbox)
+    await new Promise((r) => setTimeout(r, 1100))
+
     try {
       const adminEmail = this.getAdminEmail()
       const adminTemplate = renderAdminNotificationEmail({
@@ -141,7 +143,9 @@ export class EmailService {
       console.error('❌ [EmailService] Exception envoi partenaire:', err)
     }
 
-    // 2. Notification aux coordinateurs APTIC-R
+    // 2. Notification aux coordinateurs APTIC-R (pause de 1.1s pour respecter le rate-limit Mailtrap Sandbox)
+    await new Promise((r) => setTimeout(r, 1100))
+
     try {
       const adminEmail = this.getAdminEmail()
       const adminTemplate = renderAdminNotificationEmail({
