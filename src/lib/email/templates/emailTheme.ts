@@ -106,22 +106,28 @@ export function renderEmailHead(title: string): string {
 }
 
 /**
- * En-tête institutionnel sobre.
- * Le logo et le titre sont parfaitement contrastés quel que soit le thème (clair ou sombre).
+ * En-tête institutionnel sobre avec le vrai logo officiel d'APTIC-R.
+ * Le logo est encapsulé dans un fond protecteur assurant une lisibilité maximale en clair comme en sombre.
  */
-export function renderEmailHeader(subtitle = "Programme de Volontariat International · Togo"): string {
+export function renderEmailHeader(
+  subtitle = "Programme de Volontariat International · Togo",
+  logoUrl?: string
+): string {
+  const siteUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "https://aptic-rural.org"
+  const finalLogoUrl = logoUrl || `${siteUrl}/aptic-logo.png`
+
   return `
-<!-- En-tête institutionnel -->
+<!-- En-tête institutionnel avec vrai logo APTIC-R -->
 <tr>
-  <td style="padding: 28px 32px 20px 32px; border-bottom: 1px solid #EAF0F4;" class="border-line">
+  <td style="padding: 26px 32px 20px 32px; border-bottom: 1px solid #EAF0F4;" class="border-line">
     <table role="presentation" border="0" cellpadding="0" cellspacing="0">
       <tr>
-        <td valign="middle" style="padding-right: 12px;">
-          <!-- Emblème APTIC-R vert #35A85A pérenne et contrasté -->
+        <td valign="middle" style="padding-right: 14px;">
+          <!-- Conteneur blanc protecteur pour contraste parfait en clair et sombre -->
           <table role="presentation" border="0" cellpadding="0" cellspacing="0">
             <tr>
-              <td style="width: 34px; height: 34px; background-color: #35A85A; border-radius: 6px; text-align: center; vertical-align: middle; color: #FFFFFF; font-weight: 800; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 34px;">
-                A
+              <td style="width: 44px; height: 44px; background-color: #FFFFFF; border: 1px solid #EAF0F4; border-radius: 8px; text-align: center; vertical-align: middle; padding: 2px;">
+                <img src="${finalLogoUrl}" width="38" height="38" alt="APTIC-R Logo" style="display: block; margin: 0 auto; width: 38px; height: 38px; max-width: 38px; border: 0; outline: none; text-decoration: none;" />
               </td>
             </tr>
           </table>
@@ -178,25 +184,27 @@ export function renderCtaButton(label: string, url: string): string {
 }
 
 /**
- * Signature institutionnelle et pied de page.
+ * Signature institutionnelle et pied de page avec coordonnées réelles (Tél +228 91 20 19 90).
  */
 export function renderEmailFooter(options?: {
   customNote?: string
   contactEmail?: string
+  contactPhone?: string
 }): string {
   const customNote = options?.customNote || "Ce message vous est adressé par la coordination du programme de volontariat international d'APTIC-R."
   const contactEmail = options?.contactEmail || "contact@aptic-rural.org"
+  const contactPhone = options?.contactPhone || "+228 91 20 19 90"
 
   return `
 <!-- Signature institutionnelle et pied de page -->
 <tr>
   <td style="padding: 24px 32px 28px 32px; border-top: 1px solid #EAF0F4;" class="border-line">
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; color: #183247; margin-bottom: 3px;" class="text-primary">
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; color: #183247; margin-bottom: 4px;" class="text-primary">
       Coordination du Programme de Volontariat International
     </div>
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #5E6B76; line-height: 1.5;" class="text-secondary">
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12.5px; color: #5E6B76; line-height: 1.6;" class="text-secondary">
       Association APTIC-R · Agbélouvé, Région Maritime, Togo<br>
-      Contact : <a href="mailto:${contactEmail}" style="color: #5E6B76; text-decoration: underline;" class="footer-link">${contactEmail}</a>
+      Tél. / WhatsApp : <a href="tel:+22891201990" style="color: #183247; font-weight: 600; text-decoration: none;" class="text-primary">${contactPhone}</a> · Email : <a href="mailto:${contactEmail}" style="color: #5E6B76; text-decoration: underline;" class="footer-link">${contactEmail}</a>
     </div>
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; color: #5E6B76; margin-top: 14px; line-height: 1.4;" class="footer-text">
       ${customNote}

@@ -88,7 +88,7 @@ ${message}
 --
 ${adminName}
 Association APTIC-R · Agbélouvé, Région Maritime, Togo
-Contact : contact@aptic-rural.org
+Contact : contact@aptic-rural.org | Tél / WhatsApp : +228 91 20 19 90
   `.trim()
 
   return { subject, html, text }

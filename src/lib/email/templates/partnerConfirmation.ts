@@ -225,7 +225,7 @@ ${copy.reminder}
 
 --
 ${copy.footerNote}
-Contact : contact@aptic-rural.org
+Contact : contact@aptic-rural.org | Tél / WhatsApp : +228 91 20 19 90
   `.trim()
 
   return { subject: copy.subject, html, text }
