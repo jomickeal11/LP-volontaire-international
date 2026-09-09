@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import type { Page } from "../../types"
 import { partnerStatusConfig, type PartnerRequestStatus } from "./AdminPartnerRequests"
 import { useAdminHeader } from "../../lib/AdminHeaderContext"
+import { sendPartnerDirectEmail } from "@/lib/actions"
 
 interface DocumentUI {
   id: string
@@ -72,6 +73,8 @@ export default function AdminPartnerRequestDetail({
     `Bonjour ${data.contactPerson},\n\nNous vous remercions pour votre intérêt à collaborer avec APTIC-R dans le cadre du déploiement de volontaires internationaux au Togo.\n\n`
   )
   const [emailSent, setEmailSent] = useState(false)
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [emailError, setEmailError] = useState<string | null>(null)
 
   const cfg = partnerStatusConfig[currentStatus] || partnerStatusConfig.NEW
 
@@ -81,17 +84,35 @@ export default function AdminPartnerRequestDetail({
     onStatusChange(data.id, st)
   }
 
-  const handleSendEmail = () => {
-    // Open default mail client or mock action
-    const mailtoUrl = `mailto:${encodeURIComponent(data.email)}?subject=${encodeURIComponent(
-      emailSubject
-    )}&body=${encodeURIComponent(emailBody)}`
-    window.open(mailtoUrl, "_blank")
-    setEmailSent(true)
-    setTimeout(() => {
-      setEmailModalOpen(false)
-      setEmailSent(false)
-    }, 1500)
+  const handleSendEmail = async () => {
+    if (!emailSubject.trim() || !emailBody.trim()) return
+    setEmailLoading(true)
+    setEmailError(null)
+
+    try {
+      const res = await sendPartnerDirectEmail({
+        requestId: data.id,
+        recipientEmail: data.email,
+        recipientName: data.contactPerson,
+        subject: emailSubject,
+        message: emailBody,
+      })
+
+      if (res.success) {
+        setEmailLoading(false)
+        setEmailSent(true)
+        setTimeout(() => {
+          setEmailModalOpen(false)
+          setEmailSent(false)
+        }, 1500)
+      } else {
+        setEmailLoading(false)
+        setEmailError(res.error || "Une erreur est survenue lors de l'envoi de l'email.")
+      }
+    } catch (err: any) {
+      setEmailLoading(false)
+      setEmailError(err?.message || "Erreur de communication avec le serveur d'emails.")
+    }
   }
 
   const formatFileSize = (bytes: number) => {
@@ -518,18 +539,40 @@ export default function AdminPartnerRequestDetail({
               </div>
             </div>
 
+            {emailError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs">
+                {emailError}
+              </div>
+            )}
+
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
               <button
+                type="button"
+                disabled={emailLoading}
                 onClick={() => setEmailModalOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer disabled:opacity-50"
               >
                 Annuler
               </button>
               <button
+                type="button"
+                disabled={emailLoading || emailSent}
                 onClick={handleSendEmail}
-                className="px-4 py-2 text-xs font-semibold text-white bg-[#174F7A] hover:bg-[#123E60] rounded-lg cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#174F7A] hover:bg-[#123E60] rounded-lg cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
               >
-                {emailSent ? "Ouverture messagerie..." : "Ouvrir messagerie / Envoyer"}
+                {emailLoading ? (
+                  <>
+                    <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Envoi en cours...
+                  </>
+                ) : emailSent ? (
+                  "✓ Email envoyé !"
+                ) : (
+                  "Envoyer l'email"
+                )}
               </button>
             </div>
           </div>

@@ -646,3 +646,66 @@ export async function sendCandidateDirectEmail({
   }
 }
 
+/**
+ * Envoi d'un e-mail direct à une organisation partenaire depuis le Back-office (protégé par session admin).
+ */
+export async function sendPartnerDirectEmail({
+  requestId,
+  recipientEmail,
+  recipientName,
+  subject,
+  message,
+}: {
+  requestId: string
+  recipientEmail: string
+  recipientName: string
+  subject: string
+  message: string
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await verifySession()
+    if (!session || !session.userId) {
+      return { success: false, error: "Action non autorisée. Session administrateur requise." }
+    }
+
+    if (!recipientEmail || !subject.trim() || !message.trim()) {
+      return { success: false, error: "Destinataire, objet et message sont requis." }
+    }
+
+    const { renderAdminDirectEmail } = await import("./email/templates/adminDirectEmail")
+    const { getEmailProvider } = await import("./email")
+
+    const adminUser = await prisma.utilisateur.findUnique({
+      where: { id: session.userId },
+      select: { name: true },
+    })
+    const adminName = adminUser?.name || "Coordination APTIC-R"
+
+    const emailTemplate = renderAdminDirectEmail({
+      candidateName: recipientName,
+      subject: subject.trim(),
+      message: message.trim(),
+      adminName,
+    })
+
+    const provider = getEmailProvider()
+    const sendResult = await provider.sendEmail({
+      to: recipientEmail,
+      subject: emailTemplate.subject,
+      html: emailTemplate.html,
+      text: emailTemplate.text,
+    })
+
+    if (!sendResult.success) {
+      return { success: false, error: sendResult.error || "Échec de l'envoi de l'e-mail." }
+    }
+
+    return { success: true }
+  } catch (err: unknown) {
+    console.error("sendPartnerDirectEmail error:", err)
+    const errorMessage = err instanceof Error ? err.message : "Erreur lors de l'envoi de l'email"
+    return { success: false, error: errorMessage }
+  }
+}
+
+
