@@ -1,8 +1,6 @@
 import {
   renderEmailHead,
   renderEmailHeader,
-  renderReferenceBox,
-  renderCtaButton,
   renderEmailFooter,
 } from "./emailTheme"
 
@@ -37,16 +35,12 @@ export function renderAdminNotificationEmail(params: AdminAlertParams): {
   const siteUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
 
   const subject = isCandidate
-    ? `[Notification Back-office] Nouvelle candidature : ${params.name} [${params.referenceNumber}]`
-    : `[Notification Back-office] Demande de partenariat : ${params.orgName} [${params.referenceNumber}]`
+    ? `[Notification] Nouvelle candidature : ${params.name} (${params.referenceNumber})`
+    : `[Notification] Demande de partenariat : ${params.orgName} (${params.referenceNumber})`
 
   const title = isCandidate
-    ? "Nouvelle candidature enregistrée"
+    ? "Nouvelle candidature reçue"
     : "Nouvelle demande de partenariat"
-
-  const subtitle = isCandidate
-    ? "Notification interne · Candidature Volontaire"
-    : "Notification interne · Demande Partenaire"
 
   const backofficeUrl = isCandidate
     ? `${siteUrl}/fr/backoffice/applications`
@@ -56,129 +50,48 @@ export function renderAdminNotificationEmail(params: AdminAlertParams): {
 <!DOCTYPE html>
 <html lang="fr">
 ${renderEmailHead(title)}
-<body class="email-bg" style="margin: 0; padding: 0; background-color: #F5F7F9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #183247; line-height: 1.6;">
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F5F7F9;" class="email-bg">
-    <tr>
-      <td align="center" style="padding: 40px 16px;">
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="580" style="max-width: 580px; width: 100%; background-color: #FFFFFF; border: 1px solid #EAF0F4; border-radius: 8px; overflow: hidden;" class="email-card border-line">
-          ${renderEmailHeader(subtitle)}
+<body style="margin: 0; padding: 24px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #183247;">
+  <div style="max-width: 580px; margin: 0 auto;" class="email-wrap">
+    ${renderEmailHeader()}
 
-          <!-- Contenu du message -->
-          <tr>
-            <td style="padding: 32px 32px 24px 32px;">
-              <h1 style="margin: 0 0 10px 0; font-size: 20px; font-weight: 700; color: #183247; line-height: 1.3;" class="text-primary">
-                ${title}
-              </h1>
+    <p style="margin: 0 0 16px 0; font-weight: 700; font-size: 17px;">
+      ${title}
+    </p>
 
-              <p style="margin: 0 0 18px 0; font-size: 14.5px; color: #5E6B76; line-height: 1.6;" class="text-secondary">
-                Une nouvelle soumission requiert l'attention de l'équipe de coordination APTIC-R.
-              </p>
+    <p style="margin: 0 0 16px 0;">
+      Une nouvelle soumission a été enregistrée sur le portail APTIC-R.
+    </p>
 
-              ${renderReferenceBox("Référence attribuée", params.referenceNumber)}
+    <p style="margin: 0 0 16px 0;">
+      Référence attribuée : <strong>${params.referenceNumber}</strong>
+    </p>
 
-              <!-- Tableau récapitulatif sobre -->
-              <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #183247; margin: 24px 0 8px 0;" class="text-primary">
-                Données de la soumission
-              </div>
+    <p style="margin: 20px 0 6px 0; font-weight: 600;">
+      Détails :
+    </p>
+    <ul style="margin: 0 0 20px 0; padding-left: 20px;">
+      ${isCandidate ? `
+      <li style="margin-bottom: 4px;">Candidat : ${params.name}</li>
+      <li style="margin-bottom: 4px;">Email : <a href="mailto:${params.email}">${params.email}</a></li>
+      <li style="margin-bottom: 4px;">Pays : ${params.country}</li>
+      ${params.profession ? `<li style="margin-bottom: 4px;">Profession : ${params.profession}</li>` : ""}
+      ${params.skills && params.skills.length > 0 ? `<li style="margin-bottom: 4px;">Compétences : ${params.skills.join(", ")}</li>` : ""}
+      ` : `
+      <li style="margin-bottom: 4px;">Organisation : ${params.orgName}</li>
+      <li style="margin-bottom: 4px;">Contact : ${params.contactPerson}</li>
+      <li style="margin-bottom: 4px;">Email : <a href="mailto:${params.email}">${params.email}</a></li>
+      <li style="margin-bottom: 4px;">Pays : ${params.country}</li>
+      <li style="margin-bottom: 4px;">Type : ${params.orgType}</li>
+      `}
+    </ul>
 
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #EAF0F4; border-radius: 6px; font-size: 13.5px; margin-bottom: 20px;" class="border-line">
-                ${isCandidate ? `
-                <tr>
-                  <td style="padding: 10px 14px; color: #5E6B76; width: 40%; border-bottom: 1px solid #EAF0F4;" class="text-secondary border-line">
-                    Nom complet
-                  </td>
-                  <td style="padding: 10px 14px; color: #183247; font-weight: 600; border-bottom: 1px solid #EAF0F4;" class="text-primary border-line">
-                    ${params.name}
-                  </td>
-                </tr>
-                <tr class="table-row-even">
-                  <td style="padding: 10px 14px; color: #5E6B76; border-bottom: 1px solid #EAF0F4;" class="text-secondary border-line">
-                    Email
-                  </td>
-                  <td style="padding: 10px 14px; color: #183247; font-weight: 600; border-bottom: 1px solid #EAF0F4;" class="text-primary border-line">
-                    <a href="mailto:${params.email}" style="color: #183247; text-decoration: underline;" class="text-primary">${params.email}</a>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 10px 14px; color: #5E6B76; border-bottom: 1px solid #EAF0F4;" class="text-secondary border-line">
-                    Pays de résidence
-                  </td>
-                  <td style="padding: 10px 14px; color: #183247; font-weight: 600; border-bottom: 1px solid #EAF0F4;" class="text-primary border-line">
-                    ${params.country}
-                  </td>
-                </tr>
-                ${params.profession ? `
-                <tr class="table-row-even">
-                  <td style="padding: 10px 14px; color: #5E6B76; border-bottom: 1px solid #EAF0F4;" class="text-secondary border-line">
-                    Profession
-                  </td>
-                  <td style="padding: 10px 14px; color: #183247;" class="text-primary border-line">
-                    ${params.profession}
-                  </td>
-                </tr>` : ""}
-                ${params.skills && params.skills.length > 0 ? `
-                <tr>
-                  <td style="padding: 10px 14px; color: #5E6B76;" class="text-secondary">
-                    Compétences
-                  </td>
-                  <td style="padding: 10px 14px; color: #183247;" class="text-primary">
-                    ${params.skills.join(", ")}
-                  </td>
-                </tr>` : ""}
-                ` : `
-                <tr>
-                  <td style="padding: 10px 14px; color: #5E6B76; width: 40%; border-bottom: 1px solid #EAF0F4;" class="text-secondary border-line">
-                    Organisation
-                  </td>
-                  <td style="padding: 10px 14px; color: #183247; font-weight: 600; border-bottom: 1px solid #EAF0F4;" class="text-primary border-line">
-                    ${params.orgName}
-                  </td>
-                </tr>
-                <tr class="table-row-even">
-                  <td style="padding: 10px 14px; color: #5E6B76; border-bottom: 1px solid #EAF0F4;" class="text-secondary border-line">
-                    Contact référent
-                  </td>
-                  <td style="padding: 10px 14px; color: #183247; font-weight: 600; border-bottom: 1px solid #EAF0F4;" class="text-primary border-line">
-                    ${params.contactPerson}
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 10px 14px; color: #5E6B76; border-bottom: 1px solid #EAF0F4;" class="text-secondary border-line">
-                    Email
-                  </td>
-                  <td style="padding: 10px 14px; color: #183247; border-bottom: 1px solid #EAF0F4;" class="text-primary border-line">
-                    <a href="mailto:${params.email}" style="color: #183247; text-decoration: underline;" class="text-primary">${params.email}</a>
-                  </td>
-                </tr>
-                <tr class="table-row-even">
-                  <td style="padding: 10px 14px; color: #5E6B76; border-bottom: 1px solid #EAF0F4;" class="text-secondary border-line">
-                    Pays
-                  </td>
-                  <td style="padding: 10px 14px; color: #183247; border-bottom: 1px solid #EAF0F4;" class="text-primary border-line">
-                    ${params.country}
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 10px 14px; color: #5E6B76;" class="text-secondary">
-                    Type d'organisation
-                  </td>
-                  <td style="padding: 10px 14px; color: #183247;" class="text-primary">
-                    ${params.orgType}
-                  </td>
-                </tr>
-                `}
-              </table>
+    <p style="margin: 20px 0 24px 0;">
+      Lien d'accès au dossier dans le Back-office :<br>
+      <a href="${backofficeUrl}" target="_blank" style="word-break: break-all;">${backofficeUrl}</a>
+    </p>
 
-              <!-- Bouton CTA vers le dossier dans le Back-office -->
-              ${renderCtaButton("Consulter le dossier dans le Back-office", backofficeUrl)}
-            </td>
-          </tr>
-
-          ${renderEmailFooter({ customNote: "Notification interne automatique réservée à l'équipe de coordination APTIC-R." })}
-        </table>
-      </td>
-    </tr>
-  </table>
+    ${renderEmailFooter({ customNote: "Notification automatique interne destinée à l'équipe APTIC-R." })}
+  </div>
 </body>
 </html>
   `.trim()
@@ -202,11 +115,11 @@ Pays : ${params.country}
 Type : ${params.orgType}
 `}
 
-Accès direct au Back-office :
+Lien d'accès au Back-office :
 ${backofficeUrl}
 
 --
-Notification interne APTIC-R
+Portail APTIC-R
   `.trim()
 
   return { subject, html, text }

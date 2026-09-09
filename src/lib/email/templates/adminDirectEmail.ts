@@ -1,7 +1,6 @@
 import {
   renderEmailHead,
   renderEmailHeader,
-  renderEmailFooter,
 } from "./emailTheme"
 
 interface AdminDirectEmailParams {
@@ -22,8 +21,8 @@ export function renderAdminDirectEmail({
     .map((line) => line.trim())
     .map((line) =>
       line
-        ? `<p style="margin: 0 0 14px 0; font-size: 14.5px; color: #183247; line-height: 1.6;" class="text-primary">${line}</p>`
-        : `<div style="height: 8px;"></div>`
+        ? `<p style="margin: 0 0 14px 0; font-size: 15px; line-height: 1.6;">${line}</p>`
+        : `<div style="height: 10px;"></div>`
     )
     .join("")
 
@@ -31,48 +30,25 @@ export function renderAdminDirectEmail({
 <!DOCTYPE html>
 <html lang="fr">
 ${renderEmailHead(subject)}
-<body class="email-bg" style="margin: 0; padding: 0; background-color: #F5F7F9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #183247; line-height: 1.6;">
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F5F7F9;" class="email-bg">
-    <tr>
-      <td align="center" style="padding: 40px 16px;">
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="580" style="max-width: 580px; width: 100%; background-color: #FFFFFF; border: 1px solid #EAF0F4; border-radius: 8px; overflow: hidden;" class="email-card border-line">
-          ${renderEmailHeader("Coordination du Volontariat International")}
+<body style="margin: 0; padding: 24px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #183247;">
+  <div style="max-width: 580px; margin: 0 auto;" class="email-wrap">
+    ${renderEmailHeader()}
 
-          <!-- Contenu du message -->
-          <tr>
-            <td style="padding: 32px 32px 24px 32px;">
-              <h1 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: #183247; line-height: 1.3;" class="text-primary">
-                ${subject}
-              </h1>
+    <p style="margin: 0 0 16px 0;">
+      Bonjour ${candidateName},
+    </p>
 
-              <p style="margin: 0 0 16px 0; font-size: 15px; font-weight: 600; color: #183247;" class="text-primary">
-                Bonjour ${candidateName},
-              </p>
+    ${formattedHtmlParagraphs}
 
-              <!-- Corps du message -->
-              <div style="margin: 18px 0 24px 0;">
-                ${formattedHtmlParagraphs}
-              </div>
-
-              <!-- Bloc signature directe du coordinateur -->
-              <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid #EAF0F4;" class="border-line">
-                <div style="font-size: 14px; font-weight: 700; color: #183247;" class="text-primary">
-                  ${adminName}
-                </div>
-                <div style="font-size: 12.5px; color: #5E6B76; margin-top: 2px;" class="text-secondary">
-                  Association APTIC-R · Agbélouvé, Région Maritime, Togo
-                </div>
-              </div>
-            </td>
-          </tr>
-
-          ${renderEmailFooter({
-            customNote: "Ce message vous a été adressé directement par un membre de l'équipe de coordination APTIC-R. Vous pouvez y répondre en écrivant à contact@aptic-rural.org.",
-          })}
-        </table>
-      </td>
-    </tr>
-  </table>
+    <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #E2E8F0; font-size: 13px; line-height: 1.6; color: #64748B;" class="border-line muted-text">
+      --<br>
+      <strong>${adminName}</strong><br>
+      Coordination du Programme de Volontariat International<br>
+      Association APTIC-R · Agbélouvé, Région Maritime, Togo<br>
+      Tél. / WhatsApp : <a href="tel:+22891201990" style="color: inherit; text-decoration: underline;">+228 91 20 19 90</a><br>
+      Email : <a href="mailto:contact@aptic-rural.org" style="color: inherit; text-decoration: underline;">contact@aptic-rural.org</a>
+    </div>
+  </div>
 </body>
 </html>
   `.trim()
@@ -87,8 +63,10 @@ ${message}
 
 --
 ${adminName}
+Coordination du Programme de Volontariat International
 Association APTIC-R · Agbélouvé, Région Maritime, Togo
-Contact : contact@aptic-rural.org | Tél / WhatsApp : +228 91 20 19 90
+Tél. / WhatsApp : +228 91 20 19 90
+Email : contact@aptic-rural.org
   `.trim()
 
   return { subject, html, text }

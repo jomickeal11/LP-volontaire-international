@@ -1,7 +1,6 @@
 import {
   renderEmailHead,
   renderEmailHeader,
-  renderReferenceBox,
   renderEmailFooter,
 } from "./emailTheme"
 
@@ -26,173 +25,110 @@ export function renderCandidateConfirmationEmail({
 
   const copy = {
     FR: {
-      subject: `Confirmation de réception de candidature APTIC-R [${referenceNumber}]`,
+      subject: `Confirmation de candidature APTIC-R - Réf. ${referenceNumber}`,
       greeting: `Bonjour ${firstName},`,
-      title: "Confirmation de votre candidature",
-      subtitle: "Programme de Volontariat International au Togo",
-      intro: "Nous accusons réception de votre dossier de candidature au programme de volontariat international de l'association APTIC-R à Agbélouvé (Togo).",
-      refLabel: "Numéro de référence de votre dossier",
-      summaryTitle: "Récapitulatif de votre demande",
+      intro: "Nous avons bien reçu votre dossier de candidature pour le Programme de Volontariat International de l'association APTIC-R à Agbélouvé (Togo).",
+      refLabel: "Votre référence de dossier",
+      summaryTitle: "Récapitulatif de votre demande :",
       fieldCandidate: "Candidat",
       fieldArrival: "Date d'arrivée souhaitée",
-      fieldDuration: "Durée envisagée",
-      nextStepsTitle: "Modalités d'instruction",
-      step1: "1. Examen attentif de vos compétences et motivations par l'équipe de coordination (5 à 7 jours ouvrés).",
-      step2: "2. Prise de contact par e-mail afin de convenir d'un entretien vidéo de présentation réciproque.",
-      step3: "3. En cas de sélection, transmission de la convention d'engagement et des détails logistiques d'accueil.",
-      reminder: "Merci de conserver précieusement cette référence pour toute future communication avec notre équipe.",
-      footerNote: "Association APTIC-R · Agbélouvé, Région Maritime, Togo · Récépissé de déclaration N° 1245/MATDCL-DAPL-DOCA.",
+      fieldDuration: "Durée de mission",
+      nextStepsTitle: "Prochaines étapes :",
+      step1: "1. Notre équipe de coordination étudie votre profil et vos compétences sous 5 à 7 jours ouvrés.",
+      step2: "2. Nous vous recontacterons par e-mail afin de convenir d'un échange vidéo.",
+      step3: "3. Si votre candidature est retenue, nous préparerons ensemble votre convention d'engagement et votre mission sur place.",
+      reminder: "Conservez précieusement votre référence pour toute correspondance.",
     },
     EN: {
-      subject: `Confirmation of Application Receipt - APTIC-R [${referenceNumber}]`,
+      subject: `Application Confirmation APTIC-R - Ref. ${referenceNumber}`,
       greeting: `Dear ${firstName},`,
-      title: "Application Receipt Confirmation",
-      subtitle: "International Volunteer Program in Togo",
-      intro: "We hereby confirm the receipt of your application for the APTIC-R international volunteer program in Agbélouvé, Togo.",
-      refLabel: "Application Reference Number",
-      summaryTitle: "Summary of Information",
+      intro: "We have safely received your application for the APTIC-R International Volunteer Program in Agbélouvé, Togo.",
+      refLabel: "Your application reference",
+      summaryTitle: "Summary of your application:",
       fieldCandidate: "Applicant",
-      fieldArrival: "Preferred Arrival Date",
-      fieldDuration: "Proposed Duration",
-      nextStepsTitle: "Review Process",
-      step1: "1. Thorough assessment of your profile and motivation by the coordination committee (5 to 7 business days).",
-      step2: "2. Email contact to arrange an introductory video interview.",
-      step3: "3. Upon mutual agreement, issuance of the volunteer agreement and logistical onboarding guidance.",
-      reminder: "Please retain this reference number for all future correspondence with our team.",
-      footerNote: "APTIC-R Association · Agbélouvé, Maritime Region, Togo · Official Non-profit Registration N° 1245/MATDCL-DAPL-DOCA.",
+      fieldArrival: "Preferred arrival date",
+      fieldDuration: "Mission duration",
+      nextStepsTitle: "Next steps:",
+      step1: "1. The coordination team is reviewing your profile and skills within 5 to 7 business days.",
+      step2: "2. We will contact you by email to schedule an introductory video interview.",
+      step3: "3. Once selected, we will prepare your volunteer agreement and mission onboarding.",
+      reminder: "Please keep this reference number for all future communications.",
     },
     DE: {
-      subject: `Eingangsbestätigung Ihrer Bewerbung - APTIC-R [${referenceNumber}]`,
+      subject: `Bestätigung Ihrer Bewerbung APTIC-R - Ref. ${referenceNumber}`,
       greeting: `Hallo ${firstName},`,
-      title: "Bestätigung Ihrer Bewerbung",
-      subtitle: "Internationaler Freiwilligendienst in Togo",
-      intro: "Wir bestätigen den Eingang Ihrer Bewerbung für den internationalen Freiwilligendienst des Vereins APTIC-R in Agbélouvé (Togo).",
+      intro: "Wir haben Ihre Bewerbung für den internationalen Freiwilligendienst des Vereins APTIC-R in Agbélouvé (Togo) erhalten.",
       refLabel: "Ihre Referenznummer",
-      summaryTitle: "Zusammenfassung Ihrer Angaben",
+      summaryTitle: "Zusammenfassung Ihrer Angaben:",
       fieldCandidate: "Bewerber(in)",
       fieldArrival: "Gewünschtes Anreisedatum",
       fieldDuration: "Geplante Dauer",
-      nextStepsTitle: "Nächste Schritte",
-      step1: "1. Sorgfältige Prüfung Ihrer Unterlagen durch das Koordinationsteam (5 bis 7 Werktage).",
-      step2: "2. Kontaktaufnahme per E-Mail zur Terminierung eines Video-Kennenlerngesprächs.",
-      step3: "3. Nach Zusage gemeinsame Abstimmung der Einsatzvereinbarung und Reisevorbereitung.",
-      reminder: "Bitte bewahren Sie diese Referenznummer für alle weiteren Anfragen sorgfältig auf.",
-      footerNote: "Verein APTIC-R · Agbélouvé, Region Maritime, Togo · Registrierung N° 1245/MATDCL-DAPL-DOCA.",
+      nextStepsTitle: "Nächste Schritte:",
+      step1: "1. Unser Koordinationsteam prüft Ihre Bewerbung innerhalb von 5 bis 7 Werktagen.",
+      step2: "2. Wir melden uns per E-Mail zur Vereinbarung eines Video-Kennenlerngesprächs.",
+      step3: "3. Nach Zusage bereiten wir gemeinsam Ihre Einsatzvereinbarung vor.",
+      reminder: "Bitte bewahren Sie diese Referenznummer für alle Rückfragen auf.",
     },
   }[currentLang as "FR" | "EN" | "DE"] || {
-    subject: `Confirmation de réception de candidature APTIC-R [${referenceNumber}]`,
+    subject: `Confirmation de candidature APTIC-R - Réf. ${referenceNumber}`,
     greeting: `Bonjour ${firstName},`,
-    title: "Confirmation de votre candidature",
-    subtitle: "Programme de Volontariat International au Togo",
-    intro: "Nous accusons réception de votre dossier de candidature au programme de volontariat international d'APTIC-R.",
-    refLabel: "Numéro de référence",
-    summaryTitle: "Récapitulatif de votre demande",
+    intro: "Nous avons bien reçu votre dossier de candidature pour le Programme de Volontariat International d'APTIC-R.",
+    refLabel: "Votre référence de dossier",
+    summaryTitle: "Récapitulatif de votre demande :",
     fieldCandidate: "Candidat",
     fieldArrival: "Date d'arrivée souhaitée",
-    fieldDuration: "Durée envisagée",
-    nextStepsTitle: "Modalités d'instruction",
-    step1: "1. Examen attentif de votre dossier (5 à 7 jours ouvrés).",
-    step2: "2. Prise de contact pour convenir d'un entretien vidéo.",
-    step3: "3. Transmission de la convention d'engagement.",
-    reminder: "Merci de conserver précieusement cette référence.",
-    footerNote: "Association APTIC-R · Agbélouvé, Togo.",
+    fieldDuration: "Durée de mission",
+    nextStepsTitle: "Prochaines étapes :",
+    step1: "1. Examen de votre dossier sous 5 à 7 jours ouvrés.",
+    step2: "2. Prise de contact par e-mail pour un entretien vidéo.",
+    step3: "3. Préparation conjointe de votre mission.",
+    reminder: "Conservez précieusement votre référence.",
   }
 
   const html = `
 <!DOCTYPE html>
 <html lang="${currentLang.toLowerCase()}">
-${renderEmailHead(copy.title)}
-<body class="email-bg" style="margin: 0; padding: 0; background-color: #F5F7F9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #183247; line-height: 1.6;">
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F5F7F9;" class="email-bg">
-    <tr>
-      <td align="center" style="padding: 40px 16px;">
-        <!-- Container principal sobre max-width 580px -->
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="580" style="max-width: 580px; width: 100%; background-color: #FFFFFF; border: 1px solid #EAF0F4; border-radius: 8px; overflow: hidden;" class="email-card border-line">
-          ${renderEmailHeader(copy.subtitle)}
+${renderEmailHead(copy.subject)}
+<body style="margin: 0; padding: 24px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #183247;">
+  <div style="max-width: 580px; margin: 0 auto;" class="email-wrap">
+    ${renderEmailHeader()}
 
-          <!-- Contenu du message -->
-          <tr>
-            <td style="padding: 32px 32px 24px 32px;">
-              <h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 700; color: #183247; line-height: 1.3;" class="text-primary">
-                ${copy.title}
-              </h1>
+    <p style="margin: 0 0 16px 0;">${copy.greeting}</p>
 
-              <p style="margin: 0 0 14px 0; font-size: 15px; color: #183247; line-height: 1.6;" class="text-primary">
-                ${copy.greeting}
-              </p>
+    <p style="margin: 0 0 16px 0;">${copy.intro}</p>
 
-              <p style="margin: 0 0 18px 0; font-size: 14.5px; color: #5E6B76; line-height: 1.6;" class="text-secondary">
-                ${copy.intro}
-              </p>
+    <p style="margin: 0 0 16px 0;">
+      ${copy.refLabel} : <strong>${referenceNumber}</strong>
+    </p>
 
-              ${renderReferenceBox(copy.refLabel, referenceNumber)}
+    <p style="margin: 20px 0 6px 0; font-weight: 600;">
+      ${copy.summaryTitle}
+    </p>
+    <ul style="margin: 0 0 20px 0; padding-left: 20px;">
+      <li style="margin-bottom: 4px;">${copy.fieldCandidate} : ${firstName} ${lastName}</li>
+      ${arrivalDate ? `<li style="margin-bottom: 4px;">${copy.fieldArrival} : ${arrivalDate}</li>` : ""}
+      ${duration ? `<li style="margin-bottom: 4px;">${copy.fieldDuration} : ${duration}</li>` : ""}
+    </ul>
 
-              <!-- Tableau récapitulatif sobre -->
-              <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #183247; margin: 24px 0 8px 0;" class="text-primary">
-                ${copy.summaryTitle}
-              </div>
+    <p style="margin: 20px 0 6px 0; font-weight: 600;">
+      ${copy.nextStepsTitle}
+    </p>
+    <p style="margin: 0 0 8px 0;">${copy.step1}</p>
+    <p style="margin: 0 0 8px 0;">${copy.step2}</p>
+    <p style="margin: 0 0 16px 0;">${copy.step3}</p>
 
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #EAF0F4; border-radius: 6px; font-size: 13.5px; margin-bottom: 24px;" class="border-line">
-                <tr>
-                  <td style="padding: 10px 14px; color: #5E6B76; width: 42%; border-bottom: 1px solid #EAF0F4;" class="text-secondary border-line">
-                    ${copy.fieldCandidate}
-                  </td>
-                  <td style="padding: 10px 14px; color: #183247; font-weight: 600; border-bottom: 1px solid #EAF0F4;" class="text-primary border-line">
-                    ${firstName} ${lastName}
-                  </td>
-                </tr>
-                ${arrivalDate ? `
-                <tr class="table-row-even">
-                  <td style="padding: 10px 14px; color: #5E6B76; border-bottom: 1px solid #EAF0F4;" class="text-secondary border-line">
-                    ${copy.fieldArrival}
-                  </td>
-                  <td style="padding: 10px 14px; color: #183247; font-weight: 600; border-bottom: 1px solid #EAF0F4;" class="text-primary border-line">
-                    ${arrivalDate}
-                  </td>
-                </tr>` : ""}
-                ${duration ? `
-                <tr>
-                  <td style="padding: 10px 14px; color: #5E6B76;" class="text-secondary">
-                    ${copy.fieldDuration}
-                  </td>
-                  <td style="padding: 10px 14px; color: #183247; font-weight: 600;" class="text-primary">
-                    ${duration}
-                  </td>
-                </tr>` : ""}
-              </table>
+    <p style="margin: 0 0 24px 0; font-size: 14px; color: #5E6B76;" class="muted-text">
+      ${copy.reminder}
+    </p>
 
-              <!-- Prochaines étapes en texte clair et lisible -->
-              <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #183247; margin-bottom: 10px;" class="text-primary">
-                ${copy.nextStepsTitle}
-              </div>
-
-              <div style="font-size: 13.5px; color: #5E6B76; line-height: 1.6; margin-bottom: 8px;" class="text-secondary">
-                ${copy.step1}
-              </div>
-              <div style="font-size: 13.5px; color: #5E6B76; line-height: 1.6; margin-bottom: 8px;" class="text-secondary">
-                ${copy.step2}
-              </div>
-              <div style="font-size: 13.5px; color: #5E6B76; line-height: 1.6; margin-bottom: 20px;" class="text-secondary">
-                ${copy.step3}
-              </div>
-
-              <p style="margin: 0; font-size: 13px; color: #5E6B76; line-height: 1.5; font-style: italic;" class="text-secondary">
-                ${copy.reminder}
-              </p>
-            </td>
-          </tr>
-
-          ${renderEmailFooter({ customNote: copy.footerNote })}
-        </table>
-      </td>
-    </tr>
-  </table>
+    ${renderEmailFooter()}
+  </div>
 </body>
 </html>
   `.trim()
 
   const text = `
-${copy.title} - ${copy.subtitle}
+${copy.subject}
 ==================================================
 
 ${copy.greeting}
@@ -201,10 +137,10 @@ ${copy.intro}
 
 ${copy.refLabel} : ${referenceNumber}
 
-${copy.summaryTitle} :
+${copy.summaryTitle}
 - ${copy.fieldCandidate} : ${firstName} ${lastName}
 ${arrivalDate ? `- ${copy.fieldArrival} : ${arrivalDate}\n` : ""}${duration ? `- ${copy.fieldDuration} : ${duration}\n` : ""}
-${copy.nextStepsTitle} :
+${copy.nextStepsTitle}
 ${copy.step1}
 ${copy.step2}
 ${copy.step3}
@@ -212,8 +148,10 @@ ${copy.step3}
 ${copy.reminder}
 
 --
-${copy.footerNote}
-Contact : contact@aptic-rural.org | Tél / WhatsApp : +228 91 20 19 90
+Coordination du Programme de Volontariat International
+Association APTIC-R · Agbélouvé, Région Maritime, Togo
+Tél. / WhatsApp : +228 91 20 19 90
+Email : contact@aptic-rural.org
   `.trim()
 
   return { subject: copy.subject, html, text }
