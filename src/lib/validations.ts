@@ -10,6 +10,8 @@ export const candidateValidationMessages = {
     countryRequired: "Veuillez sélectionner un pays",
     dobRequired: "Veuillez renseigner votre date de naissance",
     dobInvalid: "Date de naissance invalide",
+    dobFuture: "La date de naissance ne peut pas être dans le futur",
+    dobMinAge: "Vous devez avoir au moins 16 ans pour soumettre une candidature",
     educationRequired: "Veuillez renseigner votre formation",
     fieldOfStudyRequired: "Veuillez renseigner votre domaine d'études",
     professionRequired: "Veuillez renseigner votre profession",
@@ -34,6 +36,8 @@ export const candidateValidationMessages = {
     countryRequired: "Please select your country of residence",
     dobRequired: "Please enter your date of birth",
     dobInvalid: "Invalid date of birth",
+    dobFuture: "Date of birth cannot be in the future",
+    dobMinAge: "You must be at least 16 years old to submit an application",
     educationRequired: "Please indicate your level of education",
     fieldOfStudyRequired: "Please indicate your field of study",
     professionRequired: "Please indicate your current profession",
@@ -58,6 +62,8 @@ export const candidateValidationMessages = {
     countryRequired: "Bitte wählen Sie Ihr Wohnsitzland aus",
     dobRequired: "Bitte geben Sie Ihr Geburtsdatum an",
     dobInvalid: "Ungültiges Geburtsdatum",
+    dobFuture: "Das Geburtsdatum darf nicht in der Zukunft liegen",
+    dobMinAge: "Sie müssen mindestens 16 Jahre alt sein, um eine Bewerbung einzureichen",
     educationRequired: "Bitte geben Sie Ihren Bildungsabschluss an",
     fieldOfStudyRequired: "Bitte geben Sie Ihren Studienbereich an",
     professionRequired: "Bitte geben Sie Ihren aktuellen Beruf an",
@@ -126,7 +132,22 @@ export function getCandidateApplicationSchema(lang: SupportedLanguage = "FR") {
     dob: z
       .string()
       .min(1, m.dobRequired)
-      .refine((val) => !isNaN(Date.parse(val)), m.dobInvalid),
+      .refine((val) => !isNaN(Date.parse(val)), m.dobInvalid)
+      .refine((val) => {
+        if (isNaN(Date.parse(val))) return true // already caught above
+        return new Date(val) <= new Date()
+      }, m.dobFuture)
+      .refine((val) => {
+        if (isNaN(Date.parse(val))) return true // already caught above
+        const birth = new Date(val)
+        const today = new Date()
+        const minDate = new Date(
+          today.getFullYear() - 16,
+          today.getMonth(),
+          today.getDate()
+        )
+        return birth <= minDate
+      }, m.dobMinAge),
 
     education: z.string().min(1, m.educationRequired),
     fieldOfStudy: z.string().min(1, m.fieldOfStudyRequired),

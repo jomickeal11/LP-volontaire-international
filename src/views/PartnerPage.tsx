@@ -1587,7 +1587,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                 </p>
                 <div className="space-y-2">
                   <a
-                    href="mailto:aptic.rural19@gmail.com?subject=Demande%20Partenariat%20APTIC-R"
+                    href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(currentLang === "DE" ? "APTIC-R Partnerschaftsanfrage" : currentLang === "EN" ? "APTIC-R Partnership Request" : "Demande Partenariat APTIC-R")}`}
                     className="font-bold text-[#174F7A] hover:underline flex items-center gap-1.5"
                   >
                     <span>aptic.rural19@gmail.com</span>

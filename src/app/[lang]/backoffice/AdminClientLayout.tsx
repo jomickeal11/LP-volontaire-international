@@ -79,6 +79,7 @@ export default function AdminClientLayout({
         navigate={handleNavigate}
         onLogout={handleLogout}
         applicationsCount={appCount}
+        lang={lang}
       >
         {children}
       </AdminLayout>

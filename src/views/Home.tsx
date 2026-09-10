@@ -1082,7 +1082,7 @@ function Testimonials({ t }: { t: TKey }) {
 }
 
 // ─── 16. FAQ ───────────────────────────────────────────────────────────────────
-function FAQ({ t }: { t: TKey }) {
+function FAQ({ t, lang }: { t: TKey; lang: string }) {
   const f = t.faq
   const [open, setOpen] = useState<number | null>(null)
 
@@ -1147,7 +1147,7 @@ function FAQ({ t }: { t: TKey }) {
           </div>
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <a
-              href="mailto:aptic.rural19@gmail.com?subject=Question%20Volontariat%20APTIC-R"
+              href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(lang === "DE" ? "Frage zum APTIC-R Freiwilligendienst" : lang === "EN" ? "APTIC-R Volunteering Question" : "Question Volontariat APTIC-R")}`}
               onClick={() => trackEvent("contact_click", { source: "faq_email" })}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#174F7A] text-white text-xs font-bold hover:bg-[#123E60] transition-colors shadow-xs"
             >
@@ -1254,7 +1254,7 @@ export default function Home({ lang, navigate }: HomeProps) {
       <ApplicationProcess t={t} navigate={navigate} />
       <Partners t={t} navigate={navigate} />
       <Testimonials t={t} />
-      <FAQ t={t} />
+      <FAQ t={t} lang={currentLang} />
       <FinalCTA t={t} navigate={navigate} />
     </main>
   )

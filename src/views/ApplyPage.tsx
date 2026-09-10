@@ -55,6 +55,7 @@ function InputField({
   error,
   helpText,
   min,
+  max,
 }: {
   label: string
   type?: string
@@ -65,6 +66,7 @@ function InputField({
   error?: string
   helpText?: string
   min?: string
+  max?: string
 }) {
   return (
     <div className="flex flex-col gap-1.5 w-full">
@@ -77,6 +79,7 @@ function InputField({
         placeholder={placeholder}
         value={value}
         min={min}
+        max={max}
         onChange={(e) => onChange(e.target.value)}
         className="w-full px-4 rounded-xl outline-none transition-all duration-200"
         style={{
@@ -812,12 +815,20 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
   const isStepValid = (s: number): boolean => {
     switch (s) {
       case 1:
+        const dobDate = new Date(form.dob)
+        const today = new Date()
+        const minDate = new Date(today.getFullYear() - 16, today.getMonth(), today.getDate())
+        const dobValid =
+          form.dob.length > 0 &&
+          !isNaN(dobDate.getTime()) &&
+          dobDate <= today &&
+          dobDate <= minDate
         return (
           form.firstName.trim().length >= 2 &&
           form.lastName.trim().length >= 2 &&
           /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) &&
           form.country.trim().length > 0 &&
-          form.dob.length > 0
+          dobValid
         )
       case 2:
         return (
@@ -855,7 +866,16 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
     firstName: form.firstName.length > 0 && form.firstName.trim().length < 2 ? t.apply.errors?.firstNameReq || "Prénom obligatoire (min. 2 caractères)" : undefined,
     lastName: form.lastName.length > 0 && form.lastName.trim().length < 2 ? t.apply.errors?.lastNameReq || "Nom obligatoire (min. 2 caractères)" : undefined,
     email: form.email.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) ? t.apply.errors?.emailInvalid || "Adresse e-mail invalide" : undefined,
-    dob: undefined,
+    dob: (() => {
+      if (!form.dob || form.dob.length === 0) return undefined
+      const birth = new Date(form.dob)
+      if (isNaN(birth.getTime())) return t.apply.errors?.dobInvalid || "Date invalide"
+      if (birth > new Date()) return t.apply.errors?.dobFuture || "Date future interdite"
+      const today = new Date()
+      const minDate = new Date(today.getFullYear() - 16, today.getMonth(), today.getDate())
+      if (birth > minDate) return t.apply.errors?.dobMinAge || "Vous devez avoir au moins 16 ans"
+      return undefined
+    })(),
   }
 
   // Submission handler
@@ -885,6 +905,24 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
     }
     if (!form.dob) {
       setErrorMessage(t.apply.errors.dobReq)
+      setIsSubmitting(false)
+      return
+    }
+    const dobDate = new Date(form.dob)
+    if (isNaN(dobDate.getTime())) {
+      setErrorMessage(t.apply.errors.dobInvalid || "Date de naissance invalide")
+      setIsSubmitting(false)
+      return
+    }
+    if (dobDate > new Date()) {
+      setErrorMessage(t.apply.errors.dobFuture || "Date future interdite")
+      setIsSubmitting(false)
+      return
+    }
+    const _today = new Date()
+    const _minDate = new Date(_today.getFullYear() - 16, _today.getMonth(), _today.getDate())
+    if (dobDate > _minDate) {
+      setErrorMessage(t.apply.errors.dobMinAge || "Vous devez avoir au moins 16 ans")
       setIsSubmitting(false)
       return
     }
@@ -1410,6 +1448,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         value={form.dob}
                         onChange={(v) => set("dob", v)}
                         required
+                        max={new Date().toISOString().split("T")[0]}
                         error={step1Errors.dob}
                       />
                     </div>
@@ -2167,7 +2206,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                 </p>
                 <div className="space-y-2">
                   <a
-                    href="mailto:aptic.rural19@gmail.com?subject=Question%20Candidature%20Volontaire"
+                    href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(currentLang === "DE" ? "Frage zur Freiwilligenbewerbung" : currentLang === "EN" ? "Volunteer Application Question" : "Question Candidature Volontaire")}`}
                     className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#174F7A] bg-white border border-[#D8E2E9] px-4 py-2.5 rounded-xl hover:border-[#174F7A] hover:bg-[#F0F5FA] transition-all shadow-2xs w-full cursor-pointer"
                   >
                     <svg className="w-4 h-4 text-[#174F7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

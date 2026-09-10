@@ -3,6 +3,8 @@
 import { useState } from "react"
 import type { Page } from "../../types"
 import { FileTextIcon, BarChartIcon } from "../../components/Icons"
+import { getAdminTranslations, getStatusLabel } from "../../i18n/adminTranslations"
+import { formatDate } from "../../lib/dateUtils"
 
 
 const BLUE = "#1B4F7C"
@@ -73,6 +75,7 @@ interface Props {
   applications: CandidateUI[]
   onStatusChange: (id: string, status: CandidateStatus) => void
   initialSearch?: string
+  lang?: string
 }
 
 export default function AdminApplications({
@@ -81,7 +84,9 @@ export default function AdminApplications({
   applications,
   onStatusChange,
   initialSearch = "",
+  lang = "fr",
 }: Props) {
+  const t = getAdminTranslations(lang)
   const [search, setSearch] = useState(initialSearch)
   const [filterStatus, setFilterStatus] = useState<CandidateStatus | "">("")
   const [filterCountry, setFilterCountry] = useState("")
@@ -192,10 +197,10 @@ export default function AdminApplications({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Candidatures
+            {t.nav.applications}
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            Suivi opérationnel et traitement des dossiers de candidature reçus.
+            {t.common.subtitle}
           </p>
         </div>
         <div className="flex items-center gap-2.5 flex-wrap">
@@ -204,7 +209,7 @@ export default function AdminApplications({
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
               style={{ backgroundColor: "#E8F2FA", color: BLUE }}
             >
-              <span className="font-semibold">{selected.length} sélectionné(s)</span>
+              <span className="font-semibold">{selected.length} {t.common.selectedCount}</span>
             </div>
           )}
           <button
@@ -224,7 +229,7 @@ export default function AdminApplications({
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
               />
             </svg>
-            Exporter en CSV
+            {t.common.exportCsv}
           </button>
         </div>
       </div>
@@ -251,7 +256,7 @@ export default function AdminApplications({
           </svg>
           <input
             type="text"
-            placeholder="Rechercher par nom, e-mail, pays..."
+            placeholder={t.nav.searchPlaceholder}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
@@ -285,10 +290,10 @@ export default function AdminApplications({
             color: TEXT_DARK,
           }}
         >
-          <option value="">Tous les statuts</option>
+          <option value="">{t.common.allStatuses}</option>
           {STATUS_WORKFLOW.map((s) => (
             <option key={s} value={s}>
-              {statusColors[s].label}
+              {getStatusLabel(s, lang)}
             </option>
           ))}
         </select>
@@ -306,7 +311,7 @@ export default function AdminApplications({
             color: TEXT_DARK,
           }}
         >
-          <option value="">Tous les pays</option>
+          <option value="">{t.common.allCountries}</option>
           {countries.map((c) => (
             <option key={c} value={c}>
               {c}
@@ -327,7 +332,7 @@ export default function AdminApplications({
             color: TEXT_DARK,
           }}
         >
-          <option value="">Toutes les compétences</option>
+          <option value="">{t.common.allSkills}</option>
           {[...new Set(candidates.flatMap((c) => c.skills))].map((s) => (
             <option key={s} value={s}>
               {s}
@@ -348,10 +353,10 @@ export default function AdminApplications({
             color: TEXT_DARK,
           }}
         >
-          <option value="">Toutes les durées</option>
-          <option value="SIX_MONTHS">6 mois</option>
-          <option value="NINE_MONTHS">9 mois</option>
-          <option value="TWELVE_MONTHS">12 mois</option>
+          <option value="">{t.common.allDurations}</option>
+          <option value="SIX_MONTHS">6 {lang.toLowerCase() === "de" ? "Monate" : lang.toLowerCase() === "en" ? "months" : "mois"}</option>
+          <option value="NINE_MONTHS">9 {lang.toLowerCase() === "de" ? "Monate" : lang.toLowerCase() === "en" ? "months" : "mois"}</option>
+          <option value="TWELVE_MONTHS">12 {lang.toLowerCase() === "de" ? "Monate" : lang.toLowerCase() === "en" ? "months" : "mois"}</option>
         </select>
 
         {(search || filterStatus || filterCountry || filterDuration) && (
@@ -367,7 +372,7 @@ export default function AdminApplications({
             className="text-xs font-semibold px-3 py-2 rounded-lg"
             style={{ color: "#DC2626", backgroundColor: "#FEE2E2" }}
           >
-            Effacer les filtres
+            {t.common.clearFilters}
           </button>
         )}
       </div>
@@ -405,39 +410,39 @@ export default function AdminApplications({
                   style={{ color: "#9AA8B4" }}
                   onClick={() => toggleSort("lastName")}
                 >
-                  Candidat <SortIcon field="lastName" />
+                  {t.common.candidate} <SortIcon field="lastName" />
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider"
                   style={{ color: "#9AA8B4" }}
                 >
-                  Compétences
+                  {t.common.skills}
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider cursor-pointer select-none"
                   style={{ color: "#9AA8B4" }}
                   onClick={() => toggleSort("appliedAt")}
                 >
-                  Candidature <SortIcon field="appliedAt" />
+                  {t.common.application} <SortIcon field="appliedAt" />
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider"
                   style={{ color: "#9AA8B4" }}
                 >
-                  Durée
+                  {t.common.duration}
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider cursor-pointer select-none"
                   style={{ color: "#9AA8B4" }}
                   onClick={() => toggleSort("status")}
                 >
-                  Status <SortIcon field="status" />
+                  {t.common.status} <SortIcon field="status" />
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider"
                   style={{ color: "#9AA8B4" }}
                 >
-                  Actions
+                  {t.common.actions}
                 </th>
               </tr>
             </thead>
@@ -464,7 +469,7 @@ export default function AdminApplications({
                         className="text-sm font-medium"
                         style={{ color: TEXT_MID }}
                       >
-                        Aucune candidature ne correspond à vos filtres.
+                        {t.common.noResults}
                       </p>
                     </div>
                   </td>
@@ -479,6 +484,7 @@ export default function AdminApplications({
                   onOpen={() => onSelectCandidate(c.id)}
                   onStatusChange={(s) => changeStatus(c.id, s)}
                   even={i % 2 === 0}
+                  lang={lang}
                 />
               ))}
             </tbody>
@@ -492,8 +498,8 @@ export default function AdminApplications({
             style={{ borderTop: "1px solid #E8ECF2" }}
           >
             <span className="text-xs" style={{ color: TEXT_MID }}>
-              Affichage {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–
-              {Math.min(page * PAGE_SIZE, filtered.length)} sur {filtered.length}
+              {t.common.showing} {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–
+              {Math.min(page * PAGE_SIZE, filtered.length)} {t.common.of} {filtered.length}
             </span>
             <div className="flex gap-1">
               <button
@@ -506,7 +512,7 @@ export default function AdminApplications({
                   cursor: page === 1 ? "not-allowed" : "pointer",
                 }}
               >
-                ← Précédent
+                ← {t.common.previous}
               </button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                 <button
@@ -531,7 +537,7 @@ export default function AdminApplications({
                   cursor: page === totalPages ? "not-allowed" : "pointer",
                 }}
               >
-                Suivant →
+                {t.common.next} →
               </button>
             </div>
           </div>
@@ -548,6 +554,7 @@ function CandidateRow({
   onOpen,
   onStatusChange,
   even,
+  lang = "fr",
 }: {
   candidate: CandidateUI
   selected: boolean
@@ -555,12 +562,15 @@ function CandidateRow({
   onOpen: () => void
   onStatusChange: (s: CandidateStatus) => void
   even: boolean
+  lang?: string
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [statusMenu, setStatusMenu] = useState(false)
   const BLUE = "#1B4F7C"
+  const t = getAdminTranslations(lang)
 
-  const { bg, text, label } = statusColors[c.status]
+  const { bg, text } = statusColors[c.status]
+  const translatedStatus = getStatusLabel(c.status, lang)
 
   return (
     <tr
@@ -637,7 +647,7 @@ function CandidateRow({
         className="px-4 py-3 text-xs"
         style={{ fontFamily: "JetBrains Mono, monospace", color: "#7A8A9A" }}
       >
-        {c.appliedAt}
+        {formatDate(c.appliedAt, lang)}
       </td>
       <td className="px-4 py-3">
         <span className="text-xs font-medium" style={{ color: "#4A5A6A" }}>
@@ -650,7 +660,7 @@ function CandidateRow({
           className="inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-md tracking-wide"
           style={{ backgroundColor: bg, color: text }}
         >
-          {label}
+          {translatedStatus}
         </span>
       </td>
       <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
@@ -667,7 +677,7 @@ function CandidateRow({
               e.currentTarget.style.backgroundColor = "transparent"
               e.currentTarget.style.color = "#9AA8B4"
             }}
-            title="Voir la candidature"
+            title={t.common.viewApplication}
           >
             <svg
               className="w-4 h-4"
@@ -700,7 +710,7 @@ function CandidateRow({
               e.currentTarget.style.backgroundColor = "transparent"
               e.currentTarget.style.color = "#9AA8B4"
             }}
-            title="Contacter le candidat"
+            title={t.common.contactCandidate}
           >
             <svg
               className="w-4 h-4"

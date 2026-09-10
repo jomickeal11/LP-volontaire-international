@@ -103,6 +103,7 @@ export default function AdminCandidateDetailWrapper({ application, lang = "fr" }
       navigate={handleNavigate}
       application={candidateUI}
       locale={locale}
+      lang={targetLang}
       onStatusChange={handleStatusChange}
       onAddNote={handleAddNote}
       onDeleteNote={handleDeleteNote}

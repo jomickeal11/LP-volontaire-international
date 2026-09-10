@@ -6,7 +6,13 @@ import type { Page } from "@/types"
 import { updateCandidateStatus } from "@/lib/actions"
 import type { CandidateStatus } from "@prisma/client"
 
-export default function AdminApplicationsClientWrapper({ applications }: { applications: CandidateUI[] }) {
+export default function AdminApplicationsClientWrapper({
+  applications,
+  lang = "fr",
+}: {
+  applications: CandidateUI[]
+  lang?: string
+}) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialSearch = searchParams.get("search") || searchParams.get("email") || ""
@@ -14,13 +20,13 @@ export default function AdminApplicationsClientWrapper({ applications }: { appli
   const handleNavigate = (page: Page) => {
     switch (page) {
       case "home":
-        router.push("/")
+        router.push(`/${lang}`)
         break
       case "admin-dashboard":
-        router.push("/backoffice/dashboard")
+        router.push(`/${lang}/backoffice/dashboard`)
         break
       case "admin-analytics":
-        router.push("/backoffice/statistics")
+        router.push(`/${lang}/backoffice/statistics`)
         break
       default:
         break
@@ -28,7 +34,7 @@ export default function AdminApplicationsClientWrapper({ applications }: { appli
   }
 
   const handleSelectCandidate = (id: string) => {
-    router.push(`/backoffice/applications/${id}`)
+    router.push(`/${lang}/backoffice/applications/${id}`)
   }
   
   const handleStatusChange = async (id: string, status: string) => {
@@ -45,6 +51,7 @@ export default function AdminApplicationsClientWrapper({ applications }: { appli
       onSelectCandidate={handleSelectCandidate}
       onStatusChange={handleStatusChange}
       initialSearch={initialSearch}
+      lang={lang}
     />
   )
 }

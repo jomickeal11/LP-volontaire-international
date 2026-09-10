@@ -335,6 +335,18 @@ export async function updateCandidateStatus(
     updateStatusSchema.parse({ candidateId: applicationId, newStatus })
     
     await prisma.$transaction(async (tx) => {
+      const currentApp = await tx.candidature.findUnique({
+        where: { id: applicationId }
+      })
+      
+      if (!currentApp) {
+        throw new Error("Candidature introuvable")
+      }
+      
+      if (currentApp.status === newStatus) {
+        return { success: true } // Already at this status
+      }
+
       const app = await tx.candidature.update({
         where: { id: applicationId },
         data: { status: newStatus as any }
@@ -343,7 +355,7 @@ export async function updateCandidateStatus(
       await tx.historiqueCandidature.create({
         data: {
           applicationId: app.id,
-          fromStatus: app.status, // this is technically incorrect for history, but sufficient for now
+          fromStatus: currentApp.status,
           toStatus: newStatus as any,
           note: noteContent,
           changedByName: "Admin APTIC-R"

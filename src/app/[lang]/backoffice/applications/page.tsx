@@ -35,6 +35,6 @@ export default async function AdminApplicationsPage({
   }))
 
   return (
-    <AdminApplicationsClientWrapper applications={applications} />
+    <AdminApplicationsClientWrapper applications={applications} lang={lang} />
   )
 }

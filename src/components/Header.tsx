@@ -261,7 +261,10 @@ export default function Header({
                 {(["FR", "EN", "DE"] as Language[]).map((l) => (
                   <button
                     key={l}
-                    onClick={() => setLang(l)}
+                    onClick={() => {
+                      trackEvent("language_switch", { lang: l, metadata: { from: lang, to: l } })
+                      setLang(l)
+                    }}
                     className="text-xs font-bold px-3 py-1.5 rounded-full transition-all uppercase"
                     style={{
                       backgroundColor: lang === l ? "white" : "transparent",

@@ -11,6 +11,8 @@ import type { Page } from "../../types"
 import { MapPinIcon, MailIcon, PhoneIcon, GlobeIcon, CheckIcon } from "../../components/Icons"
 import { useAdminHeader } from "../../lib/AdminHeaderContext"
 import { sendCandidateDirectEmail } from "@/lib/actions"
+import { getAdminTranslations, getStatusLabel } from "../../i18n/adminTranslations"
+import { formatDate } from "../../lib/dateUtils"
 
 const BLUE = "#1B4F7C"
 const GREEN = "#2E7D52"
@@ -63,12 +65,22 @@ interface Props {
   navigate: (p: Page) => void
   application: any // Using any for fast prototyping, maps to full application record
   locale?: string
+  lang?: string
   onStatusChange?: (id: string, status: CandidateStatus) => void
   onAddNote?: (id: string, note: string) => void
   onDeleteNote?: (id: string) => void
 }
 
-export default function AdminCandidateDetail({ navigate, application, locale = "fr-FR", onStatusChange, onAddNote, onDeleteNote }: Props) {
+export default function AdminCandidateDetail({
+  navigate,
+  application,
+  locale = "fr-FR",
+  lang = "fr",
+  onStatusChange,
+  onAddNote,
+  onDeleteNote,
+}: Props) {
+  const t = getAdminTranslations(lang)
   const [candidate, setCandidate] = useState(application)
   const [activeTab, setActiveTab] = useState<"profile" | "dossier">("profile")
   const [newNote, setNewNote] = useState("")
@@ -94,12 +106,12 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
 
   useEffect(() => {
     setBreadcrumb([
-      { label: "Candidatures" },
+      { label: t.nav.applications },
     ])
     return () => {
       setBreadcrumb([])
     }
-  }, [setBreadcrumb])
+  }, [setBreadcrumb, t.nav.applications])
 
   const currentStepIndex = STATUS_WORKFLOW.indexOf(status)
 
@@ -108,7 +120,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
     const newNoteObj = {
       id: "temp-" + Date.now(), // Optimistic UI
       content: newNote,
-      createdAt: new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date()),
+      createdAt: formatDate(new Date(), lang),
       author: "Admin APTIC-R",
     }
     setNotes([newNoteObj, ...notes])
@@ -151,7 +163,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
         const noteObj = {
           id: "email-" + Date.now(),
           content: `Email envoyé au candidat : « ${emailSubject} »\n${emailBody}`,
-          createdAt: new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date()),
+          createdAt: formatDate(new Date(), lang),
           author: "Admin APTIC-R",
         }
         setNotes([noteObj, ...notes])
@@ -178,7 +190,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Candidatures
+            {t.nav.applications}
           </button>
         </div>
 
@@ -202,7 +214,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                     border: "1px solid rgba(0,0,0,0.08)"
                   }}
                 >
-                  <span>{statusColors[status]?.label || status}</span>
+                  <span>{getStatusLabel(status, lang)}</span>
                   <svg
                     className={`w-3.5 h-3.5 transition-transform duration-200 ${statusDropdownOpen ? "rotate-180" : ""}`}
                     style={{ color: statusColors[status]?.text || "#174F7A" }}
@@ -223,7 +235,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                     />
                     <div className="absolute left-0 top-full mt-1.5 w-56 bg-white rounded-xl shadow-lg border border-slate-200/80 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
                       <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1">
-                        Changer le statut
+                        {t.common.changeStatus}
                       </div>
                       {STATUS_WORKFLOW.map((s) => {
                         const isCurrent = s === status
@@ -247,7 +259,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                                 className="w-2 h-2 rounded-full shrink-0"
                                 style={{ backgroundColor: sc?.text || "#174F7A" }}
                               />
-                              {sc?.label || s}
+                              {getStatusLabel(s, lang)}
                             </span>
                             {isCurrent && (
                               <svg className="w-3.5 h-3.5 text-[#174F7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,7 +284,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
               <span>·</span>
               <span>{candidate.language}</span>
               <span>·</span>
-              <span>Reçue le {candidate.appliedAt}</span>
+              <span>{candidate.appliedAt}</span>
             </div>
           </div>
 
@@ -280,11 +292,11 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-5 pt-2 md:pt-0 border-t md:border-t-0 md:border-l border-slate-100 md:pl-5">
             <div className="text-xs text-slate-500 flex sm:flex-col gap-3 sm:gap-0.5">
               <div>
-                <span className="text-[11px] text-slate-400 font-medium">Arrivée : </span>
+                <span className="text-[11px] text-slate-400 font-medium">{t.common.arrival} : </span>
                 <span className="font-semibold text-slate-800">{candidate.arrivalDate}</span>
               </div>
               <div>
-                <span className="text-[11px] text-slate-400 font-medium">Durée : </span>
+                <span className="text-[11px] text-slate-400 font-medium">{t.common.duration} : </span>
                 <span className="font-semibold text-slate-800">{candidate.duration}</span>
               </div>
             </div>
@@ -317,7 +329,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                Contacter
+                {t.common.contact}
               </button>
             </div>
           </div>
@@ -328,7 +340,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
           {/* Workflow: Progression du recrutement - Fit 100% inside card without horizontal scroll */}
           <div className="mb-7 pb-6 border-b border-slate-100">
             <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
-              PROGRESSION DU RECRUTEMENT
+              {t.common.recruitmentProgress}
             </div>
             
             {/* Fully responsive layout that fits 100% width without scrolling */}
@@ -336,7 +348,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
               {STATUS_WORKFLOW.map((s, i) => {
                 const done = i < currentStepIndex
                 const current = i === currentStepIndex
-                const sc = statusColors[s] || { label: s }
+                const labelTranslated = getStatusLabel(s, lang)
 
                 let dotBg = "#CBD5E1"
                 if (done) dotBg = "#35A85A"
@@ -345,9 +357,12 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                 return (
                   <div key={s} className="flex items-center flex-1 last:flex-none">
                     <button
-                      onClick={() => setConfirmStatusChange(s)}
-                      className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none"
-                      title={`Changer pour : ${sc.label}`}
+                      onClick={() => {
+                        if (!current) setConfirmStatusChange(s)
+                      }}
+                      disabled={current}
+                      className={`flex flex-col items-center gap-1.5 group ${current ? 'cursor-default' : 'cursor-pointer'} focus:outline-none`}
+                      title={current ? labelTranslated : `${t.common.changeStatus} : ${labelTranslated}`}
                     >
                       <div
                         className={`rounded-full transition-all flex items-center justify-center shrink-0 ${
@@ -360,7 +375,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                         style={{ backgroundColor: dotBg }}
                       >
                         {done && (
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         )}
@@ -377,7 +392,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                             : "text-[10.5px] sm:text-[11px] text-slate-400 font-medium group-hover:text-slate-600"
                         }`}
                       >
-                        {sc.label}
+                        {labelTranslated}
                       </span>
                     </button>
 
@@ -412,7 +427,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                   activeTab === "profile" ? "text-[#174F7A]" : "text-slate-500 hover:text-slate-800"
                 }`}
               >
-                Profil
+                {t.common.profileTab}
               </button>
 
               {/* Tab: DOSSIER */}
@@ -422,7 +437,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                   activeTab === "dossier" ? "text-[#174F7A]" : "text-slate-500 hover:text-slate-800"
                 }`}
               >
-                Dossier
+                {t.common.dossierTab}
                 {notes.length > 0 && (
                   <span
                     className={`text-[10px] px-2 py-0.2 rounded-full font-bold transition-colors ${
@@ -445,16 +460,16 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 mb-5 pb-2.5 border-b border-slate-100 flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#174F7A]" />
-                    Informations personnelles
+                    {t.common.personalInfo}
                   </h3>
                   
                   <div className="space-y-3.5 text-sm">
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Prénom</span>
+                      <span className="text-slate-400 text-[13px]">{lang.toLowerCase() === "de" ? "Vorname" : lang.toLowerCase() === "en" ? "First name" : "Prénom"}</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.firstName}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Nom</span>
+                      <span className="text-slate-400 text-[13px]">{lang.toLowerCase() === "de" ? "Nachname" : lang.toLowerCase() === "en" ? "Last name" : "Nom"}</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.lastName}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-baseline">
@@ -464,19 +479,19 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                       </a>
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Téléphone</span>
+                      <span className="text-slate-400 text-[13px]">{lang.toLowerCase() === "de" ? "Telefon" : lang.toLowerCase() === "en" ? "Phone" : "Téléphone"}</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.phone || "—"}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Date de naissance</span>
+                      <span className="text-slate-400 text-[13px]">{lang.toLowerCase() === "de" ? "Geburtsdatum" : lang.toLowerCase() === "en" ? "Date of birth" : "Date de naissance"}</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.dob || "—"}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Pays</span>
+                      <span className="text-slate-400 text-[13px]">{lang.toLowerCase() === "de" ? "Land" : lang.toLowerCase() === "en" ? "Country" : "Pays"}</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.country}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Ville</span>
+                      <span className="text-slate-400 text-[13px]">{lang.toLowerCase() === "de" ? "Stadt" : lang.toLowerCase() === "en" ? "City" : "Ville"}</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.city || "—"}</span>
                     </div>
                   </div>
@@ -486,32 +501,32 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 mb-5 pb-2.5 border-b border-slate-100 flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#174F7A]" />
-                    Profil professionnel
+                    {t.common.professionalProfile}
                   </h3>
                   
                   <div className="space-y-3.5 text-sm">
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Formation</span>
+                      <span className="text-slate-400 text-[13px]">{t.common.education}</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.education || "—"}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Domaine</span>
+                      <span className="text-slate-400 text-[13px]">{t.common.fieldOfStudy}</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.fieldOfStudy || "—"}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Profession</span>
+                      <span className="text-slate-400 text-[13px]">{t.common.profession}</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.profession || "—"}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Expérience</span>
+                      <span className="text-slate-400 text-[13px]">{t.common.experience}</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.experience || "—"}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Niveau num.</span>
+                      <span className="text-slate-400 text-[13px]">{t.common.digitalLevel}</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.digitalSkillLevel || "—"}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Langues</span>
+                      <span className="text-slate-400 text-[13px]">{t.common.languages}</span>
                       <div className="col-span-2 flex flex-wrap gap-1.5">
                         {(() => {
                           const langs = parseCandidateLanguages(candidate.languages)
@@ -539,7 +554,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 mb-4 pb-2.5 border-b border-slate-100 flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#174F7A]" />
-                    Compétences
+                    {t.common.skills}
                   </h3>
                   <div className="flex flex-wrap gap-2.5 pt-1">
                     {candidate.skills && candidate.skills.length > 0 ? (
@@ -552,7 +567,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                         </span>
                       ))
                     ) : (
-                      <span className="text-sm text-slate-400 italic">Aucune compétence renseignée</span>
+                      <span className="text-sm text-slate-400 italic">{lang.toLowerCase() === "de" ? "Keine Kompetenz angegeben" : lang.toLowerCase() === "en" ? "No skill provided" : "Aucune compétence renseignée"}</span>
                     )}
                   </div>
                 </div>
@@ -561,20 +576,20 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 mb-4 pb-2.5 border-b border-slate-100 flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#174F7A]" />
-                    Disponibilité
+                    {t.common.availability}
                   </h3>
                   <div className="space-y-3.5 text-sm">
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Arrivée</span>
+                      <span className="text-slate-400 text-[13px]">{t.common.arrival}</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.arrivalDate}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Durée</span>
+                      <span className="text-slate-400 text-[13px]">{t.common.duration}</span>
                       <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.duration}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-baseline">
-                      <span className="text-slate-400 text-[13px]">Source</span>
-                      <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.source || "Non renseignée"}</span>
+                      <span className="text-slate-400 text-[13px]">{t.common.source}</span>
+                      <span className="col-span-2 font-semibold text-slate-800 text-sm">{candidate.source || "—"}</span>
                     </div>
                   </div>
                 </div>
@@ -586,10 +601,10 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                 <div className="flex flex-col h-full">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 mb-4 pb-2.5 border-b border-slate-100 flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#174F7A]" />
-                    Motivation
+                    {t.common.motivation}
                   </h3>
-                  <div className="flex-1 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap bg-slate-50/70 p-5 rounded-lg border border-slate-100 min-h-[110px] h-auto">
-                    {candidate.motivation || "Aucun texte de motivation renseigné."}
+                  <div className="flex-1 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap break-words bg-slate-50/70 p-5 rounded-lg border border-slate-100 min-h-[110px] h-auto">
+                    {candidate.motivation || "—"}
                   </div>
                 </div>
 
@@ -597,10 +612,10 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                 <div className="flex flex-col h-full">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 mb-4 pb-2.5 border-b border-slate-100 flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#174F7A]" />
-                    Expérience de projet
+                    {t.common.projectExperience}
                   </h3>
-                  <div className="flex-1 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap bg-slate-50/70 p-5 rounded-lg border border-slate-100 min-h-[110px] h-auto">
-                    {candidate.projectExperience || "Aucune expérience de projet détaillée."}
+                  <div className="flex-1 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap break-words bg-slate-50/70 p-5 rounded-lg border border-slate-100 min-h-[110px] h-auto">
+                    {candidate.projectExperience || "—"}
                   </div>
                 </div>
               </div>
@@ -618,10 +633,10 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 mb-4 pb-2.5 border-b border-slate-100 flex items-center justify-between">
                     <span className="flex items-center gap-2.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-[#174F7A]" />
-                      Documents
+                      {t.common.documents}
                     </span>
                     <span className="text-xs font-normal text-slate-400 lowercase">
-                      {candidate.documents ? candidate.documents.length : 0} fichier(s)
+                      {candidate.documents ? candidate.documents.length : 0} {lang.toLowerCase() === "de" ? "Datei(en)" : lang.toLowerCase() === "en" ? "file(s)" : "fichier(s)"}
                     </span>
                   </h3>
 
@@ -630,9 +645,9 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                       candidate.documents.map((doc: any, i: number) => {
                         const typeLabels: Record<string, string> = {
                           CV: "Curriculum Vitae (CV)",
-                          MOTIVATION_LETTER: "Lettre de motivation",
+                          MOTIVATION_LETTER: lang.toLowerCase() === "de" ? "Motivationsschreiben" : lang.toLowerCase() === "en" ? "Cover letter" : "Lettre de motivation",
                           PORTFOLIO: "Portfolio",
-                          PASSPORT: "Pièce d'identité / Passeport",
+                          PASSPORT: lang.toLowerCase() === "de" ? "Ausweis / Reisepass" : lang.toLowerCase() === "en" ? "ID / Passport" : "Pièce d'identité / Passeport",
                         }
                         const label = typeLabels[doc.type] || doc.name || `Document ${i + 1}`
 
@@ -660,7 +675,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                               download
                               className="text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shrink-0 transition-colors shadow-2xs cursor-pointer"
                             >
-                              Télécharger
+                              {lang.toLowerCase() === "de" ? "Herunterladen" : lang.toLowerCase() === "en" ? "Download" : "Télécharger"}
                             </a>
                           </div>
                         )
@@ -668,7 +683,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                     ) : (
                       <div className="p-4 rounded-xl bg-slate-50/50 border border-slate-100 text-center">
                         <p className="text-sm text-slate-400 italic">
-                          Aucun document n'a été déposé pour cette candidature.
+                          {t.common.noDocuments}
                         </p>
                       </div>
                     )}
@@ -680,7 +695,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 mb-4 pb-2.5 border-b border-slate-100 flex items-center justify-between">
                     <span className="flex items-center gap-2.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-[#174F7A]" />
-                      Notes internes
+                      {t.common.notes}
                     </span>
                     <span className="text-xs bg-slate-100 text-slate-700 font-bold px-2.5 py-0.5 rounded-full">
                       {notes.length}
@@ -692,7 +707,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                     <textarea
                       value={newNote}
                       onChange={(e) => setNewNote(e.target.value)}
-                      placeholder="Ajouter une observation ou note interne..."
+                      placeholder={t.common.notePlaceholder}
                       rows={2}
                       className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:border-blue-500 focus:outline-none transition-colors resize-none"
                     />
@@ -702,14 +717,14 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                       className="self-end px-4 py-1.5 rounded-lg text-sm font-bold text-white transition-opacity disabled:opacity-40 cursor-pointer shadow-2xs"
                       style={{ backgroundColor: "#174F7A" }}
                     >
-                      Ajouter la note
+                      {t.common.addNote}
                     </button>
                   </div>
 
                   <div className="space-y-3">
                     {notes.length === 0 ? (
                       <p className="text-sm text-slate-400 italic text-center py-3">
-                        Aucune note enregistrée.
+                        {lang.toLowerCase() === "de" ? "Keine Notiz vorhanden." : lang.toLowerCase() === "en" ? "No notes recorded." : "Aucune note enregistrée."}
                       </p>
                     ) : (
                       notes.map((note: any, i: number) => (
@@ -725,7 +740,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                               onClick={() => handleDeleteNote(note.id)}
                               className="opacity-0 group-hover:opacity-100 transition-opacity absolute right-3 bottom-3 text-xs font-semibold text-red-500 hover:text-red-700 bg-red-50 px-2 py-0.5 rounded cursor-pointer"
                             >
-                              Supprimer
+                              {t.common.delete}
                             </button>
                           )}
                         </div>
@@ -741,11 +756,11 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                 <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 mb-4 pb-2.5 border-b border-slate-100 flex items-center justify-between">
                   <span className="flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#174F7A]" />
-                    Historique
+                    {t.common.history}
                   </span>
                   {candidate.statusHistory && candidate.statusHistory.length > 0 && (
                     <span className="text-xs text-slate-400 font-normal">
-                      {candidate.statusHistory.length} événement(s)
+                      {candidate.statusHistory.length} {lang.toLowerCase() === "de" ? "Ereignis(se)" : lang.toLowerCase() === "en" ? "event(s)" : "événement(s)"}
                     </span>
                   )}
                 </h3>
@@ -785,7 +800,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                                     color: statusColors[h.status as CandidateStatus]?.text || "#1E293B",
                                   }}
                                 >
-                                  {statusColors[h.status as CandidateStatus]?.label || h.status}
+                                  {getStatusLabel(h.status, lang)}
                                 </span>
                               </div>
                               <p className="text-xs text-slate-400">
@@ -809,14 +824,18 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                                 </svg>
-                                Réduire l'historique
+                                {lang.toLowerCase() === "de" ? "Historie reduzieren" : lang.toLowerCase() === "en" ? "Collapse history" : "Réduire l'historique"}
                               </>
                             ) : (
                               <>
                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
-                                Voir les {candidate.statusHistory.length - 4} étapes précédentes
+                                {lang.toLowerCase() === "de"
+                                  ? `Vorherige ${candidate.statusHistory.length - 4} Schritte anzeigen`
+                                  : lang.toLowerCase() === "en"
+                                  ? `Show previous ${candidate.statusHistory.length - 4} steps`
+                                  : `Voir les ${candidate.statusHistory.length - 4} étapes précédentes`}
                               </>
                             )}
                           </button>
@@ -825,7 +844,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                     </>
                   ) : (
                     <p className="text-sm text-slate-400 italic text-center py-3">
-                      Aucun historique disponible.
+                      {lang.toLowerCase() === "de" ? "Keine Historie verfügbar." : lang.toLowerCase() === "en" ? "No history available." : "Aucun historique disponible."}
                     </p>
                   )}
                 </div>
@@ -848,14 +867,14 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-base font-bold mb-2 text-slate-900">
-              Changer le statut ?
+              {t.common.confirmStatusTitle}
             </h3>
             <p className="text-sm mb-4 text-slate-600 leading-relaxed">
-              Passer la candidature de{" "}
+              {t.common.confirmStatusMessage}{" "}
               <strong>
                 {candidate.firstName} {candidate.lastName}
               </strong>{" "}
-              au statut{" "}
+              ➔{" "}
               <span
                 className="font-bold px-2 py-0.5 rounded"
                 style={{
@@ -863,7 +882,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                   color: statusColors[confirmStatusChange]?.text || "#174F7A",
                 }}
               >
-                {statusColors[confirmStatusChange]?.label || confirmStatusChange}
+                {getStatusLabel(confirmStatusChange, lang)}
               </span>{" "}
               ?
             </p>
@@ -872,7 +891,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                 onClick={() => setConfirmStatusChange(null)}
                 className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700"
               >
-                Annuler
+                {t.common.cancel}
               </button>
               <button
                 onClick={() => {
@@ -883,7 +902,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#123d60")}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#174F7A")}
               >
-                Confirmer
+                {t.common.confirm}
               </button>
             </div>
           </div>
@@ -916,7 +935,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 className="text-base font-bold mb-2 text-slate-900">Email envoyé</h3>
+                <h3 className="text-base font-bold mb-2 text-slate-900">{t.common.emailSent}</h3>
                 <p className="text-sm mb-4 text-slate-600">
                   Votre message à {candidate.firstName} a bien été envoyé via le service d&apos;email.
                 </p>
@@ -930,14 +949,14 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                   }}
                   className="text-sm font-semibold px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
                 >
-                  Fermer
+                  {t.common.close}
                 </button>
               </div>
             ) : (
               <>
-                <h3 className="text-base font-bold mb-1 text-slate-900">Envoyer un email</h3>
+                <h3 className="text-base font-bold mb-1 text-slate-900">{t.common.sendEmail}</h3>
                 <p className="text-xs mb-4 text-slate-500">
-                  Destinataire : <strong>{candidate.firstName} {candidate.lastName}</strong> ({candidate.email})
+                  {t.common.recipient} : <strong>{candidate.firstName} {candidate.lastName}</strong> ({candidate.email})
                 </p>
 
                 {emailError && (
@@ -952,7 +971,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                 <div className="flex flex-col gap-3 mb-5">
                   <input
                     type="text"
-                    placeholder="Objet de l'email"
+                    placeholder={t.common.emailSubject}
                     value={emailSubject}
                     onChange={(e) => {
                       setEmailSubject(e.target.value)
@@ -961,7 +980,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                     className="w-full px-3.5 py-2.5 rounded-lg text-sm border border-slate-200 outline-none focus:border-blue-500"
                   />
                   <textarea
-                    placeholder="Rédigez votre message..."
+                    placeholder={t.common.emailBodyPlaceholder}
                     value={emailBody}
                     onChange={(e) => {
                       setEmailBody(e.target.value)
@@ -979,7 +998,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                     }}
                     className="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
                   >
-                    Annuler
+                    {t.common.cancel}
                   </button>
                   <button
                     onClick={sendEmail}
@@ -990,7 +1009,7 @@ export default function AdminCandidateDetail({ navigate, application, locale = "
                       cursor: emailLoading || !emailSubject.trim() || !emailBody.trim() ? "not-allowed" : "pointer",
                     }}
                   >
-                    {emailLoading ? "Envoi en cours..." : "Envoyer"}
+                    {emailLoading ? t.common.emailSending : t.common.sendEmail}
                   </button>
                 </div>
               </>
