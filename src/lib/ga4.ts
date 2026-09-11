@@ -106,12 +106,12 @@ export async function getGA4Data(days: number): Promise<GA4Data> {
       value: parseInt(row.metricValues?.[0].value || "0"),
     }))
 
-    // Fetch Events Counts
+    // Fetch Events Counts (using totalUsers to get unique visitors per event)
     const [eventsResponse] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
       dateRanges: [{ startDate, endDate }],
       dimensions: [{ name: "eventName" }],
-      metrics: [{ name: "eventCount" }],
+      metrics: [{ name: "totalUsers" }],
       dimensionFilter: {
         filter: {
           fieldName: "eventName",
@@ -137,6 +137,7 @@ export async function getGA4Data(days: number): Promise<GA4Data> {
     if (eventsResponse.rows) {
       eventsResponse.rows.forEach((row) => {
         const eventName = row.dimensionValues?.[0].value
+        // We read metricValues[0] which is now totalUsers
         const count = parseInt(row.metricValues?.[0].value || "0")
         if (eventName && events[eventName] !== undefined) {
           events[eventName] = count
