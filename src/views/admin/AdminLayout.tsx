@@ -331,7 +331,7 @@ export default function AdminLayout({
       <div className="flex items-center gap-3 px-5 py-5 border-b border-[#F0F3F6]">
         <div className="w-9 h-9 rounded-lg bg-white border border-[#E2E8F0] shadow-xs flex items-center justify-center p-1 shrink-0 overflow-hidden">
           <img
-            src="/aptic-logo.png"
+            src="/logo-aptic.png"
             alt="APTIC-R"
             className="w-full h-full object-contain"
           />

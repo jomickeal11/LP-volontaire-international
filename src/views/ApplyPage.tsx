@@ -1247,7 +1247,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
             aria-label="APTIC-R Accueil"
           >
             <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-[#D8E2E9] flex items-center justify-center p-0.5 shadow-2xs group-hover:border-[#174F7A] transition-colors">
-              <Image src="/aptic-logo.png" alt="APTIC-R Logo" width={60} height={60} className="w-full h-full object-contain" unoptimized />
+              <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={60} height={60} className="w-full h-full object-contain" unoptimized />
             </div>
             <div>
               <div className="font-extrabold text-sm leading-none tracking-tight text-[#174F7A]">APTIC-R</div>
@@ -1322,10 +1322,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
             <div className="w-full sm:w-[360px] lg:w-[390px] shrink-0">
               <div className="h-[190px] sm:h-[210px] rounded-2xl overflow-hidden shadow-sm border-2 border-white bg-slate-200">
                 <picture>
-                  <source srcSet="/volunteer-togo.avif" type="image/avif" />
-                  <source srcSet="/volunteer-togo.webp" type="image/webp" />
+                  <source srcSet="/togo-volunteer.avif" type="image/avif" />
+                  <source srcSet="/togo-volunteer.webp" type="image/webp" />
                   <img
-                    src="/volunteer-togo.jpg"
+                    src="/togo-volunteer.jpg"
                     alt="Volontaires et communauté locale au Togo"
                     className="w-full h-full object-cover object-center"
                     loading="lazy"

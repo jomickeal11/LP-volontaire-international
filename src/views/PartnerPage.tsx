@@ -918,7 +918,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
             aria-label="APTIC-R Accueil"
           >
             <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-[#D8E2E9] flex items-center justify-center p-0.5 shadow-2xs group-hover:border-[#174F7A] transition-colors">
-              <Image src="/aptic-logo.png" alt="APTIC-R Logo" width={60} height={60} className="w-full h-full object-contain" unoptimized />
+              <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={60} height={60} className="w-full h-full object-contain" unoptimized />
             </div>
             <div>
               <div className="font-extrabold text-sm leading-none tracking-tight text-[#174F7A]">APTIC-R</div>
@@ -999,10 +999,10 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
             <div className="w-full sm:w-[360px] lg:w-[390px] shrink-0">
               <div className="h-[190px] sm:h-[210px] rounded-2xl overflow-hidden shadow-sm border-2 border-white bg-slate-200">
                 <picture>
-                  <source srcSet="/org_meeting.avif" type="image/avif" />
-                  <source srcSet="/org_meeting.webp" type="image/webp" />
+                  <source srcSet="/meeting-org.avif" type="image/avif" />
+                  <source srcSet="/meeting-org.webp" type="image/webp" />
                   <img
-                    src="/org_meeting.jpg"
+                    src="/meeting-org.jpg"
                     alt="Partenariat organisation et volontariat Togo"
                     className="w-full h-full object-cover object-center"
                     loading="lazy"

@@ -93,10 +93,10 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
       {/* Background Layer with overflow hidden */}
       <div className="absolute inset-0 overflow-hidden">
         <picture>
-          <source srcSet="/hero_volunteer_collab.avif" type="image/avif" />
-          <source srcSet="/hero_volunteer_collab.webp" type="image/webp" />
+          <source srcSet="/hero-volunteer-collab.avif" type="image/avif" />
+          <source srcSet="/hero-volunteer-collab.webp" type="image/webp" />
           <img
-            src="/hero_volunteer_collab.jpg"
+            src="/hero-volunteer-collab.jpg"
             alt="Collaboration in Togo"
             className="absolute inset-0 w-full h-full object-cover"
             fetchPriority="high"
@@ -283,7 +283,7 @@ function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
         <div className="flex flex-col lg:flex-row-reverse items-center gap-12 lg:gap-16">
           <div className="flex-1 w-full rounded-[2.5rem] overflow-hidden h-[350px] lg:h-[450px] shadow-sm">
             <img
-              src="/org_meeting.jpg"
+              src="/meeting-org.jpg"
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000"
               alt="Organization"
             />

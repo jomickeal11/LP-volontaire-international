@@ -101,7 +101,7 @@ export default function Header({
                 border: "1px solid rgba(23,79,122,0.10)",
               }}
             >
-              <Image src="/aptic-logo.png" alt="APTIC-R Logo" width={40} height={40} className="w-[85%] h-[85%] object-contain" priority unoptimized />
+              <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={40} height={40} className="w-[85%] h-[85%] object-contain" priority unoptimized />
             </div>
             <div className="ml-3">
               <div
