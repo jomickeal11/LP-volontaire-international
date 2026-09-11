@@ -361,7 +361,7 @@ export async function getDashboardStats(lang: string = "fr"): Promise<DashboardD
     .slice(0, 6)
 
   // 12. Analytics Source Status (GA4)
-  const isGA4Connected = !!process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+  const isGA4Connected = !!process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID
   const analyticsSource = {
     connected: isGA4Connected,
     provider: "Google Analytics 4",
