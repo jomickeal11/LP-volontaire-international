@@ -52,21 +52,25 @@ export default function Header({
     } else if (item.page === "partner") {
       trackEvent("partner_request_click", { lang, source: "header_nav" })
     }
-    if (item.hash) {
-      if (currentPage === "home") {
-        const el = document.getElementById(item.hash)
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth" })
+    
+    // Give GA4 100ms to process the event before navigating
+    setTimeout(() => {
+      if (item.hash) {
+        if (currentPage === "home") {
+          const el = document.getElementById(item.hash)
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth" })
+          } else {
+            // If section doesn't exist yet, scroll to top
+            window.scrollTo({ top: 0, behavior: "smooth" })
+          }
         } else {
-          // If section doesn't exist yet, scroll to top
-          window.scrollTo({ top: 0, behavior: "smooth" })
+          router.push(`/${lang.toLowerCase()}#${item.hash}`)
         }
       } else {
-        router.push(`/${lang.toLowerCase()}#${item.hash}`)
+        navigate(item.page)
       }
-    } else {
-      navigate(item.page)
-    }
+    }, 100)
   }
 
   if (currentPage === "apply") {
@@ -180,7 +184,7 @@ export default function Header({
           <button
             onClick={() => {
               trackEvent("apply_now_click", { lang, source: "header_button" })
-              navigate("apply")
+              setTimeout(() => navigate("apply"), 100)
             }}
             className="hidden sm:inline-flex items-center gap-2 font-bold text-[11px] px-6 py-2.5 rounded-full transition-all cursor-pointer text-white shadow-sm hover:scale-105"
             style={{ backgroundColor: "#35A85A" }}

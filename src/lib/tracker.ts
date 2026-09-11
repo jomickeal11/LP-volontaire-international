@@ -25,17 +25,30 @@ export function trackEvent(
       sessionStorage.setItem(`tracked_${eventName}`, "true")
     }
   }
-  // 1. Google Analytics 4 (if loaded on window.gtag)
-  if (typeof window !== "undefined" && (window as any).gtag) {
+  // 1. Google Analytics 4
+  if (typeof window !== "undefined") {
     try {
-      ;(window as any).gtag("event", eventName, {
+      const payload = {
         event_category: "Engagement",
         event_label: data?.source || eventName,
         language: data?.lang,
         ...data?.metadata,
-      })
-    } catch {
-      // ignore
+      }
+      
+      console.log(`[Tracker] Sending GA4 event: ${eventName}`, payload)
+
+      if (typeof (window as any).gtag === "function") {
+        ;(window as any).gtag("event", eventName, payload)
+      } else if ((window as any).dataLayer) {
+        ;(window as any).dataLayer.push({
+          event: eventName,
+          ...payload,
+        })
+      } else {
+        console.warn("[Tracker] GA4 not loaded yet")
+      }
+    } catch (e) {
+      console.error("[Tracker] Error sending to GA4:", e)
     }
   }
 
