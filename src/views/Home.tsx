@@ -1148,7 +1148,12 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <a
               href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(lang === "DE" ? "Frage zum APTIC-R Freiwilligendienst" : lang === "EN" ? "APTIC-R Volunteering Question" : "Question Volontariat APTIC-R")}`}
-              onClick={() => trackEvent("contact_click", { source: "faq_email" })}
+              onClick={(e) => {
+                e.preventDefault()
+                trackEvent("contact_click", { source: "faq_email" })
+                const target = e.currentTarget.href
+                setTimeout(() => { window.location.href = target }, 150)
+              }}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#174F7A] text-white text-xs font-bold hover:bg-[#123E60] transition-colors shadow-xs"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1158,7 +1163,12 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
             </a>
             <a
               href="tel:+22891201990"
-              onClick={() => trackEvent("contact_click", { source: "faq_phone" })}
+              onClick={(e) => {
+                e.preventDefault()
+                trackEvent("contact_click", { source: "faq_phone" })
+                const target = e.currentTarget.href
+                setTimeout(() => { window.location.href = target }, 150)
+              }}
               className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-white border border-[#D8E2E9] text-[#174F7A] text-xs font-bold hover:bg-slate-50 transition-colors shadow-2xs"
             >
               <svg className="w-4 h-4 text-[#35A85A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
