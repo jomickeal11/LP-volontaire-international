@@ -293,7 +293,7 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
                 {funnel.applyClicks}
               </div>
               <div className="text-[11px] text-slate-500 mt-1">
-                {ga4.visitors ? `${Math.round((funnel.applyClicks / ga4.visitors) * 100)}% des visiteurs` : "Événement tracké"}
+                {ga4.visitors ? `${Math.min(100, Math.round((funnel.applyClicks / ga4.visitors) * 100))}% des visiteurs` : "Événement tracké"}
               </div>
             </div>
 
@@ -304,7 +304,7 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
                 {funnel.formsStarted}
               </div>
               <div className="text-[11px] text-slate-500 mt-1">
-                {funnel.applyClicks > 0 ? `${Math.round((funnel.formsStarted / funnel.applyClicks) * 100)}% de démarrage` : "Étape 1 validée"}
+                {funnel.applyClicks > 0 ? `${Math.min(100, Math.round((funnel.formsStarted / funnel.applyClicks) * 100))}% de démarrage` : "Étape 1 validée"}
               </div>
             </div>
 
@@ -315,7 +315,7 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
                 {funnel.formsSubmitted}
               </div>
               <div className="text-[11px] text-slate-600 mt-1 font-medium">
-                {funnel.formsStarted > 0 ? `${Math.round((funnel.formsSubmitted / funnel.formsStarted) * 100)}% de complétion` : "100% enregistrées"}
+                {funnel.formsStarted > 0 ? `${Math.min(100, Math.round((funnel.formsSubmitted / funnel.formsStarted) * 100))}% de complétion` : "100% enregistrées"}
               </div>
             </div>
           </div>
