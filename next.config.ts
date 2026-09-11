@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
     return [
       {
         // En-têtes de cache pour les fichiers statiques immuables
-        source: "/:all*(svg|jpg|jpeg|png|webp|avif|ico|woff|woff2)",
+        source: "/(.*\\.(?:svg|jpg|jpeg|png|webp|avif|ico|woff|woff2))",
         headers: [
           {
             key: "Cache-Control",

@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react"
+import { Upload, CheckCircle2, User, BookOpen, Heart, Briefcase, FileText, Download, LogIn } from "lucide-react"
+import Image from "next/image"
 import type { Page, Language } from "../types"
 import translations from "../i18n/translations"
 import {
@@ -1245,7 +1247,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
             aria-label="APTIC-R Accueil"
           >
             <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-[#D8E2E9] flex items-center justify-center p-0.5 shadow-2xs group-hover:border-[#174F7A] transition-colors">
-              <img src="/aptic-logo.png" alt="APTIC-R Logo" className="w-full h-full object-contain" />
+              <Image src="/aptic-logo.png" alt="APTIC-R Logo" width={60} height={60} className="w-full h-full object-contain" />
             </div>
             <div>
               <div className="font-extrabold text-sm leading-none tracking-tight text-[#174F7A]">APTIC-R</div>

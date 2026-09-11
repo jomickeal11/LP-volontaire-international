@@ -1,4 +1,5 @@
 import type { Page, Language } from "../types"
+import Image from "next/image"
 import translations from "../i18n/translations"
 
 interface FooterProps {
@@ -27,7 +28,7 @@ export default function Footer({ lang, navigate }: FooterProps) {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden bg-white shrink-0 shadow-sm">
-                <img src="/aptic-logo.png" alt="APTIC-R Logo" className="w-full h-full object-contain p-0.5" />
+                <Image src="/aptic-logo.png" alt="APTIC-R Logo" width={40} height={40} className="w-full h-full object-contain p-0.5" />
               </div>
               <div>
                 <div className="font-bold text-lg text-white leading-none">

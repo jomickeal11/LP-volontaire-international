@@ -3,6 +3,7 @@ import type { Page, Language } from "../types"
 import translations from "../i18n/translations"
 import { useRouter } from "next/navigation"
 import { trackEvent } from "../lib/tracker"
+import Image from "next/image"
 
 interface HeaderProps {
   currentPage: Page
@@ -100,7 +101,7 @@ export default function Header({
                 border: "1px solid rgba(23,79,122,0.10)",
               }}
             >
-              <img src="/aptic-logo.png" alt="APTIC-R Logo" className="w-[85%] h-[85%] object-contain" />
+              <Image src="/aptic-logo.png" alt="APTIC-R Logo" width={40} height={40} className="w-[85%] h-[85%] object-contain" priority />
             </div>
             <div className="ml-3">
               <div
