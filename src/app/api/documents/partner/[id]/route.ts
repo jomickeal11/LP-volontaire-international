@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
-import { readFile } from "fs/promises"
-import { join } from "path"
+import { files } from "@/lib/storage"
 import { verifySession } from "@/lib/auth"
 
 export async function GET(
@@ -24,13 +23,12 @@ export async function GET(
       return new NextResponse("Document partenaire non trouvé", { status: 404 })
     }
 
-    const filepath = join(process.cwd(), "uploads", document.storageKey)
-    const fileBuffer = await readFile(filepath)
+    const file = await files.download(document.storageKey)
 
     // Audit log de téléchargement de document partenaire (Traçabilité)
     console.log(`[AUDIT] Document partenaire consulté : ID=${document.id} | Fichier="${document.originalName}" | AdminUserId=${session.userId} | IP=${request.headers.get("x-forwarded-for") || "127.0.0.1"} | Date=${new Date().toISOString()}`)
 
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(file.stream(), {
       headers: {
         "Content-Type": document.mimeType || "application/octet-stream",
         "Content-Disposition": `attachment; filename="${encodeURIComponent(document.originalName)}"`,

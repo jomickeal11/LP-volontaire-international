@@ -16,8 +16,7 @@ import { verifySession } from "./auth"
 import { verifyMagicBytes, checkRateLimit, getClientIp } from "./security"
 import type { CandidateStatus, LanguageCode } from "@prisma/client"
 import { randomBytes, randomUUID } from "crypto"
-import { writeFile } from "fs/promises"
-import { join } from "path"
+import { files } from "./storage"
 import { EmailService } from "./email"
 
 // Sécurité des fichiers téléversés
@@ -282,8 +281,7 @@ export async function submitPartnerRequestFormData(
           }
           const ext = (value.name.split('.').pop() || "pdf").toLowerCase()
           const filename = `${randomUUID()}.${ext}`
-          const filepath = join(process.cwd(), "uploads", filename)
-          await writeFile(filepath, buffer)
+          await files.upload(filename, buffer, { contentType: value.type || "application/octet-stream" })
 
           uploadedFile = {
             originalName: value.name,
@@ -456,8 +454,7 @@ export async function submitCandidateApplicationFormData(
           }
           const ext = (value.name.split('.').pop() || "pdf").toLowerCase()
           const filename = `${randomUUID()}.${ext}`
-          const filepath = join(process.cwd(), "uploads", filename)
-          await writeFile(filepath, buffer)
+          await files.upload(filename, buffer, { contentType: value.type || "application/octet-stream" })
           
           let docType = "CV"
           if (key === "motivationFile") docType = "MOTIVATION_LETTER"
