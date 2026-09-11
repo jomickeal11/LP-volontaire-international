@@ -1,5 +1,6 @@
-import prisma from "./prisma"
-import type { CandidateStatus, MissionDuration, LanguageCode } from "@prisma/client"
+import { prisma } from "./prisma"
+import { CandidateStatus, LanguageCode, ExperienceDuration, MissionDuration } from "@prisma/client"
+import { getGA4Data } from "./ga4"
 import { getLocaleFromLang } from "./dateUtils"
 
 export interface DashboardData {
@@ -78,8 +79,8 @@ export interface AnalyticsPageData {
     sessions: number | null
     newVisitors: number | null
     engagementRate: number | null
-    trafficTrend: { date: string; visitors: number | null }[]
-    trafficSources: { source: string; sessions: number | null; percentage: number | null }[]
+    trafficTrend: { date: string; visitors: number; sessions: number }[]
+    trafficSources: { name: string; value: number }[]
   }
   // Funnel conversion events (from Postgres)
   funnel: {
@@ -385,9 +386,8 @@ export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Pro
   const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
   const locale = getLocaleFromLang(lang)
 
-  // 1. Check GA4 environment variable
-  const ga4Id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID || process.env.GA4_MEASUREMENT_ID || null
-  const isGa4Connected = Boolean(ga4Id)
+  // 1. Fetch GA4 Real Data
+  const ga4Data = await getGA4Data(days)
 
   // 2. Query Postgres applications
   const [applications, totalCandidates, events] = await Promise.all([
@@ -540,33 +540,14 @@ export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Pro
 
   return {
     period: periodLabel,
-    ga4: {
-      connected: isGa4Connected,
-      measurementId: ga4Id,
-      visitors: null,
-      sessions: null,
-      newVisitors: null,
-      engagementRate: null,
-      trafficTrend: [
-        { date: "Sem 1", visitors: null },
-        { date: "Sem 2", visitors: null },
-        { date: "Sem 3", visitors: null },
-        { date: "Sem 4", visitors: null },
-      ],
-      trafficSources: [
-        { source: "Google Search", sessions: null, percentage: null },
-        { source: "LinkedIn", sessions: null, percentage: null },
-        { source: "Instagram", sessions: null, percentage: null },
-        { source: "Direct", sessions: null, percentage: null },
-      ],
-    },
+    ga4: ga4Data,
     funnel: {
-      visitors: null,
+      visitors: ga4Data.visitors,
       applyClicks,
       formsStarted,
       formsSubmitted,
-      clickToStartRate: applyClicks > 0 ? Math.round((formsStarted / applyClicks) * 100) : null,
-      startToSubmitRate: formsStarted > 0 ? Math.round((formsSubmitted / formsStarted) * 100) : null,
+      clickToStartRate: applyClicks > 0 ? Math.min(100, Math.round((formsStarted / applyClicks) * 100)) : null,
+      startToSubmitRate: formsStarted > 0 ? Math.min(100, Math.round((formsSubmitted / formsStarted) * 100)) : null,
       globalConversionRate: null,
     },
     partnerFunnel: {

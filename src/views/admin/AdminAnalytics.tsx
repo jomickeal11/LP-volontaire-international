@@ -213,9 +213,9 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
             {ga4.connected ? (
               <div className="flex flex-col gap-3">
                 {ga4.trafficSources.map((s) => (
-                  <div key={s.source} className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-slate-600">{s.source}</span>
-                    <span className="font-mono font-bold text-slate-800">{s.sessions ?? "—"}</span>
+                  <div key={s.name} className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-slate-600">{s.name}</span>
+                    <span className="font-mono font-bold text-slate-800">{s.value ?? "—"}</span>
                   </div>
                 ))}
               </div>
