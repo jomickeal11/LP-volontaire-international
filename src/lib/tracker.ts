@@ -9,6 +9,22 @@ export function trackEvent(
     metadata?: Record<string, any>
   }
 ) {
+  // Prevent duplicate funnel events per session
+  if (typeof window !== "undefined") {
+    const ONE_TIME_EVENTS = [
+      "apply_now_click",
+      "application_started",
+      "partner_request_click",
+      "partner_request_started"
+    ]
+    
+    if (ONE_TIME_EVENTS.includes(eventName)) {
+      if (sessionStorage.getItem(`tracked_${eventName}`)) {
+        return // Already tracked in this session
+      }
+      sessionStorage.setItem(`tracked_${eventName}`, "true")
+    }
+  }
   // 1. Google Analytics 4 (if loaded on window.gtag)
   if (typeof window !== "undefined" && (window as any).gtag) {
     try {
