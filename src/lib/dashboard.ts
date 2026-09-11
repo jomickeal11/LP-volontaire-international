@@ -361,10 +361,13 @@ export async function getDashboardStats(lang: string = "fr"): Promise<DashboardD
     .slice(0, 6)
 
   // 12. Analytics Source Status (GA4)
+  const isGA4Connected = !!process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
   const analyticsSource = {
-    connected: false,
+    connected: isGA4Connected,
     provider: "Google Analytics 4",
-    message: "Source de données web non connectée. Le suivi des visiteurs sera activé dès la configuration de GA4_MEASUREMENT_ID.",
+    message: isGA4Connected
+      ? "Source de données web connectée. Le flux de visiteurs et de clics remonte depuis GA4."
+      : "Source de données web non connectée. Le suivi des visiteurs sera activé dès la configuration de GA4_MEASUREMENT_ID.",
   }
 
   return {
