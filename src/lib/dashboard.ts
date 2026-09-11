@@ -81,6 +81,7 @@ export interface AnalyticsPageData {
     engagementRate: number | null
     trafficTrend: { date: string; visitors: number; sessions: number }[]
     trafficSources: { name: string; value: number }[]
+    events?: Record<string, number>
   }
   // Funnel conversion events (from Postgres)
   funnel: {
@@ -427,14 +428,18 @@ export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Pro
   })
 
   // Ensure submitted matches DB counts if events weren't triggered prior
-  const formsSubmitted = Math.max(eventCounts.application_submitted.count, applications.length)
-  const applyClicks = eventCounts.apply_now_click.count
-  const formsStarted = Math.max(eventCounts.application_started.count, formsSubmitted)
+  const formsSubmitted = applications.length
+  
+  // Use GA4 for funnel events, fallback to Postgres for legacy/safety if needed, but per user request we use GA4 directly
+  const applyClicks = ga4Data.events?.apply_now_click || 0
+  const formsStarted = Math.max(ga4Data.events?.application_started || 0, formsSubmitted)
 
   // Partner counts
   const partnerRequestsSubmitted = await (prisma as any).demandePartenariat.count({
     where: { createdAt: { gte: cutoffDate } },
   }).catch(() => 0)
+  const partnerClicks = ga4Data.events?.partner_request_click || 0
+  const partnerFormsStarted = Math.max(ga4Data.events?.partner_request_started || 0, partnerRequestsSubmitted)
 
   // Countries
   const countryMap: Record<string, number> = {}
@@ -548,11 +553,11 @@ export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Pro
       formsSubmitted,
       clickToStartRate: applyClicks > 0 ? Math.min(100, Math.round((formsStarted / applyClicks) * 100)) : null,
       startToSubmitRate: formsStarted > 0 ? Math.min(100, Math.round((formsSubmitted / formsStarted) * 100)) : null,
-      globalConversionRate: null,
+      globalConversionRate: ga4Data.visitors && ga4Data.visitors > 0 ? Math.min(100, Math.round((formsSubmitted / ga4Data.visitors) * 100)) : null,
     },
     partnerFunnel: {
-      partnerClicks: eventCounts.partner_request_click?.count || 0,
-      formsStarted: eventCounts.partner_request_started?.count || partnerRequestsSubmitted,
+      partnerClicks,
+      formsStarted: partnerFormsStarted,
       requestsSubmitted: partnerRequestsSubmitted,
     },
     recruitment: {

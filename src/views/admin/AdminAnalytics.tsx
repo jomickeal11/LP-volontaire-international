@@ -253,7 +253,7 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
             Conversion
           </span>
           <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-            Données réelles PostgreSQL
+            Parcours vers la candidature
           </span>
         </div>
 
@@ -278,44 +278,55 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             {/* Étape 1 : Visiteurs */}
-            <div className="p-4 rounded-xl border border-slate-200/70 bg-slate-50/70 relative">
+            <div className="p-4 rounded-xl border border-slate-200/70 bg-slate-50/70 relative flex flex-col">
               <span className="text-xs text-slate-500 block mb-1">1. Visiteurs</span>
               <div className="text-2xl font-bold font-mono text-slate-700">
                 {ga4.visitors !== null ? ga4.visitors.toLocaleString() : "—"}
               </div>
-              <div className="text-[11px] text-slate-400 mt-1">Source GA4</div>
+              <div className="mt-auto pt-2 flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold text-slate-400">Source : GA4</span>
+              </div>
             </div>
 
             {/* Étape 2 : Clics Postuler */}
-            <div className="p-4 rounded-xl border border-blue-100 bg-[#E8F2FA]/40 relative">
+            <div className="p-4 rounded-xl border border-blue-100 bg-[#E8F2FA]/40 relative flex flex-col">
               <span className="text-xs text-[#174F7A] font-semibold block mb-1">2. Clics « Postuler »</span>
               <div className="text-2xl font-bold font-mono text-[#174F7A]">
                 {funnel.applyClicks}
               </div>
-              <div className="text-[11px] text-slate-500 mt-1">
-                {ga4.visitors ? `${Math.min(100, Math.round((funnel.applyClicks / ga4.visitors) * 100))}% des visiteurs` : "Événement tracké"}
+              <div className="mt-auto pt-2 flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold text-blue-400/80">Source : GA4</span>
+                <span className="text-[11px] font-medium text-slate-500">
+                  {ga4.visitors ? `${Math.min(100, Math.round((funnel.applyClicks / ga4.visitors) * 100))}%` : "—"}
+                </span>
               </div>
             </div>
 
             {/* Étape 3 : Formulaires commencés */}
-            <div className="p-4 rounded-xl border border-indigo-100 bg-indigo-50/40 relative">
+            <div className="p-4 rounded-xl border border-indigo-100 bg-indigo-50/40 relative flex flex-col">
               <span className="text-xs text-indigo-900 font-semibold block mb-1">3. Formulaires commencés</span>
               <div className="text-2xl font-bold font-mono text-indigo-900">
                 {funnel.formsStarted}
               </div>
-              <div className="text-[11px] text-slate-500 mt-1">
-                {funnel.applyClicks > 0 ? `${Math.min(100, Math.round((funnel.formsStarted / funnel.applyClicks) * 100))}% de démarrage` : "Étape 1 validée"}
+              <div className="mt-auto pt-2 flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold text-indigo-400/80">Source : GA4</span>
+                <span className="text-[11px] font-medium text-slate-500">
+                  {funnel.applyClicks > 0 ? `${Math.min(100, Math.round((funnel.formsStarted / funnel.applyClicks) * 100))}%` : "—"}
+                </span>
               </div>
             </div>
 
             {/* Étape 4 : Candidatures envoyées */}
-            <div className="p-4 rounded-xl border border-emerald-200 bg-[#EAF5ED]/60 relative">
+            <div className="p-4 rounded-xl border border-emerald-200 bg-[#EAF5ED]/60 relative flex flex-col">
               <span className="text-xs text-[#2E7D52] font-semibold block mb-1">4. Candidatures soumises</span>
               <div className="text-2xl font-bold font-mono text-[#2E7D52]">
                 {funnel.formsSubmitted}
               </div>
-              <div className="text-[11px] text-slate-600 mt-1 font-medium">
-                {funnel.formsStarted > 0 ? `${Math.min(100, Math.round((funnel.formsSubmitted / funnel.formsStarted) * 100))}% de complétion` : "100% enregistrées"}
+              <div className="mt-auto pt-2 flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold text-emerald-500/80">Source : PostgreSQL</span>
+                <span className="text-[11px] font-medium text-slate-600">
+                  {funnel.formsStarted > 0 ? `${Math.min(100, Math.round((funnel.formsSubmitted / funnel.formsStarted) * 100))}%` : "—"}
+                </span>
               </div>
             </div>
           </div>
@@ -338,17 +349,26 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200/60">
+            <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200/60 flex flex-col">
               <span className="text-xs text-slate-500 block mb-1">Clics « Devenir partenaire »</span>
               <div className="text-xl font-bold font-mono text-slate-700">{partnerFunnel.partnerClicks}</div>
+              <div className="mt-auto pt-2">
+                <span className="text-[10px] uppercase font-bold text-slate-400">Source : GA4</span>
+              </div>
             </div>
-            <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200/60">
+            <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200/60 flex flex-col">
               <span className="text-xs text-slate-500 block mb-1">Formulaires partenariat commencés</span>
               <div className="text-xl font-bold font-mono text-slate-700">{partnerFunnel.formsStarted}</div>
+              <div className="mt-auto pt-2">
+                <span className="text-[10px] uppercase font-bold text-slate-400">Source : GA4</span>
+              </div>
             </div>
-            <div className="p-3.5 rounded-lg bg-[#EAF5ED]/60 border border-emerald-200">
+            <div className="p-3.5 rounded-lg bg-[#EAF5ED]/60 border border-emerald-200 flex flex-col">
               <span className="text-xs text-[#2E7D52] font-semibold block mb-1">Demandes finalisées</span>
               <div className="text-xl font-bold font-mono text-[#2E7D52]">{partnerFunnel.requestsSubmitted}</div>
+              <div className="mt-auto pt-2">
+                <span className="text-[10px] uppercase font-bold text-emerald-500/80">Source : PostgreSQL</span>
+              </div>
             </div>
           </div>
         </div>
