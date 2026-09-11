@@ -162,7 +162,7 @@ export default function Header({
                 key={l}
                 onClick={() => {
                   trackEvent("language_switch", { lang: l, metadata: { from: lang, to: l } })
-                  setLang(l)
+                  setTimeout(() => setLang(l), 150)
                 }}
                 className="px-2 py-1 text-[9px] sm:text-[10px] font-bold rounded-full transition-all cursor-pointer uppercase"
                 style={{
@@ -264,7 +264,7 @@ export default function Header({
                     key={l}
                     onClick={() => {
                       trackEvent("language_switch", { lang: l, metadata: { from: lang, to: l } })
-                      setLang(l)
+                      setTimeout(() => setLang(l), 150)
                     }}
                     className="text-xs font-bold px-3 py-1.5 rounded-full transition-all uppercase"
                     style={{
