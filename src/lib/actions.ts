@@ -161,19 +161,23 @@ export async function submitCandidateApplication(
     })
 
     // Envoi des e-mails transactionnels (candidat + alerte équipe APTIC-R)
-    // Asynchrone et résilient : ne bloque jamais la réponse
-    EmailService.sendCandidateApplicationEmails({
-      firstName: application.candidate.firstName,
-      lastName: application.candidate.lastName,
-      email: application.candidate.email,
-      referenceNumber: application.referenceNumber,
-      country: application.candidate.country,
-      profession: application.profession || undefined,
-      skills: application.skills.map((s: any) => s.skill.nameFr || s.skill.nameEn),
-      arrivalDate: application.arrivalDate ? new Intl.DateTimeFormat("fr-FR").format(new Date(application.arrivalDate)) : undefined,
-      duration: application.duration === "SIX_MONTHS" ? "6 mois" : application.duration === "NINE_MONTHS" ? "9 mois" : "12 mois",
-      lang: lang as "FR" | "EN" | "DE",
-    }).catch(() => { /* Email silently fails if config is missing */ })
+    // Awaited to prevent Vercel Serverless from killing the background task (especially due to the 1.1s Mailtrap delay)
+    try {
+      await EmailService.sendCandidateApplicationEmails({
+        firstName: application.candidate.firstName,
+        lastName: application.candidate.lastName,
+        email: application.candidate.email,
+        referenceNumber: application.referenceNumber,
+        country: application.candidate.country,
+        profession: application.profession || undefined,
+        skills: application.skills.map((s: any) => s.skill.nameFr || s.skill.nameEn),
+        arrivalDate: application.arrivalDate ? new Intl.DateTimeFormat("fr-FR").format(new Date(application.arrivalDate)) : undefined,
+        duration: application.duration === "SIX_MONTHS" ? "6 mois" : application.duration === "NINE_MONTHS" ? "9 mois" : "12 mois",
+        lang: lang as "FR" | "EN" | "DE",
+      })
+    } catch (e) {
+      console.warn("Emails failed to send, but application was saved:", e)
+    }
 
     return { success: true as const, data: application }
   } catch (err: unknown) {
@@ -229,14 +233,19 @@ export async function submitPartnerRequest(
     })
 
     // Envoi des e-mails transactionnels (partenaire + alerte équipe APTIC-R)
-    EmailService.sendPartnerRequestEmails({
-      orgName: partnerRequest.orgName,
-      contactPerson: partnerRequest.contactPerson,
-      email: partnerRequest.email,
-      referenceNumber: partnerRequest.referenceNumber || refNum,
-      country: partnerRequest.country,
-      orgType: partnerRequest.orgType,
-    }).catch(err => console.error("Email delivery failed for partner request:", err))
+    try {
+      await EmailService.sendPartnerRequestEmails({
+        orgName: partnerRequest.orgName,
+        contactPerson: partnerRequest.contactPerson,
+        email: partnerRequest.email,
+        referenceNumber: partnerRequest.referenceNumber || refNum,
+        country: partnerRequest.country,
+        orgType: partnerRequest.orgType,
+        lang: lang as "FR" | "EN" | "DE",
+      })
+    } catch (e) {
+      console.warn("Partner emails failed to send, but request was saved:", e)
+    }
 
     return { success: true as const, data: partnerRequest }
   } catch (err: unknown) {
