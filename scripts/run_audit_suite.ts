@@ -181,7 +181,7 @@ async function main() {
     if (!createdCandidatureId) throw new Error("Candidature manquante")
     
     // Simuler l'authentification admin en injectant le contexte de session
-    const statusUpdate = await prisma.$transaction(async (tx) => {
+    const statusUpdate = await prisma.$transaction(async (tx: any) => {
       const updated = await tx.candidature.update({
         where: { id: createdCandidatureId },
         data: { status: "REVIEW" },
