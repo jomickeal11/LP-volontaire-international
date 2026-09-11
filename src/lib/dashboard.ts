@@ -516,17 +516,11 @@ export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Pro
     percentage: applications.length > 0 ? Math.round((count / applications.length) * 100) : 0,
   }))
 
-  // Events summary list
+  // Events summary list (PostgreSQL Business Events Only)
   const eventMeta: Record<string, string> = {
-    apply_now_click: "Clic sur « Postuler »",
-    application_started: "Formulaire volontaire commencé",
     application_submitted: "Candidature soumise",
-    partner_request_click: "Clic sur « Devenir partenaire »",
-    partner_request_started: "Formulaire partenaire commencé",
     partner_request_submitted: "Demande de partenariat soumise",
-    volunteer_guide_download: "Téléchargement guide du volontaire",
-    language_switch: "Changement de langue",
-    contact_click: "Clic contact / WhatsApp / Email",
+    // We can add more business events here as they are added to EvenementStatistique
   }
 
   const eventsSummary = Object.keys(eventMeta).map((name) => ({

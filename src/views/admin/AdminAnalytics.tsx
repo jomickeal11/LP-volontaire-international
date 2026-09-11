@@ -483,15 +483,15 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
         </div>
       </section>
 
-      {/* ── 4. BLOC ÉVÉNEMENTS TRACKÉS (Tableau synthétique) ──────────────────── */}
+      {/* ── 4. BLOC ÉVÉNEMENTS MÉTIER (Tableau synthétique) ──────────────────── */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Événements
+              Événements Métier
             </span>
             <span className="text-xs text-slate-400">
-              Journal d&apos;activité des actions clés (Postgres Audit)
+              Journal des actions métiers critiques (PostgreSQL)
             </span>
           </div>
         </div>
