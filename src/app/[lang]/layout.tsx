@@ -164,9 +164,9 @@ export default async function RootLayout({
               dangerouslySetInnerHTML={{
                 __html: `
                   window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${gaId}', {
+                  window.gtag = function(){window.dataLayer.push(arguments);}
+                  window.gtag('js', new Date());
+                  window.gtag('config', '${gaId}', {
                     page_path: window.location.pathname,
                   });
                 `,
