@@ -18,10 +18,53 @@ export async function middleware(request: NextRequest) {
   }
 
   // Backward compatibility: redirect any legacy /admin path to /backoffice
-  if (pathname.includes("/admin")) {
+  if (pathname.includes("/admin") && !pathname.includes("/backoffice")) {
     const updatedPath = pathname.replace("/admin", "/backoffice")
     return NextResponse.redirect(new URL(updatedPath, request.url))
   }
+
+  // Legacy redirect: /fr/backoffice/... -> /backoffice/...
+  // /en/backoffice/... -> /backoffice/...
+  // /de/backoffice/... -> /backoffice/...
+  for (const locale of locales) {
+    if (pathname.startsWith(`/${locale}/backoffice`)) {
+      const newPath = pathname.slice(`/${locale}`.length)
+      return NextResponse.redirect(new URL(newPath, request.url), { status: 301 })
+    }
+  }
+
+  // Back-office route protection (no locale prefix)
+  const isBackoffice = pathname.startsWith("/backoffice")
+  const isBackofficeLogin = pathname === "/backoffice/login"
+
+  if (isBackoffice && !isBackofficeLogin) {
+    const sessionCookie = request.cookies.get("session")?.value
+    const session = await decrypt(sessionCookie)
+
+    if (!session?.userId) {
+      return NextResponse.redirect(new URL("/backoffice/login", request.url))
+    }
+  }
+
+  // If going to login page but already authenticated, redirect to dashboard
+  if (isBackofficeLogin) {
+    const sessionCookie = request.cookies.get("session")?.value
+    const session = await decrypt(sessionCookie)
+    if (session?.userId) {
+      return NextResponse.redirect(new URL("/backoffice/dashboard", request.url))
+    }
+  }
+
+  // For backoffice routes, add anti-caching headers and skip locale logic
+  if (isBackoffice) {
+    const response = NextResponse.next()
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0")
+    response.headers.set("Pragma", "no-cache")
+    response.headers.set("Expires", "0")
+    return response
+  }
+
+  // ── Public multilingual routes ──────────────────────────────────────────────
 
   // Check if there is any supported locale in the pathname
   const pathnameIsMissingLocale = locales.every(
@@ -29,7 +72,7 @@ export async function middleware(request: NextRequest) {
       !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`,
   )
 
-  // Redirect if there is no locale (e.g. /backoffice/login -> /fr/backoffice/login)
+  // Redirect if there is no locale (e.g. /apply -> /fr/apply)
   if (pathnameIsMissingLocale) {
     return NextResponse.redirect(
       new URL(
@@ -39,48 +82,7 @@ export async function middleware(request: NextRequest) {
     )
   }
 
-  // Determine the current locale for potential auth redirects
-  let currentLocale = defaultLocale
-  for (const loc of locales) {
-    if (pathname.startsWith(`/${loc}/`) || pathname === `/${loc}`) {
-      currentLocale = loc
-      break
-    }
-  }
-
-  // Back-office route protection
-  const isBackoffice = pathname.includes("/backoffice")
-  const isBackofficeLogin = pathname.includes("/backoffice/login")
-
-  if (isBackoffice && !isBackofficeLogin) {
-    const sessionCookie = request.cookies.get("session")?.value
-    const session = await decrypt(sessionCookie)
-    
-    // If not authenticated, redirect to back-office login
-    if (!session?.userId) {
-      return NextResponse.redirect(new URL(`/${currentLocale}/backoffice/login`, request.url))
-    }
-  }
-
-  // If going to login page but already authenticated, redirect to back-office dashboard
-  if (isBackofficeLogin) {
-    const sessionCookie = request.cookies.get("session")?.value
-    const session = await decrypt(sessionCookie)
-    if (session?.userId) {
-      return NextResponse.redirect(new URL(`/${currentLocale}/backoffice/dashboard`, request.url))
-    }
-  }
-
-  const response = NextResponse.next()
-
-  // Add strict anti-caching headers for back-office routes to prevent bfcache issues
-  if (isBackoffice) {
-    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0")
-    response.headers.set("Pragma", "no-cache")
-    response.headers.set("Expires", "0")
-  }
-
-  return response
+  return NextResponse.next()
 }
 
 export const config = {

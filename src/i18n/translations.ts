@@ -553,8 +553,8 @@ const translations = {
         title: 'Application successfully registered!',
         p1_1: 'Thank you, ',
         p1_2: '! Your application has been sent to the APTIC-R coordination team in Agbélouvé.',
-        p2_1: 'A confirmation email will be sent to ',
-        p2_2: '. Our team will review your application within 1 to 2 weeks.',
+        p2_1: '',
+        p2_2: 'Our team will review your application within 1 to 2 weeks.',
         backHome: 'Back to Home',
         backOffice: 'View in Back-office →'
       }
@@ -821,8 +821,8 @@ const translations = {
         title: 'Candidature enregistrée avec succès !',
         p1_1: 'Merci, ',
         p1_2: ' ! Votre candidature a été transmise à l\'équipe de coordination d\'APTIC-R à Agbélouvé.',
-        p2_1: 'Un e-mail de confirmation sera envoyé à ',
-        p2_2: '. Notre équipe examinera votre candidature dans un délai d\'une à deux semaines.',
+        p2_1: '',
+        p2_2: 'Notre équipe examinera votre candidature dans un délai d\'une à deux semaines.',
         backHome: 'Retour à l\'accueil',
         backOffice: 'Voir dans le Back-office →'
       }
@@ -1879,8 +1879,8 @@ const translations = {
         title: 'Bewerbung erfolgreich registriert!',
         p1_1: 'Vielen Dank, ',
         p1_2: '! Ihre Bewerbung wurde an das APTIC-R Koordinationsteam in Agbélouvé weitergeleitet.',
-        p2_1: 'Eine Bestätigungs-E-Mail wird an ',
-        p2_2: ' gesendet. Unser Team wird Ihre Bewerbung innerhalb von 1 bis 2 Wochen prüfen.',
+        p2_1: '',
+        p2_2: 'Unser Team wird Ihre Bewerbung innerhalb von 1 bis 2 Wochen prüfen.',
         backHome: 'Zurück zur Startseite',
         backOffice: 'Im Back-Office ansehen →'
       }

@@ -1,10 +1,5 @@
-"use client"
+import { redirect } from "next/navigation"
 
-import AdminLogin from "@/views/admin/AdminLogin"
-import { useRouter } from "next/navigation"
-
-export default function AdminLoginRoute() {
-  const router = useRouter()
-
-  return <AdminLogin onLogin={() => router.push("/backoffice/dashboard")} />
+export default async function LegacyBackofficeLogin() {
+  redirect("/backoffice/login")
 }

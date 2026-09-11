@@ -174,7 +174,7 @@ export async function submitCandidateApplication(
       arrivalDate: application.arrivalDate ? new Intl.DateTimeFormat("fr-FR").format(new Date(application.arrivalDate)) : undefined,
       duration: application.duration === "SIX_MONTHS" ? "6 mois" : application.duration === "NINE_MONTHS" ? "9 mois" : "12 mois",
       lang: lang as "FR" | "EN" | "DE",
-    }).catch(err => console.error("Email delivery failed for candidate:", err))
+    }).catch(() => { /* Email silently fails if config is missing */ })
 
     return { success: true as const, data: application }
   } catch (err: unknown) {

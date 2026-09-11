@@ -1208,7 +1208,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
             {t.apply.success.p1_1}<strong>{form.firstName || (currentLang === "DE" ? "Bewerber" : currentLang === "EN" ? "Applicant" : "Candidat")}</strong>{t.apply.success.p1_2}
           </p>
           <p className="text-xs sm:text-sm mb-8 text-slate-400">
-            {t.apply.success.p2_1}<strong>{form.email}</strong>{t.apply.success.p2_2}
+            {t.apply.success.p2_2}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
