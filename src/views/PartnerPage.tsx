@@ -918,7 +918,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
             aria-label="APTIC-R Accueil"
           >
             <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-[#D8E2E9] flex items-center justify-center p-0.5 shadow-2xs group-hover:border-[#174F7A] transition-colors">
-              <Image src="/aptic-logo.png" alt="APTIC-R Logo" width={60} height={60} className="w-full h-full object-contain" />
+              <Image src="/aptic-logo.png" alt="APTIC-R Logo" width={60} height={60} className="w-full h-full object-contain" unoptimized />
             </div>
             <div>
               <div className="font-extrabold text-sm leading-none tracking-tight text-[#174F7A]">APTIC-R</div>
