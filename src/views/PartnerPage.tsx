@@ -759,7 +759,29 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
     }
   }
 
-  const progressPercentage = Math.round(((step - 1) / (STEPS.length - 1)) * 100)
+  // Real-time progress calculation based on filled fields
+  const progressPercentage = (() => {
+    let score = 0
+    const total = 8
+
+    // Étape 1 : Organisation (5)
+    if (form.orgName.trim().length >= 2) score++
+    if (form.country.trim().length >= 2) score++
+    if (form.contactPerson.trim().length >= 2) score++
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) score++
+    if (form.orgType.trim().length > 0) score++
+
+    // Étape 2 : Programme & Volontaires (1)
+    if (form.volunteerCount.trim().length > 0) score++
+
+    // Étape 3 : Message (1)
+    if (form.message.trim().length >= 50) score++
+
+    // Étape 4 : Consentement (1)
+    if (form.consent) score++
+
+    return Math.round((score / total) * 100)
+  })()
 
   // Submit Handler
   const handleSubmit = async () => {
@@ -1039,7 +1061,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                   <div
                     className="h-full transition-all duration-500 rounded-full"
                     style={{
-                      width: `${Math.max(progressPercentage, 10)}%`,
+                      width: `${progressPercentage}%`,
                       backgroundColor: GREEN,
                     }}
                   />
@@ -1071,7 +1093,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                     <div
                       className="h-full transition-all duration-500 rounded-full"
                       style={{
-                        width: `${Math.max(progressPercentage, 10)}%`,
+                        width: `${progressPercentage}%`,
                         backgroundColor: GREEN,
                       }}
                     />
