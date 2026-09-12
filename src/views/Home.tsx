@@ -207,21 +207,21 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
               borderRadius: "20px",
             }}
           />
-          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-center py-6 px-6">
+          <div className="relative grid grid-cols-3 gap-2 sm:gap-8 text-center py-4 sm:py-6 px-2 sm:px-6">
             {[
               { label: h.stat1Label, sub: h.stat1Sub },
               { label: h.stat2Label, sub: h.stat2Sub },
               { label: h.stat3Label, sub: h.stat3Sub },
             ].map((s) => (
-              <div key={s.label} className="flex flex-col gap-1 relative">
+              <div key={s.label} className="flex flex-col gap-0.5 sm:gap-1 relative px-1 sm:px-0">
                 <span
-                  className="text-xl lg:text-2xl font-bold tracking-tight"
+                  className="text-sm sm:text-xl lg:text-2xl font-bold tracking-tight truncate sm:whitespace-normal"
                   style={{ color: "#FFFFFF" }}
                 >
                   {s.label}
                 </span>
                 <span
-                  className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest"
+                  className="text-[8px] sm:text-[10px] lg:text-xs font-semibold uppercase tracking-widest leading-tight"
                   style={{ color: "rgba(255,255,255,0.72)" }}
                 >
                   {s.sub}
