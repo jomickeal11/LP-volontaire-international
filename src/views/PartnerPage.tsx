@@ -635,6 +635,8 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
   const [submittedRef, setSubmittedRef] = useState(`PART-${new Date().getFullYear()}-0001`)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
+  const [showMobileFramework, setShowMobileFramework] = useState(false)
+  const [showMobileContact, setShowMobileContact] = useState(false)
 
   const defaultFormState = {
     orgName: "",
@@ -1022,11 +1024,33 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
 
             {/* ── COLONNE PRINCIPALE : LE FORMULAIRE (~73%) ─────────────────────── */}
             <div className="w-full lg:w-[73%]">
+
+              {/* ── BARRE DE PROGRESSION MOBILE (STICKY COMPACTE & DISCRÈTE) ──── */}
+              <div className="lg:hidden sticky top-16 z-30 bg-white/95 backdrop-blur-md border border-[#D8E2E9] rounded-2xl shadow-xs px-4 py-2.5 mb-4 transition-all">
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <span className="font-extrabold text-[#174F7A] tracking-wider uppercase text-[11px]">
+                    {currentLang === "DE" ? `SCHRITT ${step} / 4` : currentLang === "EN" ? `STEP ${step} / 4` : `ÉTAPE ${step} / 4`}
+                  </span>
+                  <span className="font-bold text-[#35A85A] text-xs">
+                    {progressPercentage}%
+                  </span>
+                </div>
+                <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full transition-all duration-500 rounded-full"
+                    style={{
+                      width: `${Math.max(progressPercentage, 10)}%`,
+                      backgroundColor: GREEN,
+                    }}
+                  />
+                </div>
+              </div>
+
               <div className="bg-white rounded-3xl p-6 sm:p-9 lg:p-11 shadow-sm border border-[#D8E2E9]">
 
                 {/* En-tête de l'étape active */}
                 <div className="mb-8 pb-6 border-b border-slate-100">
-                  <div className="flex items-center gap-2 mb-2.5">
+                  <div className="hidden lg:flex items-center gap-2 mb-2.5">
                     <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-[#E8F2FA] text-[#174F7A]">
                       {currentLang === "DE" ? `SCHRITT ${step} VON 4` : currentLang === "EN" ? `STEP ${step} OF 4` : `ÉTAPE ${step} SUR 4`}
                     </span>
@@ -1042,8 +1066,8 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                     {STEPS[step - 1].desc}
                   </p>
 
-                  {/* Barre fine de progression */}
-                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mt-5">
+                  {/* Barre fine de progression (Desktop uniquement) */}
+                  <div className="hidden lg:block h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mt-5">
                     <div
                       className="h-full transition-all duration-500 rounded-full"
                       style={{
@@ -1480,10 +1504,134 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                 </div>
 
               </div>
+
+              {/* ── ACCÈS COMPACT MOBILE : CADRE PARTENAIRE & CONTACT (Uniquement sur mobile < lg) ── */}
+              <div className="lg:hidden mt-6 space-y-3">
+                {/* Accordéon Cadre Partenaire */}
+                <div className="bg-white rounded-2xl border border-[#D8E2E9] shadow-xs overflow-hidden transition-all">
+                  <button
+                    type="button"
+                    onClick={() => setShowMobileFramework(!showMobileFramework)}
+                    className="w-full px-4 py-3.5 flex items-center justify-between text-left cursor-pointer hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-2 h-2 rounded-full bg-[#35A85A] shrink-0" />
+                      <span className="text-xs font-bold text-[#174F7A] uppercase tracking-wider">
+                        {currentLang === "DE" ? "PARTNERRAHMEN" : currentLang === "EN" ? "PARTNER FRAMEWORK" : "CADRE PARTENAIRE"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[11px] font-semibold text-slate-500">
+                        {showMobileFramework ? (currentLang === "DE" ? "Schließen" : currentLang === "EN" ? "Hide" : "Masquer") : (currentLang === "DE" ? "Details" : currentLang === "EN" ? "Details" : "Voir")}
+                      </span>
+                      <svg
+                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${showMobileFramework ? "rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {showMobileFramework && (
+                    <div className="px-4 pb-4 pt-1 border-t border-slate-100 text-xs">
+                      <ul className="space-y-2.5 text-xs text-slate-700 leading-relaxed">
+                        {(t.partner?.sidebar?.reasons || (
+                          currentLang === "DE"
+                            ? [
+                                "6- bis 12-monatige Einsätze, angepasst an Ihre Programme",
+                                "Kontinuierliche lokale Betreuung und Mentoring in Agbélouvé",
+                                "Transparente Begleitung, regelmäßige Berichte und offizielle Vereinbarung",
+                              ]
+                            : currentLang === "EN"
+                            ? [
+                                "6 to 12-month missions tailored to your programmes",
+                                "Continuous local support and mentoring in Agbélouvé",
+                                "Transparent monitoring, regular reports, and official agreement",
+                              ]
+                            : [
+                                "Missions de 6 à 12 mois adaptées à vos programmes",
+                                "Accompagnement et mentorat local continu à Agbélouvé",
+                                "Suivi transparent, rapports réguliers et conventionnement officiel",
+                              ]
+                        )).slice(0, 3).map((reason: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <CheckIcon size={14} className="text-[#35A85A] mt-0.5 shrink-0" />
+                            <span>{reason}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                {/* Accordéon Contact direct */}
+                <div className="bg-[#F8FAFC] rounded-2xl border border-[#D8E2E9] shadow-xs overflow-hidden transition-all">
+                  <button
+                    type="button"
+                    onClick={() => setShowMobileContact(!showMobileContact)}
+                    className="w-full px-4 py-3.5 flex items-center justify-between text-left cursor-pointer hover:bg-slate-100/60 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#174F7A] shrink-0" />
+                      <span className="text-xs font-bold text-[#1A2B3C]">
+                        {currentLang === "DE" ? "Eine konkrete Frage?" : currentLang === "EN" ? "A specific question?" : "Une question spécifique ?"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[11px] font-semibold text-slate-500">
+                        {showMobileContact ? (currentLang === "DE" ? "Schließen" : currentLang === "EN" ? "Hide" : "Masquer") : (currentLang === "DE" ? "Kontakt" : currentLang === "EN" ? "Contact" : "Contact")}
+                      </span>
+                      <svg
+                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${showMobileContact ? "rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {showMobileContact && (
+                    <div className="px-4 pb-4 pt-1 border-t border-slate-200/60 text-xs">
+                      <p className="text-slate-500 mb-3 leading-relaxed">
+                        {currentLang === "DE"
+                          ? "Unser Koordinationsteam beantwortet gerne Ihre rechtlichen und logistischen Fragen."
+                          : currentLang === "EN"
+                          ? "Our coordination team directly answers your questions regarding legal and logistical aspects."
+                          : "Notre équipe de coordination répond directement à vos interrogations sur les aspects juridiques et logistiques."}
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <a
+                          href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(currentLang === "DE" ? "APTIC-R Partnerschaftsanfrage" : currentLang === "EN" ? "APTIC-R Partnership Request" : "Demande Partenariat APTIC-R")}`}
+                          className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#174F7A] bg-white border border-[#D8E2E9] px-3.5 py-2.5 rounded-xl hover:border-[#174F7A] hover:bg-[#F0F5FA] transition-all shadow-2xs cursor-pointer text-center"
+                        >
+                          <svg className="w-3.5 h-3.5 text-[#174F7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                          <span>Email</span>
+                        </a>
+                        <a
+                          href="tel:+22891201990"
+                          className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 hover:text-[#174F7A] transition-all cursor-pointer text-center"
+                        >
+                          <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                          </svg>
+                          <span>+228 91 20 19 90</span>
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* ── COLONNE LATÉRALE D'ACCOMPAGNEMENT (~27%) ───────────────────── */}
-            <aside className="w-full lg:w-[27%] lg:sticky lg:top-24 space-y-5">
+            <aside className="hidden lg:block w-full lg:w-[27%] lg:sticky lg:top-24 space-y-5">
 
               {/* BLOC 1 : ÉTAPES DU FORMULAIRE */}
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#D8E2E9]">
