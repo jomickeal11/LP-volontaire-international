@@ -1456,17 +1456,15 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                 )}
 
                 {/* Boutons de navigation */}
-                <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-4 pt-8 mt-8 border-t border-slate-100">
-                  {step > 1 ? (
+                <div className={`flex items-center ${step > 1 ? "justify-between" : "justify-end"} gap-3 pt-6 mt-8 border-t border-slate-100`}>
+                  {step > 1 && (
                     <button
                       type="button"
                       onClick={back}
-                      className="px-5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                      className="px-4 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                     >
                       {currentLang === "DE" ? "← Zurück" : currentLang === "EN" ? "← Back" : "← Retour"}
                     </button>
-                  ) : (
-                    <div />
                   )}
 
                   {step < 4 ? (
@@ -1474,18 +1472,18 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                       type="button"
                       onClick={next}
                       disabled={!isStepValid(step)}
-                      className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                      className="w-auto px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold text-white transition-all shadow-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                       style={{ backgroundColor: GREEN }}
                     >
                       <span>{currentLang === "DE" ? "Weiter" : currentLang === "EN" ? "Continue" : "Continuer"}</span>
-                      <ArrowRightIcon size={16} strokeWidth={2} />
+                      <ArrowRightIcon size={15} strokeWidth={2} />
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={handleSubmit}
                       disabled={loading || !form.consent}
-                      className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                      className="w-auto px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold text-white transition-all shadow-md hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                       style={{ backgroundColor: BLUE }}
                     >
                       {loading ? (
@@ -1496,7 +1494,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                       ) : (
                         <>
                           <span>{t.partner?.form?.submit || (currentLang === "DE" ? "Anfrage senden" : currentLang === "EN" ? "Send request" : "Envoyer la demande")}</span>
-                          <CheckIcon size={16} strokeWidth={2.5} />
+                          <CheckIcon size={15} strokeWidth={2.5} />
                         </>
                       )}
                     </button>
