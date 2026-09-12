@@ -121,10 +121,10 @@ const translations = {
         desc: "Design and deploy low-cost moisture sensors that help local farmers optimize water usage during the dry season. Built with Arduino and local materials.",
       },
       cards: [
-        { title: "Weather Alert System", badge: "2G / SMS" },
-        { title: "Offline Mobile Tools", badge: "Mobile" },
-        { title: "Agricultural Dashboards", badge: "Data Vis" },
-        { title: "Inventory Management", badge: "Coop Tools" },
+        { title: "Weather Alert System", badge: "2G / SMS", desc: "Receive local weather alerts directly via SMS to better plan harvests." },
+        { title: "Offline Mobile Tools", badge: "Mobile", desc: "Applications working without internet connection for agricultural data entry in the field." },
+        { title: "Agricultural Dashboards", badge: "Data Vis", desc: "Simple visualization of yields and cooperative data for informed decision-making." },
+        { title: "Inventory Management", badge: "Coop Tools", desc: "Inventory tracking tools adapted to the realities of local cooperatives." },
       ],
     },
     profiles: {
@@ -635,7 +635,7 @@ const translations = {
       select: 'Select...'
     },
     footer: {
-      tagline: "Association pour la Promotion des TIC en milieu Rural au Togo.",
+      tagline: "Association pour la Promotion des TIC en milieu Rural.",
       tagline2:
         "We connect European volunteers with rural communities to co-create practical digital and low-tech solutions.",
       nav: "Navigation",
@@ -651,7 +651,7 @@ const translations = {
       terms: "Terms of Use",
       cookies: "Cookie Policy",
       copyright:
-        "© 2026 APTIC-R - Association pour la Promotion des TIC en milieu Rural au Togo.",
+        "© 2026 APTIC-R - Association pour la Promotion des TIC en milieu Rural.",
     },
   },
 
@@ -1011,10 +1011,10 @@ const translations = {
         desc: "Concevoir et déployer des capteurs d'humidité low-cost pour aider les agriculteurs à optimiser l'eau en saison sèche. Fabriqué avec Arduino et des matériaux locaux.",
       },
       cards: [
-        { title: "Système d'alerte météo", badge: "2G / SMS" },
-        { title: "Outils mobiles hors ligne", badge: "Mobile" },
-        { title: "Tableaux de bord agricoles", badge: "Data Vis" },
-        { title: "Gestion des stocks", badge: "Coop Tools" },
+        { title: "Système d'alerte météo", badge: "2G / SMS", desc: "Recevoir des alertes météorologiques locales directement par SMS pour mieux planifier les récoltes." },
+        { title: "Outils mobiles hors ligne", badge: "Mobile", desc: "Applications fonctionnant sans connexion internet pour la saisie des données agricoles sur le terrain." },
+        { title: "Tableaux de bord agricoles", badge: "Data Vis", desc: "Visualisation simple des rendements et des données de la coopérative pour une prise de décision." },
+        { title: "Gestion des stocks", badge: "Coop Tools", desc: "Outils de suivi des inventaires adaptés aux réalités des coopératives locales." },
       ],
     },
     profiles: {
@@ -1292,7 +1292,7 @@ const translations = {
     },
 
     footer: {
-      tagline: "Association pour la Promotion des TIC en milieu Rural au Togo.",
+      tagline: "Association pour la Promotion des TIC en milieu Rural.",
       tagline2:
         "Nous connectons les volontaires européens aux communautés rurales pour co-créer des solutions numériques et low-tech pratiques.",
       nav: "Navigation",
@@ -1308,7 +1308,7 @@ const translations = {
       terms: "Conditions d'utilisation",
       cookies: "Politique de cookies",
       copyright:
-        "© 2026 APTIC-R - Association pour la Promotion des TIC en milieu Rural au Togo.",
+        "© 2026 APTIC-R - Association pour la Promotion des TIC en milieu Rural.",
     },
   },
 
@@ -1962,7 +1962,7 @@ const translations = {
     },
 
     footer: {
-      tagline: "Association pour la Promotion des TIC en milieu Rural au Togo.",
+      tagline: "Association pour la Promotion des TIC en milieu Rural.",
       tagline2:
         "Wir verbinden europäische Freiwillige mit ländlichen Gemeinschaften, um praktische digitale und Low-Tech-Lösungen gemeinsam zu entwickeln.",
       nav: "Navigation",
@@ -1978,7 +1978,7 @@ const translations = {
       terms: "Nutzungsbedingungen",
       cookies: "Cookie-Richtlinie",
       copyright:
-        "© 2026 APTIC-R - Association pour la Promotion des TIC en milieu Rural au Togo.",
+        "© 2026 APTIC-R - Association pour la Promotion des TIC en milieu Rural.",
     },
   },
 } as const

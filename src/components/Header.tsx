@@ -169,7 +169,7 @@ export default function Header({
         <div className="flex-1 flex items-center justify-end gap-2 sm:gap-3">
           {/* Language selector (Pill style like image) */}
           <div
-            className="hidden sm:flex items-center p-0.5 rounded-full border"
+            className="flex items-center p-0.5 rounded-full border"
             style={{ borderColor: "rgba(23,79,122,0.10)" }}
           >
             {(["FR", "EN", "DE"] as Language[]).map((l) => (
@@ -292,29 +292,6 @@ export default function Header({
                 >
                   {t.applyNow}
                 </button>
-                
-                <div className="flex justify-center items-center p-1.5 rounded-xl border border-slate-200 bg-slate-50 w-full">
-                  {(["FR", "EN", "DE"] as Language[]).map((l) => (
-                    <button
-                      key={l}
-                      onClick={() => {
-                        trackEvent("language_switch", { lang: l, metadata: { from: lang, to: l } })
-                        setTimeout(() => {
-                          setLang(l)
-                          setMobileOpen(false)
-                        }, 150)
-                      }}
-                      className="flex-1 text-xs font-bold py-3 rounded-lg transition-all uppercase text-center"
-                      style={{
-                        backgroundColor: lang === l ? "white" : "transparent",
-                        color: lang === l ? "#174F7A" : "#7A8A9A",
-                        boxShadow: lang === l ? "0 2px 8px rgba(0,0,0,0.08)" : "none",
-                      }}
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
           </div>

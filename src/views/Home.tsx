@@ -131,7 +131,7 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
             </span>
             {/* Niveau 2 - Accent */}
             <span
-              className="text-4xl sm:text-5xl lg:text-[64px] block mb-2 sm:mb-3 text-[#35A85A] font-extrabold"
+              className="text-[26px] sm:text-5xl lg:text-[64px] block mb-2 sm:mb-3 text-[#35A85A] font-extrabold whitespace-nowrap sm:whitespace-normal tracking-tighter sm:tracking-tight"
               style={{
                 textShadow: "0 2px 12px rgba(0,0,0,0.45), 0 8px 32px rgba(0,0,0,0.35)",
               }}
@@ -321,7 +321,7 @@ function WhyMission({ t }: { t: TKey }) {
   return (
     <section id="why" className="py-20 sm:py-24 lg:py-32 bg-[#FFFFFF]">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="text-center max-w-4xl mx-auto mb-24">
+        <div className="text-center max-w-4xl mx-auto mb-12 sm:mb-16 lg:mb-24">
           <Badge text={wm.tag} centered />
           <h2 className="text-5xl sm:text-6xl lg:text-7xl leading-tight text-[#174F7A] tracking-tight">
             {wm.title}
@@ -335,17 +335,17 @@ function WhyMission({ t }: { t: TKey }) {
               className="relative flex flex-col items-start text-left group"
             >
               <div
-                className="text-[80px] lg:text-[100px] leading-none mb-6 font-['DM_Serif_Display'] transition-transform duration-500 group-hover:-translate-y-2"
+                className="text-[48px] sm:text-[80px] lg:text-[100px] leading-none mb-2 sm:mb-4 lg:mb-6 font-['DM_Serif_Display'] transition-transform duration-500 group-hover:-translate-y-2"
                 style={{ color: "#EAF0F4" }}
               >
                 0{i + 1}
               </div>
-              <div className="w-full mb-4 border-b-2 border-[#EAF0F4] pb-4 min-h-[5rem] lg:min-h-[6rem] flex flex-col justify-start">
-                <h3 className="text-2xl lg:text-3xl text-[#174F7A] tracking-tight">
+              <div className="w-full mb-2 sm:mb-4 border-b-2 border-[#EAF0F4] pb-2 sm:pb-4 min-h-[auto] sm:min-h-[5rem] lg:min-h-[6rem] flex flex-col justify-start">
+                <h3 className="text-xl sm:text-2xl lg:text-3xl text-[#174F7A] tracking-tight">
                   {card.title}
                 </h3>
               </div>
-              <p className="text-base text-[#5E6B76] font-medium leading-relaxed mt-2">
+              <p className="text-sm sm:text-base text-[#5E6B76] font-medium leading-relaxed mt-1 sm:mt-2">
                 {card.desc}
               </p>
             </div>
@@ -366,13 +366,13 @@ function TheChallenge({ t }: { t: TKey }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16 lg:gap-24 items-start">
           <div className="lg:sticky lg:top-32">
             <Badge text={c.tag} />
-            <h2 className="text-5xl lg:text-6xl leading-tight mb-8 tracking-tight text-[#174F7A]">
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl leading-tight mb-6 sm:mb-8 tracking-tight text-[#174F7A]">
               {c.title}
             </h2>
-            <p className="text-lg lg:text-xl font-medium leading-relaxed mb-6 text-[#5E6B76]">
+            <p className="text-base sm:text-lg lg:text-xl font-medium leading-relaxed mb-4 sm:mb-6 text-[#5E6B76]">
               {c.p1}
             </p>
-            <p className="text-lg lg:text-xl font-medium leading-relaxed text-[#5E6B76]">
+            <p className="text-base sm:text-lg lg:text-xl font-medium leading-relaxed text-[#5E6B76]">
               {c.p2}
             </p>
           </div>
@@ -402,10 +402,10 @@ function TheChallenge({ t }: { t: TKey }) {
                     >
                       {item.tag}
                     </span>
-                    <h3 className="text-3xl lg:text-4xl font-bold" style={{ color: "#174F7A" }}>
+                    <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold" style={{ color: "#174F7A" }}>
                       {item.title}
                     </h3>
-                    <p className="text-lg leading-relaxed font-medium" style={{ color: "#5E6B76" }}>
+                    <p className="text-base sm:text-lg leading-relaxed font-medium mt-1 sm:mt-0" style={{ color: "#5E6B76" }}>
                       {item.text}
                     </p>
                   </div>
@@ -428,7 +428,7 @@ function YourMission({ t }: { t: TKey }) {
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="max-w-2xl mb-24">
           <Badge text={m.tag} />
-          <h2 className="text-4xl lg:text-5xl leading-tight tracking-[-0.02em] text-[#174F7A]">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight tracking-[-0.02em] text-[#174F7A]">
             {m.title}
           </h2>
         </div>
@@ -436,16 +436,16 @@ function YourMission({ t }: { t: TKey }) {
         <div className="flex flex-col gap-24 lg:gap-32">
           {m.steps.map((s, i) => (
             <div key={s.title} className="relative flex flex-col md:flex-row gap-8 md:gap-16 items-start group">
-              <div className="absolute -top-16 -left-4 md:-top-24 md:-left-8 text-[120px] md:text-[200px] font-black leading-none text-[#EAF0F4] select-none z-0 transition-transform duration-700 group-hover:translate-x-4">
+              <div className="absolute -top-12 -left-4 sm:-top-16 sm:-left-4 md:-top-24 md:-left-8 text-[80px] sm:text-[120px] md:text-[200px] font-black leading-none text-[#EAF0F4] select-none z-0 transition-transform duration-700 group-hover:translate-x-4">
                 0{i + 1}
               </div>
               <div className="relative z-10 w-full md:w-1/3 pt-6 md:pt-12">
-                <h3 className="text-2xl lg:text-3xl font-bold text-[#174F7A] tracking-tight">
+                <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#174F7A] tracking-tight">
                   {s.title}
                 </h3>
               </div>
-              <div className="relative z-10 w-full md:w-2/3 md:pt-12">
-                <p className="text-xl leading-relaxed text-[#5E6B76] font-medium max-w-2xl">
+              <div className="relative z-10 w-full md:w-2/3 md:pt-12 mt-2 sm:mt-0">
+                <p className="text-base sm:text-xl leading-relaxed text-[#5E6B76] font-medium max-w-2xl">
                   {s.desc}
                 </p>
               </div>
@@ -460,13 +460,14 @@ function YourMission({ t }: { t: TKey }) {
 // ─── 6. What Could You Build? (Editorial Asymmetric Layout) ────────────────────
 function WhatCouldYouBuild({ t }: { t: TKey }) {
   const b = t.build
+  const [openCardIndex, setOpenCardIndex] = useState<number | null>(null)
 
   return (
     <section id="activities" className="py-20 sm:py-24 lg:py-32 bg-[#F5F7F9]">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-24">
           <Badge text={b.tag} centered />
-          <h2 className="text-5xl lg:text-6xl leading-tight text-[#174F7A] tracking-[-0.02em]">
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl leading-tight text-[#174F7A] tracking-[-0.02em]">
             {b.title}
           </h2>
         </div>
@@ -494,8 +495,8 @@ function WhatCouldYouBuild({ t }: { t: TKey }) {
             </div>
           </div>
 
-          {/* 4 Secondary Projects Grid */}
-          <div className="lg:col-span-12 xl:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* 4 Secondary Projects Grid / Mobile Accordion */}
+          <div className="lg:col-span-12 xl:col-span-5 flex flex-col sm:grid sm:grid-cols-2 gap-0 sm:gap-6">
             {b.cards.map((p, i) => {
               const icons = [
                 <SmartphoneIcon size={24} color="#174F7A" />,
@@ -503,18 +504,51 @@ function WhatCouldYouBuild({ t }: { t: TKey }) {
                 <BarChartIcon size={24} color="#174F7A" />,
                 <PackageIcon size={24} color="#174F7A" />,
               ]
+              const isOpen = openCardIndex === i;
+              
               return (
                 <div
                   key={p.title}
-                  className="p-8 rounded-[2rem] bg-white border border-[#EAF0F4] flex flex-col justify-center items-start transition-all duration-300 hover:shadow-md group cursor-pointer"
+                  onClick={() => setOpenCardIndex(isOpen ? null : i)}
+                  className="flex flex-col py-5 sm:py-0 border-b border-[#EAF0F4] last:border-b-0 sm:border-b-0 sm:p-8 sm:rounded-[2rem] sm:bg-white sm:border sm:border-[#EAF0F4] justify-center items-start transition-all duration-300 sm:hover:shadow-md group cursor-pointer"
                 >
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[#F5F7F9] mb-6 transition-transform group-hover:scale-110">
-                    {icons[i]}
+                  {/* Desktop Layout Header (Icon + Badge) */}
+                  <div className="hidden sm:flex flex-col w-full">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[#F5F7F9] mb-6 transition-transform group-hover:scale-110">
+                      {icons[i]}
+                    </div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest mb-3 text-[#35A85A]">
+                      {p.badge}
+                    </div>
                   </div>
-                  <div className="text-[10px] font-bold uppercase tracking-widest mb-3 text-[#35A85A]">
-                    {p.badge}
+
+                  {/* Mobile Accordion Header & Desktop Title */}
+                  <div className="flex flex-row items-center justify-between w-full">
+                    <div className="flex flex-row items-center gap-4">
+                      {/* Mobile Number */}
+                      <span className="sm:hidden text-lg font-['DM_Serif_Display'] text-[#174F7A]/50 w-6">
+                        0{i + 1}
+                      </span>
+                      {/* Title */}
+                      <h4 className="text-lg sm:text-xl text-[#174F7A] font-bold sm:font-normal">{p.title}</h4>
+                    </div>
+                    {/* Mobile Arrow */}
+                    <div className={`sm:hidden transform transition-transform duration-300 ${isOpen ? 'rotate-90' : ''}`}>
+                       <ArrowRightIcon size={18} color="#174F7A" />
+                    </div>
                   </div>
-                  <h4 className="text-xl text-[#174F7A]">{p.title}</h4>
+
+                  {/* Mobile Description (Accordion Body) */}
+                  {/* @ts-ignore */}
+                  <div 
+                    className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out w-full ${isOpen ? 'max-h-40 mt-3 opacity-100' : 'max-h-0 opacity-0'}`}
+                  >
+                    {/* @ts-ignore */}
+                    <div className="text-sm text-[#5E6B76] leading-relaxed pr-4 pl-10">
+                       {/* @ts-ignore */}
+                       {p.desc}
+                    </div>
+                  </div>
                 </div>
               )
             })}
@@ -540,41 +574,41 @@ function ProfilesSought({
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-24">
           <Badge text={p.tag} centered />
-          <h2 className="text-5xl lg:text-6xl leading-tight mb-6 text-[#174F7A] tracking-[-0.02em]">
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl leading-tight mb-4 sm:mb-6 text-[#174F7A] tracking-[-0.02em]">
             {p.title}
           </h2>
-          <p className="text-lg lg:text-xl font-medium text-[#5E6B76] leading-relaxed">
+          <p className="text-base sm:text-lg lg:text-xl font-medium text-[#5E6B76] leading-relaxed">
             {p.subtitle}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-16 max-w-6xl mx-auto mb-24">
+        <div className="grid grid-cols-2 gap-x-4 sm:gap-x-12 gap-y-8 sm:gap-y-16 max-w-6xl mx-auto mb-16 sm:mb-24">
           {p.categories.map((cat, index) => {
             const icons = [
-              <MonitorIcon size={48} color="#174F7A" />,
-              <WheatIcon size={48} color="#35A85A" />,
-              <PenToolIcon size={48} color="#174F7A" />,
-              <CpuIcon size={48} color="#174F7A" />,
+              <MonitorIcon className="w-8 h-8 sm:w-12 sm:h-12" color="#174F7A" />,
+              <WheatIcon className="w-8 h-8 sm:w-12 sm:h-12" color="#35A85A" />,
+              <PenToolIcon className="w-8 h-8 sm:w-12 sm:h-12" color="#174F7A" />,
+              <CpuIcon className="w-8 h-8 sm:w-12 sm:h-12" color="#174F7A" />,
             ]
             return (
-              <div key={cat.title} className="relative flex flex-col p-8 lg:p-12 group overflow-hidden">
+              <div key={cat.title} className="relative flex flex-col p-4 sm:p-8 lg:p-12 group overflow-hidden rounded-2xl border border-transparent sm:border-none">
                 {/* Huge Pale Number Background */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[200px] lg:text-[280px] font-black text-[#F5F7F9] leading-none select-none z-0 pointer-events-none group-hover:scale-110 transition-transform duration-700">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[80px] sm:text-[200px] lg:text-[280px] font-black text-[#F5F7F9] leading-none select-none z-0 pointer-events-none group-hover:scale-110 transition-transform duration-700">
                   0{index + 1}
                 </div>
 
-                <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="mb-8">{icons[index]}</div>
-                  <h3 className="text-3xl lg:text-4xl text-[#174F7A] font-['DM_Serif_Display'] mb-6">
+                <div className="relative z-10 flex flex-col items-start text-left lg:items-center lg:text-center">
+                  <div className="mb-4 sm:mb-8">{icons[index]}</div>
+                  <h3 className="text-lg sm:text-3xl lg:text-4xl text-[#174F7A] font-['DM_Serif_Display'] mb-2 sm:mb-6">
                     {cat.title}
                   </h3>
 
-                  <p className="text-base lg:text-lg leading-relaxed text-[#5E6B76] font-medium max-w-sm">
+                  <p className="text-[11px] sm:text-base lg:text-lg leading-relaxed text-[#5E6B76] font-medium">
                     {cat.tags.split("·").map((tag, i, arr) => (
                       <span key={i} className="inline-block">
                         {tag.trim()}
                         {i < arr.length - 1 && (
-                          <span className="text-[#EAF0F4] mx-2">·</span>
+                          <span className="text-[#EAF0F4] mx-1 sm:mx-2">·</span>
                         )}
                       </span>
                     ))}
@@ -614,18 +648,18 @@ function NotAnExpert({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) 
   const n = t.notExpert
 
   return (
-    <section className="py-24 lg:py-32 relative overflow-hidden bg-[#174F7A]">
+    <section className="py-16 sm:py-24 lg:py-32 relative overflow-hidden bg-[#174F7A]">
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="max-w-4xl mx-auto mb-16">
-          <h2 className="text-4xl sm:text-5xl lg:text-7xl text-white mb-8 leading-tight tracking-tight">
+        <div className="max-w-4xl mx-auto mb-10 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl lg:text-7xl text-white mb-3 sm:mb-8 leading-tight tracking-tight">
             {n.title}
           </h2>
-          <p className="text-xl lg:text-2xl leading-relaxed text-white/80">
+          <p className="text-lg sm:text-xl lg:text-2xl leading-relaxed text-white/80">
             {n.subtitle}
           </p>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-4 mb-20 max-w-4xl mx-auto">
+        <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-0 sm:mb-20 max-w-4xl mx-auto">
           {n.qualities.map((q) => (
             <div
               key={q}
@@ -650,12 +684,17 @@ function WeekWithAptic({ t }: { t: TKey }) {
   const dayLabels = w.dayLabels
 
   return (
-    <section className="py-24 lg:py-32 bg-[#F5F7F9]">
+    <section className="py-16 sm:py-24 lg:py-32 bg-[#F5F7F9]">
       <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="text-center mb-24">
+        <div className="text-center mb-16 sm:mb-24">
           <Badge text={w.tag} centered />
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl leading-tight text-[#174F7A] tracking-[-0.02em]">
-            {w.title}
+          <h2 className="text-3xl sm:text-4xl lg:text-6xl leading-tight text-[#174F7A] tracking-[-0.02em]">
+            {w.title.split("APTIC-R").map((part, idx, array) => (
+              <span key={idx}>
+                {part}
+                {idx < array.length - 1 && <span className="whitespace-nowrap">APTIC-R</span>}
+              </span>
+            ))}
           </h2>
         </div>
 
@@ -663,21 +702,21 @@ function WeekWithAptic({ t }: { t: TKey }) {
           {w.days.map((d, i) => (
             <div
               key={d.activity}
-              className="group flex flex-col md:flex-row border-b border-[#EAF0F4] last:border-b-0 py-8 lg:py-12 items-start md:items-center transition-colors hover:bg-white"
+              className="group flex flex-col md:flex-row border-b border-[#EAF0F4] last:border-b-0 py-5 md:py-8 lg:py-12 items-start md:items-center transition-colors md:hover:bg-white"
             >
               {/* Day Label */}
-              <div className="w-full md:w-1/4 mb-4 md:mb-0 md:pl-8">
-                <span className="text-xl lg:text-2xl font-black text-[#174F7A] uppercase tracking-widest">
+              <div className="w-full md:w-1/4 mb-1 md:mb-0 md:pl-8">
+                <span className="text-base md:text-xl lg:text-2xl font-black text-[#174F7A] uppercase tracking-widest">
                   {dayLabels[i]}
                 </span>
               </div>
               
               {/* Activity details */}
               <div className="w-full md:w-3/4 md:border-l md:border-[#EAF0F4] md:pl-12">
-                <h4 className="text-2xl lg:text-3xl font-['DM_Serif_Display'] mb-4 text-[#174F7A] group-hover:text-[#35A85A] transition-colors">
+                <h4 className="text-xl md:text-2xl lg:text-3xl font-['DM_Serif_Display'] mb-2 md:mb-4 text-[#174F7A] md:group-hover:text-[#35A85A] transition-colors">
                   {d.activity}
                 </h4>
-                <p className="text-lg leading-relaxed text-[#5E6B76] max-w-xl">
+                <p className="text-base md:text-lg leading-relaxed text-[#5E6B76] max-w-xl">
                   {d.desc}
                 </p>
               </div>
@@ -739,13 +778,13 @@ function LifeInTogo({ t }: { t: TKey }) {
       </div>
 
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
+        <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-6 sm:gap-y-16">
           {l.items?.map((item: any) => (
-            <div key={item.label} className="flex flex-col border-t-2 border-[#EAF0F4] pt-8 group">
-              <div className="text-2xl font-bold mb-4 text-[#174F7A] group-hover:text-[#35A85A] transition-colors">
+            <div key={item.label} className="flex flex-col border-t border-t-[#EAF0F4] sm:border-t-2 pt-4 sm:pt-8 group">
+              <div className="text-xl sm:text-2xl font-bold mb-1 sm:mb-4 text-[#174F7A] md:group-hover:text-[#35A85A] transition-colors">
                 {item.label}
               </div>
-              <div className="text-base font-medium leading-relaxed text-[#5E6B76]">
+              <div className="text-[15px] sm:text-base font-medium leading-relaxed text-[#5E6B76]">
                 {item.desc}
               </div>
             </div>
@@ -761,12 +800,11 @@ function Agbelouve({ t }: { t: TKey }) {
   const a = t.agbelouve
 
   return (
-    <section className="py-24 lg:py-32 bg-[#F5F7F9]">
+    <section className="py-16 sm:py-24 lg:py-32 bg-[#F5F7F9]">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-24 items-center">
           <div
-            className="lg:col-span-6 relative rounded-[2.5rem] overflow-hidden shadow-sm border border-[#EAF0F4]"
-            style={{ height: 500 }}
+            className="lg:col-span-6 relative rounded-[2.5rem] overflow-hidden shadow-sm border border-[#EAF0F4] h-[300px] sm:h-[400px] lg:h-[500px]"
           >
             <img
               src="https://images.unsplash.com/photo-1611502029437-54521b5e6ada?w=900&h=700&fit=crop&auto=format"
@@ -787,33 +825,33 @@ function Agbelouve({ t }: { t: TKey }) {
 
           <div className="lg:col-span-6">
             <Badge text={a.tag} />
-            <h2 className="text-4xl lg:text-5xl leading-tight mb-8 text-[#174F7A] tracking-[-0.02em]">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight mb-4 lg:mb-8 text-[#174F7A] tracking-[-0.02em]">
               {a.title}
             </h2>
-            <p className="text-lg leading-relaxed mb-12 text-[#5E6B76]">
+            <p className="text-base sm:text-lg leading-snug sm:leading-relaxed mb-8 lg:mb-12 text-[#5E6B76] text-left">
               {a.desc}
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:gap-8">
               {a.facts.map((f, i) => {
                 const icons = [
-                  <MapPinIcon size={24} color="#174F7A" />,
-                  <CompassIcon size={24} color="#174F7A" />,
-                  <PlaneIcon size={24} color="#174F7A" />,
-                  <WheatIcon size={24} color="#174F7A" />,
-                  <UsersIcon size={24} color="#174F7A" />,
-                  <HouseIcon size={24} color="#174F7A" />,
+                  <MapPinIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#174F7A" />,
+                  <CompassIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#174F7A" />,
+                  <PlaneIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#174F7A" />,
+                  <WheatIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#174F7A" />,
+                  <UsersIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#174F7A" />,
+                  <HouseIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#174F7A" />,
                 ]
                 return (
-                  <div key={f.label} className="flex gap-4 items-center">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-white border border-[#EAF0F4] flex-shrink-0">
+                  <div key={f.label} className="flex gap-2 sm:gap-4 items-center text-left">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center bg-white border border-[#EAF0F4] flex-shrink-0">
                       {icons[i]}
                     </div>
-                    <div>
-                      <div className="text-[10px] uppercase tracking-widest text-[#5E6B76] font-bold mb-1">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[9px] sm:text-[10px] uppercase tracking-widest text-[#5E6B76] font-bold mb-0.5 sm:mb-1 truncate">
                         {f.label}
                       </div>
-                      <div className="text-sm font-bold text-[#174F7A]">
+                      <div className="text-xs sm:text-sm font-bold text-[#174F7A] leading-tight">
                         {f.value}
                       </div>
                     </div>
@@ -890,45 +928,58 @@ function Support({ t }: { t: TKey }) {
                 {s.tableSummary}
               </span>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <tbody>
-                  {s.tableItems.map(([el, info, status], i) => (
-                    <tr
-                      key={el}
-                      className="border-b border-[#EAF0F4] last:border-b-0 hover:bg-[#F5F7F9] transition-colors"
-                    >
-                      <td className="py-6 pr-6 text-base lg:text-lg font-bold text-[#174F7A] w-1/3 pl-8">
+            <div className="flex flex-col w-full">
+              {s.tableItems.map(([el, info, status], i) => {
+                const statusStyle = {
+                  backgroundColor:
+                    status === s.statusConfirmed
+                      ? "#EAF5EA"
+                      : status === s.statusPending
+                        ? "#F5F7F9"
+                        : "#F5F7F9",
+                  color:
+                    status === s.statusConfirmed
+                      ? "#35A85A"
+                      : status === s.statusPending
+                        ? "#174F7A"
+                        : "#5E6B76",
+                }
+
+                return (
+                  <div
+                    key={el}
+                    className="flex flex-col sm:flex-row sm:items-center border-b border-[#EAF0F4] last:border-b-0 hover:bg-[#F5F7F9] transition-colors p-5 sm:p-0"
+                  >
+                    {/* Mobile Top Row: Label + Status / Desktop: Col 1 */}
+                    <div className="flex justify-between items-start sm:items-center sm:w-1/3 sm:py-6 sm:pl-8 sm:pr-6 mb-3 sm:mb-0">
+                      <div className="text-[15px] sm:text-base lg:text-lg font-bold text-[#174F7A] pr-4">
                         {el}
-                      </td>
-                      <td className="py-6 px-6 text-base lg:text-lg text-[#5E6B76] font-medium">
-                        {info}
-                      </td>
-                      <td className="py-6 pl-6 text-right pr-8">
-                        <span
-                          className="text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-lg"
-                          style={{
-                            backgroundColor:
-                              status === s.statusConfirmed
-                                ? "#EAF5EA"
-                                : status === s.statusPending
-                                  ? "#F5F7F9"
-                                  : "#F5F7F9",
-                            color:
-                              status === s.statusConfirmed
-                                ? "#35A85A"
-                                : status === s.statusPending
-                                  ? "#174F7A"
-                                  : "#5E6B76",
-                          }}
-                        >
-                          {status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                      <span
+                        className="sm:hidden text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg whitespace-nowrap flex-shrink-0"
+                        style={statusStyle}
+                      >
+                        {status}
+                      </span>
+                    </div>
+                    
+                    {/* Mobile Bottom Row: Info / Desktop: Col 2 */}
+                    <div className="text-[14px] sm:text-base lg:text-lg text-[#5E6B76] font-medium sm:flex-1 sm:py-6 sm:px-6 leading-relaxed">
+                      {info}
+                    </div>
+                    
+                    {/* Desktop Badge / Desktop: Col 3 */}
+                    <div className="hidden sm:block sm:py-6 sm:pl-6 sm:pr-8 text-right">
+                      <span
+                        className="text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-lg whitespace-nowrap"
+                        style={statusStyle}
+                      >
+                        {status}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
@@ -975,17 +1026,17 @@ function ApplicationProcess({
           ))}
         </div>
 
-        <div className="text-center mt-24">
+        <div className="text-center mt-12 lg:mt-16 flex justify-center">
           <button
             onClick={() => navigate("apply")}
-            className="inline-flex items-center gap-4 font-black text-base px-12 py-6 rounded-2xl text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+            className="inline-flex items-center gap-3 sm:gap-4 font-black text-sm sm:text-base px-6 py-4 sm:px-12 sm:py-6 rounded-xl sm:rounded-2xl text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl w-auto max-w-full"
             style={{
               backgroundColor: "#35A85A",
               boxShadow: "0 10px 25px rgba(53,168,90,0.3)",
             }}
           >
-            <span className="tracking-wide">{ap.cta}</span>
-            <ArrowRightIcon size={18} strokeWidth={1.5} />
+            <span className="tracking-wide leading-tight">{ap.cta}</span>
+            <ArrowRightIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" strokeWidth={2} />
           </button>
         </div>
       </div>
@@ -998,15 +1049,15 @@ function Partners({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
   const p = t.partners
 
   return (
-    <section className="py-24 lg:py-40 bg-[#F5F7F9]">
+    <section className="py-16 sm:py-24 lg:py-40 bg-[#F5F7F9]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <Badge text={p.tag} centered />
-        <h2 className="text-4xl sm:text-5xl lg:text-7xl leading-tight mt-6 mb-12 text-[#174F7A] font-black uppercase tracking-tight">
+        <h2 className="text-3xl sm:text-5xl lg:text-7xl leading-snug sm:leading-tight mt-4 sm:mt-6 mb-8 sm:mb-12 text-[#174F7A] font-black uppercase tracking-tight">
           {p.titlePart1} <br className="hidden sm:block" />
           <span className="text-[#35A85A]">{p.titlePart2}</span>
         </h2>
         
-        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 lg:gap-8 mb-20 text-lg lg:text-2xl font-bold text-[#5E6B76] tracking-[0.2em] uppercase">
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-20 text-lg lg:text-2xl font-bold text-[#5E6B76] tracking-[0.2em] uppercase">
           <span>{p.countries[0]}</span>
           <span className="text-[#EAF0F4]">·</span>
           <span>{p.countries[1]}</span>
@@ -1035,11 +1086,22 @@ function Partners({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
 // ─── 15. Testimonials ──────────────────────────────────────────────────────────
 function Testimonials({ t }: { t: TKey }) {
   const ts = t.testimonials
+  const scrollRef = React.useRef<HTMLDivElement>(null)
+  const [activeIndex, setActiveIndex] = React.useState(0)
+
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const scrollLeft = scrollRef.current.scrollLeft
+      const clientWidth = scrollRef.current.clientWidth
+      const index = Math.round(scrollLeft / clientWidth)
+      setActiveIndex(index)
+    }
+  }
 
   return (
-    <section className="py-24 lg:py-32 bg-[#F5F7F9]">
+    <section className="py-16 sm:py-24 lg:py-32 bg-[#F5F7F9]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-20">
+        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-20">
           <Badge text={ts.tag} centered />
           <h2 className="text-4xl sm:text-5xl lg:text-6xl leading-tight text-[#174F7A] tracking-[-0.02em]">
             {ts.title}
@@ -1047,15 +1109,19 @@ function Testimonials({ t }: { t: TKey }) {
           <p className="text-sm text-[#5E6B76] mt-6 italic">{ts.disclaimer}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div 
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="flex md:grid md:grid-cols-3 gap-6 sm:gap-8 overflow-x-auto md:overflow-visible pb-4 md:pb-0 snap-x snap-mandatory md:snap-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        >
           {ts.cards.map((c: any) => (
             <div
               key={c.name}
-              className="flex flex-col justify-between p-10 rounded-[2.5rem] bg-white border border-[#EAF0F4] hover:-translate-y-2 transition-transform duration-500 shadow-sm"
+              className="flex flex-col justify-between p-8 sm:p-10 rounded-[2.5rem] bg-white border border-[#EAF0F4] md:hover:-translate-y-2 transition-transform duration-500 shadow-sm shrink-0 w-[85%] md:w-auto snap-center md:snap-align-none"
             >
               <div>
-                <QuoteIcon size={32} color="#EAF0F4" className="mb-6" />
-                <p className="text-lg leading-relaxed mb-8 font-medium text-[#174F7A]">
+                <QuoteIcon size={32} color="#EAF0F4" className="mb-4 sm:mb-6" />
+                <p className="text-lg leading-relaxed mb-6 sm:mb-8 font-medium text-[#174F7A]">
                   "{c.quote}"
                 </p>
               </div>
@@ -1074,6 +1140,22 @@ function Testimonials({ t }: { t: TKey }) {
                 </div>
               </div>
             </div>
+          ))}
+        </div>
+        
+        {/* Mobile Carousel Indicators */}
+        <div className="flex justify-center gap-2 mt-4 md:hidden">
+          {ts.cards.map((_: any, idx: number) => (
+            <button 
+              key={idx}
+              onClick={() => {
+                if (scrollRef.current && scrollRef.current.children[idx]) {
+                   scrollRef.current.children[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+                }
+              }}
+              className={`h-2 rounded-full transition-all duration-300 ${activeIndex === idx ? 'w-6 bg-[#174F7A]' : 'w-2 bg-[#EAF0F4]'}`}
+              aria-label={`Aller au témoignage ${idx + 1}`}
+            />
           ))}
         </div>
       </div>
@@ -1136,7 +1218,7 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
         </div>
 
         {/* Contact direct si question supplémentaire */}
-        <div className="mt-12 p-6 sm:p-8 rounded-2xl bg-[#F5F7F9] border border-[#EAF0F4] flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="mt-8 sm:mt-12 p-5 sm:p-8 rounded-2xl bg-[#F5F7F9] border border-[#EAF0F4] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 sm:gap-6">
           <div>
             <h3 className="text-lg font-bold text-[#174F7A] mb-1">
               Vous avez d'autres questions ?
@@ -1145,7 +1227,7 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
               Notre équipe à Agbélouvé est disponible pour échanger directement avec vous.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <div className="flex flex-nowrap items-center gap-1.5 sm:gap-3 shrink-0 w-full sm:w-auto justify-between sm:justify-start overflow-hidden mt-4 lg:mt-0">
             <a
               href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(lang === "DE" ? "Frage zum APTIC-R Freiwilligendienst" : lang === "EN" ? "APTIC-R Volunteering Question" : "Question Volontariat APTIC-R")}`}
               onClick={(e) => {
@@ -1154,12 +1236,12 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
                 const target = e.currentTarget.href
                 setTimeout(() => { window.location.href = target }, 150)
               }}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#174F7A] text-white text-xs font-bold hover:bg-[#123E60] transition-colors shadow-xs"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2.5 sm:px-5 sm:py-3 rounded-xl bg-[#174F7A] text-white text-[10px] sm:text-xs font-bold hover:bg-[#123E60] transition-colors shadow-xs whitespace-nowrap min-w-0"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              <span>aptic.rural19@gmail.com</span>
+              <span className="truncate">aptic.rural19@gmail.com</span>
             </a>
             <a
               href="tel:+22891201990"
@@ -1169,12 +1251,12 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
                 const target = e.currentTarget.href
                 setTimeout(() => { window.location.href = target }, 150)
               }}
-              className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-white border border-[#D8E2E9] text-[#174F7A] text-xs font-bold hover:bg-slate-50 transition-colors shadow-2xs"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2.5 sm:px-4 sm:py-3 rounded-xl bg-white border border-[#D8E2E9] text-[#174F7A] text-[10px] sm:text-xs font-bold hover:bg-slate-50 transition-colors shadow-2xs whitespace-nowrap min-w-0"
             >
-              <svg className="w-4 h-4 text-[#35A85A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#35A85A] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
-              <span>+228 91 20 19 90</span>
+              <span className="truncate">+228 91 20 19 90</span>
             </a>
           </div>
         </div>

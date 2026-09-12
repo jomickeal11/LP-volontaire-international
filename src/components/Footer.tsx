@@ -22,10 +22,10 @@ export default function Footer({ lang, navigate }: FooterProps) {
 
   return (
     <footer style={{ backgroundColor: "#142332" }} className="text-white">
-      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-20 lg:py-24">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-24">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-10 lg:gap-16">
           {/* Brand */}
-          <div className="lg:col-span-2">
+          <div className="col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden bg-white shrink-0 shadow-sm">
                 <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={40} height={40} className="w-full h-full object-contain p-0.5" unoptimized />
@@ -105,7 +105,7 @@ export default function Footer({ lang, navigate }: FooterProps) {
           </div>
 
           {/* Navigation */}
-          <div>
+          <div className="col-span-1">
             <h4
               className="text-xs uppercase tracking-widest mb-4"
               style={{ color: "#7A8A9A" }}
@@ -131,8 +131,8 @@ export default function Footer({ lang, navigate }: FooterProps) {
             </ul>
           </div>
 
-          {/* Contact + Language */}
-          <div>
+          {/* Contact */}
+          <div className="col-span-1 flex flex-col">
             <h4
               className="text-xs uppercase tracking-widest mb-4"
               style={{ color: "#7A8A9A" }}
@@ -142,14 +142,14 @@ export default function Footer({ lang, navigate }: FooterProps) {
             <ul className="space-y-3 mb-6">
               <li className="text-sm" style={{ color: "#9AA8B4" }}>
                 <span
-                  className="block text-xs uppercase tracking-wide mb-0.5"
+                  className="block text-[10px] sm:text-xs uppercase tracking-wide mb-0.5"
                   style={{ color: "#6A7A8A" }}
                 >
                   {t.email}
                 </span>
                 <a
                   href={`mailto:${t.emailValue}`}
-                  className="font-mono text-xs hover:text-white transition-colors underline decoration-slate-600 underline-offset-2"
+                  className="font-mono text-[11px] sm:text-xs hover:text-white transition-colors underline decoration-slate-600 underline-offset-2 break-all"
                 >
                   {t.emailValue}
                 </a>
@@ -157,14 +157,14 @@ export default function Footer({ lang, navigate }: FooterProps) {
               {(t as any).phone && (t as any).phoneValue && (
                 <li className="text-sm" style={{ color: "#9AA8B4" }}>
                   <span
-                    className="block text-xs uppercase tracking-wide mb-0.5"
+                    className="block text-[10px] sm:text-xs uppercase tracking-wide mb-0.5"
                     style={{ color: "#6A7A8A" }}
                   >
                     {(t as any).phone}
                   </span>
                   <a
                     href={`tel:${((t as any).phoneValue as string).replace(/\s+/g, "")}`}
-                    className="font-mono text-xs hover:text-white transition-colors underline decoration-slate-600 underline-offset-2"
+                    className="font-mono text-[11px] sm:text-xs hover:text-white transition-colors underline decoration-slate-600 underline-offset-2"
                   >
                     {(t as any).phoneValue}
                   </a>
@@ -172,15 +172,52 @@ export default function Footer({ lang, navigate }: FooterProps) {
               )}
               <li className="text-sm" style={{ color: "#9AA8B4" }}>
                 <span
-                  className="block text-xs uppercase tracking-wide mb-0.5"
+                  className="block text-[10px] sm:text-xs uppercase tracking-wide mb-0.5"
                   style={{ color: "#6A7A8A" }}
                 >
                   {t.address}
                 </span>
-                {t.addressValue}
+                <span className="text-[11px] sm:text-xs leading-snug block">
+                  {t.addressValue}
+                </span>
               </li>
             </ul>
 
+            {/* Desktop Languages */}
+            <div className="hidden lg:block mt-auto">
+              <h4
+                className="text-xs uppercase tracking-widest mb-3"
+                style={{ color: "#7A8A9A" }}
+              >
+                {t.languages}
+              </h4>
+              <div className="flex gap-2 flex-wrap">
+                {[
+                  { code: "FR", label: "Français" },
+                  { code: "EN", label: "English" },
+                  { code: "DE", label: "Deutsch" },
+                ].map((l) => (
+                  <span
+                    key={l.code}
+                    className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md"
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.06)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "#9AA8B4",
+                    }}
+                  >
+                    <span className="font-mono text-[10px] text-gray-400 font-bold">
+                      {l.code}
+                    </span>
+                    <span>{l.label}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Mobile Languages */}
+          <div className="col-span-2 lg:hidden pt-2">
             <h4
               className="text-xs uppercase tracking-widest mb-3"
               style={{ color: "#7A8A9A" }}
