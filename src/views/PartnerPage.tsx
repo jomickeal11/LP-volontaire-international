@@ -990,7 +990,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
       {/* ── 2. CONTEXTE PARTENARIAT (Bloc horizontal épuré avec photo) ── */}
       <section className="border-b" style={{ backgroundColor: BG_LIGHT, borderColor: "#EAF0F4" }}>
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-7">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 lg:gap-10">
             {/* Texte de présentation */}
             <div className="flex-1 max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-white text-[#174F7A] border border-[#D8E2E9] shadow-2xs mb-2.5">
@@ -1042,13 +1042,13 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
       {/* ── 2. FORMULAIRE EN 2 COLONNES (73% Formulaire / 27% Sidebar) ──────── */}
       <section className="pt-8 pb-20 flex-1" style={{ backgroundColor: BG_LIGHT }}>
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-10">
+          <div className="flex flex-col md:flex-row items-start gap-6 lg:gap-10">
 
-            {/* ── COLONNE PRINCIPALE : LE FORMULAIRE (~73%) ─────────────────────── */}
-            <div className="w-full lg:w-[73%]">
+            {/* ── COLONNE PRINCIPALE : LE FORMULAIRE ─────────────────────── */}
+            <div className="w-full md:w-[68%] lg:w-[73%]">
 
               {/* ── BARRE DE PROGRESSION MOBILE (STICKY COMPACTE & DISCRÈTE) ──── */}
-              <div className="lg:hidden sticky top-16 z-30 bg-white/95 backdrop-blur-md border border-[#D8E2E9] rounded-2xl shadow-xs px-4 py-2.5 mb-4 transition-all">
+              <div className="md:hidden sticky top-16 z-30 bg-white/95 backdrop-blur-md border border-[#D8E2E9] rounded-2xl shadow-xs px-4 py-2.5 mb-4 transition-all">
                 <div className="flex items-center justify-between text-xs mb-1.5">
                   <span className="font-extrabold text-[#174F7A] tracking-wider uppercase text-[11px]">
                     {currentLang === "DE" ? `SCHRITT ${step} / 4` : currentLang === "EN" ? `STEP ${step} / 4` : `ÉTAPE ${step} / 4`}
@@ -1072,7 +1072,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
 
                 {/* En-tête de l'étape active */}
                 <div className="mb-8 pb-6 border-b border-slate-100">
-                  <div className="hidden lg:flex items-center gap-2 mb-2.5">
+                  <div className="hidden md:flex items-center gap-2 mb-2.5">
                     <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-[#E8F2FA] text-[#174F7A]">
                       {currentLang === "DE" ? `SCHRITT ${step} VON 4` : currentLang === "EN" ? `STEP ${step} OF 4` : `ÉTAPE ${step} SUR 4`}
                     </span>
@@ -1088,8 +1088,8 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                     {STEPS[step - 1].desc}
                   </p>
 
-                  {/* Barre fine de progression (Desktop uniquement) */}
-                  <div className="hidden lg:block h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mt-5">
+                  {/* Barre fine de progression (Tablette & Desktop uniquement) */}
+                  <div className="hidden md:block h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mt-5">
                     <div
                       className="h-full transition-all duration-500 rounded-full"
                       style={{
@@ -1525,8 +1525,8 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
 
               </div>
 
-              {/* ── ACCÈS COMPACT MOBILE : CADRE PARTENAIRE & CONTACT (Uniquement sur mobile < lg) ── */}
-              <div className="lg:hidden mt-6 space-y-3">
+              {/* ── ACCÈS COMPACT MOBILE : CADRE PARTENAIRE & CONTACT (Uniquement sur smartphone < md) ── */}
+              <div className="md:hidden mt-6 space-y-3">
                 {/* Accordéon Cadre Partenaire */}
                 <div className="bg-white rounded-2xl border border-[#D8E2E9] shadow-xs overflow-hidden transition-all">
                   <button
@@ -1650,8 +1650,8 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
               </div>
             </div>
 
-            {/* ── COLONNE LATÉRALE D'ACCOMPAGNEMENT (~27%) ───────────────────── */}
-            <aside className="hidden lg:block w-full lg:w-[27%] lg:sticky lg:top-24 space-y-5">
+            {/* ── COLONNE LATÉRALE D'ACCOMPAGNEMENT (~27% Desktop, ~32% Tablette) ─ */}
+            <aside className="hidden md:block w-full md:w-[32%] lg:w-[27%] md:sticky md:top-24 space-y-5">
 
               {/* BLOC 1 : ÉTAPES DU FORMULAIRE */}
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#D8E2E9]">
