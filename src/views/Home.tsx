@@ -116,13 +116,13 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
         />
       </div>
 
-      <div className="flex-1 flex flex-col justify-center pt-28 pb-16 sm:pt-32 sm:pb-24 lg:pt-40 lg:pb-32 relative z-10 max-w-7xl w-full mx-auto px-5 sm:px-6 lg:px-8">
+      <div className="flex-1 flex flex-col justify-center pt-32 pb-8 sm:pt-32 sm:pb-24 lg:pt-40 lg:pb-32 relative z-10 max-w-7xl w-full mx-auto px-5 sm:px-6 lg:px-8">
         <div
-          className="text-center mx-auto mb-16 lg:mb-20 w-full"
+          className="text-center mx-auto mb-10 sm:mb-16 lg:mb-20 w-full"
           style={{ maxWidth: "900px" }}
         >
           <h1
-            className="leading-[1.1] tracking-tight mb-8"
+            className="leading-[1.05] sm:leading-[1.1] tracking-tight mb-6 sm:mb-8"
             style={{ textShadow: "0 2px 12px rgba(0,0,0,0.14)" }}
           >
             {/* Niveau 1 - Principal */}
@@ -145,19 +145,19 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
           </h1>
 
           <p
-            className="text-lg lg:text-xl font-medium leading-relaxed max-w-[640px] mx-auto mb-12"
+            className="text-base sm:text-lg lg:text-xl font-medium leading-[1.6] sm:leading-relaxed max-w-[320px] sm:max-w-[640px] mx-auto mb-10 sm:mb-12"
             style={{ color: "rgba(255,255,255,0.92)" }}
           >
             {h.desc}
           </p>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-5 sm:gap-4">
             <button
               onClick={() => {
                 trackEvent("apply_now_click", { source: "hero_primary" })
                 navigate("apply")
               }}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-bold text-sm px-10 py-4 rounded-xl transition-all shadow-lg cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-bold text-sm px-6 py-3.5 sm:px-10 sm:py-4 rounded-xl transition-all shadow-lg cursor-pointer"
               style={{ backgroundColor: "#35A85A", color: "#FFFFFF" }}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.backgroundColor = "#2E914E")
@@ -174,7 +174,7 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
                 const el = document.getElementById("mission")
                 el?.scrollIntoView({ behavior: "smooth" })
               }}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-bold text-sm px-10 py-4 rounded-xl transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-bold text-sm px-6 py-3.5 sm:px-10 sm:py-4 rounded-xl transition-all cursor-pointer"
               style={{
                 backgroundColor: "transparent",
                 color: "#FFFFFF",
@@ -196,7 +196,7 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
         </div>
 
         {/* Key Facts - intentionally overlapping the next section */}
-        <div className="relative mt-4 sm:mt-8 -mb-12 max-w-4xl mx-auto z-20">
+        <div className="relative mt-2 sm:mt-8 mb-4 sm:-mb-12 max-w-4xl mx-auto z-20">
           <div
             className="absolute inset-0 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
             style={{
