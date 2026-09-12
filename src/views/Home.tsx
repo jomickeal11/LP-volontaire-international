@@ -249,20 +249,20 @@ function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
         </div>
 
         {/* Volunteer Path */}
-        <div className="flex flex-col-reverse lg:flex-row items-center gap-10 lg:gap-16 mb-20 sm:mb-24 lg:mb-24">
-          <div className="flex-1 w-full rounded-[2.5rem] overflow-hidden h-[350px] lg:h-[450px] shadow-sm">
+        <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-10 lg:gap-16 mb-20 sm:mb-24 lg:mb-24">
+          <div className="flex-1 w-full rounded-[2.5rem] overflow-hidden h-[280px] sm:h-[350px] lg:h-[450px] shadow-sm">
             <img
               src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80"
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000"
               alt="Volunteer"
             />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col items-start mt-2 sm:mt-0">
             <Badge text={d.volunteerTag} />
-            <h2 className="text-4xl lg:text-5xl mb-6 leading-tight text-[#174F7A] tracking-[-0.02em]">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl mb-4 sm:mb-6 mt-4 sm:mt-0 leading-tight text-[#174F7A] tracking-[-0.02em]">
               {d.volunteerTitle}
             </h2>
-            <p className="text-lg text-[#5E6B76] mb-10 leading-relaxed max-w-xl">
+            <p className="text-base sm:text-lg text-[#5E6B76] mb-8 sm:mb-10 leading-relaxed max-w-xl">
               {d.volunteerDesc}
             </p>
             <button
@@ -270,7 +270,7 @@ function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
                 trackEvent("apply_now_click", { source: "dual_path_volunteer" })
                 navigate("apply")
               }}
-              className="inline-flex items-center justify-center gap-3 font-bold text-sm px-8 py-4 rounded-xl transition-all text-white hover:scale-105 shadow-sm cursor-pointer"
+              className="inline-flex items-center justify-center gap-3 font-bold text-sm px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl transition-all text-white hover:scale-105 shadow-sm cursor-pointer"
               style={{ backgroundColor: "#35A85A" }}
             >
               <span>{d.volunteerCta}</span>
@@ -280,20 +280,20 @@ function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
         </div>
 
         {/* Organization Path */}
-        <div className="flex flex-col-reverse lg:flex-row-reverse items-center gap-10 lg:gap-16">
-          <div className="flex-1 w-full rounded-[2.5rem] overflow-hidden h-[350px] lg:h-[450px] shadow-sm">
+        <div className="flex flex-col-reverse lg:flex-row-reverse items-center gap-8 sm:gap-10 lg:gap-16">
+          <div className="flex-1 w-full rounded-[2.5rem] overflow-hidden h-[280px] sm:h-[350px] lg:h-[450px] shadow-sm">
             <img
               src="/meeting-org.jpg"
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000"
               alt="Organization"
             />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col items-start mb-2 sm:mb-0">
             <Badge text={d.orgTag} />
-            <h2 className="text-4xl lg:text-5xl mb-6 leading-tight text-[#174F7A] tracking-[-0.02em]">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl mb-4 sm:mb-6 mt-4 sm:mt-0 leading-tight text-[#174F7A] tracking-[-0.02em]">
               {d.orgTitle}
             </h2>
-            <p className="text-lg text-[#5E6B76] mb-10 leading-relaxed max-w-xl">
+            <p className="text-base sm:text-lg text-[#5E6B76] mb-8 sm:mb-10 leading-relaxed max-w-xl">
               {d.orgDesc}
             </p>
             <button
@@ -301,7 +301,7 @@ function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
                 trackEvent("partner_request_click", { source: "dual_path_org" })
                 navigate("partner")
               }}
-              className="inline-flex items-center justify-center gap-3 font-bold text-sm px-8 py-4 rounded-xl transition-all text-white hover:scale-105 shadow-sm cursor-pointer"
+              className="inline-flex items-center justify-center gap-3 font-bold text-sm px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl transition-all text-white hover:scale-105 shadow-sm cursor-pointer"
               style={{ backgroundColor: "#174F7A" }}
             >
               <span>{d.orgCta}</span>
