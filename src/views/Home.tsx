@@ -98,7 +98,7 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
           <img
             src="/hero-volunteer-collab.jpg"
             alt="Collaboration in Togo"
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover object-[center_top] lg:object-center"
             fetchPriority="high"
             decoding="async"
           />
@@ -323,7 +323,7 @@ function WhyMission({ t }: { t: TKey }) {
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center max-w-4xl mx-auto mb-12 sm:mb-16 lg:mb-24">
           <Badge text={wm.tag} centered />
-          <h2 className="text-5xl sm:text-6xl lg:text-7xl leading-tight text-[#174F7A] tracking-tight">
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl leading-tight text-[#174F7A] tracking-[-0.02em]">
             {wm.title}
           </h2>
         </div>
@@ -736,7 +736,7 @@ function LifeInTogo({ t }: { t: TKey }) {
     <section className="py-24 lg:py-40 bg-[#FFFFFF]">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 text-center mb-16 lg:mb-24">
         <Badge text={l.tag} centered />
-        <h2 className="text-5xl lg:text-7xl leading-tight mt-6 mb-8 text-[#174F7A] font-['DM_Serif_Display'] font-normal">
+        <h2 className="text-4xl lg:text-6xl leading-tight mt-6 mb-8 text-[#174F7A] font-['DM_Serif_Display'] font-normal">
           {l.title}
         </h2>
       </div>
@@ -876,7 +876,7 @@ function Support({ t }: { t: TKey }) {
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-20">
             <Badge text={s.tag} centered />
-            <h2 className="text-5xl lg:text-6xl leading-tight mb-6 text-[#174F7A] tracking-[-0.02em]">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight mb-6 text-[#174F7A] tracking-[-0.02em]">
               {s.title}
             </h2>
             <p className="text-lg lg:text-xl font-medium text-[#5E6B76]">
@@ -1002,7 +1002,7 @@ function ApplicationProcess({
       <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center mb-24">
           <Badge text={ap.tag} centered />
-          <h2 className="text-5xl lg:text-6xl leading-tight text-[#174F7A] tracking-[-0.02em]">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#174F7A] tracking-[-0.02em]">
             {ap.title}
           </h2>
         </div>
@@ -1103,7 +1103,7 @@ function Testimonials({ t }: { t: TKey }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-20">
           <Badge text={ts.tag} centered />
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl leading-tight text-[#174F7A] tracking-[-0.02em]">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#174F7A] tracking-[-0.02em]">
             {ts.title}
           </h2>
           <p className="text-sm text-[#5E6B76] mt-6 italic">{ts.disclaimer}</p>
@@ -1175,7 +1175,7 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-24">
           <Badge text={f.tag} centered />
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl text-[#174F7A] tracking-[-0.02em]">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl text-[#174F7A] tracking-[-0.02em]">
             {f.title}
           </h2>
         </div>
@@ -1273,7 +1273,7 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
       <img
         src="https://images.unsplash.com/photo-1652971876875-05db98fab376?w=1920&h=1080&fit=crop&auto=format"
         alt="Rural landscape in West Africa with community gathering"
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover object-[center_top] lg:object-center"
       />
       <div
         className="absolute inset-0"
@@ -1299,7 +1299,7 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
               trackEvent("apply_now_click", { source: "final_cta_volunteer" })
               navigate("apply")
             }}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-black text-base sm:text-lg px-8 sm:px-12 py-5 sm:py-6 rounded-2xl text-white transition-all shadow-2xl hover:scale-105 cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-black text-base sm:text-lg px-8 sm:px-12 py-4 sm:py-6 rounded-2xl text-white transition-all shadow-2xl hover:scale-105 cursor-pointer"
             style={{ backgroundColor: "#35A85A" }}
           >
             <span className="uppercase tracking-wide">{fc.cta1}</span>
@@ -1310,7 +1310,7 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
               trackEvent("partner_request_click", { source: "final_cta_partner" })
               navigate("partner")
             }}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-bold text-base sm:text-lg px-8 sm:px-12 py-5 sm:py-6 rounded-2xl transition-all shadow-2xl hover:scale-105 cursor-pointer text-white"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-bold text-base sm:text-lg px-8 sm:px-12 py-4 sm:py-6 rounded-2xl transition-all shadow-2xl hover:scale-105 cursor-pointer text-white"
             style={{
               backgroundColor: "#174F7A",
             }}

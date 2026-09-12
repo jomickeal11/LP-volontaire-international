@@ -233,7 +233,7 @@ export default function Header({
               <span
                 className="block h-0.5 bg-white origin-center transition-transform duration-200"
                 style={{
-                  transform: mobileOpen ? "rotate(45deg) translateY(5px)" : "",
+                  transform: mobileOpen ? "translateY(6px) rotate(45deg)" : "",
                 }}
               />
               <span
@@ -244,7 +244,7 @@ export default function Header({
                 className="block h-0.5 bg-white origin-center transition-transform duration-200"
                 style={{
                   transform: mobileOpen
-                    ? "rotate(-45deg) translateY(-5px)"
+                    ? "translateY(-6px) rotate(-45deg)"
                     : "",
                 }}
               />
@@ -258,36 +258,49 @@ export default function Header({
         <>
           {/* Backdrop */}
           <div 
-            className="lg:hidden fixed inset-0 z-40 bg-white"
+            className="lg:hidden fixed inset-0 z-40 bg-[rgba(23,79,122,0.2)] backdrop-blur-sm transition-opacity"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="lg:hidden fixed inset-x-0 top-[72px] bottom-0 z-40 bg-white overflow-y-auto">
-            <div className="px-6 py-8 flex flex-col h-full max-w-sm mx-auto">
-              <div className="flex-1 flex flex-col gap-6">
-                {NAV.map((item) => (
-                  <button
-                    key={item.label}
-                    onClick={() => {
-                      handleNavClick(item)
-                      setMobileOpen(false)
-                    }}
-                    className="text-left text-2xl font-extrabold tracking-tight transition-colors"
-                    style={{
-                      color: currentPage === item.page ? "#174F7A" : "#1A2B3C",
-                    }}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+          <div className="lg:hidden fixed top-[72px] left-2 right-2 z-40 bg-white rounded-2xl shadow-2xl border border-[#EAF0F4] overflow-hidden">
+            <div className="relative px-4 py-5 pt-12 flex flex-col max-w-sm mx-auto">
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="absolute top-3 right-4 p-2 text-[#7A8A9A] hover:text-[#174F7A] bg-[#F5F7F9] hover:bg-[#EAF0F4] rounded-full transition-colors cursor-pointer"
+                aria-label="Fermer le menu"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div className="flex flex-col gap-1">
+                {NAV.map((item) => {
+                  const isActive = currentPage === item.page && item.page !== "home"
+                  return (
+                    <button
+                      key={item.label}
+                      onClick={() => {
+                        handleNavClick(item)
+                        setMobileOpen(false)
+                      }}
+                      className="text-left text-[17px] font-bold tracking-tight transition-colors py-3.5 px-4 rounded-xl"
+                      style={{
+                        color: isActive ? "#174F7A" : "#4A5A6A",
+                        backgroundColor: isActive ? "rgba(23,79,122,0.05)" : "transparent",
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  )
+                })}
               </div>
               
-              <div className="mt-8 pt-8 border-t border-slate-100 flex flex-col gap-6">
+              <div className="mt-4 pt-5 border-t border-slate-100 flex justify-center pb-2">
                 <button
                   onClick={() => {
                     navigate("apply")
                     setMobileOpen(false)
                   }}
-                  className="w-full text-center font-bold uppercase tracking-widest px-6 py-4 rounded-xl text-white shadow-md text-sm"
+                  className="w-[90%] text-center font-bold uppercase tracking-widest px-6 py-3.5 rounded-xl text-white shadow-md text-[13px] hover:scale-105 transition-transform"
                   style={{ backgroundColor: GREEN }}
                 >
                   {t.applyNow}
