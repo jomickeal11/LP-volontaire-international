@@ -1348,18 +1348,13 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
             {/* ── COLONNE PRINCIPALE : LE FORMULAIRE (~73%) ─────────────────────── */}
             <div className="w-full lg:w-[73%]">
 
-              {/* ── BARRE DE PROGRESSION MOBILE (STICKY COMPACTE) ──────────────── */}
-              <div className="lg:hidden sticky top-16 z-30 bg-white/95 backdrop-blur-md border border-[#D8E2E9] rounded-2xl shadow-xs p-3.5 mb-4">
+              {/* ── BARRE DE PROGRESSION MOBILE (STICKY COMPACTE & DISCRÈTE) ──── */}
+              <div className="lg:hidden sticky top-16 z-30 bg-white/95 backdrop-blur-md border border-[#D8E2E9] rounded-2xl shadow-xs px-4 py-2.5 mb-4 transition-all">
                 <div className="flex items-center justify-between text-xs mb-1.5">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="font-extrabold text-[#174F7A] tracking-wider uppercase text-[10px] bg-[#E8F2FA] px-2 py-0.5 rounded-md shrink-0">
-                      {t.apply.sidebar?.step || (currentLang === "DE" ? "SCHRITT" : currentLang === "EN" ? "STEP" : "ÉTAPE")} {step}/9
-                    </span>
-                    <span className="font-bold text-[#1A2B3C] truncate text-xs">
-                      {STEPS_CONFIG[step - 1].title}
-                    </span>
-                  </div>
-                  <span className="font-bold text-[#35A85A] text-xs shrink-0 ml-2">
+                  <span className="font-extrabold text-[#174F7A] tracking-wider uppercase text-[11px]">
+                    {t.apply.sidebar?.step || (currentLang === "DE" ? "SCHRITT" : currentLang === "EN" ? "STEP" : "ÉTAPE")} {step} / 9
+                  </span>
+                  <span className="font-bold text-[#35A85A] text-xs">
                     {progressPercentage}%
                   </span>
                 </div>
@@ -1378,7 +1373,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
 
                 {/* En-tête de l'étape active */}
                 <div className="mb-8 pb-6 border-b border-slate-100">
-                  <div className="flex items-center gap-2 mb-2.5">
+                  <div className="hidden lg:flex items-center gap-2 mb-2.5">
                     <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-[#E8F2FA] text-[#174F7A]">
                       {t.apply.sidebar?.step || (currentLang === "DE" ? "SCHRITT" : currentLang === "EN" ? "STEP" : "ÉTAPE")} {step} {t.apply.sidebar?.of || (currentLang === "DE" ? "VON" : currentLang === "EN" ? "OF" : "SUR")} 9
                     </span>
