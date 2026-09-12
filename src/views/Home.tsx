@@ -704,9 +704,9 @@ function LifeInTogo({ t }: { t: TKey }) {
 
       {/* Grande composition photographique */}
       <div className="max-w-[100rem] mx-auto px-5 sm:px-6 lg:px-8 mb-24 lg:mb-32">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8 h-auto md:h-[600px] lg:h-[800px]">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8 h-auto md:h-[600px] lg:h-[800px]">
           {/* Left vertical image */}
-          <div className="md:col-span-1 h-[400px] md:h-full rounded-[2rem] overflow-hidden group shadow-sm">
+          <div className="col-span-1 md:col-span-1 rounded-[2rem] overflow-hidden group shadow-sm">
             <img
               src="https://images.unsplash.com/photo-1637149253733-44ef8365db1c?w=900&h=1200&fit=crop&auto=format"
               alt="Togo landscape"
@@ -714,21 +714,21 @@ function LifeInTogo({ t }: { t: TKey }) {
             />
           </div>
           {/* Middle stack */}
-          <div className="md:col-span-1 flex flex-col gap-4 md:gap-6 lg:gap-8 h-[400px] md:h-full">
-            <div className="flex-1 rounded-[2rem] overflow-hidden group shadow-sm">
+          <div className="col-span-1 md:col-span-1 flex flex-col gap-4 md:gap-6 lg:gap-8">
+            <div className="flex-1 rounded-[2rem] overflow-hidden group shadow-sm min-h-[160px] sm:min-h-[220px]">
               <img
                 src="https://images.unsplash.com/photo-1609252509229-364936a1d1a2?w=800&h=600&fit=crop&auto=format"
                 alt="Community members"
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
               />
             </div>
-            <div className="flex-[0.6] rounded-[2rem] overflow-hidden shadow-sm bg-[#174F7A] p-8 flex flex-col items-center justify-center text-center">
-              <span className="text-white font-['DM_Serif_Display'] text-4xl sm:text-5xl mb-3">Agbélouvé</span>
-              <span className="text-[#35A85A] font-black uppercase tracking-widest text-sm">Base Camp</span>
+            <div className="rounded-[2rem] overflow-hidden shadow-sm bg-[#174F7A] p-4 sm:p-8 flex flex-col items-center justify-center text-center min-h-[140px] sm:min-h-[180px]">
+              <span className="text-white font-['DM_Serif_Display'] text-2xl sm:text-4xl lg:text-5xl mb-2 sm:mb-3">Agbélouvé</span>
+              <span className="text-[#35A85A] font-black uppercase tracking-widest text-[10px] sm:text-sm">Base Camp</span>
             </div>
           </div>
           {/* Right vertical image */}
-          <div className="md:col-span-1 h-[400px] md:h-full rounded-[2rem] overflow-hidden group shadow-sm">
+          <div className="col-span-2 md:col-span-1 h-[250px] sm:h-[350px] md:h-full rounded-[2rem] overflow-hidden group shadow-sm">
             <img
               src="https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=900&h=1200&fit=crop&auto=format"
               alt="Nature in Togo"
