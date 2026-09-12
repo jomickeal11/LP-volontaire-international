@@ -32,6 +32,17 @@ export default function Header({
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [mobileOpen])
   const currentLang = (lang || "FR").toUpperCase() as keyof typeof translations
   const t = (translations[currentLang] || translations.FR).nav
   const router = useRouter()
@@ -244,57 +255,70 @@ export default function Header({
 
       {/* Mobile menu dropdown */}
       {mobileOpen && (
-        <div className="lg:hidden absolute top-[110%] left-0 right-0 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="px-4 py-4 flex flex-col">
-            {NAV.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => {
-                  handleNavClick(item)
-                  setMobileOpen(false)
-                }}
-                className="text-left px-4 py-3 text-sm font-bold uppercase tracking-wide border-b border-gray-50 hover:bg-gray-50 transition-colors"
-                style={{
-                  color: currentPage === item.page ? "#1A2B3C" : "#4A5A6A",
-                }}
-              >
-                {item.label}
-              </button>
-            ))}
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-4 px-4">
-              <div className="flex items-center p-1 rounded-full border border-gray-200 bg-gray-50">
-                {(["FR", "EN", "DE"] as Language[]).map((l) => (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="lg:hidden fixed inset-0 z-40 bg-white"
+            onClick={() => setMobileOpen(false)}
+          />
+          <div className="lg:hidden fixed inset-x-0 top-[72px] bottom-0 z-40 bg-white overflow-y-auto">
+            <div className="px-6 py-8 flex flex-col h-full max-w-sm mx-auto">
+              <div className="flex-1 flex flex-col gap-6">
+                {NAV.map((item) => (
                   <button
-                    key={l}
+                    key={item.label}
                     onClick={() => {
-                      trackEvent("language_switch", { lang: l, metadata: { from: lang, to: l } })
-                      setTimeout(() => setLang(l), 150)
+                      handleNavClick(item)
+                      setMobileOpen(false)
                     }}
-                    className="text-xs font-bold px-3 py-1.5 rounded-full transition-all uppercase"
+                    className="text-left text-2xl font-extrabold tracking-tight transition-colors"
                     style={{
-                      backgroundColor: lang === l ? "white" : "transparent",
-                      color: lang === l ? "#1A2B3C" : "#7A8A9A",
-                      boxShadow:
-                        lang === l ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                      color: currentPage === item.page ? "#174F7A" : "#1A2B3C",
                     }}
                   >
-                    {l}
+                    {item.label}
                   </button>
                 ))}
               </div>
-              <button
-                onClick={() => {
-                  navigate("apply")
-                  setMobileOpen(false)
-                }}
-                className="text-xs font-bold uppercase tracking-wide px-5 py-2.5 rounded-full text-white shadow-sm"
-                style={{ backgroundColor: GREEN }}
-              >
-                {t.applyNow}
-              </button>
+              
+              <div className="mt-8 pt-8 border-t border-slate-100 flex flex-col gap-6">
+                <button
+                  onClick={() => {
+                    navigate("apply")
+                    setMobileOpen(false)
+                  }}
+                  className="w-full text-center font-bold uppercase tracking-widest px-6 py-4 rounded-xl text-white shadow-md text-sm"
+                  style={{ backgroundColor: GREEN }}
+                >
+                  {t.applyNow}
+                </button>
+                
+                <div className="flex justify-center items-center p-1.5 rounded-xl border border-slate-200 bg-slate-50 w-full">
+                  {(["FR", "EN", "DE"] as Language[]).map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => {
+                        trackEvent("language_switch", { lang: l, metadata: { from: lang, to: l } })
+                        setTimeout(() => {
+                          setLang(l)
+                          setMobileOpen(false)
+                        }, 150)
+                      }}
+                      className="flex-1 text-xs font-bold py-3 rounded-lg transition-all uppercase text-center"
+                      style={{
+                        backgroundColor: lang === l ? "white" : "transparent",
+                        color: lang === l ? "#174F7A" : "#7A8A9A",
+                        boxShadow: lang === l ? "0 2px 8px rgba(0,0,0,0.08)" : "none",
+                      }}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </header>
   )

@@ -116,7 +116,7 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
         />
       </div>
 
-      <div className="flex-1 flex flex-col justify-center pt-32 pb-24 lg:pt-40 lg:pb-32 relative z-10 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="flex-1 flex flex-col justify-center pt-28 pb-16 sm:pt-32 sm:pb-24 lg:pt-40 lg:pb-32 relative z-10 max-w-7xl w-full mx-auto px-5 sm:px-6 lg:px-8">
         <div
           className="text-center mx-auto mb-16 lg:mb-20 w-full"
           style={{ maxWidth: "900px" }}
@@ -126,12 +126,12 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
             style={{ textShadow: "0 2px 12px rgba(0,0,0,0.14)" }}
           >
             {/* Niveau 1 - Principal */}
-            <span className="text-4xl sm:text-5xl lg:text-[72px] block mb-3 text-[#FFFFFF]">
+            <span className="text-3xl sm:text-5xl lg:text-[72px] block mb-2 sm:mb-3 text-[#FFFFFF]">
               {h.line1}
             </span>
             {/* Niveau 2 - Accent */}
             <span
-              className="text-3xl sm:text-4xl lg:text-[64px] block mb-3 text-[#35A85A] font-extrabold"
+              className="text-4xl sm:text-5xl lg:text-[64px] block mb-2 sm:mb-3 text-[#35A85A] font-extrabold"
               style={{
                 textShadow: "0 2px 12px rgba(0,0,0,0.45), 0 8px 32px rgba(0,0,0,0.35)",
               }}
@@ -139,7 +139,7 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
               {h.line2}
             </span>
             {/* Niveau 3 - Complément */}
-            <span className="text-3xl sm:text-4xl lg:text-[58px] block text-[#FFFFFF] font-medium opacity-90">
+            <span className="text-2xl sm:text-4xl lg:text-[58px] block text-[#FFFFFF] font-medium opacity-90">
               {h.line3}
             </span>
           </h1>
@@ -151,7 +151,7 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
             {h.desc}
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
             <button
               onClick={() => {
                 trackEvent("apply_now_click", { source: "hero_primary" })
@@ -196,7 +196,7 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
         </div>
 
         {/* Key Facts - intentionally overlapping the next section */}
-        <div className="relative mt-8 -mb-12 max-w-4xl mx-auto z-20">
+        <div className="relative mt-4 sm:mt-8 -mb-12 max-w-4xl mx-auto z-20">
           <div
             className="absolute inset-0 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
             style={{
@@ -207,7 +207,7 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
               borderRadius: "20px",
             }}
           />
-          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8 text-center py-6 px-6">
+          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-center py-6 px-6">
             {[
               { label: h.stat1Label, sub: h.stat1Sub },
               { label: h.stat2Label, sub: h.stat2Sub },
@@ -239,8 +239,8 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
 function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
   const d = t.dualPath
   return (
-    <section className="pt-12 pb-20 lg:pt-20 lg:pb-32 bg-[#FFFFFF]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="pt-24 pb-20 sm:pt-20 sm:pb-20 lg:pt-24 lg:pb-32 bg-[#FFFFFF]">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center mb-16 lg:mb-24">
           <Badge text={d.tagLine} centered />
           <h2 className="text-3xl lg:text-4xl text-[#174F7A] mt-4">
@@ -249,7 +249,7 @@ function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
         </div>
 
         {/* Volunteer Path */}
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16 mb-16 lg:mb-24">
+        <div className="flex flex-col-reverse lg:flex-row items-center gap-10 lg:gap-16 mb-20 sm:mb-24 lg:mb-24">
           <div className="flex-1 w-full rounded-[2.5rem] overflow-hidden h-[350px] lg:h-[450px] shadow-sm">
             <img
               src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80"
@@ -280,7 +280,7 @@ function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
         </div>
 
         {/* Organization Path */}
-        <div className="flex flex-col lg:flex-row-reverse items-center gap-12 lg:gap-16">
+        <div className="flex flex-col-reverse lg:flex-row-reverse items-center gap-10 lg:gap-16">
           <div className="flex-1 w-full rounded-[2.5rem] overflow-hidden h-[350px] lg:h-[450px] shadow-sm">
             <img
               src="/meeting-org.jpg"
@@ -319,8 +319,8 @@ function WhyMission({ t }: { t: TKey }) {
   const wm = t.whyMission
 
   return (
-    <section id="why" className="py-24 lg:py-32 bg-[#FFFFFF]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="why" className="py-20 sm:py-24 lg:py-32 bg-[#FFFFFF]">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center max-w-4xl mx-auto mb-24">
           <Badge text={wm.tag} centered />
           <h2 className="text-5xl sm:text-6xl lg:text-7xl leading-tight text-[#174F7A] tracking-tight">
@@ -361,9 +361,9 @@ function TheChallenge({ t }: { t: TKey }) {
   const c = t.challenge
 
   return (
-    <section id="about" className="py-24 lg:py-32 bg-[#F5F7F9]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
+    <section id="about" className="py-20 sm:py-24 lg:py-32 bg-[#F5F7F9]">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16 lg:gap-24 items-start">
           <div className="lg:sticky lg:top-32">
             <Badge text={c.tag} />
             <h2 className="text-5xl lg:text-6xl leading-tight mb-8 tracking-tight text-[#174F7A]">
@@ -424,8 +424,8 @@ function YourMission({ t }: { t: TKey }) {
   const m = t.mission
 
   return (
-    <section id="mission" className="py-24 lg:py-32 bg-[#FFFFFF]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="mission" className="py-20 sm:py-24 lg:py-32 bg-[#FFFFFF]">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="max-w-2xl mb-24">
           <Badge text={m.tag} />
           <h2 className="text-4xl lg:text-5xl leading-tight tracking-[-0.02em] text-[#174F7A]">
@@ -462,8 +462,8 @@ function WhatCouldYouBuild({ t }: { t: TKey }) {
   const b = t.build
 
   return (
-    <section id="activities" className="py-24 lg:py-32 bg-[#F5F7F9]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="activities" className="py-20 sm:py-24 lg:py-32 bg-[#F5F7F9]">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-24">
           <Badge text={b.tag} centered />
           <h2 className="text-5xl lg:text-6xl leading-tight text-[#174F7A] tracking-[-0.02em]">
@@ -536,8 +536,8 @@ function ProfilesSought({
   const [isEligibilityOpen, setEligibilityOpen] = useState(false)
 
   return (
-    <section className="py-24 lg:py-32 bg-[#FFFFFF] overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-20 sm:py-24 lg:py-32 bg-[#FFFFFF] overflow-hidden">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-24">
           <Badge text={p.tag} centered />
           <h2 className="text-5xl lg:text-6xl leading-tight mb-6 text-[#174F7A] tracking-[-0.02em]">
@@ -651,7 +651,7 @@ function WeekWithAptic({ t }: { t: TKey }) {
 
   return (
     <section className="py-24 lg:py-32 bg-[#F5F7F9]">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center mb-24">
           <Badge text={w.tag} centered />
           <h2 className="text-4xl sm:text-5xl lg:text-6xl leading-tight text-[#174F7A] tracking-[-0.02em]">
@@ -695,7 +695,7 @@ function LifeInTogo({ t }: { t: TKey }) {
 
   return (
     <section className="py-24 lg:py-40 bg-[#FFFFFF]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16 lg:mb-24">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 text-center mb-16 lg:mb-24">
         <Badge text={l.tag} centered />
         <h2 className="text-5xl lg:text-7xl leading-tight mt-6 mb-8 text-[#174F7A] font-['DM_Serif_Display'] font-normal">
           {l.title}
@@ -703,7 +703,7 @@ function LifeInTogo({ t }: { t: TKey }) {
       </div>
 
       {/* Grande composition photographique */}
-      <div className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8 mb-24 lg:mb-32">
+      <div className="max-w-[100rem] mx-auto px-5 sm:px-6 lg:px-8 mb-24 lg:mb-32">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8 h-auto md:h-[600px] lg:h-[800px]">
           {/* Left vertical image */}
           <div className="md:col-span-1 h-[400px] md:h-full rounded-[2rem] overflow-hidden group shadow-sm">
@@ -738,7 +738,7 @@ function LifeInTogo({ t }: { t: TKey }) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
           {l.items?.map((item: any) => (
             <div key={item.label} className="flex flex-col border-t-2 border-[#EAF0F4] pt-8 group">
@@ -762,7 +762,7 @@ function Agbelouve({ t }: { t: TKey }) {
 
   return (
     <section className="py-24 lg:py-32 bg-[#F5F7F9]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-center">
           <div
             className="lg:col-span-6 relative rounded-[2.5rem] overflow-hidden shadow-sm border border-[#EAF0F4]"
@@ -835,7 +835,7 @@ function Support({ t }: { t: TKey }) {
   return (
     <>
       <section className="py-24 lg:py-32 bg-[#FFFFFF]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-20">
             <Badge text={s.tag} centered />
             <h2 className="text-5xl lg:text-6xl leading-tight mb-6 text-[#174F7A] tracking-[-0.02em]">
@@ -882,7 +882,7 @@ function Support({ t }: { t: TKey }) {
 
       {/* Institutional 'What's Included?' Table */}
       <section className="py-24 lg:py-32 bg-[#F5F7F9]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
           <div className="bg-white rounded-[2rem] border border-[#EAF0F4] overflow-hidden shadow-sm">
             <div className="px-8 py-6 flex flex-col md:flex-row md:items-center justify-between border-b border-[#EAF0F4] bg-[#FFFFFF]">
               <h3 className="text-2xl text-[#174F7A] font-['DM_Serif_Display']">{s.tableTitle}</h3>
@@ -948,7 +948,7 @@ function ApplicationProcess({
 
   return (
     <section className="py-24 lg:py-32 bg-[#FFFFFF]">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center mb-24">
           <Badge text={ap.tag} centered />
           <h2 className="text-5xl lg:text-6xl leading-tight text-[#174F7A] tracking-[-0.02em]">
@@ -1107,7 +1107,7 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
                 className="rounded-2xl transition-all duration-300 bg-[#F5F7F9] overflow-hidden border border-[#EAF0F4]"
               >
                 <button
-                  className="w-full flex items-center justify-between gap-6 p-6 lg:p-8 text-left cursor-pointer hover:bg-white transition-colors"
+                  className="w-full flex items-center justify-between gap-5 sm:gap-6 p-5 sm:p-6 lg:p-8 text-left cursor-pointer hover:bg-white transition-colors"
                   onClick={() => setOpen(isOpen ? null : i)}
                   aria-expanded={isOpen}
                 >
@@ -1126,7 +1126,7 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
                     isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
                   }`}
                 >
-                  <div className="px-6 lg:px-8 pb-8 pt-2 text-[#5E6B76] text-lg leading-relaxed">
+                  <div className="px-5 sm:px-6 lg:px-8 pb-6 sm:pb-8 pt-2 text-[#5E6B76] text-base sm:text-lg leading-relaxed">
                     {item.a}
                   </div>
                 </div>
@@ -1205,7 +1205,7 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
           {fc.title}
         </h2>
         <p
-          className="text-xl sm:text-2xl lg:text-3xl mb-12 sm:mb-16 max-w-4xl mx-auto leading-relaxed font-medium"
+          className="text-xl sm:text-2xl lg:text-3xl mb-12 sm:mb-16 max-w-4xl mx-auto leading-relaxed font-medium px-5 sm:px-0"
           style={{ color: "rgba(255,255,255,0.9)" }}
         >
           {fc.p1} {fc.p2} {fc.p3}
@@ -1228,7 +1228,7 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
               trackEvent("partner_request_click", { source: "final_cta_partner" })
               navigate("partner")
             }}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-bold text-base sm:text-lg px-8 sm:px-12 py-5 sm:py-6 rounded-2xl transition-all cursor-pointer shadow-2xl hover:scale-105 text-white"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-bold text-base sm:text-lg px-8 sm:px-12 py-5 sm:py-6 rounded-2xl transition-all shadow-2xl hover:scale-105 cursor-pointer text-white"
             style={{
               backgroundColor: "#174F7A",
             }}
