@@ -2014,12 +2014,12 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                 )}
 
                 {/* ── BOUTONS DE NAVIGATION DU FORMULAIRE ────────────────────── */}
-                <div className="flex items-center justify-between pt-8 mt-8 border-t border-slate-100">
+                <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-4 pt-8 mt-8 border-t border-slate-100">
                   {step > 1 ? (
                     <button
                       type="button"
                       onClick={back}
-                      className="px-5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                      className="w-full sm:w-auto px-5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer text-center"
                     >
                       ← {t.apply.nav?.back || (currentLang === "DE" ? "Zurück" : currentLang === "EN" ? "Back" : "Retour")}
                     </button>
@@ -2028,12 +2028,12 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                   )}
 
                   {step < 9 ? (
-                    <div className="flex gap-3 items-center justify-end">
+                    <div className="flex flex-col-reverse sm:flex-row gap-3 sm:items-center justify-end w-full sm:w-auto">
                       {(progressPercentage === 100 || maxStepReached >= 9) && (
                         <button
                           type="button"
                           onClick={() => goToStep(9)}
-                          className="px-4 sm:px-6 py-3.5 rounded-xl text-sm font-bold text-[#174F7A] bg-white border border-[#D8E2E9] hover:bg-slate-50 transition-all cursor-pointer"
+                          className="w-full sm:w-auto px-4 sm:px-6 py-3.5 rounded-xl text-sm font-bold text-[#174F7A] bg-white border border-[#D8E2E9] hover:bg-slate-50 transition-all cursor-pointer text-center"
                         >
                           <span className="hidden sm:inline">
                             {currentLang === "DE" ? "Zum Abschluss springen" : currentLang === "EN" ? "Jump to summary" : "Retourner à la fin"}
@@ -2047,7 +2047,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         type="button"
                         onClick={next}
                         disabled={!isStepValid(step)}
-                        className="px-8 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
+                        className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                         style={{ backgroundColor: GREEN }}
                       >
                         <span>{t.apply.nav?.continue || (currentLang === "DE" ? "Weiter" : currentLang === "EN" ? "Continue" : "Continuer")}</span>
@@ -2059,7 +2059,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       type="button"
                       onClick={submit}
                       disabled={isSubmitting || !form.consent}
-                      className="px-8 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
+                      className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                       style={{ backgroundColor: BLUE }}
                     >
                       {isSubmitting ? (

@@ -261,7 +261,7 @@ export default function Header({
                 {item.label}
               </button>
             ))}
-            <div className="mt-4 flex items-center justify-between px-4">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-4 px-4">
               <div className="flex items-center p-1 rounded-full border border-gray-200 bg-gray-50">
                 {(["FR", "EN", "DE"] as Language[]).map((l) => (
                   <button

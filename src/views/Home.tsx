@@ -126,12 +126,12 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
             style={{ textShadow: "0 2px 12px rgba(0,0,0,0.14)" }}
           >
             {/* Niveau 1 - Principal */}
-            <span className="text-5xl sm:text-6xl lg:text-[72px] block mb-3 text-[#FFFFFF]">
+            <span className="text-4xl sm:text-5xl lg:text-[72px] block mb-3 text-[#FFFFFF]">
               {h.line1}
             </span>
             {/* Niveau 2 - Accent */}
             <span
-              className="text-4xl sm:text-5xl lg:text-[64px] block mb-3 text-[#35A85A] font-extrabold"
+              className="text-3xl sm:text-4xl lg:text-[64px] block mb-3 text-[#35A85A] font-extrabold"
               style={{
                 textShadow: "0 2px 12px rgba(0,0,0,0.45), 0 8px 32px rgba(0,0,0,0.35)",
               }}
@@ -391,7 +391,7 @@ function TheChallenge({ t }: { t: TKey }) {
 
                   {/* Visual Anchor Dot on the main line */}
                   <div
-                    className={`absolute -left-[54px] lg:-left-[70px] top-4 w-7 h-7 rounded-full border-4 transition-transform duration-500 group-hover:scale-125 z-10`}
+                    className={`absolute -left-[44px] sm:-left-[54px] lg:-left-[70px] top-4 w-7 h-7 rounded-full border-4 transition-transform duration-500 group-hover:scale-125 z-10`}
                     style={{ backgroundColor: "#35A85A", borderColor: "#F5F7F9" }}
                   />
 
@@ -1201,23 +1201,23 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
         }}
       />
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center mt-auto">
-        <h2 className="text-6xl sm:text-7xl lg:text-8xl text-white mb-8 tracking-tighter leading-none font-['DM_Serif_Display']">
+        <h2 className="text-4xl sm:text-6xl lg:text-8xl text-white mb-8 tracking-tighter leading-none font-['DM_Serif_Display']">
           {fc.title}
         </h2>
         <p
-          className="text-2xl lg:text-3xl mb-16 max-w-4xl mx-auto leading-relaxed font-medium"
+          className="text-xl sm:text-2xl lg:text-3xl mb-12 sm:mb-16 max-w-4xl mx-auto leading-relaxed font-medium"
           style={{ color: "rgba(255,255,255,0.9)" }}
         >
           {fc.p1} {fc.p2} {fc.p3}
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
           <button
             onClick={() => {
               trackEvent("apply_now_click", { source: "final_cta_volunteer" })
               navigate("apply")
             }}
-            className="inline-flex items-center justify-center gap-3 font-black text-lg px-12 py-6 rounded-2xl text-white transition-all shadow-2xl hover:scale-105 cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-black text-base sm:text-lg px-8 sm:px-12 py-5 sm:py-6 rounded-2xl text-white transition-all shadow-2xl hover:scale-105 cursor-pointer"
             style={{ backgroundColor: "#35A85A" }}
           >
             <span className="uppercase tracking-wide">{fc.cta1}</span>
@@ -1228,7 +1228,7 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
               trackEvent("partner_request_click", { source: "final_cta_partner" })
               navigate("partner")
             }}
-            className="inline-flex items-center justify-center gap-3 font-bold text-lg px-12 py-6 rounded-2xl transition-all cursor-pointer shadow-2xl hover:scale-105 text-white"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-bold text-base sm:text-lg px-8 sm:px-12 py-5 sm:py-6 rounded-2xl transition-all cursor-pointer shadow-2xl hover:scale-105 text-white"
             style={{
               backgroundColor: "#174F7A",
             }}

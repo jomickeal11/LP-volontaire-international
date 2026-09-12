@@ -220,7 +220,7 @@ export default function Footer({ lang, navigate }: FooterProps) {
           }}
         >
           <p>{t.copyright}</p>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
             <button className="hover:text-gray-300 transition-colors cursor-pointer">
               {t.privacy}
             </button>

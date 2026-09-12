@@ -287,8 +287,8 @@ export default function AdminPartnerRequests({
       {/* Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50/75 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+          <table className="w-full min-w-[900px] text-left text-sm text-slate-600">
+            <thead className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
               <tr>
                 <th className="w-10 px-4 py-3.5 text-center">
                   <input

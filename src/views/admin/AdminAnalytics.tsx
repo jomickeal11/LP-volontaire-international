@@ -498,7 +498,7 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
 
         <div className="bg-white rounded-xl border border-[#EAF0F4] shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[700px] text-left text-xs">
               <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
                 <tr>
                   <th className="py-3 px-4">Événement</th>
