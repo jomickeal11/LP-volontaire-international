@@ -1389,8 +1389,8 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                     {STEPS_CONFIG[step - 1].desc}
                   </p>
 
-                  {/* Barre fine de progression */}
-                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mt-5">
+                  {/* Barre fine de progression (Desktop uniquement, la barre sticky suffisant sur mobile) */}
+                  <div className="hidden lg:block h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mt-5">
                     <div
                       className="h-full transition-all duration-500 rounded-full"
                       style={{
