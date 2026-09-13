@@ -252,18 +252,18 @@ export default function Header({
             className="lg:hidden fixed inset-0 z-40 bg-[rgba(23,79,122,0.2)] backdrop-blur-sm transition-opacity"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="lg:hidden fixed top-[68px] sm:top-[74px] left-3 right-3 sm:left-auto sm:right-4 md:right-6 sm:w-[340px] z-50 bg-white rounded-2xl shadow-2xl border border-[#EAF0F4] overflow-hidden">
-            <div className="relative p-5 pt-12 flex flex-col w-full">
+          <div className="lg:hidden fixed top-[64px] sm:top-[74px] right-3 sm:right-4 md:right-6 w-[275px] sm:w-[340px] max-w-[calc(100vw-1.5rem)] z-50 bg-white rounded-2xl shadow-2xl border border-[#EAF0F4] overflow-hidden">
+            <div className="relative p-4 sm:p-5 pt-10 sm:pt-12 flex flex-col w-full">
               <button
                 onClick={() => setMobileOpen(false)}
-                className="absolute top-3 right-4 p-2 text-[#7A8A9A] hover:text-[#174F7A] bg-[#F5F7F9] hover:bg-[#EAF0F4] rounded-full transition-colors cursor-pointer"
+                className="absolute top-2.5 right-3 p-1.5 sm:p-2 text-[#7A8A9A] hover:text-[#174F7A] bg-[#F5F7F9] hover:bg-[#EAF0F4] rounded-full transition-colors cursor-pointer"
                 aria-label="Fermer le menu"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-0.5 sm:gap-1">
                 {NAV.map((item) => {
                   const isActive = currentPage === item.page && item.page !== "home"
                   return (
@@ -273,7 +273,7 @@ export default function Header({
                         handleNavClick(item)
                         setMobileOpen(false)
                       }}
-                      className="text-left text-[15px] font-bold tracking-tight transition-colors py-3 px-3.5 rounded-xl hover:bg-[#F5F7F9]"
+                      className="text-left text-sm sm:text-[15px] font-bold tracking-tight transition-colors py-2.5 px-3 sm:py-3 sm:px-3.5 rounded-xl hover:bg-[#F5F7F9]"
                       style={{
                         color: isActive ? "#174F7A" : "#4A5A6A",
                         backgroundColor: isActive ? "rgba(23,79,122,0.06)" : "transparent",
@@ -285,13 +285,13 @@ export default function Header({
                 })}
               </div>
               
-              <div className="mt-3 pt-4 border-t border-slate-100 flex justify-center pb-1">
+              <div className="mt-3 pt-3 sm:pt-4 border-t border-slate-100 flex justify-center pb-1">
                 <button
                   onClick={() => {
                     navigate("apply")
                     setMobileOpen(false)
                   }}
-                  className="w-full text-center font-bold uppercase tracking-widest px-6 py-3.5 rounded-xl text-white shadow-md text-xs hover:scale-102 transition-transform"
+                  className="w-full text-center font-bold uppercase tracking-widest px-5 py-3 sm:py-3.5 rounded-xl text-white shadow-md text-xs hover:scale-102 transition-transform"
                   style={{ backgroundColor: GREEN }}
                 >
                   {t.applyNow}
