@@ -802,9 +802,10 @@ function Agbelouve({ t }: { t: TKey }) {
   return (
     <section className="py-16 sm:py-24 lg:py-32 bg-[#F5F7F9]">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 lg:gap-24 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-14 lg:gap-24 items-center">
+          {/* 1. Image en premier avec cadrage généreux et confortable sur tablette */}
           <div
-            className="md:col-span-6 relative rounded-[2.5rem] overflow-hidden shadow-sm border border-[#EAF0F4] h-[300px] sm:h-[400px] lg:h-[500px]"
+            className="lg:col-span-6 w-full relative rounded-[2.5rem] overflow-hidden shadow-sm border border-[#EAF0F4] h-[300px] sm:h-[400px] md:h-[440px] lg:h-[500px]"
           >
             <img
               src="https://images.unsplash.com/photo-1611502029437-54521b5e6ada?w=900&h=700&fit=crop&auto=format"
@@ -823,16 +824,17 @@ function Agbelouve({ t }: { t: TKey }) {
             </div>
           </div>
 
-          <div className="md:col-span-6">
+          {/* 2. Contenu textuel après l'image : label, titre et description uniques, puis grille 2x3 */}
+          <div className="lg:col-span-6 w-full">
             <Badge text={a.tag} />
             <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight mb-4 lg:mb-8 text-[#174F7A] tracking-[-0.02em]">
               {a.title}
             </h2>
-            <p className="text-base sm:text-lg leading-snug sm:leading-relaxed mb-8 lg:mb-12 text-[#5E6B76] text-left">
+            <p className="text-base sm:text-lg leading-relaxed mb-8 md:mb-10 lg:mb-12 text-[#5E6B76] text-left max-w-3xl">
               {a.desc}
             </p>
 
-            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:gap-8">
+            <div className="grid grid-cols-2 gap-x-4 sm:gap-x-6 md:gap-x-12 gap-y-6 sm:gap-y-7 md:gap-y-8">
               {a.facts.map((f, i) => {
                 const icons = [
                   <MapPinIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#174F7A" />,
@@ -843,15 +845,15 @@ function Agbelouve({ t }: { t: TKey }) {
                   <HouseIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#174F7A" />,
                 ]
                 return (
-                  <div key={f.label} className="flex gap-2 sm:gap-4 items-center text-left">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center bg-white border border-[#EAF0F4] flex-shrink-0">
+                  <div key={f.label} className="flex gap-3 sm:gap-4 items-center text-left">
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-2xl flex items-center justify-center bg-white border border-[#EAF0F4] flex-shrink-0 shadow-xs">
                       {icons[i]}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[9px] sm:text-[10px] uppercase tracking-widest text-[#5E6B76] font-bold mb-0.5 sm:mb-1 truncate">
+                      <div className="text-[10px] sm:text-xs uppercase tracking-widest text-[#5E6B76] font-bold mb-0.5 sm:mb-1 truncate">
                         {f.label}
                       </div>
-                      <div className="text-xs sm:text-sm font-bold text-[#174F7A] leading-tight">
+                      <div className="text-xs sm:text-sm md:text-base font-bold text-[#174F7A] leading-tight">
                         {f.value}
                       </div>
                     </div>
