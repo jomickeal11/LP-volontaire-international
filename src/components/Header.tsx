@@ -183,13 +183,13 @@ export default function Header({
             ))}
           </div>
 
-          {/* Primary CTA / Menu Button */}
+          {/* Primary CTA (Desktop only) */}
           <button
             onClick={() => {
               trackEvent("apply_now_click", { lang, source: "header_button" })
               setTimeout(() => navigate("apply"), 100)
             }}
-            className="hidden sm:inline-flex items-center gap-2 font-bold text-[11px] px-6 py-2.5 rounded-full transition-all cursor-pointer text-white shadow-sm hover:scale-105"
+            className="hidden lg:inline-flex items-center gap-2 font-bold text-[11px] px-6 py-2.5 rounded-full transition-all cursor-pointer text-white shadow-sm hover:scale-105"
             style={{ backgroundColor: "#35A85A" }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.backgroundColor = GREEN_HOVER)
