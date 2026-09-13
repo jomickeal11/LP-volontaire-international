@@ -428,30 +428,12 @@ class DataStore {
   }
 
   private init() {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("apticr_applications_store_v2")
-      if (saved) {
-        try {
-          this.applications = JSON.parse(saved)
-        } catch {
-          this.applications = [...initialApplications]
-        }
-      } else {
-        this.applications = [...initialApplications]
-        this.persist()
-      }
-    } else {
-      this.applications = [...initialApplications]
-    }
+    this.applications = [...initialApplications]
   }
 
   private persist() {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(
-        "apticr_applications_store_v2",
-        JSON.stringify(this.applications),
-      )
-    }
+    // Les dossiers de candidature sont désormais exclusivement persistés dans PostgreSQL via Prisma
+    // Aucune copie de données candidates n'est conservée dans le localStorage du navigateur
     this.notify()
   }
 

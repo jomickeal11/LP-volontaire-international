@@ -6,7 +6,6 @@ import {
   transformRecordToCandidate,
 } from "../../data/mockCandidates"
 import type { CandidateStatus } from "../../data/mockCandidates"
-import { store } from "../../lib/store"
 import type { Page } from "../../types"
 import { MapPinIcon, MailIcon, PhoneIcon, GlobeIcon, CheckIcon } from "../../components/Icons"
 import { useAdminHeader } from "../../lib/AdminHeaderContext"

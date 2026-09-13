@@ -283,6 +283,21 @@ export default function Footer({ lang, navigate }: FooterProps) {
             >
               {t.cookies}
             </Link>
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("open_cookie_preferences"))
+                }
+              }}
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
+              {lang === "DE"
+                ? "Cookie-Einstellungen"
+                : lang === "EN"
+                ? "Cookie settings"
+                : "Gérer mes cookies"}
+            </button>
           </div>
         </div>
       </div>

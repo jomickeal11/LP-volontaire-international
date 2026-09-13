@@ -123,12 +123,12 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
         {/* 4 KPIs d'acquisition */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white rounded-xl p-4 border border-[#EAF0F4] shadow-xs">
-            <span className="text-xs font-semibold text-slate-500 block mb-1">Visiteurs</span>
+            <span className="text-xs font-semibold text-slate-500 block mb-1">Visiteurs mesurés (GA4)</span>
             <div className="text-2xl font-bold font-mono text-slate-800">
               {ga4.visitors !== null ? ga4.visitors.toLocaleString() : "—"}
             </div>
             <div className="text-[11px] text-slate-400 mt-1 font-medium">
-              {ga4.connected ? "Visiteurs uniques" : "Non connecté"}
+              {ga4.connected ? "Audience mesurée avec consentement" : "Non connecté"}
             </div>
           </div>
 

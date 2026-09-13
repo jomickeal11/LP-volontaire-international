@@ -138,6 +138,9 @@ export const viewport: Viewport = {
   maximumScale: 5,
 }
 
+import GoogleAnalyticsLoader from "@/components/GoogleAnalyticsLoader"
+import CookieConsentBanner from "@/components/CookieConsentBanner"
+
 export default async function RootLayout({
   children,
   params,
@@ -151,32 +154,11 @@ export default async function RootLayout({
 
   return (
     <html lang={lang || "fr"} className="scroll-smooth">
-      <head>
-        {gaId && (
-          <>
-            <Script
-              strategy="afterInteractive"
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-            />
-            <Script
-              id="google-analytics"
-              strategy="afterInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  window.gtag = function(){window.dataLayer.push(arguments);}
-                  window.gtag('js', new Date());
-                  window.gtag('config', '${gaId}', {
-                    page_path: window.location.pathname,
-                  });
-                `,
-              }}
-            />
-          </>
-        )}
-      </head>
+      <head />
       <body className="antialiased min-h-screen flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
+        <GoogleAnalyticsLoader gaId={gaId} />
         {children}
+        <CookieConsentBanner lang={lang || "fr"} />
       </body>
     </html>
   )

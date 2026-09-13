@@ -1,4 +1,5 @@
 import { trackAnalyticsEvent } from "./actions"
+import { getCookieConsent } from "./cookieConsent"
 
 export function trackEvent(
   eventName: string,
@@ -25,30 +26,30 @@ export function trackEvent(
       sessionStorage.setItem(`tracked_${eventName}`, "true")
     }
   }
-  // 1. Google Analytics 4
-  if (typeof window !== "undefined") {
-    try {
-      const payload = {
-        event_category: "Engagement",
-        event_label: data?.source || eventName,
-        language: data?.lang,
-        ...data?.metadata,
-      }
-      
-      console.log(`[Tracker] Sending GA4 event: ${eventName}`, payload)
 
-      if (typeof (window as any).gtag === "function") {
-        ;(window as any).gtag("event", eventName, payload)
-      } else if ((window as any).dataLayer) {
-        ;(window as any).dataLayer.push({
-          event: eventName,
-          ...payload,
-        })
-      } else {
-        console.warn("[Tracker] GA4 not loaded yet")
+  // 1. Google Analytics 4 (uniquement si le visiteur a explicitement consenti)
+  if (typeof window !== "undefined") {
+    const consent = getCookieConsent()
+    if (consent?.analytics) {
+      try {
+        const payload = {
+          event_category: "Engagement",
+          event_label: data?.source || eventName,
+          language: data?.lang,
+          ...data?.metadata,
+        }
+
+        if (typeof (window as any).gtag === "function") {
+          ;(window as any).gtag("event", eventName, payload)
+        } else if ((window as any).dataLayer) {
+          ;(window as any).dataLayer.push({
+            event: eventName,
+            ...payload,
+          })
+        }
+      } catch (e) {
+        console.error("[Tracker] Error sending to GA4:", e)
       }
-    } catch (e) {
-      console.error("[Tracker] Error sending to GA4:", e)
     }
   }
 
