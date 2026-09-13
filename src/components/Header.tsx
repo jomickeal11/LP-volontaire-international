@@ -217,26 +217,25 @@ export default function Header({
           {/* Mobile & Tablet Hamburger */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2 rounded-full text-white cursor-pointer"
-            style={{ backgroundColor: GREEN }}
+            className="lg:hidden p-2.5 rounded-full cursor-pointer transition-all duration-200 border border-[rgba(23,79,122,0.12)] bg-[#F5F7F9] hover:bg-[#EAF0F4] active:scale-95"
             aria-label="Menu"
           >
-            <div className="w-4 h-4 flex flex-col justify-center gap-1">
+            <div className="w-4 h-3.5 flex flex-col justify-between">
               <span
-                className="block h-0.5 bg-white origin-center transition-transform duration-200"
+                className="block h-0.5 w-full rounded-full bg-[#174F7A] origin-center transition-transform duration-200"
                 style={{
-                  transform: mobileOpen ? "translateY(6px) rotate(45deg)" : "",
+                  transform: mobileOpen ? "translateY(5px) rotate(45deg)" : "",
                 }}
               />
               <span
-                className="block h-0.5 bg-white transition-opacity duration-200"
+                className="block h-0.5 w-full rounded-full bg-[#174F7A] transition-opacity duration-200"
                 style={{ opacity: mobileOpen ? 0 : 1 }}
               />
               <span
-                className="block h-0.5 bg-white origin-center transition-transform duration-200"
+                className="block h-0.5 w-full rounded-full bg-[#174F7A] origin-center transition-transform duration-200"
                 style={{
                   transform: mobileOpen
-                    ? "translateY(-6px) rotate(-45deg)"
+                    ? "translateY(-5px) rotate(-45deg)"
                     : "",
                 }}
               />
