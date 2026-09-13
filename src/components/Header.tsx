@@ -108,26 +108,18 @@ export default function Header({
             aria-label="APTIC-R Home"
           >
             <div
-              className="rounded-full flex items-center justify-center transition-transform group-hover:scale-105 shrink-0 overflow-hidden"
-              style={{
-                width: 42,
-                height: 42,
-                backgroundColor: "#FFFFFF",
-                border: "1px solid rgba(23,79,122,0.10)",
-              }}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-105 shrink-0 overflow-hidden bg-white border border-[rgba(23,79,122,0.10)]"
             >
               <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={40} height={40} className="w-[85%] h-[85%] object-contain" priority unoptimized />
             </div>
-            <div className="ml-3">
+            <div className="ml-2.5 sm:ml-3">
               <div
-                className="font-extrabold text-sm leading-none tracking-tight"
-                style={{ color: "#174F7A" }}
+                className="font-extrabold text-xs sm:text-sm leading-none tracking-tight text-[#174F7A]"
               >
                 APTIC-R
               </div>
               <div
-                className="text-[9px] font-bold tracking-[0.1em] uppercase mt-0.5 hidden sm:block"
-                style={{ color: "#174F7A" }}
+                className="text-[8px] sm:text-[9px] font-bold tracking-[0.06em] sm:tracking-[0.1em] uppercase mt-0.5 text-[#174F7A] whitespace-nowrap"
               >
                 International Volunteers
               </div>
