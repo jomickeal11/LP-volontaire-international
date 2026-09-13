@@ -136,14 +136,14 @@ export default function Header({
         </div>
 
         {/* Center: Desktop Nav */}
-        <nav className="hidden lg:flex flex-[2] items-center justify-center gap-5 xl:gap-7">
+        <nav className="hidden md:flex flex-[2] items-center justify-center gap-2.5 lg:gap-5 xl:gap-7">
           {NAV.map((item) => {
             const isActive = currentPage === item.page && item.page !== "home"
             return (
               <button
                 key={item.label}
                 onClick={() => handleNavClick(item)}
-                className="text-[11px] xl:text-xs font-bold uppercase tracking-[0.15em] transition-colors whitespace-nowrap relative py-2 cursor-pointer"
+                className="text-[10px] lg:text-[11px] xl:text-xs font-bold uppercase tracking-wider lg:tracking-[0.15em] transition-colors whitespace-nowrap relative py-2 cursor-pointer"
                 style={{ color: isActive ? "#174F7A" : "#233B4D" }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = "#174F7A")}
                 onMouseLeave={(e) => {
@@ -225,7 +225,7 @@ export default function Header({
           {/* Mobile Hamburger */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2 rounded-full text-white cursor-pointer"
+            className="md:hidden p-2 rounded-full text-white cursor-pointer"
             style={{ backgroundColor: GREEN }}
             aria-label="Menu"
           >
@@ -258,10 +258,10 @@ export default function Header({
         <>
           {/* Backdrop */}
           <div 
-            className="lg:hidden fixed inset-0 z-40 bg-[rgba(23,79,122,0.2)] backdrop-blur-sm transition-opacity"
+            className="md:hidden fixed inset-0 z-40 bg-[rgba(23,79,122,0.2)] backdrop-blur-sm transition-opacity"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="lg:hidden fixed top-[72px] left-2 right-2 z-40 bg-white rounded-2xl shadow-2xl border border-[#EAF0F4] overflow-hidden">
+          <div className="md:hidden fixed top-[72px] left-2 right-2 z-40 bg-white rounded-2xl shadow-2xl border border-[#EAF0F4] overflow-hidden">
             <div className="relative px-4 py-5 pt-12 flex flex-col max-w-sm mx-auto">
               <button
                 onClick={() => setMobileOpen(false)}

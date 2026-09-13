@@ -249,7 +249,7 @@ function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
         </div>
 
         {/* Volunteer Path */}
-        <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-10 lg:gap-16 mb-20 sm:mb-24 lg:mb-24">
+        <div className="flex flex-col md:flex-row items-center gap-8 sm:gap-10 lg:gap-16 mb-20 sm:mb-24 lg:mb-24">
           <div className="flex-1 w-full rounded-[2.5rem] overflow-hidden h-[280px] sm:h-[350px] lg:h-[450px] shadow-sm">
             <img
               src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80"
@@ -280,7 +280,7 @@ function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
         </div>
 
         {/* Organization Path */}
-        <div className="flex flex-col-reverse lg:flex-row-reverse items-center gap-8 sm:gap-10 lg:gap-16">
+        <div className="flex flex-col-reverse md:flex-row-reverse items-center gap-8 sm:gap-10 lg:gap-16">
           <div className="flex-1 w-full rounded-[2.5rem] overflow-hidden h-[280px] sm:h-[350px] lg:h-[450px] shadow-sm">
             <img
               src="/meeting-org.jpg"
@@ -363,8 +363,8 @@ function TheChallenge({ t }: { t: TKey }) {
   return (
     <section id="about" className="py-20 sm:py-24 lg:py-32 bg-[#F5F7F9]">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16 lg:gap-24 items-start">
-          <div className="lg:sticky lg:top-32">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 sm:gap-16 lg:gap-24 items-start">
+          <div className="md:sticky md:top-32">
             <Badge text={c.tag} />
             <h2 className="text-3xl sm:text-5xl lg:text-6xl leading-tight mb-6 sm:mb-8 tracking-tight text-[#174F7A]">
               {c.title}
@@ -597,7 +597,7 @@ function ProfilesSought({
                   0{index + 1}
                 </div>
 
-                <div className="relative z-10 flex flex-col items-start text-left lg:items-center lg:text-center">
+                <div className="relative z-10 flex flex-col items-start text-left md:items-center md:text-center">
                   <div className="mb-4 sm:mb-8">{icons[index]}</div>
                   <h3 className="text-lg sm:text-3xl lg:text-4xl text-[#174F7A] font-['DM_Serif_Display'] mb-2 sm:mb-6">
                     {cat.title}
@@ -802,9 +802,9 @@ function Agbelouve({ t }: { t: TKey }) {
   return (
     <section className="py-16 sm:py-24 lg:py-32 bg-[#F5F7F9]">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-24 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 lg:gap-24 items-center">
           <div
-            className="lg:col-span-6 relative rounded-[2.5rem] overflow-hidden shadow-sm border border-[#EAF0F4] h-[300px] sm:h-[400px] lg:h-[500px]"
+            className="md:col-span-6 relative rounded-[2.5rem] overflow-hidden shadow-sm border border-[#EAF0F4] h-[300px] sm:h-[400px] lg:h-[500px]"
           >
             <img
               src="https://images.unsplash.com/photo-1611502029437-54521b5e6ada?w=900&h=700&fit=crop&auto=format"
@@ -823,7 +823,7 @@ function Agbelouve({ t }: { t: TKey }) {
             </div>
           </div>
 
-          <div className="lg:col-span-6">
+          <div className="md:col-span-6">
             <Badge text={a.tag} />
             <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight mb-4 lg:mb-8 text-[#174F7A] tracking-[-0.02em]">
               {a.title}
@@ -1218,7 +1218,7 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
         </div>
 
         {/* Contact direct si question supplémentaire */}
-        <div className="mt-8 sm:mt-12 p-5 sm:p-8 rounded-2xl bg-[#F5F7F9] border border-[#EAF0F4] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 sm:gap-6">
+        <div className="mt-8 sm:mt-12 p-5 sm:p-8 rounded-2xl bg-[#F5F7F9] border border-[#EAF0F4] flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6">
           <div>
             <h3 className="text-lg font-bold text-[#174F7A] mb-1">
               Vous avez d'autres questions ?
@@ -1227,7 +1227,7 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
               Notre équipe à Agbélouvé est disponible pour échanger directement avec vous.
             </p>
           </div>
-          <div className="flex flex-nowrap items-center gap-1.5 sm:gap-3 shrink-0 w-full sm:w-auto justify-between sm:justify-start overflow-hidden mt-4 lg:mt-0">
+          <div className="flex flex-nowrap items-center gap-1.5 sm:gap-3 shrink-0 w-full sm:w-auto justify-between sm:justify-start overflow-hidden mt-4 md:mt-0">
             <a
               href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(lang === "DE" ? "Frage zum APTIC-R Freiwilligendienst" : lang === "EN" ? "APTIC-R Volunteering Question" : "Question Volontariat APTIC-R")}`}
               onClick={(e) => {
@@ -1273,7 +1273,7 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
       <img
         src="https://images.unsplash.com/photo-1652971876875-05db98fab376?w=1920&h=1080&fit=crop&auto=format"
         alt="Rural landscape in West Africa with community gathering"
-        className="absolute inset-0 w-full h-full object-cover object-[center_top] lg:object-center"
+        className="absolute inset-0 w-full h-full object-cover object-[center_top] md:object-center"
       />
       <div
         className="absolute inset-0"
