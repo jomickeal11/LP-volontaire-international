@@ -473,9 +473,9 @@ function WhatCouldYouBuild({ t }: { t: TKey }) {
         </div>
 
         {/* Project Gallery Composition */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full min-w-0">
           {/* Featured Primary Project: Smart Irrigation */}
-          <div className="lg:col-span-12 xl:col-span-7 rounded-[2.5rem] overflow-hidden flex flex-col bg-white border border-[#EAF0F4] group shadow-sm">
+          <div className="lg:col-span-12 xl:col-span-7 rounded-[2.5rem] overflow-hidden flex flex-col bg-white border border-[#EAF0F4] group shadow-sm w-full min-w-0">
             <div className="relative h-80 sm:h-[400px] overflow-hidden">
               <img
                 src="https://images.unsplash.com/photo-1589923188900-85dae523342b?w=1200&q=80"
@@ -496,7 +496,7 @@ function WhatCouldYouBuild({ t }: { t: TKey }) {
           </div>
 
           {/* 4 Secondary Projects Grid / Mobile Accordion */}
-          <div className="lg:col-span-12 xl:col-span-5 flex flex-col sm:grid sm:grid-cols-2 gap-0 sm:gap-6">
+          <div className="lg:col-span-12 xl:col-span-5 flex flex-col sm:grid sm:grid-cols-2 gap-0 sm:gap-6 w-full min-w-0">
             {b.cards.map((p, i) => {
               const icons = [
                 <SmartphoneIcon size={24} color="#174F7A" />,
@@ -510,7 +510,7 @@ function WhatCouldYouBuild({ t }: { t: TKey }) {
                 <div
                   key={p.title}
                   onClick={() => setOpenCardIndex(isOpen ? null : i)}
-                  className="flex flex-col py-5 sm:py-0 border-b border-[#EAF0F4] last:border-b-0 sm:border-b-0 sm:p-8 sm:rounded-[2rem] sm:bg-white sm:border sm:border-[#EAF0F4] justify-center items-start transition-all duration-300 sm:hover:shadow-md group cursor-pointer"
+                  className="w-full min-w-0 flex flex-col py-5 sm:py-0 border-b border-[#EAF0F4] last:border-b-0 sm:border-b-0 sm:p-8 sm:rounded-[2rem] sm:bg-white sm:border sm:border-[#EAF0F4] justify-center items-start transition-all duration-300 sm:hover:shadow-md group cursor-pointer"
                 >
                   {/* Desktop Layout Header (Icon + Badge) */}
                   <div className="hidden sm:flex flex-col w-full">
@@ -1112,12 +1112,12 @@ function Testimonials({ t }: { t: TKey }) {
         <div 
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex md:grid md:grid-cols-3 gap-6 sm:gap-8 overflow-x-auto md:overflow-visible pb-4 md:pb-0 snap-x snap-mandatory md:snap-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          className="flex lg:grid lg:grid-cols-3 gap-6 sm:gap-8 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 snap-x snap-mandatory lg:snap-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
           {ts.cards.map((c: any) => (
             <div
               key={c.name}
-              className="flex flex-col justify-between p-8 sm:p-10 rounded-[2.5rem] bg-white border border-[#EAF0F4] md:hover:-translate-y-2 transition-transform duration-500 shadow-sm shrink-0 w-[85%] md:w-auto snap-center md:snap-align-none"
+              className="flex flex-col justify-between p-8 sm:p-10 rounded-[2.5rem] bg-white border border-[#EAF0F4] lg:hover:-translate-y-2 transition-transform duration-500 shadow-sm shrink-0 w-[85%] sm:w-[65%] md:w-[420px] lg:w-auto snap-center lg:snap-align-none"
             >
               <div>
                 <QuoteIcon size={32} color="#EAF0F4" className="mb-4 sm:mb-6" />
@@ -1143,8 +1143,8 @@ function Testimonials({ t }: { t: TKey }) {
           ))}
         </div>
         
-        {/* Mobile Carousel Indicators */}
-        <div className="flex justify-center gap-2 mt-4 md:hidden">
+        {/* Mobile & Tablet Carousel Indicators */}
+        <div className="flex justify-center gap-2 mt-4 lg:hidden">
           {ts.cards.map((_: any, idx: number) => (
             <button 
               key={idx}
@@ -1218,7 +1218,7 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
         </div>
 
         {/* Contact direct si question supplémentaire */}
-        <div className="mt-8 sm:mt-12 p-5 sm:p-8 rounded-2xl bg-[#F5F7F9] border border-[#EAF0F4] flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6">
+        <div className="mt-8 sm:mt-12 p-5 sm:p-8 rounded-2xl bg-[#F5F7F9] border border-[#EAF0F4] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 sm:gap-6">
           <div>
             <h3 className="text-lg font-bold text-[#174F7A] mb-1">
               Vous avez d'autres questions ?
@@ -1227,7 +1227,7 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
               Notre équipe à Agbélouvé est disponible pour échanger directement avec vous.
             </p>
           </div>
-          <div className="flex flex-nowrap items-center gap-1.5 sm:gap-3 shrink-0 w-full sm:w-auto justify-between sm:justify-start overflow-hidden mt-4 md:mt-0">
+          <div className="flex flex-nowrap items-center gap-1.5 sm:gap-3 shrink-0 w-full sm:w-auto justify-between sm:justify-start overflow-hidden mt-4 lg:mt-0">
             <a
               href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(lang === "DE" ? "Frage zum APTIC-R Freiwilligendienst" : lang === "EN" ? "APTIC-R Volunteering Question" : "Question Volontariat APTIC-R")}`}
               onClick={(e) => {
@@ -1330,7 +1330,7 @@ export default function Home({ lang, navigate }: HomeProps) {
   const t = translations[currentLang] || translations.FR
 
   return (
-    <main>
+    <main className="w-full overflow-x-hidden">
       <Hero t={t} navigate={navigate} />
       <DualPath t={t} navigate={navigate} />
       <WhyMission t={t} />
