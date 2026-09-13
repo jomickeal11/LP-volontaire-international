@@ -22,10 +22,10 @@ export default function Footer({ lang, navigate }: FooterProps) {
 
   return (
     <footer style={{ backgroundColor: "#142332" }} className="text-white">
-      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-24">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-10 lg:gap-16">
-          {/* Brand */}
-          <div className="col-span-2">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
+        <div className="grid grid-cols-2 md:grid-cols-12 lg:grid-cols-4 gap-x-4 md:gap-x-6 lg:gap-x-16 gap-y-10 lg:gap-y-16">
+          {/* Brand (Colonne 1) */}
+          <div className="col-span-2 md:col-span-5 lg:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden bg-white shrink-0 shadow-sm">
                 <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={40} height={40} className="w-full h-full object-contain p-0.5" unoptimized />
@@ -43,14 +43,14 @@ export default function Footer({ lang, navigate }: FooterProps) {
               </div>
             </div>
             <p
-              className="text-sm leading-relaxed mb-2"
-              style={{ color: "#9AA8B4", maxWidth: 360 }}
+              className="text-sm leading-relaxed mb-2 max-w-[360px] md:max-w-none lg:max-w-[360px]"
+              style={{ color: "#9AA8B4" }}
             >
               {t.tagline}
             </p>
             <p
-              className="text-sm leading-relaxed mb-6"
-              style={{ color: "#7A8A9A", maxWidth: 360 }}
+              className="text-sm leading-relaxed mb-6 max-w-[360px] md:max-w-none lg:max-w-[360px]"
+              style={{ color: "#7A8A9A" }}
             >
               {t.tagline2}
             </p>
@@ -104,8 +104,8 @@ export default function Footer({ lang, navigate }: FooterProps) {
             </div>
           </div>
 
-          {/* Navigation */}
-          <div className="col-span-1">
+          {/* Navigation (Colonne 2) */}
+          <div className="col-span-1 md:col-span-3 lg:col-span-1">
             <h4
               className="text-xs uppercase tracking-widest mb-4"
               style={{ color: "#7A8A9A" }}
@@ -131,8 +131,8 @@ export default function Footer({ lang, navigate }: FooterProps) {
             </ul>
           </div>
 
-          {/* Contact */}
-          <div className="col-span-1 flex flex-col">
+          {/* Contact (Colonne 3) */}
+          <div className="col-span-1 md:col-span-4 lg:col-span-1 flex flex-col">
             <h4
               className="text-xs uppercase tracking-widest mb-4"
               style={{ color: "#7A8A9A" }}
@@ -183,8 +183,8 @@ export default function Footer({ lang, navigate }: FooterProps) {
               </li>
             </ul>
 
-            {/* Desktop Languages */}
-            <div className="hidden lg:block mt-auto">
+            {/* Desktop & Tablet Languages */}
+            <div className="hidden md:block mt-auto">
               <h4
                 className="text-xs uppercase tracking-widest mb-3"
                 style={{ color: "#7A8A9A" }}
@@ -216,8 +216,8 @@ export default function Footer({ lang, navigate }: FooterProps) {
             </div>
           </div>
           
-          {/* Mobile Languages */}
-          <div className="col-span-2 lg:hidden pt-2">
+          {/* Mobile Languages (< md) */}
+          <div className="col-span-2 md:hidden pt-2">
             <h4
               className="text-xs uppercase tracking-widest mb-3"
               style={{ color: "#7A8A9A" }}
