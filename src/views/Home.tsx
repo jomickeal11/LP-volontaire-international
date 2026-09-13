@@ -733,7 +733,7 @@ function LifeInTogo({ t }: { t: TKey }) {
   const l = t.lifeInTogo
 
   return (
-    <section className="py-24 lg:py-40 bg-[#FFFFFF]">
+    <section id="togo" className="py-24 lg:py-40 bg-[#FFFFFF]">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 text-center mb-16 lg:mb-24">
         <Badge text={l.tag} centered />
         <h2 className="text-4xl lg:text-6xl leading-tight mt-6 mb-8 text-[#174F7A] font-['DM_Serif_Display'] font-normal">
