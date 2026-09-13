@@ -89,7 +89,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
           content: [
             "Nous collectons uniquement les informations nécessaires au traitement de votre candidature ou de votre prise de contact :",
             "• Identité & état civil : nom, prénom, date de naissance, nationalité, pays de résidence.",
-            "• Coordonnées : adresse email, numéro de téléphone (WhatsApp / appel direct), adresse postale.",
+            "• Coordonnées : adresse email, numéro de téléphone (WhatsApp / appel direct).",
             "• Parcours et compétences : niveau d'études, domaine de spécialité, compétences techniques déclarées, langues maîtrisées, curriculum vitae (CV) et lettre de motivation.",
             "• Projet d'engagement : dates de disponibilité souhaitées, durée envisagée, motivations et préférences de mission.",
             "• Demandes de partenariat : raison sociale de l'organisation, pays, type de collaboration sollicitée, message d'introduction.",
@@ -127,7 +127,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
           content: [
             "Nous conservons vos données pour des durées limitées et justifiées :",
             "• Dossiers en cours d'instruction : durée de la phase de recrutement et de préparation de la mission.",
-            "• Candidatures non retenues : archivage pendant une durée maximale de 24 mois afin de pouvoir vous contacter pour de futures opportunités, sauf demande expresse de suppression de votre part.",
+            "• Candidatures non retenues : archivage envisagé pour une durée maximale de 24 mois (durée indicative susceptible d'être confirmée par APTIC-R) afin de pouvoir vous contacter pour de futures opportunités, sauf demande expresse de suppression de votre part.",
             "• Missions accomplies : conservation des éléments nécessaires à la délivrance d'attestations de mission et au registre associatif des volontaires.",
           ],
         },
@@ -164,7 +164,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
             "• Aucun cookie publicitaire ni traceur commercial tiers n'est implanté sur ce site.",
             "• Cookies de session : indispensables à la sécurité et à la navigation fluide dans le formulaire en ligne.",
             "• Cookie de langue : enregistre votre préférence linguistique (FR, EN, DE).",
-            "• Analyse d'audience anonyme : outil de statistique de consultation configuré avec masquage systématique des adresses IP, afin de mesurer l'intérêt pour nos missions sans pister individuellement les visiteurs.",
+            "• Mesure d'audience : le portail utilise Google Analytics 4 pour mesurer sa fréquentation et son utilisation. Ces traceurs ne sont activés qu'après le consentement de l'utilisateur.",
           ],
         },
         {
@@ -191,7 +191,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
         },
       ],
       contactBox: {
-        title: "Contact & Délégué à la protection des données",
+        title: "Contact APTIC-R",
         desc: "Notre équipe associative à Agbélouvé est disponible pour répondre à toute interrogation sur vos données.",
         email: "aptic.rural19@gmail.com",
         address: "Agbélouvé, Région Maritime, Togo",
@@ -225,7 +225,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
           content: [
             "We collect strictly the information necessary to review your application or respond to your inquiry:",
             "• Identification details: full name, date of birth, nationality, country of residence.",
-            "• Contact information: email address, phone number (WhatsApp / call), physical address.",
+            "• Contact information: email address, phone number (WhatsApp / call).",
             "• Qualifications and background: level of education, specialization, declared technical skills, languages spoken, resume (CV), and cover letter.",
             "• Volunteering objectives: availability dates, expected duration, personal motivations, and preferred tracks.",
             "• Partnership inquiries: organization name, country of operation, collaboration scope, and inquiry message.",
@@ -263,7 +263,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
           content: [
             "Data is stored only for justified and limited retention periods:",
             "• In-review applications: kept for the active review and deployment preparation phase.",
-            "• Unselected applications: archived for up to 24 months to offer relevant upcoming mission openings, unless immediate erasure is requested.",
+            "• Unselected applications: archived for a provisional period of up to 24 months (subject to formal confirmation by APTIC-R) to share relevant upcoming mission openings, unless immediate erasure is requested.",
             "• Completed missions: administrative records retained for volunteer certificate issuance and organizational archives.",
           ],
         },
@@ -300,7 +300,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
             "• No third-party commercial trackers or advertising cookies are deployed.",
             "• Essential session cookies: necessary for secure multi-step form navigation.",
             "• Preference cookies: saves your selected display language (FR, EN, DE).",
-            "• Anonymized analytics: privacy-respecting audience statistics with IP masking, measuring page visits without individual profiling.",
+            "• Audience measurement: the portal uses Google Analytics 4 to measure traffic and usage. These trackers are only activated after user consent.",
           ],
         },
         {
@@ -327,7 +327,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
         },
       ],
       contactBox: {
-        title: "Contact & Privacy Inquiries",
+        title: "Contact APTIC-R",
         desc: "Our coordination team in Agbélouvé is available to answer any questions regarding your personal data.",
         email: "aptic.rural19@gmail.com",
         address: "Agbélouvé, Maritime Region, Togo",
@@ -361,7 +361,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
           content: [
             "Wir erfassen ausschließlich die zur Bewerbungsprüfung erforderlichen Angaben:",
             "• Persönliche Angaben: Name, Geburtsdatum, Nationalität, Wohnsitzland.",
-            "• Kontaktdaten: E-Mail-Adresse, Telefonnummer (WhatsApp/Anruf), Anschrift.",
+            "• Kontaktdaten: E-Mail-Adresse, Telefonnummer (WhatsApp/Anruf).",
             "• Profil und Qualifikation: Ausbildung, Fachrichtung, Sprachkenntnisse, Lebenslauf (CV) und Motivationsschreiben.",
             "• Einsatzdaten: Verfügbarkeitszeitraum, geplante Dauer, persönliche Motivation und Einsatzschwerpunkte.",
             "• Partnerschaftsanfragen: Name der Organisation, Land, Anliegen der Kooperation.",
@@ -399,7 +399,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
           content: [
             "Daten werden nur so lange gespeichert, wie es für den Verwendungszweck nötig ist:",
             "• Laufende Bewerbungen: für die Dauer des Auswahlverfahrens.",
-            "• Nicht berücksichtigte Bewerbungen: Speicherung für bis zu 24 Monate für spätere Einsatzmöglichkeiten, sofern keine frühere Löschung verlangt wird.",
+            "• Nicht berücksichtigte Bewerbungen: vorläufige Aufbewahrung für bis zu 24 Monate (vorbehaltlich der Bestätigung durch APTIC-R) für spätere Einsatzmöglichkeiten, sofern keine frühere Löschung verlangt wird.",
             "• Durchgeführte Einsätze: Aufbewahrung für Nachweise und Bestätigungen.",
           ],
         },
@@ -436,7 +436,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
             "• Keine Werbe-Cookies oder Drittanbieter-Tracker.",
             "• Technisch notwendige Cookies zur Formularnutzung.",
             "• Sprach-Cookie zur Speicherung von FR, EN oder DE.",
-            "• Anonymisierte Webanalyse mit IP-Maskierung zur statistischen Reichweitenmessung.",
+            "• Reichweitenmessung: das Portal verwendet Google Analytics 4 zur Messung von Zugriffen und Nutzung. Diese Tracker werden erst nach Einwilligung des Nutzers aktiviert.",
           ],
         },
         {
@@ -463,7 +463,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
         },
       ],
       contactBox: {
-        title: "Kontakt & Datenschutz",
+        title: "Kontakt APTIC-R",
         desc: "Unser Team in Agbélouvé steht Ihnen für Anfragen zur Verarbeitung Ihrer Daten gerne zur Verfügung.",
         email: "aptic.rural19@gmail.com",
         address: "Agbélouvé, Region Maritime, Togo",
@@ -511,7 +511,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
           number: "04",
           title: "Propriété intellectuelle",
           content: [
-            "L'ensemble des contenus figurant sur ce portail (textes, photographies du terrain, illustrations, logos) sont la propriété exclusive d'APTIC-R ou font l'objet d'une autorisation d'utilisation.",
+            "Les contenus sont la propriété d'APTIC-R ou utilisés avec l'autorisation de leurs auteurs.",
           ],
         },
         {
@@ -585,7 +585,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
           number: "04",
           title: "Intellectual Property",
           content: [
-            "All materials published on this portal are the property of APTIC-R or used with permission. Commercial reproduction is prohibited.",
+            "Content is the property of APTIC-R or used with permission of the authors.",
           ],
         },
         {
@@ -659,7 +659,7 @@ export const LEGAL_DOCS: Record<LegalDocType, Record<"FR" | "EN" | "DE", LegalDo
           number: "04",
           title: "Urheberrechte",
           content: [
-            "Inhalte sind urheberrechtlich geschützt und Eigentum von APTIC-R.",
+            "Die Inhalte sind Eigentum von APTIC-R oder werden mit Genehmigung der jeweiligen Urheber verwendet.",
           ],
         },
         {

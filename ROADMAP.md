@@ -9,21 +9,22 @@
 
 ---
 
-# 📊 1. Synthèse Globale de l'Avancement (~95%)
+# 📊 1. Synthèse Globale de l'Avancement (~98%)
 
 | Phase | Intitulé & Périmètre | Statut | Progression | Reste à faire |
 | :---: | :--- | :---: | :---: | :--- |
-| **0** | **Cadrage technique & Architecture** | 🟢 Validé | **100%** | *Rien — Validé* |
-| **1** | **Design System & Charte institutionnelle** | 🟢 Validé | **100%** | *Rien — Validé* |
-| **2** | **Initialisation technique (Next.js 15, Prisma, PostgreSQL)** | 🟢 Validé | **100%** | *Rien — Validé* |
-| **3** | **Site public & Landing Page (18 sections + SEO)** | 🟢 Validé | **100%** | *Rien — Validé* |
-| **4** | **Multilinguisme international intégral (FR · EN · DE)** | 🟢 Validé | **100%** | *Rien — Validé* |
-| **5** | **Formulaire Candidature (9 étapes) & BDD** | 🟢 Validé | **100%** | *Rien — Validé* |
-| **6** | **Formulaire Partenariats B2B & Espace Dédié** | 🟢 Validé | **100%** | *Rien — Validé* |
-| **7** | **Back-office Administrateur (KPI, Listes, Fiches, Exports)** | 🟢 Validé | **100%** | *Rien — Validé* |
-| **8** | **Workflow Candidatures (9 statuts, Notes, Historique)** | 🟢 Validé | **95%** | Assignation aux coordinateurs |
-| **9** | **Télémétrie & Analytics (Funnels, Événements)** | 🟢 Opérationnel | **95%** | ID flux GA4 réel en prod |
-| **10**| **Mails réels, Stockage Cloud S3 & Déploiement** | 🟡 En cours | **70%** | Stockage S3/R2 + Mise en prod |
+| **0** | **Cadrage technique & Architecture** | 🟢 Validé | **100%** | *Terminé* |
+| **1** | **Design System & Charte institutionnelle** | 🟢 Validé | **100%** | *Terminé* |
+| **2** | **Initialisation technique (Next.js 15, Prisma, PostgreSQL)** | 🟢 Validé | **100%** | *Terminé* |
+| **3** | **Site public & Landing Page (18 sections + SEO)** | 🟢 Validé | **100%** | *Terminé* |
+| **4** | **Multilinguisme international intégral (FR · EN · DE)** | 🟢 Validé | **100%** | *Terminé* |
+| **5** | **Formulaire Candidature (9 étapes) & BDD** | 🟢 Validé | **100%** | *Terminé* |
+| **6** | **Formulaire Partenariats B2B & Espace Dédié** | 🟢 Validé | **100%** | *Terminé* |
+| **7** | **Back-office Administrateur (KPI, Listes, Fiches, Exports)** | 🟢 Validé | **100%** | *Terminé* |
+| **8** | **Système d'E-mails Transactionnels (RFC, double alerte)** | 🟢 Validé | **100%** | *Terminé* |
+| **9** | **Juridique, RGPD & Consentement Cookies** | 🟢 Validé | **100%** | *Terminé et vérifié* |
+| **10**| **Télémétrie & Analytics (Postgres + GA4 conditionnel)** | 🟢 Validé | **98%** | ID flux GA4 réel en prod |
+| **11**| **Mise en Production & Stockage Cloud final** | 🟡 En cours | **80%** | Config DNS/Domaine + S3/Neon |
 
 ---
 
