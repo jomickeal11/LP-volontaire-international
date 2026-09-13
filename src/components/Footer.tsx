@@ -1,6 +1,8 @@
 import type { Page, Language } from "../types"
 import Image from "next/image"
+import Link from "next/link"
 import translations from "../i18n/translations"
+import { LEGAL_SLUGS } from "@/lib/legalContent"
 
 interface FooterProps {
   lang: Language
@@ -19,6 +21,11 @@ export default function Footer({ lang, navigate }: FooterProps) {
     { label: translations[safeLang].nav.partners, page: "partner" as Page },
     { label: translations[safeLang].nav.faq, page: "home" as Page },
   ]
+
+  const currentLangLower = safeLang.toLowerCase()
+  const privacyUrl = `/${currentLangLower}/${LEGAL_SLUGS.privacy[currentLangLower] || LEGAL_SLUGS.privacy.fr}`
+  const termsUrl = `/${currentLangLower}/${LEGAL_SLUGS.terms[currentLangLower] || LEGAL_SLUGS.terms.fr}`
+  const cookiesUrl = `/${currentLangLower}/${LEGAL_SLUGS.cookies[currentLangLower] || LEGAL_SLUGS.cookies.fr}`
 
   return (
     <footer style={{ backgroundColor: "#142332" }} className="text-white">
@@ -258,15 +265,24 @@ export default function Footer({ lang, navigate }: FooterProps) {
         >
           <p>{t.copyright}</p>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-            <button className="hover:text-gray-300 transition-colors cursor-pointer">
+            <Link
+              href={privacyUrl}
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
               {t.privacy}
-            </button>
-            <button className="hover:text-gray-300 transition-colors cursor-pointer">
+            </Link>
+            <Link
+              href={termsUrl}
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
               {t.terms}
-            </button>
-            <button className="hover:text-gray-300 transition-colors cursor-pointer">
+            </Link>
+            <Link
+              href={cookiesUrl}
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
               {t.cookies}
-            </button>
+            </Link>
           </div>
         </div>
       </div>
