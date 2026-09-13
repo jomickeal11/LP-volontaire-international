@@ -1220,8 +1220,8 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
         </div>
 
         {/* Contact direct si question supplémentaire */}
-        <div className="mt-8 sm:mt-12 p-5 sm:p-8 rounded-2xl bg-[#F5F7F9] border border-[#EAF0F4] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 sm:gap-6">
-          <div>
+        <div className="mt-8 sm:mt-12 p-5 sm:p-6 lg:p-8 rounded-2xl bg-[#F5F7F9] border border-[#EAF0F4] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
+          <div className="min-w-0">
             <h3 className="text-lg font-bold text-[#174F7A] mb-1">
               Vous avez d'autres questions ?
             </h3>
@@ -1229,7 +1229,7 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
               Notre équipe à Agbélouvé est disponible pour échanger directement avec vous.
             </p>
           </div>
-          <div className="flex flex-nowrap items-center gap-1.5 sm:gap-3 shrink-0 w-full sm:w-auto justify-between sm:justify-start overflow-hidden mt-4 lg:mt-0">
+          <div className="flex flex-nowrap items-center gap-2 sm:gap-3 shrink-0 w-full md:w-auto justify-between md:justify-start mt-4 md:mt-0">
             <a
               href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(lang === "DE" ? "Frage zum APTIC-R Freiwilligendienst" : lang === "EN" ? "APTIC-R Volunteering Question" : "Question Volontariat APTIC-R")}`}
               onClick={(e) => {
@@ -1238,12 +1238,12 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
                 const target = e.currentTarget.href
                 setTimeout(() => { window.location.href = target }, 150)
               }}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2.5 sm:px-5 sm:py-3 rounded-xl bg-[#174F7A] text-white text-[10px] sm:text-xs font-bold hover:bg-[#123E60] transition-colors shadow-xs whitespace-nowrap min-w-0"
+              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 rounded-xl bg-[#174F7A] text-white text-[11px] sm:text-xs font-bold hover:bg-[#123E60] transition-colors shadow-xs whitespace-nowrap"
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              <span className="truncate">aptic.rural19@gmail.com</span>
+              <span>aptic.rural19@gmail.com</span>
             </a>
             <a
               href="tel:+22891201990"
@@ -1253,12 +1253,12 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
                 const target = e.currentTarget.href
                 setTimeout(() => { window.location.href = target }, 150)
               }}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2.5 sm:px-4 sm:py-3 rounded-xl bg-white border border-[#D8E2E9] text-[#174F7A] text-[10px] sm:text-xs font-bold hover:bg-slate-50 transition-colors shadow-2xs whitespace-nowrap min-w-0"
+              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl bg-white border border-[#D8E2E9] text-[#174F7A] text-[11px] sm:text-xs font-bold hover:bg-slate-50 transition-colors shadow-2xs whitespace-nowrap"
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#35A85A] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
-              <span className="truncate">+228 91 20 19 90</span>
+              <span>+228 91 20 19 90</span>
             </a>
           </div>
         </div>
