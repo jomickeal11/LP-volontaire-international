@@ -155,7 +155,7 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
           <div className="bg-white rounded-xl p-4 border border-[#EAF0F4] shadow-xs">
             <span className="text-xs font-semibold text-slate-500 block mb-1">Taux d&apos;engagement</span>
             <div className="text-2xl font-bold font-mono text-slate-800">
-              {ga4.engagementRate !== null ? `${ga4.engagementRate}%` : "—"}
+              {ga4.engagementRate !== null ? `${Number(ga4.engagementRate).toFixed(2)}%` : "—"}
             </div>
             <div className="text-[11px] text-slate-400 mt-1 font-medium">
               {ga4.connected ? "Sessions avec interaction" : "Non connecté"}

@@ -1,16 +1,105 @@
 "use client"
 import { useState } from "react"
 import { loginAction } from "@/actions/auth"
-import { LockIcon } from "@/components/Icons"
+import Image from "next/image"
 
-const BLUE = "#1B4F7C"
-const TEXT_DARK = "#1A2B3C"
-const TEXT_MID = "#4A5A6A"
-const BG = "#F4F6F9"
+// ─── Inline SVG Icons (private to this component) ──────────────────────────────
+
+function EyeIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
+function EyeOffIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+      <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+    </svg>
+  )
+}
+
+function AlertIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  )
+}
+
+function CheckCircle({ className }: { className?: string }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+  )
+}
+
+function Spinner() {
+  return (
+    <div
+      className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"
+      role="status"
+      aria-label="Chargement"
+    />
+  )
+}
+
+// ─── Main Component ─────────────────────────────────────────────────────────────
 
 export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
-  const [email, setEmail] = useState("admin@apticr.tg")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [forgotSent, setForgotSent] = useState(false)
@@ -18,12 +107,12 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setError("Please enter your email and password.")
+      setError("Veuillez saisir votre adresse e-mail et votre mot de passe.")
       return
     }
     setError("")
     setLoading(true)
-    
+
     try {
       const result = await loginAction(email, password)
       if (result.error) {
@@ -32,280 +121,189 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
       } else if (result.success) {
         onLogin()
       }
-    } catch (err) {
-      setError("A server error occurred.")
+    } catch {
+      setError("Une erreur serveur est survenue. Veuillez réessayer.")
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: BG }}>
-      {/* Left panel */}
-      <div
-        className="hidden lg:flex flex-col justify-between w-96 flex-shrink-0 p-12"
-        style={{ backgroundColor: BLUE }}
-      >
-        <div>
-          <div className="flex items-center gap-2.5 mb-16">
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-base text-white"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.15)",
-                fontFamily: "JetBrains Mono, monospace",
-              }}
-            >
-              A
-            </div>
-            <div>
-              <div className="font-bold text-white text-lg leading-tight">
-                APTIC-R
-              </div>
-              <div
-                className="text-xs"
-                style={{ color: "rgba(255,255,255,0.5)" }}
-              >
-                Admin Portal
-              </div>
-            </div>
+    <div className="login-page">
+      <div className="login-card">
+        {/* ── Header: Logo + Identity ── */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden bg-white border border-[rgba(23,79,122,0.10)] mb-3">
+            <Image
+              src="/logo-aptic.png"
+              alt="APTIC-R Logo"
+              width={56}
+              height={56}
+              className="w-[85%] h-[85%] object-contain"
+              priority
+              unoptimized
+            />
           </div>
-          <h2
-            className="text-3xl text-white mb-4 leading-tight"
-            style={{ fontFamily: "DM Serif Display, Georgia, serif" }}
-          >
-            Volunteer Management Platform
-          </h2>
-          <p
-            className="text-sm leading-relaxed"
-            style={{ color: "rgba(255,255,255,0.65)" }}
-          >
-            Manage applications, track candidates through the selection
-            workflow, and analyse recruitment performance.
+          <span className="font-extrabold text-base tracking-tight text-[#174F7A]">
+            APTIC-R
+          </span>
+          <span className="text-sm font-semibold text-[#174F7A] mt-0.5">
+            Espace d&apos;administration
+          </span>
+          <p className="text-xs text-[#7A8A9A] text-center mt-2 max-w-[300px] leading-relaxed">
+            Gérez les candidatures, les partenaires et le suivi des volontaires.
           </p>
         </div>
-        <div>
-          <div className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-            © 2026 APTIC-R · Tous droits réservés
-          </div>
-        </div>
-      </div>
 
-      {/* Right form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-12">
-        <div className="w-full max-w-sm">
-          {/* Mobile logo */}
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white"
-              style={{
-                backgroundColor: BLUE,
-                fontFamily: "JetBrains Mono, monospace",
-              }}
-            >
-              A
-            </div>
-            <span className="font-bold text-base" style={{ color: BLUE }}>
-              APTIC-R Back-office
-            </span>
-          </div>
+        {!showForgot ? (
+          <>
+            {/* ── Error Banner ── */}
+            {error && (
+              <div className="flex items-start gap-2.5 px-4 py-3 rounded-lg text-sm mb-5 bg-[#FEE2E2] text-[#DC2626] border border-[#FECACA]">
+                <AlertIcon className="flex-shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
 
-          {!showForgot ? (
-            <div>
-              <h1 className="text-2xl mb-1" style={{ color: TEXT_DARK }}>
-                Connexion
-              </h1>
-              <p className="text-sm mb-8" style={{ color: TEXT_MID }}>
-                Espace de gestion Back-office — APTIC-R
-              </p>
-
-              {error && (
-                <div
-                  className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm mb-5"
-                  style={{
-                    backgroundColor: "#FEE2E2",
-                    color: "#DC2626",
-                    border: "1px solid #FECACA",
-                  }}
+            {/* ── Form ── */}
+            <div className="flex flex-col gap-5 mb-6">
+              {/* Email */}
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="login-email"
+                  className="text-sm font-semibold text-[#1A2B3C]"
                 >
-                  <svg
-                    className="w-4 h-4 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                  {error}
-                </div>
-              )}
+                  Adresse e-mail
+                </label>
+                <input
+                  id="login-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="login-input"
+                  placeholder="admin@apticr.tg"
+                  autoComplete="email"
+                />
+              </div>
 
-              <div className="flex flex-col gap-4 mb-6">
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    className="text-sm font-semibold"
-                    style={{ color: TEXT_DARK }}
+              {/* Password */}
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="login-password"
+                  className="text-sm font-semibold text-[#1A2B3C]"
+                >
+                  Mot de passe
+                </label>
+                <div className="relative">
+                  <input
+                    id="login-password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                    className="login-input pr-11"
+                    placeholder="Entrez votre mot de passe"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A8A9A] hover:text-[#174F7A] transition-colors cursor-pointer"
+                    aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    tabIndex={-1}
                   >
-                    Email
+                    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Forgot password link */}
+            <div className="flex justify-end mb-5">
+              <button
+                type="button"
+                onClick={() => setShowForgot(true)}
+                className="text-xs text-[#174F7A] hover:text-[#12405F] transition-colors cursor-pointer"
+              >
+                Mot de passe oublié ?
+              </button>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="button"
+              onClick={handleLogin}
+              disabled={loading}
+              className="login-btn"
+            >
+              {loading ? (
+                <>
+                  <Spinner />
+                  Connexion en cours...
+                </>
+              ) : (
+                "Se connecter"
+              )}
+            </button>
+          </>
+        ) : (
+          /* ── Forgot Password View ── */
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowForgot(false)}
+              className="flex items-center gap-1.5 text-sm text-[#4A5A6A] hover:text-[#1A2B3C] transition-colors mb-6 cursor-pointer"
+            >
+              ← Retour à la connexion
+            </button>
+            <h2 className="text-xl font-bold text-[#1A2B3C] mb-1">
+              Réinitialiser le mot de passe
+            </h2>
+            <p className="text-sm text-[#4A5A6A] mb-6">
+              Saisissez votre adresse e-mail et nous vous enverrons un lien de réinitialisation.
+            </p>
+            {forgotSent ? (
+              <div className="flex items-center gap-3 px-4 py-4 rounded-lg bg-[#E6F4EC] border-[1.5px] border-[#A7D9BC]">
+                <CheckCircle className="flex-shrink-0 text-[#2E7D52]" />
+                <span className="text-sm text-[#2E7D52]">
+                  Lien envoyé à <strong>{email}</strong>
+                </span>
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col gap-1.5 mb-4">
+                  <label
+                    htmlFor="forgot-email"
+                    className="text-sm font-semibold text-[#1A2B3C]"
+                  >
+                    Adresse e-mail
                   </label>
                   <input
+                    id="forgot-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-lg text-sm outline-none"
-                    style={{
-                      border: "1.5px solid #D1DCE5",
-                      backgroundColor: "#fff",
-                      color: TEXT_DARK,
-                    }}
-                    onFocus={(e) =>
-                      (e.currentTarget.style.border = `1.5px solid ${BLUE}`)
-                    }
-                    onBlur={(e) =>
-                      (e.currentTarget.style.border = "1.5px solid #D1DCE5")
-                    }
+                    className="login-input"
                     placeholder="admin@apticr.tg"
                     autoComplete="email"
                   />
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center">
-                    <label
-                      className="text-sm font-semibold"
-                      style={{ color: TEXT_DARK }}
-                    >
-                      Password
-                    </label>
-                    <button
-                      onClick={() => setShowForgot(true)}
-                      className="text-xs"
-                      style={{ color: BLUE }}
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                    className="w-full px-3.5 py-2.5 rounded-lg text-sm outline-none"
-                    style={{
-                      border: "1.5px solid #D1DCE5",
-                      backgroundColor: "#fff",
-                      color: TEXT_DARK,
-                    }}
-                    onFocus={(e) =>
-                      (e.currentTarget.style.border = `1.5px solid ${BLUE}`)
-                    }
-                    onBlur={(e) =>
-                      (e.currentTarget.style.border = "1.5px solid #D1DCE5")
-                    }
-                    placeholder="Enter your password"
-                    autoComplete="current-password"
-                  />
-                </div>
-              </div>
-
-              <button
-                onClick={handleLogin}
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 font-bold text-sm py-3 rounded-lg text-white transition-all mb-4"
-                style={{
-                  backgroundColor: loading ? "#9AA8B4" : BLUE,
-                  cursor: loading ? "not-allowed" : "pointer",
-                }}
-              >
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  "Sign in"
-                )}
-              </button>
-
-              <p className="text-xs text-center" style={{ color: "#9AA8B4" }}>
-                Demo: type any password to log in
-              </p>
-            </div>
-          ) : (
-            <div>
-              <button
-                onClick={() => setShowForgot(false)}
-                className="flex items-center gap-1.5 text-sm mb-6"
-                style={{ color: TEXT_MID }}
-              >
-                ← Back to login
-              </button>
-              <h1 className="text-2xl mb-1" style={{ color: TEXT_DARK }}>
-                Reset password
-              </h1>
-              <p className="text-sm mb-6" style={{ color: TEXT_MID }}>
-                Enter your email address and we'll send you a reset link.
-              </p>
-              {forgotSent ? (
-                <div
-                  className="flex items-center gap-3 px-4 py-4 rounded-lg"
-                  style={{
-                    backgroundColor: "#E6F4EC",
-                    border: "1.5px solid #A7D9BC",
-                  }}
+                <button
+                  type="button"
+                  onClick={() => setForgotSent(true)}
+                  className="login-btn"
                 >
-                  <svg
-                    className="w-5 h-5 flex-shrink-0"
-                    style={{ color: "#2E7D52" }}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <span className="text-sm" style={{ color: "#2E7D52" }}>
-                    Reset link sent to <strong>{email}</strong>
-                  </span>
-                </div>
-              ) : (
-                <>
-                  <div className="flex flex-col gap-1.5 mb-4">
-                    <label
-                      className="text-sm font-semibold"
-                      style={{ color: TEXT_DARK }}
-                    >
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg text-sm outline-none"
-                      style={{
-                        border: "1.5px solid #D1DCE5",
-                        backgroundColor: "#fff",
-                      }}
-                    />
-                  </div>
-                  <button
-                    onClick={() => setForgotSent(true)}
-                    className="w-full font-bold text-sm py-3 rounded-lg text-white"
-                    style={{ backgroundColor: BLUE }}
-                  >
-                    Send reset link
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-        </div>
+                  Envoyer le lien
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Footer ── */}
+      <div className="login-footer">
+        <div>APTIC-R · Togo</div>
+        <div className="mt-0.5">Accès réservé à l&apos;équipe d&apos;administration.</div>
       </div>
     </div>
   )
