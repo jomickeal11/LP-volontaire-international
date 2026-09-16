@@ -258,11 +258,12 @@ model Utilisateur {
   name         String
   email        String @unique
   passwordHash String
-  role         String @default("ADMIN") // SUPERADMIN, COORDINATOR, REVIEWER
+  role         String @default("ADMIN") // SUPERADMIN, ADMIN, COORDINATOR, REVIEWER, EDITOR, CONTENT_MANAGER
 
   assignedApplications Candidature[]           @relation("AssignedApplications")
   statusChanges        HistoriqueCandidature[]
   notes                NoteCandidature[]
+  authoredArticles     Article[]               @relation("ArticleAuthor")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -280,4 +281,299 @@ model EvenementStatistique {
 
   @@index([name])
   @@index([createdAt])
+}
+
+// ─── 10. DOMAINES D'INTERVENTION INSTITUTIONNELS ──────────────────────────────
+model Domaine {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  code      String   @unique // INCLUSION_NUMERIQUE, JEUNESSE, CYBERSECURITE, AGRI_LOWTECH, DATA_INNOVATION, DEV_RURAL
+  nameFr    String
+  nameEn    String
+  nameDe    String
+  descFr    String   @db.Text
+  descEn    String   @db.Text
+  descDe    String   @db.Text
+  icon      String?
+  color     String?
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+
+  projets    Projet[]
+  ressources Ressource[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@index([active])
+}
+
+// ─── 11. MEMBRES & ADHÉSIONS ──────────────────────────────────────────────────
+model Membre {
+  id                String    @id @default(cuid())
+  referenceNumber   String    @unique // MBR-2026-XXXX
+  firstName         String
+  lastName          String
+  email             String    @unique
+  phone             String?
+  profession        String?
+  organization      String?
+  country           String
+  city              String?
+  domainsOfInterest String    // JSON string array ou valeurs séparées par virgules
+  contributionType  String    // COMPETENCES, FINANCIER, VOLONTARIAT, RESEAU, AUTRE
+  availability      String    // HEBDOMADAIRE, MENSUEL, PONCTUEL, TEMPS_PLEIN
+  motivation        String    @db.Text
+  status            String    @default("PENDING") // PENDING, APPROVED, REJECTED, SUSPENDED, ALUMNI
+  membershipDate    DateTime?
+  notes             String?   @db.Text
+  consentData       Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([email])
+  @@index([country])
+}
+
+// ─── 12. CMS : CATÉGORIES D'ARTICLES ──────────────────────────────────────────
+model CategorieArticle {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  nameFr    String
+  nameEn    String
+  nameDe    String
+  order     Int       @default(0)
+
+  articles  Article[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([order])
+}
+
+// ─── 13. CMS : ARTICLES / ACTUALITÉS / BLOG ──────────────────────────────────
+model Article {
+  id             String            @id @default(cuid())
+  slug           String            @unique
+  titleFr        String
+  titleEn        String?
+  titleDe        String?
+  excerptFr      String            @db.Text
+  excerptEn      String?           @db.Text
+  excerptDe      String?           @db.Text
+  contentFr      String            @db.Text
+  contentEn      String?           @db.Text
+  contentDe      String?           @db.Text
+  featuredImage  String?
+  published      Boolean           @default(false)
+  publishedAt    DateTime?
+
+  categoryId     String?
+  category       CategorieArticle? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  authorId       String?
+  author         Utilisateur?      @relation("ArticleAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  authorName     String?
+
+  metaTitle      String?
+  metaDescription String?
+  tags           String?           // JSON string array
+  viewsCount     Int               @default(0)
+
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([published])
+  @@index([slug])
+  @@index([publishedAt])
+  @@index([categoryId])
+}
+
+// ─── 14. CMS : PROJETS INSTITUTIONNELS ────────────────────────────────────────
+model Projet {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  titleFr       String
+  titleEn       String?
+  titleDe       String?
+  summaryFr     String    @db.Text
+  summaryEn     String?   @db.Text
+  summaryDe     String?   @db.Text
+  descriptionFr String    @db.Text
+  descriptionEn String?   @db.Text
+  descriptionDe String?   @db.Text
+  location      String    // ex: Agbélouvé, Région Maritime, Togo
+  country       String    @default("Togo")
+  startDate     DateTime?
+  endDate       DateTime?
+  status        String    @default("IN_PROGRESS") // PLANNED, IN_PROGRESS, COMPLETED
+  featuredImage String?
+  gallery       String?   // JSON string array of URLs
+  objectives    String?   @db.Text
+  results       String?   @db.Text
+  beneficiaries String?   // ex: 500+ jeunes
+  budget        String?
+
+  domaineId     String?
+  domaine       Domaine?  @relation(fields: [domaineId], references: [id], onDelete: SetNull)
+
+  featured      Boolean   @default(false)
+  order         Int       @default(0)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status])
+  @@index([featured])
+  @@index([domaineId])
+}
+
+// ─── 15. CMS : ÉVÉNEMENTS & FORMATIONS ────────────────────────────────────────
+model Evenement {
+  id               String    @id @default(cuid())
+  slug             String    @unique
+  titleFr          String
+  titleEn          String?
+  titleDe          String?
+  descriptionFr    String    @db.Text
+  descriptionEn    String?   @db.Text
+  descriptionDe    String?   @db.Text
+  category         String    @default("WORKSHOP") // WORKSHOP, TRAINING, CONFERENCE, HACKATHON, CEREMONY
+  location         String
+  startDate        DateTime
+  endDate          DateTime?
+  isOnline         Boolean   @default(false)
+  meetingUrl       String?
+  registrationUrl  String?
+  registrationOpen Boolean   @default(true)
+  maxParticipants  Int?
+  featuredImage    String?
+  published        Boolean   @default(true)
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([startDate])
+  @@index([published])
+  @@index([category])
+}
+
+// ─── 16. CMS : BIBLIOTHÈQUE DE RESSOURCES ─────────────────────────────────────
+model Ressource {
+  id            String   @id @default(cuid())
+  titleFr       String
+  titleEn       String?
+  titleDe       String?
+  descriptionFr String?  @db.Text
+  descriptionEn String?  @db.Text
+  descriptionDe String?  @db.Text
+  type          String   @default("REPORT") // REPORT, GUIDE, BROCHURE, PROJECT_SHEET, POLICY, STATUTE
+  year          Int
+  fileUrl       String
+  fileName      String
+  fileSize      Int?
+  mimeType      String?
+
+  domaineId     String?
+  domaine       Domaine? @relation(fields: [domaineId], references: [id], onDelete: SetNull)
+
+  downloadCount Int      @default(0)
+  published     Boolean  @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([type])
+  @@index([year])
+  @@index([domaineId])
+}
+
+// ─── 17. CMS : GALERIE MÉDIAS ─────────────────────────────────────────────────
+model Media {
+  id           String   @id @default(cuid())
+  title        String
+  caption      String?
+  url          String
+  thumbnailUrl String?
+  type         String   @default("PHOTO") // PHOTO, VIDEO
+  album        String?  // Formations 2025, Agbélouvé FabLab, etc.
+  category     String?  // TERRAIN, ATELIER, EQUIPE, COMMUNAUTE
+  order        Int      @default(0)
+  featured     Boolean  @default(false)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([album])
+  @@index([category])
+  @@index([featured])
+}
+
+// ─── 18. CMS : ÉQUIPE & GOUVERNANCE ───────────────────────────────────────────
+model MembreEquipe {
+  id        String   @id @default(cuid())
+  name      String
+  roleFr    String
+  roleEn    String?
+  roleDe    String?
+  category  String   @default("COORDINATION") // DIRECTION, COORDINATION, FORMATION, CONSEIL, VOLONTAIRE
+  bioFr     String?  @db.Text
+  bioEn     String?  @db.Text
+  bioDe     String?  @db.Text
+  photoUrl  String?
+  email     String?
+  linkedin  String?
+  twitter   String?
+  skills    String?  // JSON string array
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([order])
+  @@index([active])
+}
+
+// ─── 19. CMS : TÉMOIGNAGES ADMINISTRABLES ─────────────────────────────────────
+model Temoignage {
+  id         String   @id @default(cuid())
+  authorName String
+  authorRole String   // ex: "Bénéficiaire formation", "Volontaire 2024"
+  authorType String   @default("VOLUNTEER") // BENEFICIARY, VOLUNTEER, PARTNER, TRAINER
+  authorOrg  String?
+  photoUrl   String?
+  quoteFr    String   @db.Text
+  quoteEn    String?  @db.Text
+  quoteDe    String?  @db.Text
+  rating     Int?     @default(5)
+  featured   Boolean  @default(true)
+  order      Int      @default(0)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([authorType])
+  @@index([featured])
+  @@index([order])
+}
+
+// ─── 20. NEWSLETTER : ABONNÉS ─────────────────────────────────────────────────
+model NewsletterAbonne {
+  id             String       @id @default(cuid())
+  email          String       @unique
+  firstName      String?
+  lang           LanguageCode @default(FR)
+  active         Boolean      @default(true)
+  consent        Boolean      @default(true)
+  subscribedAt   DateTime     @default(now())
+  unsubscribedAt DateTime?
+
+  @@index([email])
+  @@index([active])
 }

@@ -1,0 +1,13 @@
+"use client"
+
+import React from "react"
+import { useParams } from "next/navigation"
+import SupportView from "@/views/SupportView"
+import type { Language } from "@/types"
+
+export default function SupportPage() {
+  const params = useParams()
+  const lang = (params?.lang as Language) || "EN"
+
+  return <SupportView lang={lang} />
+}

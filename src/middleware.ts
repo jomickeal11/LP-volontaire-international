@@ -5,6 +5,17 @@ import { decrypt } from "./lib/auth"
 const locales = ["fr", "en", "de"]
 const defaultLocale = "fr"
 
+/**
+ * Legacy route redirects: map old paths to new institutional paths.
+ * Format: { oldSegment: newSegment }
+ */
+const LEGACY_REDIRECTS: Record<string, string> = {
+  // Old apply → new postuler (under volontariat)
+  "apply": "volontariat/postuler",
+  // Old partners → new partenaires
+  "partners": "partenaires",
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -80,6 +91,20 @@ export async function middleware(request: NextRequest) {
         request.url,
       ),
     )
+  }
+
+  // ── Legacy route redirects (301 permanent) ──────────────────────────────────
+  // Redirect old route segments to new institutional routes
+  for (const locale of locales) {
+    for (const [oldSegment, newSegment] of Object.entries(LEGACY_REDIRECTS)) {
+      const oldPath = `/${locale}/${oldSegment}`
+      if (pathname === oldPath || pathname === `${oldPath}/`) {
+        return NextResponse.redirect(
+          new URL(`/${locale}/${newSegment}`, request.url),
+          { status: 301 }
+        )
+      }
+    }
   }
 
   return NextResponse.next()

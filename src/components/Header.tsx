@@ -1,5 +1,8 @@
-import { useState, useEffect } from "react"
+"use client"
+
+import { useState, useEffect, useRef } from "react"
 import type { Page, Language } from "../types"
+import { getPageUrl } from "../types"
 import translations from "../i18n/translations"
 import { useRouter } from "next/navigation"
 import { trackEvent } from "../lib/tracker"
@@ -15,8 +18,14 @@ interface HeaderProps {
 const GREEN = "#35A85A"
 const GREEN_HOVER = "#2E914E"
 const BLUE = "#174F7A"
-const NAV_TEXT = "#19324A"
-const NAV_INACTIVE = "#4A5A6A"
+
+/* ── Types for nav items ─────────────────────────────────────────────── */
+interface NavItem {
+  label: string
+  page?: Page
+  href?: string
+  children?: NavItem[]
+}
 
 export default function Header({
   currentPage,
@@ -25,13 +34,9 @@ export default function Header({
   navigate,
 }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20)
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+  const dropdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     if (mobileOpen) {
@@ -43,49 +48,87 @@ export default function Header({
       document.body.style.overflow = ""
     }
   }, [mobileOpen])
+
   const currentLang = (lang || "FR").toUpperCase() as keyof typeof translations
   const t = (translations[currentLang] || translations.FR).nav
-  const router = useRouter()
+  const langLower = currentLang.toLowerCase()
 
-  const NAV = [
-    { label: t.about, page: "home" as Page, hash: "about" },
-    { label: t.mission, page: "home" as Page, hash: "mission" },
-    { label: t.activities, page: "home" as Page, hash: "activities" },
-    { label: t.lifeInTogo, page: "home" as Page, hash: "togo" },
-    { label: t.apply, page: "apply" as Page },
-    { label: t.faq, page: "home" as Page, hash: "faq" },
-    { label: t.partners, page: "partner" as Page },
+  /* ── Build institutional navigation ──────────────────────────────── */
+  const NAV: NavItem[] = [
+    {
+      label: t.aboutInstitutional,
+      children: [
+        { label: t.aboutHistory, page: "about" as Page },
+        { label: t.aboutMission, page: "about" as Page },
+        { label: t.aboutValues, page: "about" as Page },
+        { label: t.team, page: "team" as Page },
+      ],
+    },
+    { label: t.domains, page: "domains" as Page },
+    { label: t.projects, page: "projects" as Page },
+    {
+      label: t.getInvolved,
+      children: [
+        { label: t.volunteering, page: "volunteering" as Page },
+        { label: t.partners, page: "partner" as Page },
+        { label: t.membership, page: "membership" as Page },
+        { label: (t as any).support || "Faire un don / Nous soutenir", page: "support" as Page },
+      ],
+    },
+    { label: t.news, page: "news" as Page },
+    { label: t.contact, page: "contact" as Page },
   ]
 
-  const handleNavClick = (item: typeof NAV[0]) => {
-    if (item.page === "apply") {
-      trackEvent("apply_now_click", { lang, source: "header_nav" })
-    } else if (item.page === "partner") {
-      trackEvent("partner_request_click", { lang, source: "header_nav" })
-    }
-    
-    // Give GA4 100ms to process the event before navigating
-    setTimeout(() => {
-      if (item.hash) {
-        if (currentPage === "home") {
-          const el = document.getElementById(item.hash)
-          if (el) {
-            el.scrollIntoView({ behavior: "smooth" })
-          } else {
-            // If section doesn't exist yet, scroll to top
-            window.scrollTo({ top: 0, behavior: "smooth" })
-          }
-        } else {
-          router.push(`/${lang.toLowerCase()}#${item.hash}`)
-        }
-      } else {
-        navigate(item.page)
+  const handleNavClick = (item: NavItem) => {
+    if (item.page) {
+      if (item.page === "apply" || item.page === "volunteering") {
+        trackEvent("apply_now_click", { lang, source: "header_nav" })
+      } else if (item.page === "partner") {
+        trackEvent("partner_request_click", { lang, source: "header_nav" })
       }
-    }, 100)
+
+      setTimeout(() => {
+        if (item.page) {
+          const url = getPageUrl(item.page, lang)
+          router.push(url)
+        }
+      }, 100)
+    }
   }
 
+  const handleDropdownEnter = (label: string) => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current)
+      dropdownTimeoutRef.current = null
+    }
+    setActiveDropdown(label)
+  }
+
+  const handleDropdownLeave = () => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setActiveDropdown(null)
+    }, 200)
+  }
+
+  // Hide header on apply page (existing behavior)
   if (currentPage === "apply") {
     return null
+  }
+
+  const isPageActive = (page?: Page): boolean => {
+    if (!page) return false
+    if (page === currentPage) return true
+    // Volunteering section: volunteering and apply are both "active" under the volunteering parent
+    const cp = currentPage as string
+    if (page === "volunteering" && (cp === "volunteering" || cp === "apply")) return true
+    return false
+  }
+
+  const isDropdownActive = (item: NavItem): boolean => {
+    if (item.children) {
+      return item.children.some(child => isPageActive(child.page))
+    }
+    return isPageActive(item.page)
   }
 
   return (
@@ -113,43 +156,94 @@ export default function Header({
               <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={40} height={40} className="w-[85%] h-[85%] object-contain" priority unoptimized />
             </div>
             <div className="ml-2.5 sm:ml-3">
-              <div
-                className="font-extrabold text-xs sm:text-sm leading-none tracking-tight text-[#174F7A]"
-              >
+              <div className="font-extrabold text-xs sm:text-sm leading-none tracking-tight text-[#174F7A]">
                 APTIC-R
               </div>
-              <div
-                className="text-[8px] sm:text-[9px] font-bold tracking-[0.06em] sm:tracking-[0.1em] uppercase mt-0.5 text-[#174F7A] whitespace-nowrap"
-              >
-                International Volunteers
+              <div className="text-[8px] sm:text-[9px] font-bold tracking-[0.06em] sm:tracking-[0.1em] uppercase mt-0.5 text-[#174F7A] whitespace-nowrap">
+                {currentLang === "FR" ? "TIC en milieu Rural" : currentLang === "DE" ? "IKT im ländlichen Raum" : "ICT in Rural Areas"}
               </div>
             </div>
           </button>
         </div>
 
         {/* Center: Desktop Nav */}
-        <nav className="hidden lg:flex flex-[2] items-center justify-center gap-5 xl:gap-7">
+        <nav className="hidden lg:flex flex-[2] items-center justify-center gap-1 xl:gap-2">
           {NAV.map((item) => {
-            const isActive = currentPage === item.page && item.page !== "home"
+            const isActive = isDropdownActive(item)
+            const hasChildren = item.children && item.children.length > 0
+
+            if (hasChildren) {
+              return (
+                <div
+                  key={item.label}
+                  className="relative"
+                  onMouseEnter={() => handleDropdownEnter(item.label)}
+                  onMouseLeave={handleDropdownLeave}
+                >
+                  <button
+                    className="flex items-center gap-1 text-[11px] xl:text-xs font-bold uppercase tracking-[0.12em] transition-colors whitespace-nowrap relative py-2 px-2.5 rounded-lg cursor-pointer"
+                    style={{ color: isActive ? BLUE : "#233B4D" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = isActive ? BLUE : "#233B4D"
+                    }}
+                  >
+                    {item.label}
+                    <svg className="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                    </svg>
+                    {isActive && (
+                      <span
+                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-t-full"
+                        style={{ backgroundColor: GREEN }}
+                      />
+                    )}
+                  </button>
+
+                  {/* Dropdown */}
+                  {activeDropdown === item.label && (
+                    <div
+                      className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-52 py-2 rounded-xl shadow-xl border border-gray-100 z-50"
+                      style={{ backgroundColor: "rgba(255,255,255,0.98)", backdropFilter: "blur(16px)" }}
+                    >
+                      {item.children!.map((child) => {
+                        const childActive = isPageActive(child.page)
+                        return (
+                          <button
+                            key={child.label}
+                            onClick={() => {
+                              handleNavClick(child)
+                              setActiveDropdown(null)
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-[11px] font-semibold tracking-wide transition-colors cursor-pointer hover:bg-[#F5F7F9]"
+                            style={{ color: childActive ? BLUE : "#4A5A6A" }}
+                          >
+                            {child.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            }
+
             return (
               <button
                 key={item.label}
                 onClick={() => handleNavClick(item)}
-                className="text-[11px] xl:text-xs font-bold uppercase tracking-[0.15em] transition-colors whitespace-nowrap relative py-2 cursor-pointer"
-                style={{ color: isActive ? "#174F7A" : "#233B4D" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#174F7A")}
+                className="text-[11px] xl:text-xs font-bold uppercase tracking-[0.12em] transition-colors whitespace-nowrap relative py-2 px-2.5 rounded-lg cursor-pointer"
+                style={{ color: isActive ? BLUE : "#233B4D" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = isActive
-                    ? "#174F7A"
-                    : "#233B4D"
+                  e.currentTarget.style.color = isActive ? BLUE : "#233B4D"
                 }}
               >
                 {item.label}
-                {/* Active Underline Indicator */}
                 {isActive && (
                   <span
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-0.5 rounded-t-full"
-                    style={{ backgroundColor: "#35A85A" }}
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-t-full"
+                    style={{ backgroundColor: GREEN }}
                   />
                 )}
               </button>
@@ -159,7 +253,7 @@ export default function Header({
 
         {/* Right: Actions */}
         <div className="flex-1 flex items-center justify-end gap-2 sm:gap-3">
-          {/* Language selector (Pill style like image) */}
+          {/* Language selector */}
           <div
             className="flex items-center p-0.5 rounded-full border"
             style={{ borderColor: "rgba(23,79,122,0.10)" }}
@@ -174,7 +268,7 @@ export default function Header({
                 className="px-2 py-1 text-[9px] sm:text-[10px] font-bold rounded-full transition-all cursor-pointer uppercase"
                 style={{
                   backgroundColor: lang === l ? "rgba(23,79,122,0.06)" : "transparent",
-                  color: lang === l ? "#174F7A" : "#233B4D",
+                  color: lang === l ? BLUE : "#233B4D",
                 }}
                 aria-current={lang === l ? "true" : undefined}
               >
@@ -187,10 +281,10 @@ export default function Header({
           <button
             onClick={() => {
               trackEvent("apply_now_click", { lang, source: "header_button" })
-              setTimeout(() => navigate("apply"), 100)
+              setTimeout(() => navigate("volunteering"), 100)
             }}
             className="hidden lg:inline-flex items-center gap-2 font-bold text-[11px] px-6 py-2.5 rounded-full transition-all cursor-pointer text-white shadow-sm hover:scale-105"
-            style={{ backgroundColor: "#35A85A" }}
+            style={{ backgroundColor: GREEN }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.backgroundColor = GREEN_HOVER)
             }
@@ -252,20 +346,56 @@ export default function Header({
             className="lg:hidden fixed inset-0 z-40 bg-[rgba(23,79,122,0.2)] backdrop-blur-sm transition-opacity"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="lg:hidden fixed top-[64px] sm:top-[74px] right-3 sm:right-4 md:right-6 w-[275px] sm:w-[340px] max-w-[calc(100vw-1.5rem)] z-50 bg-white rounded-2xl shadow-2xl border border-[#EAF0F4] overflow-hidden">
+          <div className="lg:hidden fixed top-[64px] sm:top-[74px] right-3 sm:right-4 md:right-6 w-[300px] sm:w-[360px] max-w-[calc(100vw-1.5rem)] z-50 bg-white rounded-2xl shadow-2xl border border-[#EAF0F4] overflow-hidden max-h-[calc(100vh-100px)] overflow-y-auto">
             <div className="relative p-4 sm:p-5 pt-10 sm:pt-12 flex flex-col w-full">
               <button
                 onClick={() => setMobileOpen(false)}
                 className="absolute top-2.5 right-3 p-1.5 sm:p-2 text-[#7A8A9A] hover:text-[#174F7A] bg-[#F5F7F9] hover:bg-[#EAF0F4] rounded-full transition-colors cursor-pointer"
-                aria-label="Fermer le menu"
+                aria-label="Close menu"
               >
                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
+
               <div className="flex flex-col gap-0.5 sm:gap-1">
                 {NAV.map((item) => {
-                  const isActive = currentPage === item.page && item.page !== "home"
+                  const hasChildren = item.children && item.children.length > 0
+
+                  if (hasChildren) {
+                    return (
+                      <div key={item.label}>
+                        {/* Section header */}
+                        <div
+                          className="text-[10px] font-bold uppercase tracking-[0.15em] px-3 pt-4 pb-1"
+                          style={{ color: "#7A8A9A" }}
+                        >
+                          {item.label}
+                        </div>
+                        {item.children!.map((child) => {
+                          const childActive = isPageActive(child.page)
+                          return (
+                            <button
+                              key={child.label}
+                              onClick={() => {
+                                handleNavClick(child)
+                                setMobileOpen(false)
+                              }}
+                              className="w-full text-left text-sm sm:text-[15px] font-bold tracking-tight transition-colors py-2.5 px-3 sm:py-3 sm:px-3.5 rounded-xl hover:bg-[#F5F7F9]"
+                              style={{
+                                color: childActive ? BLUE : "#4A5A6A",
+                                backgroundColor: childActive ? "rgba(23,79,122,0.06)" : "transparent",
+                              }}
+                            >
+                              {child.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )
+                  }
+
+                  const isActive = isPageActive(item.page)
                   return (
                     <button
                       key={item.label}
@@ -275,7 +405,7 @@ export default function Header({
                       }}
                       className="text-left text-sm sm:text-[15px] font-bold tracking-tight transition-colors py-2.5 px-3 sm:py-3 sm:px-3.5 rounded-xl hover:bg-[#F5F7F9]"
                       style={{
-                        color: isActive ? "#174F7A" : "#4A5A6A",
+                        color: isActive ? BLUE : "#4A5A6A",
                         backgroundColor: isActive ? "rgba(23,79,122,0.06)" : "transparent",
                       }}
                     >
@@ -288,7 +418,7 @@ export default function Header({
               <div className="mt-3 pt-3 sm:pt-4 border-t border-slate-100 flex justify-center pb-1">
                 <button
                   onClick={() => {
-                    navigate("apply")
+                    navigate("volunteering")
                     setMobileOpen(false)
                   }}
                   className="w-full text-center font-bold uppercase tracking-widest px-5 py-3 sm:py-3.5 rounded-xl text-white shadow-md text-xs hover:scale-102 transition-transform"

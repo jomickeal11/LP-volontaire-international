@@ -2,13 +2,13 @@
 
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
-import InstitutionalHome from "@/views/InstitutionalHome"
+import Home from "@/views/Home"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { useRouter, usePathname } from "next/navigation"
 import { use } from "react"
 
-export default function HomePage({
+export default function VolontariatPage({
   params,
 }: {
   params: Promise<{ lang: string }>
@@ -20,7 +20,7 @@ export default function HomePage({
   const handleNavigate = (page: Page) => {
     const language = lang.toUpperCase() as Language || "FR"
     const url = getPageUrl(page, language)
-    if (page === "home") {
+    if (page === "home" || page === "volunteering") {
       window.scrollTo({ top: 0, behavior: "smooth" })
     } else {
       router.push(url)
@@ -39,11 +39,11 @@ export default function HomePage({
       <Header
         lang={language}
         setLang={handleSetLang}
-        currentPage="home"
+        currentPage="volunteering"
         navigate={handleNavigate}
       />
       <main className="flex-1">
-        <InstitutionalHome lang={language} navigate={handleNavigate} />
+        <Home lang={language} navigate={handleNavigate} />
       </main>
       <Footer lang={language} navigate={handleNavigate} />
     </div>

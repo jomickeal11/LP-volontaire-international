@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next"
 import Script from "next/script"
 import "../globals.css"
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://volontaires.apticr.org"
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://apticr.org"
 
 interface LocalizedMeta {
   title: string
@@ -14,53 +14,57 @@ interface LocalizedMeta {
 
 const metaByLang: Record<string, LocalizedMeta> = {
   fr: {
-    title: "APTIC-R — Volontaires Internationaux | Agbélouvé, Togo",
+    title: "APTIC-R — Technologie accessible pour les communautés rurales | Agbélouvé, Togo",
     description:
-      "Rejoignez l'association APTIC-R au Togo pour une mission de volontariat de 6 à 12 mois. Co-créez des solutions concrètes en numérique, agriculture durable et développement communautaire.",
-    ogTitle: "Volontariat International au Togo — APTIC-R",
-    ogDesc: "Innover et construire des technologies utiles avec les communautés rurales du Togo. Missions de 6 à 12 mois à Agbélouvé.",
+      "APTIC-R connecte les innovations numériques et low-tech aux besoins concrets des communautés rurales du Togo. Volontariat international, partenariats, projets d'impact.",
+    ogTitle: "APTIC-R — Promotion des TIC en milieu Rural au Togo",
+    ogDesc: "Solutions numériques et low-tech pour les communautés rurales d'Agbélouvé, Togo. Volontariat, partenariats et projets d'impact.",
     keywords: [
+      "APTIC-R",
+      "TIC rural Togo",
+      "Agbélouvé",
       "Volontariat Togo",
-      "Bénévolat Afrique",
-      "Mission humanitaire Togo",
-      "APTIC-R Agbélouvé",
-      "Agriculture numérique Afrique",
-      "Low-tech rural",
+      "Inclusion numérique",
+      "Agriculture low-tech",
+      "Développement rural",
       "Volontaire international",
     ],
   },
   en: {
-    title: "APTIC-R — International Volunteers | Agbélouvé, Togo",
+    title: "APTIC-R — Accessible Technology for Rural Communities | Agbélouvé, Togo",
     description:
-      "Join APTIC-R in Togo for 6–12 month international volunteer missions in digital innovation, low-tech agriculture, and rural community development.",
-    ogTitle: "International Volunteers in Togo — APTIC-R",
-    ogDesc: "Build meaningful technology and sustainable solutions alongside rural communities in Togo. 6–12 month missions.",
+      "APTIC-R connects digital and low-tech innovations to the real needs of rural communities in Togo. International volunteering, partnerships, impact projects.",
+    ogTitle: "APTIC-R — ICT Promotion in Rural Togo",
+    ogDesc: "Digital and low-tech solutions for rural communities in Agbélouvé, Togo. Volunteering, partnerships and impact projects.",
     keywords: [
+      "APTIC-R",
+      "Rural ICT Togo",
+      "Agbélouvé",
       "Volunteer Togo",
-      "Volunteering Africa",
-      "International Volunteers Togo",
-      "APTIC-R Agbélouvé",
-      "Digital Agriculture",
-      "Low-tech rural innovation",
-      "Community development Togo",
+      "Digital inclusion",
+      "Low-tech agriculture",
+      "Rural development",
+      "International volunteers",
     ],
   },
   de: {
-    title: "APTIC-R — Internationale Freiwillige | Agbélouvé, Togo",
+    title: "APTIC-R — Zugängliche Technologie für ländliche Gemeinschaften | Agbélouvé, Togo",
     description:
-      "Engagieren Sie sich bei APTIC-R in Togo für 6–12 Monate in digitalen Innovationen, nachhaltiger Landwirtschaft und ländlicher Entwicklung.",
-    ogTitle: "Internationale Freiwilligendienste in Togo — APTIC-R",
-    ogDesc: "Technologie und nachhaltige Lösungen für ländliche Gemeinschaften in Togo mitgestalten. 6–12 Monate in Agbélouvé.",
+      "APTIC-R verbindet digitale und Low-Tech-Innovationen mit den Bedürfnissen ländlicher Gemeinschaften in Togo. Freiwilligendienst, Partnerschaften, Wirkungsprojekte.",
+    ogTitle: "APTIC-R — IKT-Förderung im ländlichen Togo",
+    ogDesc: "Digitale und Low-Tech-Lösungen für ländliche Gemeinschaften in Agbélouvé, Togo.",
     keywords: [
+      "APTIC-R",
+      "IKT ländlich Togo",
+      "Agbélouvé",
       "Freiwilligendienst Togo",
-      "Freiwilligenarbeit Afrika",
-      "weltwärts Togo",
-      "APTIC-R Agbélouvé",
-      "Digitale Landwirtschaft",
-      "Low-Tech Innovation",
+      "Digitale Inklusion",
+      "Low-Tech Landwirtschaft",
+      "Ländliche Entwicklung",
     ],
   },
 }
+
 
 export async function generateMetadata({
   params,
@@ -92,7 +96,7 @@ export async function generateMetadata({
       title: meta.ogTitle,
       description: meta.ogDesc,
       url: `${baseUrl}/${currentLang}`,
-      siteName: "APTIC-R International Volunteers",
+      siteName: "APTIC-R",
       images: [
         {
           url: "/hero_volunteer_collab.jpg",

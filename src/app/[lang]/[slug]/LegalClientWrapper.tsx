@@ -11,6 +11,7 @@ import {
   type LegalDocument,
 } from "@/lib/legalContent"
 import type { Language, Page } from "@/types"
+import { getPageUrl } from "@/types"
 
 interface LegalClientWrapperProps {
   lang: "FR" | "EN" | "DE"
@@ -28,20 +29,7 @@ export default function LegalClientWrapper({
   const router = useRouter()
 
   const handleNavigate = (page: Page) => {
-    switch (page) {
-      case "home":
-        router.push(`/${lang.toLowerCase()}`)
-        break
-      case "apply":
-        router.push(`/${lang.toLowerCase()}/apply`)
-        break
-      case "partner":
-        router.push(`/${lang.toLowerCase()}/partners`)
-        break
-      default:
-        router.push(`/${lang.toLowerCase()}`)
-        break
-    }
+    router.push(getPageUrl(page, lang))
   }
 
   const handleSetLang = (newLang: Language) => {

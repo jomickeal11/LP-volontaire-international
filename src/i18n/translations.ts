@@ -3,6 +3,7 @@ export type TKey = typeof translations[keyof typeof translations]
 const translations = {
   EN: {
     nav: {
+      // Legacy keys (used within volunteer section)
       about: "About APTIC-R",
       mission: "The Mission",
       activities: "Activities",
@@ -11,6 +12,24 @@ const translations = {
       faq: "FAQ",
       partners: "Partners",
       applyNow: "APPLY NOW",
+      // Institutional navigation
+      home: "Home",
+      aboutInstitutional: "About",
+      aboutHistory: "Our Story",
+      aboutMission: "Mission & Vision",
+      aboutValues: "Values",
+      aboutGovernance: "Governance",
+      domains: "Our Fields",
+      projects: "Projects",
+      volunteering: "Volunteering",
+      news: "News",
+      team: "Our Team",
+      contact: "Contact",
+      resources: "Resources",
+      gallery: "Gallery",
+      membership: "Become a Member",
+      getInvolved: "Get Involved",
+      support: "Support & Donate",
     },
     hero: {
       badge: "Agbélouvé, Togo · 6-12 months · Open Applications",
@@ -657,6 +676,7 @@ const translations = {
 
   FR: {
     nav: {
+      // Legacy keys (used within volunteer section)
       about: "À propos",
       mission: "La Mission",
       activities: "Activités",
@@ -665,6 +685,24 @@ const translations = {
       faq: "FAQ",
       partners: "Partenaires",
       applyNow: "POSTULEZ",
+      // Institutional navigation
+      home: "Accueil",
+      aboutInstitutional: "À propos",
+      aboutHistory: "Notre Histoire",
+      aboutMission: "Mission & Vision",
+      aboutValues: "Valeurs",
+      aboutGovernance: "Gouvernance",
+      domains: "Nos Domaines",
+      projects: "Projets",
+      volunteering: "Volontariat",
+      news: "Actualités",
+      team: "Notre Équipe",
+      contact: "Contact",
+      resources: "Ressources",
+      gallery: "Galerie",
+      membership: "Devenir Membre",
+      getInvolved: "S'engager",
+      support: "Faire un don / Nous soutenir",
     },
     apply: {
       steps: {
@@ -1314,6 +1352,7 @@ const translations = {
 
   DE: {
     nav: {
+      // Legacy keys (used within volunteer section)
       about: "Über APTIC-R",
       mission: "Die Mission",
       activities: "Aktivitäten",
@@ -1322,6 +1361,24 @@ const translations = {
       faq: "FAQ",
       partners: "Partner",
       applyNow: "BEWERBEN",
+      // Institutional navigation
+      home: "Startseite",
+      aboutInstitutional: "Über uns",
+      aboutHistory: "Unsere Geschichte",
+      aboutMission: "Mission & Vision",
+      aboutValues: "Werte",
+      aboutGovernance: "Governance",
+      domains: "Unsere Bereiche",
+      projects: "Projekte",
+      volunteering: "Freiwilligendienst",
+      news: "Aktuelles",
+      team: "Unser Team",
+      contact: "Kontakt",
+      resources: "Ressourcen",
+      gallery: "Galerie",
+      membership: "Mitglied werden",
+      getInvolved: "Mitmachen",
+      support: "Spenden & Unterstützen",
     },
     hero: {
       badge: "Agbélouvé, Togo · 6-12 Monate · Bewerbungen offen",
