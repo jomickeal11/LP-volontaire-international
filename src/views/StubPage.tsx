@@ -82,7 +82,7 @@ export function createStubPage(config: {
     const language = lang.toUpperCase() as Language || "FR"
 
     return (
-      <div className="min-h-screen flex flex-col bg-[#F5F7F9]">
+      <div className="min-h-screen flex flex-col bg-[#F7F8FA]">
         <Header
           lang={language}
           setLang={handleSetLang}

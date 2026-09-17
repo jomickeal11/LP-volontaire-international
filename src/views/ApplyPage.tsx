@@ -34,9 +34,9 @@ interface ApplyPageProps {
   setLang?: (l: Language) => void
 }
 
-const BLUE = "#174F7A"
-const GREEN = "#35A85A"
-const BG_LIGHT = "#F5F7F9"
+const BLUE = "#003366"
+const GREEN = "#28A745"
+const BG_LIGHT = "#F7F8FA"
 const TEXT_DARK = "#1A2B3C"
 const TEXT_MID = "#5E6B76"
 
@@ -350,7 +350,7 @@ function PhoneInputField({
           >
             {/* Search bar inside dropdown */}
             <div className="p-2.5 border-b border-slate-100 bg-[#FAFCFD]">
-              <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-slate-200 focus-within:border-[#174F7A]">
+              <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-slate-200 focus-within:border-[#003366]">
                 <SearchIcon size={14} className="text-slate-400 shrink-0" />
                 <input
                   type="text"
@@ -392,7 +392,7 @@ function PhoneInputField({
                         }}
                         onClick={() => handleSelect(c)}
                         className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-colors cursor-pointer hover:bg-[#F0F5FA] ${
-                          isSelected ? "bg-[#EAF2F9] font-bold text-[#174F7A]" : "text-slate-700"
+                          isSelected ? "bg-[#EAF2F9] font-bold text-[#003366]" : "text-slate-700"
                         }`}
                       >
                         <img
@@ -431,7 +431,7 @@ function PhoneInputField({
                         }}
                         onClick={() => handleSelect(c)}
                         className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-colors cursor-pointer hover:bg-[#F0F5FA] ${
-                          isSelected ? "bg-[#EAF2F9] font-bold text-[#174F7A]" : "text-slate-700"
+                          isSelected ? "bg-[#EAF2F9] font-bold text-[#003366]" : "text-slate-700"
                         }`}
                       >
                         <img
@@ -604,10 +604,10 @@ function FileUpload({
       {fileName ? (
         <div
           className="flex items-center justify-between px-4 py-3.5 rounded-xl transition-all"
-          style={{ backgroundColor: "#EAF5ED", border: "1.5px solid #35A85A" }}
+          style={{ backgroundColor: "#EAF5ED", border: "1.5px solid #28A745" }}
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-6 h-6 rounded-full bg-[#35A85A] text-white flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded-full bg-[#28A745] text-white flex items-center justify-center shrink-0">
               <CheckIcon className="w-3.5 h-3.5" />
             </div>
             <span className="text-sm font-medium truncate" style={{ color: "#1A4D2E" }}>
@@ -624,11 +624,11 @@ function FileUpload({
         </div>
       ) : (
         <label
-          className="flex flex-col items-center justify-center gap-2 px-4 py-7 rounded-xl cursor-pointer transition-all hover:border-[#174F7A] group"
+          className="flex flex-col items-center justify-center gap-2 px-4 py-7 rounded-xl cursor-pointer transition-all hover:border-[#003366] group"
           style={{ border: "2px dashed #D1DCE5", backgroundColor: "#FAFCFD" }}
           onDragOver={(e) => e.preventDefault()}
         >
-          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-[#E8F2FA] group-hover:text-[#174F7A] transition-colors">
+          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-[#E8F2FA] group-hover:text-[#003366] transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
@@ -1193,7 +1193,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
             className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
             style={{ backgroundColor: "#EAF5ED", border: `3px solid ${GREEN}` }}
           >
-            <svg className="w-10 h-10 text-[#35A85A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-10 h-10 text-[#28A745]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
             </svg>
           </div>
@@ -1248,11 +1248,11 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
             className="flex items-center gap-3 cursor-pointer text-left group"
             aria-label="APTIC-R Accueil"
           >
-            <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-[#D8E2E9] flex items-center justify-center p-0.5 shadow-2xs group-hover:border-[#174F7A] transition-colors">
+            <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-[#D8E2E9] flex items-center justify-center p-0.5 shadow-2xs group-hover:border-[#003366] transition-colors">
               <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={60} height={60} className="w-full h-full object-contain" unoptimized />
             </div>
             <div>
-              <div className="font-extrabold text-sm leading-none tracking-tight text-[#174F7A]">APTIC-R</div>
+              <div className="font-extrabold text-sm leading-none tracking-tight text-[#003366]">APTIC-R</div>
               <div className="text-[9px] font-bold tracking-[0.12em] uppercase mt-0.5 text-slate-500">
                 International Volunteers
               </div>
@@ -1274,7 +1274,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
 
             <div className="h-4 w-[1px] bg-slate-200 hidden sm:block" />
 
-            <div className="flex items-center gap-1 bg-[#F5F7F9] p-1 rounded-lg border border-[#EAF0F4]">
+            <div className="flex items-center gap-1 bg-[#F7F8FA] p-1 rounded-lg border border-[#EAF0F4]">
               {(["FR", "EN", "DE"] as Language[]).map((l) => (
                 <button
                   key={l}
@@ -1300,8 +1300,8 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 lg:gap-10">
             {/* Texte à gauche */}
             <div className="flex-1 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-white text-[#174F7A] border border-[#D8E2E9] shadow-2xs mb-2.5">
-                <span className="w-2 h-2 rounded-full bg-[#35A85A]" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-white text-[#003366] border border-[#D8E2E9] shadow-2xs mb-2.5">
+                <span className="w-2 h-2 rounded-full bg-[#28A745]" />
                 {t.apply.header?.tag || "CANDIDATURE VOLONTAIRE"}
               </div>
 
@@ -1314,7 +1314,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
               </p>
 
               <div>
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#174F7A] bg-white border border-[#D8E2E9] shadow-2xs">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#003366] bg-white border border-[#D8E2E9] shadow-2xs">
                   <span>{t.apply.header?.context || "6–12 mois · Agbélouvé, Togo · Candidature confidentielle"}</span>
                 </div>
               </div>
@@ -1351,10 +1351,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
               {/* ── BARRE DE PROGRESSION MOBILE (STICKY COMPACTE & DISCRÈTE) ──── */}
               <div className="md:hidden sticky top-16 z-30 bg-white/95 backdrop-blur-md border border-[#D8E2E9] rounded-2xl shadow-xs px-4 py-2.5 mb-4 transition-all">
                 <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="font-extrabold text-[#174F7A] tracking-wider uppercase text-[11px]">
+                  <span className="font-extrabold text-[#003366] tracking-wider uppercase text-[11px]">
                     {t.apply.sidebar?.step || (currentLang === "DE" ? "SCHRITT" : currentLang === "EN" ? "STEP" : "ÉTAPE")} {step} / 9
                   </span>
-                  <span className="font-bold text-[#35A85A] text-xs">
+                  <span className="font-bold text-[#28A745] text-xs">
                     {progressPercentage}%
                   </span>
                 </div>
@@ -1374,7 +1374,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                 {/* En-tête de l'étape active */}
                 <div className="mb-8 pb-6 border-b border-slate-100">
                   <div className="hidden md:flex items-center gap-2 mb-2.5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-[#E8F2FA] text-[#174F7A]">
+                    <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-[#E8F2FA] text-[#003366]">
                       {t.apply.sidebar?.step || (currentLang === "DE" ? "SCHRITT" : currentLang === "EN" ? "STEP" : "ÉTAPE")} {step} {t.apply.sidebar?.of || (currentLang === "DE" ? "VON" : currentLang === "EN" ? "OF" : "SUR")} 9
                     </span>
                     <span className="text-[11px] font-medium text-slate-400">
@@ -1663,7 +1663,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 font-bold text-sm" style={{ color: isSelected ? BLUE : TEXT_DARK }}>
-                                <item.icon size={16} strokeWidth={2} className={isSelected ? "text-[#174F7A]" : "text-slate-500"} />
+                                <item.icon size={16} strokeWidth={2} className={isSelected ? "text-[#003366]" : "text-slate-500"} />
                                 <span>{item.title}</span>
                               </div>
                               <div className="text-xs text-slate-500 mt-1 leading-relaxed">
@@ -1677,7 +1677,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
 
                     {form.skills.length > 0 ? (
                       <div className="flex items-center gap-2 p-3.5 rounded-xl bg-[#EAF5ED] text-[#1A4D2E] text-xs font-semibold">
-                        <span className="w-5 h-5 rounded-full bg-[#35A85A] text-white flex items-center justify-center shrink-0">
+                        <span className="w-5 h-5 rounded-full bg-[#28A745] text-white flex items-center justify-center shrink-0">
                           <CheckIcon size={11} strokeWidth={3} />
                         </span>
                         <span>
@@ -1753,7 +1753,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                                 <span className="font-bold text-base" style={{ color: isSelected ? BLUE : TEXT_DARK }}>
                                   {d.label}
                                 </span>
-                                {isSelected && <CheckIcon className="w-4 h-4 text-[#35A85A]" />}
+                                {isSelected && <CheckIcon className="w-4 h-4 text-[#28A745]" />}
                               </div>
                               <span className="text-xs text-slate-500">{d.desc}</span>
                             </button>
@@ -1784,7 +1784,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         {form.motivation.trim().length < 50 ? (
                           currentLang === "DE" ? "Mindestens 50 Zeichen" : currentLang === "EN" ? "Minimum 50 characters" : "Minimum 50 caractères"
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[#35A85A] font-medium">
+                          <span className="inline-flex items-center gap-1 text-[#28A745] font-medium">
                             <CheckIcon className="w-3.5 h-3.5" /> {currentLang === "DE" ? "Ausreichende Länge" : currentLang === "EN" ? "Sufficient length" : "Longueur suffisante"}
                           </span>
                         )}
@@ -1814,7 +1814,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         {form.projectExp.trim().length < 50 ? (
                           currentLang === "DE" ? "Mindestens 50 Zeichen" : currentLang === "EN" ? "Minimum 50 characters" : "Minimum 50 caractères"
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[#35A85A] font-medium">
+                          <span className="inline-flex items-center gap-1 text-[#28A745] font-medium">
                             <CheckIcon className="w-3.5 h-3.5" /> {currentLang === "DE" ? "Ausreichende Länge" : currentLang === "EN" ? "Sufficient length" : "Longueur suffisante"}
                           </span>
                         )}
@@ -1880,7 +1880,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                               border: `1.5px solid ${isSelected ? GREEN : "#D8E2E9"}`,
                             }}
                           >
-                            {isSelected && <CheckIcon size={14} strokeWidth={2.5} className="text-[#35A85A] mr-2 shrink-0 inline-block" />}
+                            {isSelected && <CheckIcon size={14} strokeWidth={2.5} className="text-[#28A745] mr-2 shrink-0 inline-block" />}
                             <span>{src}</span>
                           </button>
                         )
@@ -1919,10 +1919,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       {/* Section Coordonnées */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#003366]">
                             {t.apply.review?.sections?.contact || (currentLang === "DE" ? "Kontaktdaten" : currentLang === "EN" ? "Contact Info" : "Coordonnées")}
                           </span>
-                          <button type="button" onClick={() => goToStep(1)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">
+                          <button type="button" onClick={() => goToStep(1)} className="text-xs font-bold text-slate-400 hover:text-[#003366] cursor-pointer">
                             {t.apply.review?.edit || (currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier")}
                           </button>
                         </div>
@@ -1937,10 +1937,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       {/* Section Profil & Formation */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#003366]">
                             {currentLang === "DE" ? "Profil & Ausbildung" : currentLang === "EN" ? "Profile & Background" : "Profil & Formation"}
                           </span>
-                          <button type="button" onClick={() => goToStep(2)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">
+                          <button type="button" onClick={() => goToStep(2)} className="text-xs font-bold text-slate-400 hover:text-[#003366] cursor-pointer">
                             {t.apply.review?.edit || (currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier")}
                           </button>
                         </div>
@@ -1952,17 +1952,17 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           <div className="sm:col-span-2 pt-1.5 mt-1 border-t border-slate-100 flex flex-wrap items-center gap-2">
                             <span className="text-slate-400">{currentLang === "DE" ? "Sprachen :" : currentLang === "EN" ? "Languages :" : "Langues :"}</span>
                             {form.languages.french && (
-                              <span className="bg-[#EAF5ED] text-[#174F7A] font-semibold text-xs px-2 py-0.5 rounded-md border border-[#D8E2E9]">
+                              <span className="bg-[#EAF5ED] text-[#003366] font-semibold text-xs px-2 py-0.5 rounded-md border border-[#D8E2E9]">
                                 {currentLang === "DE" ? "Französisch" : currentLang === "EN" ? "French" : "Français"} : {LANGUAGE_LEVEL_LABELS[currentLang]?.[form.languages.french] || form.languages.french}
                               </span>
                             )}
                             {form.languages.english && (
-                              <span className="bg-[#EAF5ED] text-[#174F7A] font-semibold text-xs px-2 py-0.5 rounded-md border border-[#D8E2E9]">
+                              <span className="bg-[#EAF5ED] text-[#003366] font-semibold text-xs px-2 py-0.5 rounded-md border border-[#D8E2E9]">
                                 {currentLang === "DE" ? "Englisch" : currentLang === "EN" ? "English" : "Anglais"} : {LANGUAGE_LEVEL_LABELS[currentLang]?.[form.languages.english] || form.languages.english}
                               </span>
                             )}
                             {form.languages.german && form.languages.german !== "none" && (
-                              <span className="bg-[#EAF5ED] text-[#174F7A] font-semibold text-xs px-2 py-0.5 rounded-md border border-[#D8E2E9]">
+                              <span className="bg-[#EAF5ED] text-[#003366] font-semibold text-xs px-2 py-0.5 rounded-md border border-[#D8E2E9]">
                                 {currentLang === "DE" ? "Deutsch" : currentLang === "EN" ? "German" : "Allemand"} : {LANGUAGE_LEVEL_LABELS[currentLang]?.[form.languages.german] || form.languages.german}
                               </span>
                             )}
@@ -1973,10 +1973,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       {/* Section Mission */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#003366]">
                             {t.apply.review?.sections?.mission || (currentLang === "DE" ? "Einsatz & Verfügbarkeit" : currentLang === "EN" ? "Mission & Availability" : "Mission & Disponibilité")}
                           </span>
-                          <button type="button" onClick={() => goToStep(4)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">
+                          <button type="button" onClick={() => goToStep(4)} className="text-xs font-bold text-slate-400 hover:text-[#003366] cursor-pointer">
                             {t.apply.review?.edit || (currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier")}
                           </button>
                         </div>
@@ -1998,10 +1998,10 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       {/* Section Pièces jointes */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#003366]">
                             {t.apply.review?.sections?.docs || (currentLang === "DE" ? "Dokumente" : currentLang === "EN" ? "Documents" : "Documents")}
                           </span>
-                          <button type="button" onClick={() => goToStep(7)} className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer">
+                          <button type="button" onClick={() => goToStep(7)} className="text-xs font-bold text-slate-400 hover:text-[#003366] cursor-pointer">
                             {t.apply.review?.edit || (currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier")}
                           </button>
                         </div>
@@ -2019,7 +2019,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           type="checkbox"
                           checked={form.consent}
                           onChange={(e) => set("consent", e.target.checked)}
-                          className="mt-1 w-4 h-4 rounded text-[#174F7A] cursor-pointer"
+                          className="mt-1 w-4 h-4 rounded text-[#003366] cursor-pointer"
                         />
                         <span className="text-xs text-slate-600 leading-relaxed">
                           {t.apply.review?.consentLabel || (currentLang === "DE" ? "Ich versichere die Richtigkeit der angegebenen Informationen und stimme zu, dass der Verein APTIC-R meine personenbezogenen Daten ausschließlich im Rahmen der Prüfung meiner Bewerbung für den internationalen Freiwilligendienst verarbeitet." : currentLang === "EN" ? "I certify the accuracy of the information provided and I agree that the APTIC-R association processes my personal data strictly for the evaluation of my international volunteer application." : "J'atteste de l'exactitude des informations fournies et j'accepte que l'association APTIC-R traite mes données personnelles dans le cadre strict de l'évaluation de ma candidature de volontariat international.")}
@@ -2055,7 +2055,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                         <button
                           type="button"
                           onClick={() => goToStep(9)}
-                          className="px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold text-[#174F7A] bg-white border border-[#D8E2E9] hover:bg-slate-50 transition-all cursor-pointer text-center"
+                          className="px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold text-[#003366] bg-white border border-[#D8E2E9] hover:bg-slate-50 transition-all cursor-pointer text-center"
                         >
                           <span className="hidden sm:inline">
                             {currentLang === "DE" ? "Zum Abschluss springen" : currentLang === "EN" ? "Jump to summary" : "Retourner à la fin"}
@@ -2108,8 +2108,8 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                     className="w-full px-4 py-3.5 flex items-center justify-between text-left cursor-pointer hover:bg-slate-50 transition-colors"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-2 h-2 rounded-full bg-[#35A85A] shrink-0" />
-                      <span className="text-xs font-bold text-[#174F7A] uppercase tracking-wider">
+                      <span className="w-2 h-2 rounded-full bg-[#28A745] shrink-0" />
+                      <span className="text-xs font-bold text-[#003366] uppercase tracking-wider">
                         {t.apply.sidebar?.yourApplication || (currentLang === "DE" ? "IHRE BEWERBUNG" : currentLang === "EN" ? "YOUR APPLICATION" : "VOTRE CANDIDATURE")}
                       </span>
                       <span className="text-[11px] text-slate-500 truncate hidden xs:inline">
@@ -2154,23 +2154,23 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
 
                       {step === 9 && (
                         <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5 text-[11px]">
-                          <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
+                          <div className="text-[#28A745] font-bold flex items-center gap-1.5">
                             <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
                             <span>{(t.apply as any).sidebar?.checks?.infoComplete || (currentLang === "DE" ? "Informationen vollständig" : currentLang === "EN" ? "Information complete" : "Informations complètes")}</span>
                           </div>
-                          <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
+                          <div className="text-[#28A745] font-bold flex items-center gap-1.5">
                             <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
                             <span>{(t.apply as any).sidebar?.checks?.profileComplete || (currentLang === "DE" ? "Profil ausgefüllt" : currentLang === "EN" ? "Profile complete" : "Profil complété")}</span>
                           </div>
-                          <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
+                          <div className="text-[#28A745] font-bold flex items-center gap-1.5">
                             <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
                             <span>{(t.apply as any).sidebar?.checks?.skillsSelected || (currentLang === "DE" ? "Fähigkeiten ausgewählt" : currentLang === "EN" ? "Skills selected" : "Compétences sélectionnées")}</span>
                           </div>
-                          <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
+                          <div className="text-[#28A745] font-bold flex items-center gap-1.5">
                             <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
                             <span>{(t.apply as any).sidebar?.checks?.availabilityIndicated || (currentLang === "DE" ? "Verfügbarkeit angegeben" : currentLang === "EN" ? "Availability indicated" : "Disponibilité indiquée")}</span>
                           </div>
-                          <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
+                          <div className="text-[#28A745] font-bold flex items-center gap-1.5">
                             <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
                             <span>{(t.apply as any).sidebar?.checks?.documentsAdded || (currentLang === "DE" ? "Dokumente hochgeladen" : currentLang === "EN" ? "Documents added" : "Documents ajoutés")}</span>
                           </div>
@@ -2188,7 +2188,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                     className="w-full px-4 py-3.5 flex items-center justify-between text-left cursor-pointer hover:bg-slate-100/60 transition-colors"
                   >
                     <div className="flex items-center gap-2">
-                      <LightbulbIcon size={16} className="text-[#174F7A] shrink-0" />
+                      <LightbulbIcon size={16} className="text-[#003366] shrink-0" />
                       <span className="text-xs font-bold text-[#1A2B3C]">
                         {(t.apply as any).sidebar?.help?.title || (currentLang === "DE" ? "Benötigen Sie Hilfe?" : currentLang === "EN" ? "Need help?" : "Besoin d'aide ?")}
                       </span>
@@ -2216,16 +2216,16 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <a
                           href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(currentLang === "DE" ? "Frage zur Freiwilligenbewerbung" : currentLang === "EN" ? "Volunteer Application Question" : "Question Candidature Volontaire")}`}
-                          className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#174F7A] bg-white border border-[#D8E2E9] px-3.5 py-2.5 rounded-xl hover:border-[#174F7A] hover:bg-[#F0F5FA] transition-all shadow-2xs cursor-pointer text-center"
+                          className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#003366] bg-white border border-[#D8E2E9] px-3.5 py-2.5 rounded-xl hover:border-[#003366] hover:bg-[#F0F5FA] transition-all shadow-2xs cursor-pointer text-center"
                         >
-                          <svg className="w-3.5 h-3.5 text-[#174F7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3.5 h-3.5 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                           </svg>
                           <span>{(t.apply as any).sidebar?.help?.contactBtn || (currentLang === "DE" ? "Per E-Mail kontaktieren" : currentLang === "EN" ? "Contact by email" : "Email")}</span>
                         </a>
                         <a
                           href="tel:+22891201990"
-                          className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 hover:text-[#174F7A] transition-all cursor-pointer text-center"
+                          className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 hover:text-[#003366] transition-all cursor-pointer text-center"
                         >
                           <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -2244,12 +2244,12 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
 
               {/* BLOC 1 : PROGRESSION (Verticale & Contrastée) */}
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#D8E2E9]">
-                <div className="text-xs font-bold uppercase tracking-wider text-[#174F7A] mb-5 flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="text-xs font-bold uppercase tracking-wider text-[#003366] mb-5 flex items-center justify-between pb-3 border-b border-slate-100">
                   <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#174F7A]" />
+                    <span className="w-2 h-2 rounded-full bg-[#003366]" />
                     {t.apply.sidebar?.progression || (currentLang === "DE" ? "FORTSCHRITT" : currentLang === "EN" ? "PROGRESS" : "PROGRESSION")}
                   </span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#E8F2FA] text-[#174F7A]">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#E8F2FA] text-[#003366]">
                     {step} {t.apply.sidebar?.ofLower || (currentLang === "DE" ? "von" : currentLang === "EN" ? "of" : "sur")} 9
                   </span>
                 </div>
@@ -2304,8 +2304,8 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
 
               {/* BLOC 2 : VOTRE CANDIDATURE (Synthèse en direct contrastée) */}
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#D8E2E9]">
-                <div className="text-xs font-bold uppercase tracking-wider text-[#174F7A] mb-4 pb-2.5 border-b border-slate-100 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#35A85A]" />
+                <div className="text-xs font-bold uppercase tracking-wider text-[#003366] mb-4 pb-2.5 border-b border-slate-100 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#28A745]" />
                   {t.apply.sidebar?.yourApplication || (currentLang === "DE" ? "IHRE BEWERBUNG" : currentLang === "EN" ? "YOUR APPLICATION" : "VOTRE CANDIDATURE")}
                 </div>
 
@@ -2335,23 +2335,23 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
 
                 {step === 9 && (
                   <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-[11px]">
-                    <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
+                    <div className="text-[#28A745] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
                       <span>{(t.apply as any).sidebar?.checks?.infoComplete || (currentLang === "DE" ? "Informationen vollständig" : currentLang === "EN" ? "Information complete" : "Informations complètes")}</span>
                     </div>
-                    <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
+                    <div className="text-[#28A745] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
                       <span>{(t.apply as any).sidebar?.checks?.profileComplete || (currentLang === "DE" ? "Profil ausgefüllt" : currentLang === "EN" ? "Profile complete" : "Profil complété")}</span>
                     </div>
-                    <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
+                    <div className="text-[#28A745] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
                       <span>{(t.apply as any).sidebar?.checks?.skillsSelected || (currentLang === "DE" ? "Fähigkeiten ausgewählt" : currentLang === "EN" ? "Skills selected" : "Compétences sélectionnées")}</span>
                     </div>
-                    <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
+                    <div className="text-[#28A745] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
                       <span>{(t.apply as any).sidebar?.checks?.availabilityIndicated || (currentLang === "DE" ? "Verfügbarkeit angegeben" : currentLang === "EN" ? "Availability indicated" : "Disponibilité indiquée")}</span>
                     </div>
-                    <div className="text-[#35A85A] font-bold flex items-center gap-1.5">
+                    <div className="text-[#28A745] font-bold flex items-center gap-1.5">
                       <CheckIcon size={12} strokeWidth={3} className="shrink-0" />
                       <span>{(t.apply as any).sidebar?.checks?.documentsAdded || (currentLang === "DE" ? "Dokumente hochgeladen" : currentLang === "EN" ? "Documents added" : "Documents ajoutés")}</span>
                     </div>
@@ -2362,7 +2362,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
               {/* BLOC 3 : BESOIN D'AIDE ? */}
               <div className="bg-[#F8FAFC] rounded-3xl p-6 shadow-sm border border-[#D8E2E9]">
                 <div className="text-sm font-bold text-[#1A2B3C] mb-1.5 flex items-center gap-2">
-                  <LightbulbIcon size={17} className="text-[#174F7A] shrink-0" />
+                  <LightbulbIcon size={17} className="text-[#003366] shrink-0" />
                   <span>{(t.apply as any).sidebar?.help?.title || (currentLang === "DE" ? "Benötigen Sie Hilfe?" : currentLang === "EN" ? "Need some light?" : "Besoin d'un éclairage ?")}</span>
                 </div>
                 <p className="text-xs text-slate-500 leading-relaxed mb-4">
@@ -2371,16 +2371,16 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                 <div className="space-y-2">
                   <a
                     href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(currentLang === "DE" ? "Frage zur Freiwilligenbewerbung" : currentLang === "EN" ? "Volunteer Application Question" : "Question Candidature Volontaire")}`}
-                    className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#174F7A] bg-white border border-[#D8E2E9] px-4 py-2.5 rounded-xl hover:border-[#174F7A] hover:bg-[#F0F5FA] transition-all shadow-2xs w-full cursor-pointer"
+                    className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#003366] bg-white border border-[#D8E2E9] px-4 py-2.5 rounded-xl hover:border-[#003366] hover:bg-[#F0F5FA] transition-all shadow-2xs w-full cursor-pointer"
                   >
-                    <svg className="w-4 h-4 text-[#174F7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     <span>{(t.apply as any).sidebar?.help?.contactBtn || (currentLang === "DE" ? "Per E-Mail kontaktieren" : currentLang === "EN" ? "Contact by email" : "Contacter par email")}</span>
                   </a>
                   <a
                     href="tel:+22891201990"
-                    className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-100 hover:text-[#174F7A] transition-all w-full cursor-pointer"
+                    className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-100 hover:text-[#003366] transition-all w-full cursor-pointer"
                   >
                     <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />

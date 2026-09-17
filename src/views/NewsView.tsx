@@ -42,7 +42,7 @@ interface CategoryRecord {
   nameDe: string
 }
 
-const BG = "#F5F7F9"
+const BG = "#F7F8FA"
 
 const I18N = {
   FR: {
@@ -123,9 +123,9 @@ export default function NewsView({ lang }: NewsViewProps) {
 
       <main className="flex-1 pt-24 lg:pt-32">
         {/* ── 1. Hero ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#174F7A]/10 via-transparent to-transparent">
+        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#003366]/10 via-transparent to-transparent">
           <div className="max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#174F7A] mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#003366] mb-6">
               <span>📰</span>
               <span>{t.badge}</span>
             </div>
@@ -145,7 +145,7 @@ export default function NewsView({ lang }: NewsViewProps) {
               onClick={() => setCategoryFilter("ALL")}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm ${
                 categoryFilter === "ALL"
-                  ? "bg-[#174F7A] text-white shadow-md"
+                  ? "bg-[#003366] text-white shadow-md"
                   : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
               }`}
             >
@@ -160,7 +160,7 @@ export default function NewsView({ lang }: NewsViewProps) {
                   onClick={() => setCategoryFilter(c.slug)}
                   className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm ${
                     categoryFilter === c.slug
-                      ? "bg-[#174F7A] text-white shadow-md"
+                      ? "bg-[#003366] text-white shadow-md"
                       : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
                   }`}
                 >
@@ -215,7 +215,7 @@ export default function NewsView({ lang }: NewsViewProps) {
                         {/* Meta header */}
                         <div className="flex items-center justify-between gap-2 mb-4">
                           {art.category ? (
-                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#174F7A]/10 text-[#174F7A]">
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#003366]/10 text-[#003366]">
                               {catName}
                             </span>
                           ) : (
@@ -236,7 +236,7 @@ export default function NewsView({ lang }: NewsViewProps) {
                         </div>
 
                         <h2 className="text-lg font-bold text-[#142332] mb-2 leading-snug line-clamp-2">
-                          <Link href={articleUrl} className="hover:text-[#174F7A] transition-colors">
+                          <Link href={articleUrl} className="hover:text-[#003366] transition-colors">
                             {title}
                           </Link>
                         </h2>
@@ -253,7 +253,7 @@ export default function NewsView({ lang }: NewsViewProps) {
 
                         <Link
                           href={articleUrl}
-                          className="font-bold text-[#174F7A] hover:underline flex items-center gap-1"
+                          className="font-bold text-[#003366] hover:underline flex items-center gap-1"
                         >
                           <span>{t.readArticle}</span>
                           <span>→</span>

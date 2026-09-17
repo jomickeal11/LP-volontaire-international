@@ -172,8 +172,8 @@ export default function CookieConsentBanner({ lang }: CookieConsentBannerProps) 
         >
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#174F7A]"></span>
-              <span className="font-bold text-xs uppercase tracking-wider text-[#174F7A]">
+              <span className="w-2 h-2 rounded-full bg-[#003366]"></span>
+              <span className="font-bold text-xs uppercase tracking-wider text-[#003366]">
                 {t.title}
               </span>
             </div>
@@ -185,7 +185,7 @@ export default function CookieConsentBanner({ lang }: CookieConsentBannerProps) 
             <div className="pt-1">
               <Link
                 href={cookiePolicyUrl}
-                className="text-[11px] text-[#174F7A] underline hover:text-[#35A85A] font-medium"
+                className="text-[11px] text-[#003366] underline hover:text-[#28A745] font-medium"
               >
                 {t.learnMore}
               </Link>
@@ -195,7 +195,7 @@ export default function CookieConsentBanner({ lang }: CookieConsentBannerProps) 
               <button
                 type="button"
                 onClick={handleAcceptAll}
-                className="flex-1 min-w-[110px] py-2 px-3 rounded-lg bg-[#174F7A] hover:bg-[#123E60] text-white font-semibold text-xs text-center transition-colors cursor-pointer"
+                className="flex-1 min-w-[110px] py-2 px-3 rounded-lg bg-[#003366] hover:bg-[#002244] text-white font-semibold text-xs text-center transition-colors cursor-pointer"
               >
                 {t.btnAccept}
               </button>
@@ -211,7 +211,7 @@ export default function CookieConsentBanner({ lang }: CookieConsentBannerProps) 
               <button
                 type="button"
                 onClick={() => setModalOpen(true)}
-                className="py-2 px-2.5 text-xs text-[#7A8A9A] hover:text-[#174F7A] hover:underline transition-colors cursor-pointer font-medium"
+                className="py-2 px-2.5 text-xs text-[#7A8A9A] hover:text-[#003366] hover:underline transition-colors cursor-pointer font-medium"
               >
                 {t.btnCustomize}
               </button>
@@ -232,14 +232,14 @@ export default function CookieConsentBanner({ lang }: CookieConsentBannerProps) 
             <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0] mb-4">
               <h2
                 id="cookie-modal-title"
-                className="text-base font-bold text-[#174F7A]"
+                className="text-base font-bold text-[#003366]"
               >
                 {t.modalTitle}
               </h2>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="text-[#7A8A9A] hover:text-[#174F7A] text-lg font-bold p-1 cursor-pointer"
+                className="text-[#7A8A9A] hover:text-[#003366] text-lg font-bold p-1 cursor-pointer"
                 aria-label={t.close}
               >
                 ✕
@@ -254,7 +254,7 @@ export default function CookieConsentBanner({ lang }: CookieConsentBannerProps) 
               {/* Catégorie 1 : Cookies nécessaires */}
               <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-semibold text-[#174F7A] text-xs">
+                  <span className="font-semibold text-[#003366] text-xs">
                     {t.catEssentialTitle}
                   </span>
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#E2E8F0] text-[#4A5A6A]">
@@ -269,7 +269,7 @@ export default function CookieConsentBanner({ lang }: CookieConsentBannerProps) 
               {/* Catégorie 2 : Mesure d'audience Google Analytics */}
               <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] hover:border-[#CBD5E1] transition-colors">
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-semibold text-[#174F7A] text-xs">
+                  <span className="font-semibold text-[#003366] text-xs">
                     {t.catAnalyticsTitle}
                   </span>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -279,7 +279,7 @@ export default function CookieConsentBanner({ lang }: CookieConsentBannerProps) 
                       onChange={(e) => setAnalyticsToggle(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#174F7A]"></div>
+                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#003366]"></div>
                   </label>
                 </div>
                 <p className="text-[11px] text-[#64748B] leading-relaxed">
@@ -292,7 +292,7 @@ export default function CookieConsentBanner({ lang }: CookieConsentBannerProps) 
               <Link
                 href={cookiePolicyUrl}
                 onClick={() => setModalOpen(false)}
-                className="text-[11px] text-[#7A8A9A] hover:text-[#174F7A] underline"
+                className="text-[11px] text-[#7A8A9A] hover:text-[#003366] underline"
               >
                 {t.learnMore}
               </Link>
@@ -308,7 +308,7 @@ export default function CookieConsentBanner({ lang }: CookieConsentBannerProps) 
                 <button
                   type="button"
                   onClick={handleSavePreferences}
-                  className="py-2 px-4 rounded-lg bg-[#174F7A] hover:bg-[#123E60] text-white font-semibold text-xs cursor-pointer"
+                  className="py-2 px-4 rounded-lg bg-[#003366] hover:bg-[#002244] text-white font-semibold text-xs cursor-pointer"
                 >
                   {t.btnSave}
                 </button>

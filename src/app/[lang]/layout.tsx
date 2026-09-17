@@ -159,7 +159,7 @@ export default async function RootLayout({
   return (
     <html lang={lang || "fr"} className="scroll-smooth">
       <head />
-      <body className="antialiased min-h-screen flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
+      <body className="antialiased min-h-screen flex flex-col font-sans selection:bg-[#007BFF]/20 selection:text-[#003366]">
         <GoogleAnalyticsLoader gaId={gaId} />
         {children}
         <CookieConsentBanner lang={lang || "fr"} />

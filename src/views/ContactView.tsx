@@ -12,7 +12,7 @@ interface ContactViewProps {
   lang: Language
 }
 
-const BG = "#F5F7F9"
+const BG = "#F7F8FA"
 
 const I18N = {
   FR: {
@@ -218,9 +218,9 @@ export default function ContactView({ lang }: ContactViewProps) {
 
       <main className="flex-1 pt-24 lg:pt-32">
         {/* ── 1. Hero ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#174F7A]/10 via-transparent to-transparent">
+        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#003366]/10 via-transparent to-transparent">
           <div className="max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#174F7A] mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#003366] mb-6">
               <span>📬</span>
               <span>{t.badge}</span>
             </div>
@@ -240,7 +240,7 @@ export default function ContactView({ lang }: ContactViewProps) {
             <div className="lg:col-span-5 space-y-6">
               {/* Headquarters card */}
               <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#174F7A]/10 text-[#174F7A] flex items-center justify-center text-2xl">
+                <div className="w-12 h-12 rounded-2xl bg-[#003366]/10 text-[#003366] flex items-center justify-center text-2xl">
                   📍
                 </div>
                 <h3 className="text-xl font-bold text-[#142332]">
@@ -259,7 +259,7 @@ export default function ContactView({ lang }: ContactViewProps) {
 
               {/* Phone & WhatsApp Card */}
               <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#35A85A]/10 text-[#35A85A] flex items-center justify-center text-2xl">
+                <div className="w-12 h-12 rounded-2xl bg-[#28A745]/10 text-[#28A745] flex items-center justify-center text-2xl">
                   📱
                 </div>
                 <h3 className="text-xl font-bold text-[#142332]">
@@ -268,7 +268,7 @@ export default function ContactView({ lang }: ContactViewProps) {
                 <div>
                   <a
                     href={`tel:${t.phoneNum.replace(/\s+/g, "")}`}
-                    className="text-2xl font-extrabold text-[#174F7A] hover:underline"
+                    className="text-2xl font-extrabold text-[#003366] hover:underline"
                   >
                     {t.phoneNum}
                   </a>
@@ -279,7 +279,7 @@ export default function ContactView({ lang }: ContactViewProps) {
                     href={`https://wa.me/22891201990?text=Bonjour%20APTIC-R,%20je%20vous%20contacte%20depuis%20le%20site%20internet.`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold bg-[#35A85A] text-white hover:bg-[#2e924e] transition-colors shadow-sm"
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold bg-[#28A745] text-white hover:bg-[#2e924e] transition-colors shadow-sm"
                   >
                     <span>💬</span>
                     <span>{t.whatsappBtn}</span>
@@ -303,7 +303,7 @@ export default function ContactView({ lang }: ContactViewProps) {
               </div>
 
               {/* Email Poles */}
-              <div className="bg-gradient-to-br from-[#174F7A] to-[#0F3452] text-white rounded-3xl p-6 sm:p-8 shadow-md space-y-4">
+              <div className="bg-gradient-to-br from-[#003366] to-[#0F3452] text-white rounded-3xl p-6 sm:p-8 shadow-md space-y-4">
                 <h3 className="text-lg font-bold">
                   {t.emailsTitle}
                 </h3>
@@ -313,7 +313,7 @@ export default function ContactView({ lang }: ContactViewProps) {
                       <div className="font-semibold text-white/90">{ep.pole}</div>
                       <a
                         href={`mailto:${ep.email}`}
-                        className="text-[#35A85A] font-bold hover:underline break-all"
+                        className="text-[#28A745] font-bold hover:underline break-all"
                       >
                         {ep.email}
                       </a>
@@ -336,9 +336,9 @@ export default function ContactView({ lang }: ContactViewProps) {
                 </div>
 
                 {status === "SUCCESS" ? (
-                  <div className="p-8 rounded-2xl bg-[#35A85A]/10 border border-[#35A85A]/30 text-center space-y-4">
+                  <div className="p-8 rounded-2xl bg-[#28A745]/10 border border-[#28A745]/30 text-center space-y-4">
                     <div className="text-5xl">🎉</div>
-                    <h3 className="text-xl font-bold text-[#35A85A]">
+                    <h3 className="text-xl font-bold text-[#28A745]">
                       Message Envoyé !
                     </h3>
                     <p className="text-slate-700 text-sm max-w-md mx-auto">
@@ -346,7 +346,7 @@ export default function ContactView({ lang }: ContactViewProps) {
                     </p>
                     <button
                       onClick={() => setStatus("IDLE")}
-                      className="px-6 py-2.5 rounded-xl font-bold text-sm bg-[#174F7A] text-white hover:bg-[#123e60] transition-colors"
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm bg-[#003366] text-white hover:bg-[#002244] transition-colors"
                     >
                       Envoyer un autre message
                     </button>
@@ -370,7 +370,7 @@ export default function ContactView({ lang }: ContactViewProps) {
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           placeholder={t.namePlaceholder}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm"
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm"
                         />
                       </div>
 
@@ -384,7 +384,7 @@ export default function ContactView({ lang }: ContactViewProps) {
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           placeholder={t.emailPlaceholder}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm"
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm"
                         />
                       </div>
                     </div>
@@ -399,7 +399,7 @@ export default function ContactView({ lang }: ContactViewProps) {
                           value={formData.organization}
                           onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
                           placeholder={t.orgPlaceholder}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm"
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm"
                         />
                       </div>
 
@@ -412,7 +412,7 @@ export default function ContactView({ lang }: ContactViewProps) {
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                           placeholder={t.phonePlaceholder}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm"
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm"
                         />
                       </div>
                     </div>
@@ -425,7 +425,7 @@ export default function ContactView({ lang }: ContactViewProps) {
                         required
                         value={formData.subject}
                         onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm bg-white"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm bg-white"
                       >
                         <option value="">{t.subjectSelect}</option>
                         <option value="GENERAL">{t.subjectGeneral}</option>
@@ -447,7 +447,7 @@ export default function ContactView({ lang }: ContactViewProps) {
                         value={formData.message}
                         onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                         placeholder={t.messagePlaceholder}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm resize-y"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm resize-y"
                       />
                     </div>
 
@@ -458,7 +458,7 @@ export default function ContactView({ lang }: ContactViewProps) {
                         required
                         checked={formData.consent}
                         onChange={(e) => setFormData({ ...formData, consent: e.target.checked })}
-                        className="mt-1 h-4 w-4 rounded text-[#174F7A] focus:ring-[#174F7A] border-slate-300"
+                        className="mt-1 h-4 w-4 rounded text-[#003366] focus:ring-[#003366] border-slate-300"
                       />
                       <label htmlFor="consent" className="text-xs text-slate-600 leading-relaxed cursor-pointer">
                         {t.fieldConsent}
@@ -469,7 +469,7 @@ export default function ContactView({ lang }: ContactViewProps) {
                       <button
                         type="submit"
                         disabled={status === "SUBMITTING"}
-                        className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold bg-[#174F7A] text-white hover:bg-[#123e60] transition-colors shadow-md disabled:opacity-50 text-sm"
+                        className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold bg-[#003366] text-white hover:bg-[#002244] transition-colors shadow-md disabled:opacity-50 text-sm"
                       >
                         {status === "SUBMITTING" ? t.submitting : t.submitBtn}
                       </button>

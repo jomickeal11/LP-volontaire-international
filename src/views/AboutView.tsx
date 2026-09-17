@@ -12,9 +12,9 @@ interface AboutViewProps {
   lang: Language
 }
 
-const BLUE = "#174F7A"
-const GREEN = "#35A85A"
-const BG = "#F5F7F9"
+const BLUE = "#003366"
+const GREEN = "#28A745"
+const BG = "#F7F8FA"
 const DARK = "#142332"
 
 const I18N = {
@@ -251,9 +251,9 @@ export default function AboutView({ lang }: AboutViewProps) {
 
       <main className="flex-1 pt-24 lg:pt-32">
         {/* ── 1. Hero Section ── */}
-        <section className="relative px-4 sm:px-6 lg:px-8 py-16 sm:py-24 overflow-hidden bg-gradient-to-b from-[#174F7A]/10 via-transparent to-transparent">
+        <section className="relative px-4 sm:px-6 lg:px-8 py-16 sm:py-24 overflow-hidden bg-gradient-to-b from-[#003366]/10 via-transparent to-transparent">
           <div className="max-w-6xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#174F7A] mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#003366] mb-6">
               <span>🏛️</span>
               <span>{t.badge}</span>
             </div>
@@ -270,7 +270,7 @@ export default function AboutView({ lang }: AboutViewProps) {
         <section className="px-4 sm:px-6 lg:px-8 py-16 bg-white border-y border-slate-200/80">
           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-6 space-y-6">
-              <div className="inline-block px-3 py-1 rounded-md bg-[#35A85A]/10 text-[#35A85A] font-semibold text-xs tracking-wider uppercase">
+              <div className="inline-block px-3 py-1 rounded-md bg-[#28A745]/10 text-[#28A745] font-semibold text-xs tracking-wider uppercase">
                 {t.storyBadge}
               </div>
               <h2 className="text-2xl sm:text-4xl font-bold text-[#142332]">
@@ -284,7 +284,7 @@ export default function AboutView({ lang }: AboutViewProps) {
             </div>
 
             <div className="lg:col-span-6">
-              <div className="bg-gradient-to-br from-[#174F7A] to-[#0F3452] text-white p-8 sm:p-10 rounded-3xl shadow-xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-[#003366] to-[#0F3452] text-white p-8 sm:p-10 rounded-3xl shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
                 <div className="relative z-10 space-y-8">
                   <div className="text-5xl">📍</div>
@@ -302,13 +302,13 @@ export default function AboutView({ lang }: AboutViewProps) {
 
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/15">
                     <div>
-                      <div className="text-2xl sm:text-3xl font-extrabold text-[#35A85A]">
+                      <div className="text-2xl sm:text-3xl font-extrabold text-[#28A745]">
                         2019
                       </div>
                       <div className="text-xs text-white/70">Année de fondation</div>
                     </div>
                     <div>
-                      <div className="text-2xl sm:text-3xl font-extrabold text-[#35A85A]">
+                      <div className="text-2xl sm:text-3xl font-extrabold text-[#28A745]">
                         Loi 1901
                       </div>
                       <div className="text-xs text-white/70">Statut association</div>
@@ -321,7 +321,7 @@ export default function AboutView({ lang }: AboutViewProps) {
         </section>
 
         {/* ── 3. Pillars Section ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-20 bg-[#F5F7F9]">
+        <section className="px-4 sm:px-6 lg:px-8 py-20 bg-[#F7F8FA]">
           <div className="max-w-6xl mx-auto">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-2xl sm:text-4xl font-extrabold text-[#142332]">
@@ -332,7 +332,7 @@ export default function AboutView({ lang }: AboutViewProps) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Mission */}
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
-                <div className="w-14 h-14 rounded-xl bg-[#174F7A]/10 text-[#174F7A] flex items-center justify-center text-2xl mb-6">
+                <div className="w-14 h-14 rounded-xl bg-[#003366]/10 text-[#003366] flex items-center justify-center text-2xl mb-6">
                   🎯
                 </div>
                 <h3 className="text-xl font-bold text-[#142332] mb-3">
@@ -345,7 +345,7 @@ export default function AboutView({ lang }: AboutViewProps) {
 
               {/* Vision */}
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
-                <div className="w-14 h-14 rounded-xl bg-[#35A85A]/10 text-[#35A85A] flex items-center justify-center text-2xl mb-6">
+                <div className="w-14 h-14 rounded-xl bg-[#28A745]/10 text-[#28A745] flex items-center justify-center text-2xl mb-6">
                   👁️
                 </div>
                 <h3 className="text-xl font-bold text-[#142332] mb-3">
@@ -373,11 +373,11 @@ export default function AboutView({ lang }: AboutViewProps) {
         </section>
 
         {/* ── 4. Key Stats ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#174F7A] text-white">
+        <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#003366] text-white">
           <div className="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
             {t.stats.map((s, idx) => (
               <div key={idx} className="p-4">
-                <div className="text-3xl sm:text-5xl font-black text-[#35A85A] mb-2 tracking-tight">
+                <div className="text-3xl sm:text-5xl font-black text-[#28A745] mb-2 tracking-tight">
                   {s.value}
                 </div>
                 <div className="text-sm sm:text-base text-white/80 font-medium">
@@ -404,7 +404,7 @@ export default function AboutView({ lang }: AboutViewProps) {
               {t.values.map((v, idx) => (
                 <div
                   key={idx}
-                  className="p-6 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 hover:border-[#174F7A]/30 transition-all hover:translate-y-[-2px]"
+                  className="p-6 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 hover:border-[#003366]/30 transition-all hover:translate-y-[-2px]"
                 >
                   <div className="text-3xl mb-4">{v.icon}</div>
                   <h3 className="text-lg font-bold text-[#142332] mb-2">
@@ -420,7 +420,7 @@ export default function AboutView({ lang }: AboutViewProps) {
         </section>
 
         {/* ── 6. Governance Section ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-20 bg-[#F5F7F9] border-t border-slate-200">
+        <section className="px-4 sm:px-6 lg:px-8 py-20 bg-[#F7F8FA] border-t border-slate-200">
           <div className="max-w-6xl mx-auto">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-2xl sm:text-4xl font-extrabold text-[#142332]">
@@ -467,7 +467,7 @@ export default function AboutView({ lang }: AboutViewProps) {
 
         {/* ── 7. Call To Action ── */}
         <section className="px-4 sm:px-6 lg:px-8 py-20 bg-white">
-          <div className="max-w-5xl mx-auto rounded-3xl bg-gradient-to-r from-[#174F7A] to-[#0d3250] text-white p-8 sm:p-14 text-center shadow-xl">
+          <div className="max-w-5xl mx-auto rounded-3xl bg-gradient-to-r from-[#003366] to-[#0d3250] text-white p-8 sm:p-14 text-center shadow-xl">
             <h2 className="text-2xl sm:text-4xl font-extrabold mb-4">
               {t.ctaTitle}
             </h2>
@@ -477,13 +477,13 @@ export default function AboutView({ lang }: AboutViewProps) {
             <div className="flex flex-wrap justify-center gap-4">
               <Link
                 href={getPageUrl("membership", lang)}
-                className="px-6 py-3.5 rounded-xl font-bold bg-[#35A85A] text-white hover:bg-[#2e924e] transition-colors shadow-md"
+                className="px-6 py-3.5 rounded-xl font-bold bg-[#28A745] text-white hover:bg-[#2e924e] transition-colors shadow-md"
               >
                 {t.ctaMember}
               </Link>
               <Link
                 href={getPageUrl("apply", lang)}
-                className="px-6 py-3.5 rounded-xl font-bold bg-white text-[#174F7A] hover:bg-slate-100 transition-colors shadow-md"
+                className="px-6 py-3.5 rounded-xl font-bold bg-white text-[#003366] hover:bg-slate-100 transition-colors shadow-md"
               >
                 {t.ctaVolunteer}
               </Link>

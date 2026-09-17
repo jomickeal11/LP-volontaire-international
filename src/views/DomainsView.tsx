@@ -12,7 +12,7 @@ interface DomainsViewProps {
   lang: Language
 }
 
-const BG = "#F5F7F9"
+const BG = "#F7F8FA"
 
 const I18N = {
   FR: {
@@ -35,7 +35,7 @@ const I18N = {
         id: "inclusion-numerique",
         code: "INCLUSION_NUMERIQUE",
         icon: "💻",
-        color: "#174F7A",
+        color: "#003366",
         title: "Inclusion Numérique & Alphabétisation",
         shortDesc: "Démocratiser l'accès aux outils numériques fondamentaux en milieu rural.",
         fullDesc:
@@ -57,7 +57,7 @@ const I18N = {
         id: "jeunesse-education",
         code: "JEUNESSE",
         icon: "🚀",
-        color: "#35A85A",
+        color: "#28A745",
         title: "Jeunesse, Éducation & Compétences d'Avenir",
         shortDesc: "Former les jeunes aux métiers du web, du design et du code pour l'emploi local.",
         fullDesc:
@@ -185,7 +185,7 @@ const I18N = {
         id: "inclusion-numerique",
         code: "INCLUSION_NUMERIQUE",
         icon: "💻",
-        color: "#174F7A",
+        color: "#003366",
         title: "Digital Inclusion & Literacy",
         shortDesc: "Democratize access to essential computing tools in rural communities.",
         fullDesc: "Digital literacy is an essential modern skill. APTIC-R deploys mobile caravans and community hubs equipped with refurbished, solar-powered computers so children and adults alike gain practical digital autonomy.",
@@ -206,7 +206,7 @@ const I18N = {
         id: "jeunesse-education",
         code: "JEUNESSE",
         icon: "🚀",
-        color: "#35A85A",
+        color: "#28A745",
         title: "Youth, Education & Future Skills",
         shortDesc: "Train young people in web development, design, and tech skills for local employment.",
         fullDesc: "To curb forced rural migration to major cities, APTIC-R provides intensive vocational training in web design, coding, and remote-work opportunities directly inside rural communities.",
@@ -329,7 +329,7 @@ const I18N = {
         id: "inclusion-numerique",
         code: "INCLUSION_NUMERIQUE",
         icon: "💻",
-        color: "#174F7A",
+        color: "#003366",
         title: "Digitale Inklusion & Grundbildung",
         shortDesc: "Zugang zu digitalen Werkzeugen in ländlichen Gebieten ermöglichen.",
         fullDesc: "Digitale Grundbildung ist eine Schlüsselkompetenz. APTIC-R baut mobile Lernwerkstätten auf, um Kindern und Erwachsenen digitale Selbstständigkeit zu ermöglichen.",
@@ -341,7 +341,7 @@ const I18N = {
         id: "jeunesse-education",
         code: "JEUNESSE",
         icon: "🚀",
-        color: "#35A85A",
+        color: "#28A745",
         title: "Jugend & Zukunftskompetenzen",
         shortDesc: "Ausbildung junger Menschen in Webentwicklung und Design für lokale Beschäftigung.",
         fullDesc: "Praxisnahe Ausbildung in modernen IT-Berufen direkt vor Ort zur Stärkung der ländlichen Wirtschaft.",
@@ -427,9 +427,9 @@ export default function DomainsView({ lang }: DomainsViewProps) {
 
       <main className="flex-1 pt-24 lg:pt-32">
         {/* ── 1. Hero ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#174F7A]/10 via-transparent to-transparent">
+        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#003366]/10 via-transparent to-transparent">
           <div className="max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#174F7A] mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#003366] mb-6">
               <span>🎯</span>
               <span>{t.badge}</span>
             </div>
@@ -449,7 +449,7 @@ export default function DomainsView({ lang }: DomainsViewProps) {
               onClick={() => setSelectedId("ALL")}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm ${
                 selectedId === "ALL"
-                  ? "bg-[#174F7A] text-white shadow-md"
+                  ? "bg-[#003366] text-white shadow-md"
                   : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
               }`}
             >
@@ -461,7 +461,7 @@ export default function DomainsView({ lang }: DomainsViewProps) {
                 onClick={() => setSelectedId(d.id)}
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm ${
                   selectedId === d.id
-                    ? "bg-[#174F7A] text-white shadow-md"
+                    ? "bg-[#003366] text-white shadow-md"
                     : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
                 }`}
               >
@@ -502,7 +502,7 @@ export default function DomainsView({ lang }: DomainsViewProps) {
 
                   <Link
                     href={getPageUrl("partner", lang)}
-                    className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#174F7A]/10 text-[#174F7A] hover:bg-[#174F7A] hover:text-white transition-all self-start sm:self-auto"
+                    className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#003366]/10 text-[#003366] hover:bg-[#003366] hover:text-white transition-all self-start sm:self-auto"
                   >
                     {t.collabBtn} →
                   </Link>
@@ -524,7 +524,7 @@ export default function DomainsView({ lang }: DomainsViewProps) {
                     <ul className="space-y-2.5">
                       {dom.objectives.map((obj, i) => (
                         <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700">
-                          <span className="text-[#35A85A] font-bold mt-0.5">✓</span>
+                          <span className="text-[#28A745] font-bold mt-0.5">✓</span>
                           <span>{obj}</span>
                         </li>
                       ))}
@@ -540,7 +540,7 @@ export default function DomainsView({ lang }: DomainsViewProps) {
                     <ul className="space-y-2.5">
                       {dom.actions.map((act, i) => (
                         <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700">
-                          <span className="text-[#174F7A] font-bold mt-0.5">•</span>
+                          <span className="text-[#003366] font-bold mt-0.5">•</span>
                           <span>{act}</span>
                         </li>
                       ))}
@@ -548,7 +548,7 @@ export default function DomainsView({ lang }: DomainsViewProps) {
                   </div>
 
                   {/* Audience */}
-                  <div className="lg:col-span-3 bg-gradient-to-br from-[#174F7A]/5 to-[#35A85A]/5 p-6 rounded-2xl border border-slate-200/70 flex flex-col justify-between">
+                  <div className="lg:col-span-3 bg-gradient-to-br from-[#003366]/5 to-[#28A745]/5 p-6 rounded-2xl border border-slate-200/70 flex flex-col justify-between">
                     <div>
                       <h3 className="text-sm font-bold text-[#142332] uppercase tracking-wider mb-3 flex items-center gap-2">
                         <span>👥</span>
@@ -562,7 +562,7 @@ export default function DomainsView({ lang }: DomainsViewProps) {
                     <div className="pt-6">
                       <Link
                         href={getPageUrl("projects", lang)}
-                        className="w-full text-center block px-3 py-2 rounded-lg text-xs font-bold text-[#174F7A] bg-white border border-slate-200 hover:border-[#174F7A] transition-colors"
+                        className="w-full text-center block px-3 py-2 rounded-lg text-xs font-bold text-[#003366] bg-white border border-slate-200 hover:border-[#003366] transition-colors"
                       >
                         {t.projectsBtn}
                       </Link>
@@ -575,7 +575,7 @@ export default function DomainsView({ lang }: DomainsViewProps) {
         </section>
 
         {/* ── 4. CTA ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#174F7A] text-white">
+        <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#003366] text-white">
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <h2 className="text-2xl sm:text-4xl font-extrabold">
               {t.ctaTitle}
@@ -586,13 +586,13 @@ export default function DomainsView({ lang }: DomainsViewProps) {
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               <Link
                 href={getPageUrl("partner", lang)}
-                className="px-6 py-3.5 rounded-xl font-bold bg-[#35A85A] text-white hover:bg-[#2e924e] transition-colors shadow-md"
+                className="px-6 py-3.5 rounded-xl font-bold bg-[#28A745] text-white hover:bg-[#2e924e] transition-colors shadow-md"
               >
                 {t.ctaPartner}
               </Link>
               <Link
                 href={getPageUrl("apply", lang)}
-                className="px-6 py-3.5 rounded-xl font-bold bg-white text-[#174F7A] hover:bg-slate-100 transition-colors shadow-md"
+                className="px-6 py-3.5 rounded-xl font-bold bg-white text-[#003366] hover:bg-slate-100 transition-colors shadow-md"
               >
                 {t.ctaVolunteer}
               </Link>

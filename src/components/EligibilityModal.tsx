@@ -49,7 +49,7 @@ export default function EligibilityModal({ isOpen, onClose, t, navigate }: Eligi
           </svg>
         </button>
 
-        <h3 className="text-2xl font-bold text-[#174F7A] mb-8 pr-8 font-['DM_Serif_Display']">
+        <h3 className="text-2xl font-bold text-[#003366] mb-8 pr-8 font-['DM_Serif_Display']">
           {t.title}
         </h3>
 
@@ -60,7 +60,7 @@ export default function EligibilityModal({ isOpen, onClose, t, navigate }: Eligi
               <label 
                 key={i} 
                 className={`flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer ${
-                  checked ? "border-[#35A85A] bg-[#35A85A]/5" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  checked ? "border-[#28A745] bg-[#28A745]/5" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                 }`}
               >
                 <div className="mt-0.5 shrink-0">
@@ -71,7 +71,7 @@ export default function EligibilityModal({ isOpen, onClose, t, navigate }: Eligi
                     onChange={() => toggleCheck(i)}
                   />
                   <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors border-2 ${
-                    checked ? "bg-[#35A85A] border-[#35A85A]" : "border-gray-300 bg-white"
+                    checked ? "bg-[#28A745] border-[#28A745]" : "border-gray-300 bg-white"
                   }`}>
                     {checked && (
                       <svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -81,7 +81,7 @@ export default function EligibilityModal({ isOpen, onClose, t, navigate }: Eligi
                   </div>
                 </div>
                 <span className={`text-base font-medium leading-snug transition-colors ${
-                  checked ? "text-[#174F7A]" : "text-[#5E6B76]"
+                  checked ? "text-[#003366]" : "text-[#5E6B76]"
                 }`}>
                   {q}
                 </span>
@@ -93,11 +93,11 @@ export default function EligibilityModal({ isOpen, onClose, t, navigate }: Eligi
         <div className={`transition-all duration-500 overflow-hidden ${
           isAllChecked ? "max-h-64 opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"
         }`}>
-          <div className="bg-[#35A85A]/10 p-6 rounded-2xl text-center">
+          <div className="bg-[#28A745]/10 p-6 rounded-2xl text-center">
             <div className="flex justify-center mb-3">
-              <CheckCircleIcon size={32} color="#35A85A" />
+              <CheckCircleIcon size={32} color="#28A745" />
             </div>
-            <p className="text-lg font-bold text-[#174F7A] mb-6">
+            <p className="text-lg font-bold text-[#003366] mb-6">
               {t.successMsg}
             </p>
             <button
@@ -106,7 +106,7 @@ export default function EligibilityModal({ isOpen, onClose, t, navigate }: Eligi
                 navigate("apply")
               }}
               className="w-full inline-flex items-center justify-center gap-3 font-bold text-sm px-8 py-4 rounded-xl text-white transition-all shadow-lg hover:scale-105"
-              style={{ backgroundColor: "#35A85A" }}
+              style={{ backgroundColor: "#28A745" }}
             >
               <span>{t.cta}</span>
               <ArrowRightIcon size={18} strokeWidth={1.5} />

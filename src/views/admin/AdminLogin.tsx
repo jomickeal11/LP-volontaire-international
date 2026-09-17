@@ -132,7 +132,7 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
       <div className="login-card">
         {/* ── Header: Logo + Identity ── */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden bg-white border border-[rgba(23,79,122,0.10)] mb-3">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden bg-white border border-[rgba(0,51,102,0.10)] mb-3">
             <Image
               src="/logo-aptic.png"
               alt="APTIC-R Logo"
@@ -143,10 +143,10 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
               unoptimized
             />
           </div>
-          <span className="font-extrabold text-base tracking-tight text-[#174F7A]">
+          <span className="font-extrabold text-base tracking-tight text-[#003366]">
             APTIC-R
           </span>
-          <span className="text-sm font-semibold text-[#174F7A] mt-0.5">
+          <span className="text-sm font-semibold text-[#003366] mt-0.5">
             Espace d&apos;administration
           </span>
           <p className="text-xs text-[#7A8A9A] text-center mt-2 max-w-[300px] leading-relaxed">
@@ -207,7 +207,7 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A8A9A] hover:text-[#174F7A] transition-colors cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A8A9A] hover:text-[#003366] transition-colors cursor-pointer"
                     aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                     tabIndex={-1}
                   >
@@ -222,7 +222,7 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
               <button
                 type="button"
                 onClick={() => setShowForgot(true)}
-                className="text-xs text-[#174F7A] hover:text-[#12405F] transition-colors cursor-pointer"
+                className="text-xs text-[#003366] hover:text-[#002244] transition-colors cursor-pointer"
               >
                 Mot de passe oublié ?
               </button>

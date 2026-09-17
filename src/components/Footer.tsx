@@ -4,6 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import translations from "../i18n/translations"
 import { LEGAL_SLUGS } from "@/lib/legalContent"
+import ApticLogo from "./ApticLogo"
 
 interface FooterProps {
   lang: Language
@@ -48,32 +49,16 @@ export default function Footer({ lang, navigate }: FooterProps) {
   }
 
   return (
-    <footer style={{ backgroundColor: "#142332" }} className="text-white">
+    <footer style={{ backgroundColor: "#003366" }} className="text-white">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
         <div className="grid grid-cols-2 md:grid-cols-12 lg:grid-cols-5 gap-x-6 gap-y-10">
           {/* Brand (Column 1) */}
           <div className="col-span-2 md:col-span-12 lg:col-span-1.5 flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden bg-white shrink-0 shadow-sm">
-                  <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={40} height={40} className="w-full h-full object-contain p-0.5" unoptimized />
-                </div>
-                <div>
-                  <div className="font-extrabold text-lg text-white leading-none">
-                    APTIC-R
-                  </div>
-                  <div className="text-[10px] uppercase font-bold tracking-wider mt-1 text-emerald-400">
-                    Association N° 0586/MATDCL
-                  </div>
-                </div>
+              <div className="mb-4">
+                <ApticLogo variant="footer" />
               </div>
-              <p className="text-xs font-semibold text-white/90 leading-relaxed mb-2">
-                {safeLang === "FR"
-                  ? "Le numérique au service des territoires ruraux."
-                  : safeLang === "DE"
-                  ? "Digitale Technologien für ländliche Räume."
-                  : "Digital technology for rural communities."}
-              </p>
+
               <p className="text-xs text-gray-400 leading-relaxed mb-5 max-w-xs">
                 {t.tagline}
               </p>
@@ -107,7 +92,7 @@ export default function Footer({ lang, navigate }: FooterProps) {
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-white/5 border border-white/10 hover:bg-[#174F7A] text-white"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-white/5 border border-white/10 hover:bg-[#003366] text-white"
                   aria-label={s.label}
                 >
                   <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -120,7 +105,7 @@ export default function Footer({ lang, navigate }: FooterProps) {
 
           {/* Column 2: L'Organisation */}
           <div className="col-span-1 md:col-span-3 lg:col-span-1">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest mb-4 text-emerald-400">
+            <h4 className="text-[11px] font-bold uppercase tracking-widest mb-4 text-[#28A745]">
               {safeLang === "FR" ? "L'Organisation" : safeLang === "DE" ? "Organisation" : "Organization"}
             </h4>
             <ul className="space-y-2.5 text-xs">
@@ -139,7 +124,7 @@ export default function Footer({ lang, navigate }: FooterProps) {
 
           {/* Column 3: S'engager */}
           <div className="col-span-1 md:col-span-3 lg:col-span-1">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest mb-4 text-emerald-400">
+            <h4 className="text-[11px] font-bold uppercase tracking-widest mb-4 text-[#28A745]">
               {n.getInvolved}
             </h4>
             <ul className="space-y-2.5 text-xs">
@@ -158,7 +143,7 @@ export default function Footer({ lang, navigate }: FooterProps) {
 
           {/* Column 4: Ressources */}
           <div className="col-span-1 md:col-span-3 lg:col-span-1">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest mb-4 text-emerald-400">
+            <h4 className="text-[11px] font-bold uppercase tracking-widest mb-4 text-[#28A745]">
               {safeLang === "FR" ? "Ressources" : safeLang === "DE" ? "Ressourcen" : "Resources"}
             </h4>
             <ul className="space-y-2.5 text-xs">
@@ -177,7 +162,7 @@ export default function Footer({ lang, navigate }: FooterProps) {
 
           {/* Column 5: Contact & Territoire */}
           <div className="col-span-1 md:col-span-3 lg:col-span-1">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest mb-4 text-emerald-400">
+            <h4 className="text-[11px] font-bold uppercase tracking-widest mb-4 text-[#28A745]">
               {t.contact}
             </h4>
             <ul className="space-y-3 text-xs text-gray-300">
@@ -197,7 +182,7 @@ export default function Footer({ lang, navigate }: FooterProps) {
                   href="https://wa.me/22891201990"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-mono text-white hover:text-emerald-400 transition-colors"
+                  className="font-mono text-white hover:text-[#28A745] transition-colors"
                 >
                   +228 91 20 19 90
                 </a>
@@ -208,7 +193,7 @@ export default function Footer({ lang, navigate }: FooterProps) {
                 </span>
                 <a
                   href="mailto:aptic.rural19@gmail.com"
-                  className="font-mono text-white hover:text-emerald-400 transition-colors break-all"
+                  className="font-mono text-white hover:text-[#28A745] transition-colors break-all"
                 >
                   aptic.rural19@gmail.com
                 </a>

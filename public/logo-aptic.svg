@@ -1,0 +1,40 @@
+<svg width="400" height="120" viewBox="0 0 400 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Symbole circulaire officiel APTIC-R -->
+  <g transform="translate(10, 10)">
+    <!-- Arc supérieur droit — Vert naturel -->
+    <path d="M 50 6 C 74.3 6 94 25.7 94 50 C 94 54.5 93.3 58.8 92.1 63 C 89.5 50 78 30 54 18 C 52.6 14 51.3 10 50 6 Z" fill="#28A745" />
+
+    <!-- Arc extérieur gauche et inférieur — Bleu institutionnel -->
+    <path d="M 50 94 C 25.7 94 6 74.3 6 50 C 6 36.5 12.1 24.5 21.8 16.5 C 19.5 22 17.5 31 18 40 C 18.5 50 21 68 34 82 C 38.8 87.2 44.5 91.2 50 94 Z" fill="#003366" />
+
+    <!-- Constellation / Réseau Tech -->
+    <line x1="39" y1="20" x2="24" y2="30" stroke="#007BFF" stroke-width="3" stroke-linecap="round" />
+    <line x1="24" y1="30" x2="34" y2="46" stroke="#007BFF" stroke-width="3" stroke-linecap="round" />
+    <line x1="34" y1="46" x2="19" y2="56" stroke="#007BFF" stroke-width="3" stroke-linecap="round" />
+    <line x1="39" y1="20" x2="34" y2="46" stroke="#007BFF" stroke-width="3" stroke-linecap="round" />
+
+    <circle cx="39" cy="20" r="4" fill="#007BFF" />
+    <circle cx="24" cy="30" r="4.5" fill="#007BFF" />
+    <circle cx="34" cy="46" r="4.5" fill="#007BFF" />
+    <circle cx="19" cy="56" r="4" fill="#007BFF" />
+
+    <!-- Humain -->
+    <circle cx="58" cy="36" r="8.5" fill="#003366" />
+    <path d="M 54 48 C 65 48 76 53 82 62 C 78 57 70 51 58 51 C 48 51 42 55 38 60 C 42 52 48 48 54 48 Z" fill="#003366" />
+
+    <!-- Sillons / Feuilles agricoles -->
+    <path d="M 37 77 C 48 64 68 53 90 48 C 76 60 56 74 41 80 C 39.5 79 38.2 78 37 77 Z" fill="#28A745" />
+    <path d="M 30 84 C 44 74 65 67 85 62 C 70 73 50 83 33 87 C 32 86 31 85 30 84 Z" fill="#28A745" />
+    <path d="M 27 89 C 40 86 56 82 74 77 C 62 84 48 89 31 91 C 29.5 90.3 28.2 89.6 27 89 Z" fill="#28A745" />
+  </g>
+
+  <!-- Logotype "APTIC-R" -->
+  <text x="130" y="62" font-family="'Montserrat', sans-serif" font-size="44" font-weight="900" fill="#003366" letter-spacing="-1">APTIC-R</text>
+
+  <!-- Ligne d'accent vert sous "AP" -->
+  <rect x="130" y="74" width="38" height="4" rx="2" fill="#28A745" />
+
+  <!-- Slogan officiel -->
+  <text x="176" y="80" font-family="'Montserrat', sans-serif" font-size="13" font-weight="600" fill="#003366">Le numérique au service</text>
+  <text x="176" y="96" font-family="'Montserrat', sans-serif" font-size="13" font-weight="600" fill="#003366">des territoires ruraux.</text>
+</svg>

@@ -11,7 +11,7 @@ const translations = {
       apply: "Apply",
       faq: "FAQ",
       partners: "Partners",
-      applyNow: "APPLY NOW",
+      applyNow: "BECOME A VOLUNTEER",
       // Institutional navigation
       home: "Home",
       aboutInstitutional: "About",
@@ -684,7 +684,7 @@ const translations = {
       apply: "Candidature",
       faq: "FAQ",
       partners: "Partenaires",
-      applyNow: "POSTULEZ",
+      applyNow: "DEVENIR VOLONTAIRE",
       // Institutional navigation
       home: "Accueil",
       aboutInstitutional: "À propos",
@@ -1360,7 +1360,7 @@ const translations = {
       apply: "Bewerben",
       faq: "FAQ",
       partners: "Partner",
-      applyNow: "BEWERBEN",
+      applyNow: "FREIWILLIGER WERDEN",
       // Institutional navigation
       home: "Startseite",
       aboutInstitutional: "Über uns",

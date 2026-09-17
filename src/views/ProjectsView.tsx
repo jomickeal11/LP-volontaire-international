@@ -41,7 +41,7 @@ interface ProjectRecord {
   } | null
 }
 
-const BG = "#F5F7F9"
+const BG = "#F7F8FA"
 
 const I18N = {
   FR: {
@@ -134,9 +134,9 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
 
       <main className="flex-1 pt-24 lg:pt-32">
         {/* ── 1. Hero ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#174F7A]/10 via-transparent to-transparent">
+        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#003366]/10 via-transparent to-transparent">
           <div className="max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#174F7A] mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#003366] mb-6">
               <span>🚀</span>
               <span>{t.badge}</span>
             </div>
@@ -163,7 +163,7 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
                 onClick={() => setStatusFilter(tab.id)}
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm ${
                   statusFilter === tab.id
-                    ? "bg-[#174F7A] text-white shadow-md"
+                    ? "bg-[#003366] text-white shadow-md"
                     : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
                 }`}
               >
@@ -215,7 +215,7 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
                         {/* Header badges */}
                         <div className="flex items-center justify-between gap-2 mb-4">
                           {p.domaine ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#174F7A]/10 text-[#174F7A]">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#003366]/10 text-[#003366]">
                               <span>{p.domaine.icon || "🎯"}</span>
                               <span className="truncate max-w-[150px]">{domaineName}</span>
                             </span>
@@ -230,7 +230,7 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
                               p.status === "COMPLETED"
                                 ? "bg-slate-100 text-slate-700"
                                 : p.status === "IN_PROGRESS"
-                                ? "bg-emerald-100 text-emerald-800"
+                                ? "bg-[#D1F0DE] text-[#166534]"
                                 : "bg-blue-100 text-blue-800"
                             }`}
                           >
@@ -262,7 +262,7 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
                         {p.beneficiaries && (
                           <div className="flex items-center justify-between text-slate-600">
                             <span className="font-semibold">{t.beneficiariesLabel}</span>
-                            <span className="text-[#35A85A] font-bold">
+                            <span className="text-[#28A745] font-bold">
                               {p.beneficiaries}
                             </span>
                           </div>
@@ -270,7 +270,7 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
 
                         <button
                           onClick={() => setSelectedProject(p)}
-                          className="w-full text-center py-2.5 rounded-xl font-bold bg-[#174F7A]/10 text-[#174F7A] hover:bg-[#174F7A] hover:text-white transition-all text-xs"
+                          className="w-full text-center py-2.5 rounded-xl font-bold bg-[#003366]/10 text-[#003366] hover:bg-[#003366] hover:text-white transition-all text-xs"
                         >
                           {t.detailsBtn} →
                         </button>
@@ -296,7 +296,7 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
               <div className="flex items-start justify-between border-b border-slate-100 pb-4">
                 <div>
                   {selectedProject.domaine && (
-                    <span className="text-xs font-bold text-[#174F7A] uppercase tracking-wider block">
+                    <span className="text-xs font-bold text-[#003366] uppercase tracking-wider block">
                       {selectedProject.domaine.nameFr}
                     </span>
                   )}
@@ -334,16 +334,16 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
               </div>
 
               {selectedProject.beneficiaries && (
-                <div className="p-4 rounded-xl bg-[#35A85A]/10 border border-[#35A85A]/20 flex items-center justify-between text-xs sm:text-sm">
+                <div className="p-4 rounded-xl bg-[#28A745]/10 border border-[#28A745]/20 flex items-center justify-between text-xs sm:text-sm">
                   <span className="font-semibold text-slate-700">Impact & Bénéficiaires :</span>
-                  <span className="font-bold text-[#35A85A]">{selectedProject.beneficiaries}</span>
+                  <span className="font-bold text-[#28A745]">{selectedProject.beneficiaries}</span>
                 </div>
               )}
 
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 <Link
                   href={getPageUrl("partner", lang)}
-                  className="px-5 py-2.5 rounded-xl font-bold text-xs bg-[#174F7A] text-white hover:bg-[#123e60] transition-colors"
+                  className="px-5 py-2.5 rounded-xl font-bold text-xs bg-[#003366] text-white hover:bg-[#002244] transition-colors"
                 >
                   Soutenir ce projet
                 </Link>
@@ -353,7 +353,7 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
         )}
 
         {/* ── 5. CTA ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#174F7A] text-white">
+        <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#003366] text-white">
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <h2 className="text-2xl sm:text-4xl font-extrabold">
               {t.ctaTitle}
@@ -364,13 +364,13 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               <Link
                 href={getPageUrl("partner", lang)}
-                className="px-6 py-3.5 rounded-xl font-bold bg-[#35A85A] text-white hover:bg-[#2e924e] transition-colors shadow-md"
+                className="px-6 py-3.5 rounded-xl font-bold bg-[#28A745] text-white hover:bg-[#2e924e] transition-colors shadow-md"
               >
                 {t.ctaPartner}
               </Link>
               <Link
                 href={getPageUrl("apply", lang)}
-                className="px-6 py-3.5 rounded-xl font-bold bg-white text-[#174F7A] hover:bg-slate-100 transition-colors shadow-md"
+                className="px-6 py-3.5 rounded-xl font-bold bg-white text-[#003366] hover:bg-slate-100 transition-colors shadow-md"
               >
                 {t.ctaVolunteer}
               </Link>

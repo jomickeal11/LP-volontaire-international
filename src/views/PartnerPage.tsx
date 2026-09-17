@@ -22,9 +22,9 @@ interface PartnerPageProps {
   setLang?: (l: Language) => void
 }
 
-const BLUE = "#174F7A"
-const GREEN = "#35A85A"
-const BG_LIGHT = "#F5F7F9"
+const BLUE = "#003366"
+const GREEN = "#28A745"
+const BG_LIGHT = "#F7F8FA"
 const TEXT_DARK = "#1A2B3C"
 const TEXT_MID = "#5E6B76"
 
@@ -335,7 +335,7 @@ function PhoneInputField({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={searchPlaceholder}
-                className="w-full px-3 py-2 text-xs rounded-lg outline-none bg-white border border-[#D8E2E9] focus:border-[#174F7A]"
+                className="w-full px-3 py-2 text-xs rounded-lg outline-none bg-white border border-[#D8E2E9] focus:border-[#003366]"
                 autoFocus
               />
             </div>
@@ -353,7 +353,7 @@ function PhoneInputField({
                         type="button"
                         onClick={() => handleSelect(c)}
                         className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-colors cursor-pointer hover:bg-[#F0F5FA] ${
-                          isSelected ? "bg-[#EAF2F9] font-bold text-[#174F7A]" : "text-slate-700"
+                          isSelected ? "bg-[#EAF2F9] font-bold text-[#003366]" : "text-slate-700"
                         }`}
                       >
                         <img
@@ -385,7 +385,7 @@ function PhoneInputField({
                         type="button"
                         onClick={() => handleSelect(c)}
                         className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-colors cursor-pointer hover:bg-[#F0F5FA] ${
-                          isSelected ? "bg-[#EAF2F9] font-bold text-[#174F7A]" : "text-slate-700"
+                          isSelected ? "bg-[#EAF2F9] font-bold text-[#003366]" : "text-slate-700"
                         }`}
                       >
                         <img
@@ -577,10 +577,10 @@ function FileUpload({
       {fileName ? (
         <div
           className="flex items-center justify-between px-4 py-3.5 rounded-xl transition-all"
-          style={{ backgroundColor: "#EAF5ED", border: "1.5px solid #35A85A" }}
+          style={{ backgroundColor: "#EAF5ED", border: "1.5px solid #28A745" }}
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-6 h-6 rounded-full bg-[#35A85A] text-white flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded-full bg-[#28A745] text-white flex items-center justify-center shrink-0">
               <CheckIcon className="w-3.5 h-3.5" />
             </div>
             <span className="text-sm font-medium truncate" style={{ color: "#1A4D2E" }}>
@@ -597,11 +597,11 @@ function FileUpload({
         </div>
       ) : (
         <label
-          className="flex flex-col items-center justify-center gap-2 px-4 py-7 rounded-xl cursor-pointer transition-all hover:border-[#174F7A] group"
+          className="flex flex-col items-center justify-center gap-2 px-4 py-7 rounded-xl cursor-pointer transition-all hover:border-[#003366] group"
           style={{ border: "2px dashed #D1DCE5", backgroundColor: "#FAFCFD" }}
           onDragOver={(e) => e.preventDefault()}
         >
-          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-[#E8F2FA] group-hover:text-[#174F7A] transition-colors">
+          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-[#E8F2FA] group-hover:text-[#003366] transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
@@ -886,7 +886,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
             className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
             style={{ backgroundColor: "#EAF5ED", border: `3px solid ${GREEN}` }}
           >
-            <svg className="w-10 h-10 text-[#35A85A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-10 h-10 text-[#28A745]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
             </svg>
           </div>
@@ -941,11 +941,11 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
             className="flex items-center gap-3 cursor-pointer text-left group"
             aria-label="APTIC-R Accueil"
           >
-            <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-[#D8E2E9] flex items-center justify-center p-0.5 shadow-2xs group-hover:border-[#174F7A] transition-colors">
+            <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-[#D8E2E9] flex items-center justify-center p-0.5 shadow-2xs group-hover:border-[#003366] transition-colors">
               <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={60} height={60} className="w-full h-full object-contain" unoptimized />
             </div>
             <div>
-              <div className="font-extrabold text-sm leading-none tracking-tight text-[#174F7A]">APTIC-R</div>
+              <div className="font-extrabold text-sm leading-none tracking-tight text-[#003366]">APTIC-R</div>
               <div className="text-[9px] font-bold tracking-[0.12em] uppercase mt-0.5 text-slate-500">
                 {currentLang === "DE" ? "Partnerorganisationen" : currentLang === "EN" ? "Partner Organizations" : "Organisations Partenaires"}
               </div>
@@ -967,7 +967,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
 
             <div className="h-4 w-[1px] bg-slate-200 hidden sm:block" />
 
-            <div className="flex items-center gap-1 bg-[#F5F7F9] p-1 rounded-lg border border-[#EAF0F4]">
+            <div className="flex items-center gap-1 bg-[#F7F8FA] p-1 rounded-lg border border-[#EAF0F4]">
               {(["FR", "EN", "DE"] as Language[]).map((l) => (
                 <button
                   key={l}
@@ -993,8 +993,8 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 lg:gap-10">
             {/* Texte de présentation */}
             <div className="flex-1 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-white text-[#174F7A] border border-[#D8E2E9] shadow-2xs mb-2.5">
-                <span className="w-2 h-2 rounded-full bg-[#35A85A]" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-white text-[#003366] border border-[#D8E2E9] shadow-2xs mb-2.5">
+                <span className="w-2 h-2 rounded-full bg-[#28A745]" />
                 <span>{t.partner?.hero?.tag || (currentLang === "DE" ? "FÜR ORGANISATIONEN" : currentLang === "EN" ? "FOR ORGANIZATIONS" : "POUR LES ORGANISATIONS")}</span>
               </div>
 
@@ -1006,7 +1006,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                 {t.partner?.hero?.desc || (currentLang === "DE" ? "APTIC-R sucht europäische Organisationen für langfristige Freiwilligenpartnerschaften in Togo." : currentLang === "EN" ? "APTIC-R is seeking European organizations interested in developing long-term volunteer partnerships in Togo." : "APTIC-R recherche des organisations intéressées par le développement de partenariats de volontariat à long terme au Togo.")}
               </p>
 
-              <div className="flex flex-wrap gap-2 text-xs font-semibold text-[#174F7A]">
+              <div className="flex flex-wrap gap-2 text-xs font-semibold text-[#003366]">
                 <span className="px-3 py-1.5 rounded-xl bg-white border border-[#D8E2E9] shadow-2xs">
                   {currentLang === "DE" ? "6 bis 12 Monate" : currentLang === "EN" ? "6 to 12 month missions" : "Missions de 6 à 12 mois"}
                 </span>
@@ -1050,10 +1050,10 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
               {/* ── BARRE DE PROGRESSION MOBILE (STICKY COMPACTE & DISCRÈTE) ──── */}
               <div className="md:hidden sticky top-16 z-30 bg-white/95 backdrop-blur-md border border-[#D8E2E9] rounded-2xl shadow-xs px-4 py-2.5 mb-4 transition-all">
                 <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="font-extrabold text-[#174F7A] tracking-wider uppercase text-[11px]">
+                  <span className="font-extrabold text-[#003366] tracking-wider uppercase text-[11px]">
                     {currentLang === "DE" ? `SCHRITT ${step} / 4` : currentLang === "EN" ? `STEP ${step} / 4` : `ÉTAPE ${step} / 4`}
                   </span>
-                  <span className="font-bold text-[#35A85A] text-xs">
+                  <span className="font-bold text-[#28A745] text-xs">
                     {progressPercentage}%
                   </span>
                 </div>
@@ -1073,7 +1073,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                 {/* En-tête de l'étape active */}
                 <div className="mb-8 pb-6 border-b border-slate-100">
                   <div className="hidden md:flex items-center gap-2 mb-2.5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-[#E8F2FA] text-[#174F7A]">
+                    <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-[#E8F2FA] text-[#003366]">
                       {currentLang === "DE" ? `SCHRITT ${step} VON 4` : currentLang === "EN" ? `STEP ${step} OF 4` : `ÉTAPE ${step} SUR 4`}
                     </span>
                     <span className="text-[11px] font-medium text-slate-400">
@@ -1273,7 +1273,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                                 <span className="font-bold text-sm" style={{ color: isSelected ? BLUE : TEXT_DARK }}>
                                   {item.label}
                                 </span>
-                                {isSelected && <CheckIcon className="w-4 h-4 text-[#35A85A]" />}
+                                {isSelected && <CheckIcon className="w-4 h-4 text-[#28A745]" />}
                               </div>
                               <span className="text-xs text-slate-500">{item.desc}</span>
                             </button>
@@ -1337,7 +1337,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                           {form.message.trim().length < 50 ? (
                             currentLang === "DE" ? "Mindestens 50 Zeichen" : currentLang === "EN" ? "Minimum 50 characters" : "Minimum 50 caractères"
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-[#35A85A] font-medium">
+                            <span className="inline-flex items-center gap-1 text-[#28A745] font-medium">
                               <CheckIcon className="w-3.5 h-3.5" /> {currentLang === "DE" ? "Ausreichende Länge" : currentLang === "EN" ? "Sufficient length" : "Longueur suffisante"}
                             </span>
                           )}
@@ -1380,13 +1380,13 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                       {/* Section Organisation */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#003366]">
                             {STEPS[0].title}
                           </span>
                           <button
                             type="button"
                             onClick={() => goToStep(1)}
-                            className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer"
+                            className="text-xs font-bold text-slate-400 hover:text-[#003366] cursor-pointer"
                           >
                             {currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier"}
                           </button>
@@ -1405,13 +1405,13 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                       {/* Section Programme */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#003366]">
                             {STEPS[1].title}
                           </span>
                           <button
                             type="button"
                             onClick={() => goToStep(2)}
-                            className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer"
+                            className="text-xs font-bold text-slate-400 hover:text-[#003366] cursor-pointer"
                           >
                             {currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier"}
                           </button>
@@ -1426,13 +1426,13 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                       {/* Section Message & Document */}
                       <div className="py-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#174F7A]">
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#003366]">
                             {STEPS[2].title}
                           </span>
                           <button
                             type="button"
                             onClick={() => goToStep(3)}
-                            className="text-xs font-bold text-slate-400 hover:text-[#174F7A] cursor-pointer"
+                            className="text-xs font-bold text-slate-400 hover:text-[#003366] cursor-pointer"
                           >
                             {currentLang === "DE" ? "Bearbeiten" : currentLang === "EN" ? "Edit" : "Modifier"}
                           </button>
@@ -1459,7 +1459,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                           type="checkbox"
                           checked={form.consent}
                           onChange={(e) => set("consent", e.target.checked)}
-                          className="mt-1 w-4 h-4 rounded text-[#174F7A] cursor-pointer"
+                          className="mt-1 w-4 h-4 rounded text-[#003366] cursor-pointer"
                         />
                         <span className="text-xs text-slate-600 leading-relaxed">
                           {t.partner?.form?.consent || "Je consens à ce que APTIC-R traite les informations fournies ci-dessus dans le but d'évaluer un partenariat potentiel. Notre organisation dispose de l'autorité requise pour soumettre cette demande."}
@@ -1535,8 +1535,8 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                     className="w-full px-4 py-3.5 flex items-center justify-between text-left cursor-pointer hover:bg-slate-50 transition-colors"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-2 h-2 rounded-full bg-[#35A85A] shrink-0" />
-                      <span className="text-xs font-bold text-[#174F7A] uppercase tracking-wider">
+                      <span className="w-2 h-2 rounded-full bg-[#28A745] shrink-0" />
+                      <span className="text-xs font-bold text-[#003366] uppercase tracking-wider">
                         {currentLang === "DE" ? "PARTNERRAHMEN" : currentLang === "EN" ? "PARTNER FRAMEWORK" : "CADRE PARTENAIRE"}
                       </span>
                     </div>
@@ -1578,7 +1578,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                               ]
                         )).slice(0, 3).map((reason: string, idx: number) => (
                           <li key={idx} className="flex items-start gap-2">
-                            <CheckIcon size={14} className="text-[#35A85A] mt-0.5 shrink-0" />
+                            <CheckIcon size={14} className="text-[#28A745] mt-0.5 shrink-0" />
                             <span>{reason}</span>
                           </li>
                         ))}
@@ -1595,7 +1595,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                     className="w-full px-4 py-3.5 flex items-center justify-between text-left cursor-pointer hover:bg-slate-100/60 transition-colors"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#174F7A] shrink-0" />
+                      <span className="w-2 h-2 rounded-full bg-[#003366] shrink-0" />
                       <span className="text-xs font-bold text-[#1A2B3C]">
                         {currentLang === "DE" ? "Eine konkrete Frage?" : currentLang === "EN" ? "A specific question?" : "Une question spécifique ?"}
                       </span>
@@ -1627,16 +1627,16 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <a
                           href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(currentLang === "DE" ? "APTIC-R Partnerschaftsanfrage" : currentLang === "EN" ? "APTIC-R Partnership Request" : "Demande Partenariat APTIC-R")}`}
-                          className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#174F7A] bg-white border border-[#D8E2E9] px-3.5 py-2.5 rounded-xl hover:border-[#174F7A] hover:bg-[#F0F5FA] transition-all shadow-2xs cursor-pointer text-center"
+                          className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#003366] bg-white border border-[#D8E2E9] px-3.5 py-2.5 rounded-xl hover:border-[#003366] hover:bg-[#F0F5FA] transition-all shadow-2xs cursor-pointer text-center"
                         >
-                          <svg className="w-3.5 h-3.5 text-[#174F7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3.5 h-3.5 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                           </svg>
                           <span>Email</span>
                         </a>
                         <a
                           href="tel:+22891201990"
-                          className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 hover:text-[#174F7A] transition-all cursor-pointer text-center"
+                          className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 hover:text-[#003366] transition-all cursor-pointer text-center"
                         >
                           <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -1655,12 +1655,12 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
 
               {/* BLOC 1 : ÉTAPES DU FORMULAIRE */}
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#D8E2E9]">
-                <div className="text-xs font-bold uppercase tracking-wider text-[#174F7A] mb-5 flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="text-xs font-bold uppercase tracking-wider text-[#003366] mb-5 flex items-center justify-between pb-3 border-b border-slate-100">
                   <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#174F7A]" />
+                    <span className="w-2 h-2 rounded-full bg-[#003366]" />
                     <span>{currentLang === "DE" ? "FORTSCHRITT" : currentLang === "EN" ? "PROGRESS" : "PROGRESSION"}</span>
                   </span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#E8F2FA] text-[#174F7A]">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#E8F2FA] text-[#003366]">
                     {step} {currentLang === "DE" ? "von" : currentLang === "EN" ? "of" : "sur"} 4
                   </span>
                 </div>
@@ -1710,8 +1710,8 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                 className="rounded-3xl p-6 shadow-sm border border-[#D8E2E9]"
                 style={{ backgroundColor: "#E8F2FA" }}
               >
-                <div className="text-xs font-bold uppercase tracking-wider text-[#174F7A] mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#35A85A]" />
+                <div className="text-xs font-bold uppercase tracking-wider text-[#003366] mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#28A745]" />
                   <span>{currentLang === "DE" ? "PARTNERRAHMEN" : currentLang === "EN" ? "PARTNER FRAMEWORK" : "CADRE PARTENAIRE"}</span>
                 </div>
                 <ul className="space-y-2.5 text-xs text-slate-700 leading-relaxed">
@@ -1735,7 +1735,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                         ]
                   )).slice(0, 3).map((reason, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <CheckIcon size={14} className="text-[#35A85A] mt-0.5 shrink-0" />
+                      <CheckIcon size={14} className="text-[#28A745] mt-0.5 shrink-0" />
                       <span>{reason}</span>
                     </li>
                   ))}
@@ -1744,7 +1744,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
 
               {/* BLOC 3 : CONTACT DIRECT */}
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#D8E2E9] text-xs">
-                <h4 className="font-bold text-sm text-[#174F7A] mb-1">
+                <h4 className="font-bold text-sm text-[#003366] mb-1">
                   {currentLang === "DE" ? "Eine konkrete Frage?" : currentLang === "EN" ? "A specific question?" : "Une question spécifique ?"}
                 </h4>
                 <p className="text-slate-500 mb-3 leading-relaxed">
@@ -1757,14 +1757,14 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                 <div className="space-y-2">
                   <a
                     href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(currentLang === "DE" ? "APTIC-R Partnerschaftsanfrage" : currentLang === "EN" ? "APTIC-R Partnership Request" : "Demande Partenariat APTIC-R")}`}
-                    className="font-bold text-[#174F7A] hover:underline flex items-center gap-1.5"
+                    className="font-bold text-[#003366] hover:underline flex items-center gap-1.5"
                   >
                     <span>aptic.rural19@gmail.com</span>
                     <span>→</span>
                   </a>
                   <a
                     href="tel:+22891201990"
-                    className="font-semibold text-slate-600 hover:text-[#174F7A] flex items-center gap-1.5"
+                    className="font-semibold text-slate-600 hover:text-[#003366] flex items-center gap-1.5"
                   >
                     <span>{currentLang === "DE" ? "Tel." : currentLang === "EN" ? "Phone" : "Tél."} : +228 91 20 19 90</span>
                     <span>→</span>

@@ -246,9 +246,9 @@ export async function getDashboardStats(lang: string = "fr"): Promise<DashboardD
 
   // 5. Status Breakdown (Consistent branding tokens)
   const statusLabels: Record<CandidateStatus, { label: string; color: string; textColor: string }> = {
-    NEW: { label: "Nouveau", color: "#E8F2FA", textColor: "#174F7A" },
+    NEW: { label: "Nouveau", color: "#E8F2FA", textColor: "#003366" },
     REVIEW: { label: "En révision", color: "#F1F5F9", textColor: "#334155" },
-    INTERVIEW: { label: "Entretien", color: "#EAF2F8", textColor: "#174F7A" },
+    INTERVIEW: { label: "Entretien", color: "#EAF2F8", textColor: "#003366" },
     SELECTED: { label: "Sélectionné", color: "#EAF5ED", textColor: "#277543" },
     CHOSEN: { label: "Retenu", color: "#EAF5ED", textColor: "#277543" },
     PARTNER_VALIDATION: { label: "Val. Partenaire", color: "#F8FAFC", textColor: "#475569" },

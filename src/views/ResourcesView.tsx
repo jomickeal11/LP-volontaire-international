@@ -12,7 +12,7 @@ interface ResourcesViewProps {
   lang: Language
 }
 
-const BG = "#F5F7F9"
+const BG = "#F7F8FA"
 
 const I18N = {
   FR: {
@@ -186,9 +186,9 @@ export default function ResourcesView({ lang }: ResourcesViewProps) {
 
       <main className="flex-1 pt-24 lg:pt-32">
         {/* ── 1. Hero ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#174F7A]/10 via-transparent to-transparent">
+        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#003366]/10 via-transparent to-transparent">
           <div className="max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#174F7A] mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#003366] mb-6">
               <span>📚</span>
               <span>{t.badge}</span>
             </div>
@@ -208,7 +208,7 @@ export default function ResourcesView({ lang }: ResourcesViewProps) {
               onClick={() => setTypeFilter("ALL")}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm ${
                 typeFilter === "ALL"
-                  ? "bg-[#174F7A] text-white shadow-md"
+                  ? "bg-[#003366] text-white shadow-md"
                   : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
               }`}
             >
@@ -220,7 +220,7 @@ export default function ResourcesView({ lang }: ResourcesViewProps) {
                 onClick={() => setTypeFilter(key)}
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm ${
                   typeFilter === key
-                    ? "bg-[#174F7A] text-white shadow-md"
+                    ? "bg-[#003366] text-white shadow-md"
                     : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
                 }`}
               >
@@ -247,7 +247,7 @@ export default function ResourcesView({ lang }: ResourcesViewProps) {
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-4">
-                      <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#174F7A]/10 text-[#174F7A]">
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#003366]/10 text-[#003366]">
                         {typeLabel}
                       </span>
                       <span className="text-xs font-semibold text-slate-400">
@@ -267,7 +267,7 @@ export default function ResourcesView({ lang }: ResourcesViewProps) {
                   <div className="pt-4 border-t border-slate-100">
                     <button
                       onClick={() => handleDownload(res.fileName, title)}
-                      className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-bold bg-[#174F7A] text-white hover:bg-[#123e60] transition-colors text-xs shadow-sm"
+                      className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-bold bg-[#003366] text-white hover:bg-[#002244] transition-colors text-xs shadow-sm"
                     >
                       <span>📥</span>
                       <span>{t.downloadBtn}</span>
@@ -282,7 +282,7 @@ export default function ResourcesView({ lang }: ResourcesViewProps) {
         {/* ── 4. Transparency Commitment ── */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#F0F4F8] border-t border-slate-200">
           <div className="max-w-4xl mx-auto text-center space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#35A85A]/10 text-[#35A85A] text-2xl flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-2xl bg-[#28A745]/10 text-[#28A745] text-2xl flex items-center justify-center mx-auto">
               ⚖️
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-[#142332]">

@@ -7,6 +7,7 @@ import translations from "../i18n/translations"
 import { useRouter } from "next/navigation"
 import { trackEvent } from "../lib/tracker"
 import Image from "next/image"
+import ApticLogo from "./ApticLogo"
 
 interface HeaderProps {
   currentPage: Page
@@ -15,9 +16,9 @@ interface HeaderProps {
   navigate: (p: Page) => void
 }
 
-const GREEN = "#35A85A"
-const GREEN_HOVER = "#2E914E"
-const BLUE = "#174F7A"
+const GREEN = "#28A745"
+const GREEN_HOVER = "#218838"
+const BLUE = "#003366"
 
 /* ── Types for nav items ─────────────────────────────────────────────── */
 interface NavItem {
@@ -147,22 +148,10 @@ export default function Header({
         <div className="flex-1 flex items-center justify-start">
           <button
             onClick={() => navigate("home")}
-            className="flex items-center group text-left cursor-pointer"
+            className="flex items-center group text-left cursor-pointer transition-transform hover:scale-[1.02]"
             aria-label="APTIC-R Home"
           >
-            <div
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-105 shrink-0 overflow-hidden bg-white border border-[rgba(23,79,122,0.10)]"
-            >
-              <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={40} height={40} className="w-[85%] h-[85%] object-contain" priority unoptimized />
-            </div>
-            <div className="ml-2.5 sm:ml-3">
-              <div className="font-extrabold text-xs sm:text-sm leading-none tracking-tight text-[#174F7A]">
-                APTIC-R
-              </div>
-              <div className="text-[8px] sm:text-[9px] font-bold tracking-[0.06em] sm:tracking-[0.1em] uppercase mt-0.5 text-[#174F7A] whitespace-nowrap">
-                {currentLang === "FR" ? "TIC en milieu Rural" : currentLang === "DE" ? "IKT im ländlichen Raum" : "ICT in Rural Areas"}
-              </div>
-            </div>
+            <ApticLogo variant="header" />
           </button>
         </div>
 
@@ -256,7 +245,7 @@ export default function Header({
           {/* Language selector */}
           <div
             className="flex items-center p-0.5 rounded-full border"
-            style={{ borderColor: "rgba(23,79,122,0.10)" }}
+            style={{ borderColor: "rgba(0,51,102,0.10)" }}
           >
             {(["FR", "EN", "DE"] as Language[]).map((l) => (
               <button
@@ -267,7 +256,7 @@ export default function Header({
                 }}
                 className="px-2 py-1 text-[9px] sm:text-[10px] font-bold rounded-full transition-all cursor-pointer uppercase"
                 style={{
-                  backgroundColor: lang === l ? "rgba(23,79,122,0.06)" : "transparent",
+                  backgroundColor: lang === l ? "rgba(0,51,102,0.06)" : "transparent",
                   color: lang === l ? BLUE : "#233B4D",
                 }}
                 aria-current={lang === l ? "true" : undefined}
@@ -311,22 +300,22 @@ export default function Header({
           {/* Mobile & Tablet Hamburger */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2.5 rounded-full cursor-pointer transition-all duration-200 border border-[rgba(23,79,122,0.12)] bg-[#F5F7F9] hover:bg-[#EAF0F4] active:scale-95"
+            className="lg:hidden p-2.5 rounded-full cursor-pointer transition-all duration-200 border border-[rgba(0,51,102,0.12)] bg-[#F5F7F9] hover:bg-[#EAF0F4] active:scale-95"
             aria-label="Menu"
           >
             <div className="w-4 h-3.5 flex flex-col justify-between">
               <span
-                className="block h-0.5 w-full rounded-full bg-[#174F7A] origin-center transition-transform duration-200"
+                className="block h-0.5 w-full rounded-full bg-[#003366] origin-center transition-transform duration-200"
                 style={{
                   transform: mobileOpen ? "translateY(5px) rotate(45deg)" : "",
                 }}
               />
               <span
-                className="block h-0.5 w-full rounded-full bg-[#174F7A] transition-opacity duration-200"
+                className="block h-0.5 w-full rounded-full bg-[#003366] transition-opacity duration-200"
                 style={{ opacity: mobileOpen ? 0 : 1 }}
               />
               <span
-                className="block h-0.5 w-full rounded-full bg-[#174F7A] origin-center transition-transform duration-200"
+                className="block h-0.5 w-full rounded-full bg-[#003366] origin-center transition-transform duration-200"
                 style={{
                   transform: mobileOpen
                     ? "translateY(-5px) rotate(-45deg)"
@@ -343,14 +332,14 @@ export default function Header({
         <>
           {/* Backdrop */}
           <div 
-            className="lg:hidden fixed inset-0 z-40 bg-[rgba(23,79,122,0.2)] backdrop-blur-sm transition-opacity"
+            className="lg:hidden fixed inset-0 z-40 bg-[rgba(0,51,102,0.2)] backdrop-blur-sm transition-opacity"
             onClick={() => setMobileOpen(false)}
           />
           <div className="lg:hidden fixed top-[64px] sm:top-[74px] right-3 sm:right-4 md:right-6 w-[300px] sm:w-[360px] max-w-[calc(100vw-1.5rem)] z-50 bg-white rounded-2xl shadow-2xl border border-[#EAF0F4] overflow-hidden max-h-[calc(100vh-100px)] overflow-y-auto">
             <div className="relative p-4 sm:p-5 pt-10 sm:pt-12 flex flex-col w-full">
               <button
                 onClick={() => setMobileOpen(false)}
-                className="absolute top-2.5 right-3 p-1.5 sm:p-2 text-[#7A8A9A] hover:text-[#174F7A] bg-[#F5F7F9] hover:bg-[#EAF0F4] rounded-full transition-colors cursor-pointer"
+                className="absolute top-2.5 right-3 p-1.5 sm:p-2 text-[#7A8A9A] hover:text-[#003366] bg-[#F5F7F9] hover:bg-[#EAF0F4] rounded-full transition-colors cursor-pointer"
                 aria-label="Close menu"
               >
                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -384,7 +373,7 @@ export default function Header({
                               className="w-full text-left text-sm sm:text-[15px] font-bold tracking-tight transition-colors py-2.5 px-3 sm:py-3 sm:px-3.5 rounded-xl hover:bg-[#F5F7F9]"
                               style={{
                                 color: childActive ? BLUE : "#4A5A6A",
-                                backgroundColor: childActive ? "rgba(23,79,122,0.06)" : "transparent",
+                                backgroundColor: childActive ? "rgba(0,51,102,0.06)" : "transparent",
                               }}
                             >
                               {child.label}
@@ -406,7 +395,7 @@ export default function Header({
                       className="text-left text-sm sm:text-[15px] font-bold tracking-tight transition-colors py-2.5 px-3 sm:py-3 sm:px-3.5 rounded-xl hover:bg-[#F5F7F9]"
                       style={{
                         color: isActive ? BLUE : "#4A5A6A",
-                        backgroundColor: isActive ? "rgba(23,79,122,0.06)" : "transparent",
+                        backgroundColor: isActive ? "rgba(0,51,102,0.06)" : "transparent",
                       }}
                     >
                       {item.label}

@@ -38,7 +38,7 @@ interface ArticleDetail {
   } | null
 }
 
-const BG = "#F5F7F9"
+const BG = "#F7F8FA"
 
 export default function ArticleDetailView({ lang, slug }: ArticleDetailViewProps) {
   const router = useRouter()
@@ -65,7 +65,7 @@ export default function ArticleDetailView({ lang, slug }: ArticleDetailViewProps
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F5F7F9]">
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA]">
         <div className="text-slate-400 text-sm">Chargement de l&apos;article...</div>
       </div>
     )
@@ -73,7 +73,7 @@ export default function ArticleDetailView({ lang, slug }: ArticleDetailViewProps
 
   if (!article) {
     return (
-      <div className="min-h-screen flex flex-col justify-between bg-[#F5F7F9]">
+      <div className="min-h-screen flex flex-col justify-between bg-[#F7F8FA]">
         <Header lang={lang} setLang={handleSetLang} currentPage="news" navigate={navigate} />
         <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           <div className="text-5xl mb-4">🔍</div>
@@ -83,7 +83,7 @@ export default function ArticleDetailView({ lang, slug }: ArticleDetailViewProps
           </p>
           <Link
             href={getPageUrl("news", lang)}
-            className="px-6 py-2.5 rounded-xl font-bold bg-[#174F7A] text-white text-sm"
+            className="px-6 py-2.5 rounded-xl font-bold bg-[#003366] text-white text-sm"
           >
             Retour aux actualités
           </Link>
@@ -131,7 +131,7 @@ export default function ArticleDetailView({ lang, slug }: ArticleDetailViewProps
           <div className="mb-8">
             <Link
               href={getPageUrl("news", lang)}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#174F7A] hover:underline"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#003366] hover:underline"
             >
               <span>←</span>
               <span>Retour à toutes les actualités</span>
@@ -142,7 +142,7 @@ export default function ArticleDetailView({ lang, slug }: ArticleDetailViewProps
           <div className="bg-white rounded-3xl p-6 sm:p-12 border border-slate-200/90 shadow-sm space-y-6">
             <div className="flex flex-wrap items-center gap-3 text-xs">
               {article.category && (
-                <span className="px-3 py-1 rounded-full font-bold bg-[#174F7A]/10 text-[#174F7A]">
+                <span className="px-3 py-1 rounded-full font-bold bg-[#003366]/10 text-[#003366]">
                   {catName}
                 </span>
               )}
@@ -168,7 +168,7 @@ export default function ArticleDetailView({ lang, slug }: ArticleDetailViewProps
             </h1>
 
             {/* Chapô */}
-            <p className="text-base sm:text-lg text-slate-600 font-medium leading-relaxed border-l-4 border-[#35A85A] pl-4 py-1 bg-slate-50 rounded-r-xl">
+            <p className="text-base sm:text-lg text-slate-600 font-medium leading-relaxed border-l-4 border-[#28A745] pl-4 py-1 bg-slate-50 rounded-r-xl">
               {excerpt}
             </p>
 
@@ -191,7 +191,7 @@ export default function ArticleDetailView({ lang, slug }: ArticleDetailViewProps
                 </Link>
                 <Link
                   href={getPageUrl("membership", lang)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#35A85A] hover:bg-[#2e924e] transition-colors"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#28A745] hover:bg-[#2e924e] transition-colors"
                 >
                   Rejoindre l&apos;association
                 </Link>

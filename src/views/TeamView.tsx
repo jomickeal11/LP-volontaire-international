@@ -12,7 +12,7 @@ interface TeamViewProps {
   lang: Language
 }
 
-const BG = "#F5F7F9"
+const BG = "#F7F8FA"
 
 const I18N = {
   FR: {
@@ -90,7 +90,7 @@ const MEMBERS = [
       "IT-Ingenieur mit Ausbildung in Lomé und Dakar. Seit über 10 Jahren engagiert für digitale Inklusion im ländlichen Raum.",
     email: "direction@aptic-r.org",
     initials: "KM",
-    color: "#174F7A",
+    color: "#003366",
     skills: ["Gouvernance", "Stratégie IT", "Plaidoyer", "Partenariats"],
   },
   {
@@ -108,7 +108,7 @@ const MEMBERS = [
       "Expertin für Pädagogik und Bildungsprogramme. Zuständig für Lehrpläne und die Betreuung von Freiwilligen.",
     email: "programmes@aptic-r.org",
     initials: "AL",
-    color: "#35A85A",
+    color: "#28A745",
     skills: ["Pédagogie", "Coordination", "Égalité F/H", "Formation"],
   },
   {
@@ -211,9 +211,9 @@ export default function TeamView({ lang }: TeamViewProps) {
 
       <main className="flex-1 pt-24 lg:pt-32">
         {/* ── 1. Hero ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#174F7A]/10 via-transparent to-transparent">
+        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#003366]/10 via-transparent to-transparent">
           <div className="max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#174F7A] mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#003366] mb-6">
               <span>👥</span>
               <span>{t.badge}</span>
             </div>
@@ -233,7 +233,7 @@ export default function TeamView({ lang }: TeamViewProps) {
               onClick={() => setActiveCategory("ALL")}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm ${
                 activeCategory === "ALL"
-                  ? "bg-[#174F7A] text-white shadow-md"
+                  ? "bg-[#003366] text-white shadow-md"
                   : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
               }`}
             >
@@ -245,7 +245,7 @@ export default function TeamView({ lang }: TeamViewProps) {
                 onClick={() => setActiveCategory(key)}
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm ${
                   activeCategory === key
-                    ? "bg-[#174F7A] text-white shadow-md"
+                    ? "bg-[#003366] text-white shadow-md"
                     : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
                 }`}
               >
@@ -288,7 +288,7 @@ export default function TeamView({ lang }: TeamViewProps) {
                     <h3 className="text-xl font-bold text-[#142332] mb-1">
                       {m.name}
                     </h3>
-                    <p className="text-xs sm:text-sm font-semibold text-[#174F7A] mb-4">
+                    <p className="text-xs sm:text-sm font-semibold text-[#003366] mb-4">
                       {role}
                     </p>
 
@@ -314,7 +314,7 @@ export default function TeamView({ lang }: TeamViewProps) {
                     <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
                       <a
                         href={`mailto:${m.email}`}
-                        className="text-[#174F7A] hover:underline font-semibold flex items-center gap-1.5"
+                        className="text-[#003366] hover:underline font-semibold flex items-center gap-1.5"
                       >
                         <span>✉️</span>
                         <span>{m.email}</span>
@@ -328,7 +328,7 @@ export default function TeamView({ lang }: TeamViewProps) {
         </section>
 
         {/* ── 4. Join Section ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#174F7A] text-white">
+        <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#003366] text-white">
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <h2 className="text-2xl sm:text-4xl font-extrabold">
               {t.joinTitle}
@@ -339,13 +339,13 @@ export default function TeamView({ lang }: TeamViewProps) {
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               <Link
                 href={getPageUrl("apply", lang)}
-                className="px-6 py-3.5 rounded-xl font-bold bg-[#35A85A] text-white hover:bg-[#2e924e] transition-colors shadow-md"
+                className="px-6 py-3.5 rounded-xl font-bold bg-[#28A745] text-white hover:bg-[#2e924e] transition-colors shadow-md"
               >
                 {t.joinVolunteer}
               </Link>
               <Link
                 href={getPageUrl("membership", lang)}
-                className="px-6 py-3.5 rounded-xl font-bold bg-white text-[#174F7A] hover:bg-slate-100 transition-colors shadow-md"
+                className="px-6 py-3.5 rounded-xl font-bold bg-white text-[#003366] hover:bg-slate-100 transition-colors shadow-md"
               >
                 {t.joinMember}
               </Link>

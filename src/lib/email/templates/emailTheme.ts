@@ -25,7 +25,7 @@ export function renderEmailHead(title: string): string {
       line-height: 1.6;
     }
     a {
-      color: #174F7A;
+      color: #003366;
     }
     @media (prefers-color-scheme: dark) {
       body, .email-wrap {

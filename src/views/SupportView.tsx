@@ -11,10 +11,10 @@ interface SupportViewProps {
   lang: Language
 }
 
-const BLUE = "#174F7A"
-const GREEN = "#35A85A"
+const BLUE = "#003366"
+const GREEN = "#28A745"
 const DARK = "#142332"
-const BG = "#F5F7F9"
+const BG = "#F7F8FA"
 
 const CONTENT = {
   FR: {
@@ -146,7 +146,7 @@ export default function SupportView({ lang }: SupportViewProps) {
       btnLabel: t.pillar1Action,
       href: `mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent("Soutien financier / Don de projet - APTIC-R")}`,
       isExternal: true,
-      color: "#174F7A",
+      color: "#003366",
     },
     {
       icon: "💻",
@@ -155,7 +155,7 @@ export default function SupportView({ lang }: SupportViewProps) {
       btnLabel: t.pillar2Action,
       href: `mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent("Proposition de don de matériel - APTIC-R")}`,
       isExternal: true,
-      color: "#35A85A",
+      color: "#28A745",
     },
     {
       icon: "🤝",
@@ -194,11 +194,11 @@ export default function SupportView({ lang }: SupportViewProps) {
             background: `linear-gradient(135deg, ${DARK} 0%, ${BLUE} 60%, #1a6b3a 100%)`,
           }}
         >
-          <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-[#28A745]/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-[#007BFF]/10 blur-3xl pointer-events-none" />
 
           <div className="relative max-w-4xl mx-auto px-5 sm:px-6 lg:px-8 text-center">
-            <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase mb-4 px-3.5 py-1.5 rounded-full bg-white/10 text-emerald-300 border border-white/15">
+            <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase mb-4 px-3.5 py-1.5 rounded-full bg-white/10 text-white/90 border border-white/15">
               {t.tag}
             </span>
             <h1 className="text-3xl sm:text-5xl font-black tracking-tight mt-2 mb-6 leading-tight">
@@ -264,7 +264,7 @@ export default function SupportView({ lang }: SupportViewProps) {
         {/* ── 3. Architecture Notice (Prévue au cahier des charges) ──── */}
         <section className="max-w-4xl mx-auto px-5 sm:px-6 lg:px-8 mt-16">
           <div className="bg-white rounded-3xl p-6 sm:p-8 border border-blue-100 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-5">
-            <div className="w-12 h-12 rounded-2xl bg-[#174F7A]/10 text-[#174F7A] flex items-center justify-center text-2xl shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-[#003366]/10 text-[#003366] flex items-center justify-center text-2xl shrink-0">
               ⚙️
             </div>
             <div className="flex-1">
@@ -287,7 +287,7 @@ export default function SupportView({ lang }: SupportViewProps) {
         <section className="max-w-4xl mx-auto px-5 sm:px-6 lg:px-8 mt-12">
           <div className="bg-white rounded-3xl p-8 sm:p-10 border border-gray-100 shadow-sm">
             <div className="text-center max-w-xl mx-auto mb-8">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#174F7A]">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#003366]">
                 Redevabilité
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-gray-900 mt-2 mb-2">
@@ -329,7 +329,7 @@ export default function SupportView({ lang }: SupportViewProps) {
 
         {/* ── 5. Contact Direct CTA ──────────────────────────────────── */}
         <section className="max-w-4xl mx-auto px-5 sm:px-6 lg:px-8 mt-12 text-center">
-          <div className="bg-gradient-to-br from-[#174F7A] to-[#142332] rounded-3xl p-8 sm:p-10 text-white shadow-xl">
+          <div className="bg-gradient-to-br from-[#003366] to-[#142332] rounded-3xl p-8 sm:p-10 text-white shadow-xl">
             <h3 className="text-xl sm:text-2xl font-black mb-3">
               {t.contactCtaTitle}
             </h3>
@@ -339,7 +339,7 @@ export default function SupportView({ lang }: SupportViewProps) {
             <div className="flex flex-wrap items-center justify-center gap-3">
               <button
                 onClick={() => router.push(getPageUrl("contact", safeLang))}
-                className="px-6 py-3 rounded-xl text-xs font-bold text-[#174F7A] bg-white hover:bg-gray-100 transition-all shadow-md cursor-pointer"
+                className="px-6 py-3 rounded-xl text-xs font-bold text-[#003366] bg-white hover:bg-gray-100 transition-all shadow-md cursor-pointer"
               >
                 {t.contactBtn}
               </button>
@@ -347,7 +347,7 @@ export default function SupportView({ lang }: SupportViewProps) {
                 href="https://wa.me/22891201990?text=Bonjour%20APTIC-R,%20je%20souhaite%20des%20informations%20pour%20soutenir%20vos%20actions."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-6 py-3 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-md cursor-pointer flex items-center gap-2"
+                className="px-6 py-3 rounded-xl text-xs font-bold text-white bg-[#218838] hover:bg-[#1B7A3D] transition-all shadow-md cursor-pointer flex items-center gap-2"
               >
                 <span>💬</span>
                 <span>{t.whatsappBtn}</span>

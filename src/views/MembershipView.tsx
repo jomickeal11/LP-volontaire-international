@@ -13,7 +13,7 @@ interface MembershipViewProps {
   lang: Language
 }
 
-const BG = "#F5F7F9"
+const BG = "#F7F8FA"
 
 const I18N = {
   FR: {
@@ -262,9 +262,9 @@ export default function MembershipView({ lang }: MembershipViewProps) {
 
       <main className="flex-1 pt-24 lg:pt-32">
         {/* ── 1. Hero ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center bg-gradient-to-b from-[#174F7A]/10 via-transparent to-transparent">
+        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center bg-gradient-to-b from-[#003366]/10 via-transparent to-transparent">
           <div className="max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#174F7A] mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#003366] mb-6">
               <span>🤝</span>
               <span>{t.badge}</span>
             </div>
@@ -305,7 +305,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
             <div className="bg-white rounded-3xl p-6 sm:p-12 border border-slate-200/90 shadow-md">
               {status === "SUCCESS" ? (
                 <div className="text-center py-8 space-y-6">
-                  <div className="w-20 h-20 rounded-full bg-[#35A85A]/10 text-[#35A85A] text-4xl flex items-center justify-center mx-auto shadow-sm">
+                  <div className="w-20 h-20 rounded-full bg-[#28A745]/10 text-[#28A745] text-4xl flex items-center justify-center mx-auto shadow-sm">
                     ✓
                   </div>
                   <h2 className="text-2xl sm:text-3xl font-extrabold text-[#142332]">
@@ -315,11 +315,11 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                     {t.successDesc}
                   </p>
 
-                  <div className="inline-block px-6 py-3 rounded-2xl bg-[#174F7A]/10 border border-[#174F7A]/20">
-                    <span className="text-xs text-[#174F7A] font-bold block uppercase tracking-wider">
+                  <div className="inline-block px-6 py-3 rounded-2xl bg-[#003366]/10 border border-[#003366]/20">
+                    <span className="text-xs text-[#003366] font-bold block uppercase tracking-wider">
                       Numéro de dossier
                     </span>
-                    <span className="text-2xl sm:text-3xl font-black text-[#174F7A] font-mono tracking-wider">
+                    <span className="text-2xl sm:text-3xl font-black text-[#003366] font-mono tracking-wider">
                       {referenceNumber}
                     </span>
                   </div>
@@ -331,7 +331,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                   <div className="pt-4">
                     <Link
                       href={getPageUrl("home", lang)}
-                      className="px-8 py-3.5 rounded-xl font-bold bg-[#174F7A] text-white hover:bg-[#123e60] transition-colors shadow-md text-sm inline-block"
+                      className="px-8 py-3.5 rounded-xl font-bold bg-[#003366] text-white hover:bg-[#002244] transition-colors shadow-md text-sm inline-block"
                     >
                       {t.homeBtn}
                     </Link>
@@ -356,7 +356,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
 
                   {/* Section 1 : Identité */}
                   <div className="space-y-4">
-                    <h3 className="text-sm font-bold text-[#174F7A] uppercase tracking-wider">
+                    <h3 className="text-sm font-bold text-[#003366] uppercase tracking-wider">
                       {t.sec1}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -369,7 +369,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                           required
                           value={formData.firstName}
                           onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm"
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm"
                         />
                       </div>
                       <div>
@@ -381,7 +381,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                           required
                           value={formData.lastName}
                           onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm"
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm"
                         />
                       </div>
                     </div>
@@ -396,7 +396,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                           required
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm"
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm"
                         />
                       </div>
                       <div>
@@ -408,7 +408,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                           placeholder="+228 90 00 00 00"
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm"
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm"
                         />
                       </div>
                     </div>
@@ -423,7 +423,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                           value={formData.profession}
                           onChange={(e) => setFormData({ ...formData, profession: e.target.value })}
                           placeholder="ex: Développeur, Agronome, Enseignant..."
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm"
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm"
                         />
                       </div>
                       <div>
@@ -434,7 +434,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                           type="text"
                           value={formData.organization}
                           onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm"
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm"
                         />
                       </div>
                     </div>
@@ -449,7 +449,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                           required
                           value={formData.country}
                           onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm"
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm"
                         />
                       </div>
                       <div>
@@ -461,7 +461,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                           value={formData.city}
                           onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                           placeholder="ex: Lomé, Tsévié, Paris, Berlin..."
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] focus:ring-2 focus:ring-[#174F7A]/20 outline-none text-sm"
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none text-sm"
                         />
                       </div>
                     </div>
@@ -469,7 +469,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
 
                   {/* Section 2 : Domaines */}
                   <div className="space-y-4 pt-4 border-t border-slate-100">
-                    <h3 className="text-sm font-bold text-[#174F7A] uppercase tracking-wider">
+                    <h3 className="text-sm font-bold text-[#003366] uppercase tracking-wider">
                       {t.sec2}
                     </h3>
                     <p className="text-xs text-slate-500">{t.sec2Desc}</p>
@@ -482,7 +482,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                             onClick={() => toggleDomain(dom.id)}
                             className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-center gap-3 ${
                               checked
-                                ? "bg-[#174F7A]/10 border-[#174F7A] text-[#174F7A] font-semibold"
+                                ? "bg-[#003366]/10 border-[#003366] text-[#003366] font-semibold"
                                 : "bg-[#F8FAFC] border-slate-200 text-slate-700 hover:border-slate-300"
                             }`}
                           >
@@ -496,7 +496,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
 
                   {/* Section 3 : Contribution & Disponibilité */}
                   <div className="space-y-4 pt-4 border-t border-slate-100">
-                    <h3 className="text-sm font-bold text-[#174F7A] uppercase tracking-wider">
+                    <h3 className="text-sm font-bold text-[#003366] uppercase tracking-wider">
                       {t.sec3}
                     </h3>
 
@@ -507,7 +507,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                       <select
                         value={formData.contributionType}
                         onChange={(e) => setFormData({ ...formData, contributionType: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none text-sm bg-white"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] outline-none text-sm bg-white"
                       >
                         <option value="COMPETENCES">{t.contribComp}</option>
                         <option value="FINANCIER">{t.contribFin}</option>
@@ -524,7 +524,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                       <select
                         value={formData.availability}
                         onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none text-sm bg-white"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] outline-none text-sm bg-white"
                       >
                         <option value="HEBDOMADAIRE">{t.availHebdo}</option>
                         <option value="MENSUEL">{t.availMensuel}</option>
@@ -536,7 +536,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
 
                   {/* Section 4 : Motivation */}
                   <div className="space-y-4 pt-4 border-t border-slate-100">
-                    <h3 className="text-sm font-bold text-[#174F7A] uppercase tracking-wider">
+                    <h3 className="text-sm font-bold text-[#003366] uppercase tracking-wider">
                       {t.sec4}
                     </h3>
 
@@ -550,7 +550,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                         value={formData.motivation}
                         onChange={(e) => setFormData({ ...formData, motivation: e.target.value })}
                         placeholder={t.motivationPlaceholder}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none text-sm resize-y"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] outline-none text-sm resize-y"
                       />
                     </div>
 
@@ -562,7 +562,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                           required
                           checked={formData.charteConsent}
                           onChange={(e) => setFormData({ ...formData, charteConsent: e.target.checked })}
-                          className="mt-1 h-4 w-4 rounded text-[#174F7A] focus:ring-[#174F7A] border-slate-300"
+                          className="mt-1 h-4 w-4 rounded text-[#003366] focus:ring-[#003366] border-slate-300"
                         />
                         <label htmlFor="charte" className="text-xs text-slate-700 cursor-pointer font-medium">
                           {t.charteConsent}
@@ -576,7 +576,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                           required
                           checked={formData.consentData}
                           onChange={(e) => setFormData({ ...formData, consentData: e.target.checked })}
-                          className="mt-1 h-4 w-4 rounded text-[#174F7A] focus:ring-[#174F7A] border-slate-300"
+                          className="mt-1 h-4 w-4 rounded text-[#003366] focus:ring-[#003366] border-slate-300"
                         />
                         <label htmlFor="consent" className="text-xs text-slate-700 cursor-pointer font-medium">
                           {t.dataConsent}
@@ -589,7 +589,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                     <button
                       type="submit"
                       disabled={status === "SUBMITTING"}
-                      className="w-full py-4 rounded-2xl font-bold text-sm sm:text-base bg-[#35A85A] text-white hover:bg-[#2e924e] transition-colors shadow-lg disabled:opacity-50 tracking-wider"
+                      className="w-full py-4 rounded-2xl font-bold text-sm sm:text-base bg-[#28A745] text-white hover:bg-[#2e924e] transition-colors shadow-lg disabled:opacity-50 tracking-wider"
                     >
                       {status === "SUBMITTING" ? t.submitting : t.submitBtn}
                     </button>
