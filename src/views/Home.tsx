@@ -728,299 +728,190 @@ function WeekWithAptic({ t }: { t: TKey }) {
   )
 }
 
-// ─── 10. Life in Togo ─────────────────────────────────────────────────────────
-function LifeInTogo({ t }: { t: TKey }) {
+// ─── 10. Life & Immersion in Togo (Streamlined) ──────────────────────────────
+function LifeInTogo({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
   const l = t.lifeInTogo
 
   return (
-    <section id="togo" className="py-24 lg:py-40 bg-[#FFFFFF]">
-      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 text-center mb-16 lg:mb-24">
+    <section id="togo" className="py-20 sm:py-24 lg:py-28 bg-[#FFFFFF]">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 text-center mb-12 sm:mb-16">
         <Badge text={l.tag} centered />
-        <h2 className="text-4xl lg:text-6xl leading-tight mt-6 mb-8 text-[#003366] font-['DM_Serif_Display'] font-normal">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight mt-3 mb-4 text-[#003366] font-['DM_Serif_Display'] font-normal">
           {l.title}
         </h2>
+        <p className="text-base sm:text-lg text-[#5E6B76] max-w-2xl mx-auto font-medium">
+          {l.desc}
+        </p>
       </div>
 
-      {/* Grande composition photographique */}
-      <div className="max-w-[100rem] mx-auto px-5 sm:px-6 lg:px-8 mb-24 lg:mb-32">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8 h-auto md:h-[600px] lg:h-[800px]">
-          {/* Left vertical image */}
-          <div className="col-span-1 md:col-span-1 rounded-[2rem] overflow-hidden group shadow-sm">
+      {/* Composition photographique compacte et dynamique */}
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8 mb-12 sm:mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 h-auto md:h-[340px]">
+          <div className="rounded-2xl overflow-hidden group shadow-sm h-[220px] md:h-full">
             <img
-              src="https://images.unsplash.com/photo-1637149253733-44ef8365db1c?w=900&h=1200&fit=crop&auto=format"
+              src="https://images.unsplash.com/photo-1637149253733-44ef8365db1c?w=800&h=600&fit=crop&auto=format"
               alt="Togo landscape"
-              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
           </div>
-          {/* Middle stack */}
-          <div className="col-span-1 md:col-span-1 flex flex-col gap-4 md:gap-6 lg:gap-8">
-            <div className="flex-1 rounded-[2rem] overflow-hidden group shadow-sm min-h-[160px] sm:min-h-[220px]">
-              <img
-                src="https://images.unsplash.com/photo-1609252509229-364936a1d1a2?w=800&h=600&fit=crop&auto=format"
-                alt="Community members"
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-              />
-            </div>
-            <div className="rounded-[2rem] overflow-hidden shadow-sm bg-[#003366] p-4 sm:p-8 flex flex-col items-center justify-center text-center min-h-[140px] sm:min-h-[180px]">
-              <span className="text-white font-['DM_Serif_Display'] text-2xl sm:text-4xl lg:text-5xl mb-2 sm:mb-3">Agbélouvé</span>
-              <span className="text-[#28A745] font-black uppercase tracking-widest text-[10px] sm:text-sm">Base Camp</span>
-            </div>
-          </div>
-          {/* Right vertical image */}
-          <div className="col-span-2 md:col-span-1 h-[250px] sm:h-[350px] md:h-full rounded-[2rem] overflow-hidden group shadow-sm">
+          <div className="rounded-2xl overflow-hidden group shadow-sm h-[220px] md:h-full">
             <img
-              src="https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=900&h=1200&fit=crop&auto=format"
-              alt="Nature in Togo"
-              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+              src="https://images.unsplash.com/photo-1609252509229-364936a1d1a2?w=800&h=600&fit=crop&auto=format"
+              alt="Community members in Agbelouve"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+          </div>
+          <div className="rounded-2xl overflow-hidden group shadow-sm h-[220px] md:h-full">
+            <img
+              src="https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800&h=600&fit=crop&auto=format"
+              alt="Nature and village surroundings"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-6 sm:gap-y-16">
-          {l.items?.map((item: any) => (
-            <div key={item.label} className="flex flex-col border-t border-t-[#EAF0F4] sm:border-t-2 pt-4 sm:pt-8 group">
-              <div className="text-xl sm:text-2xl font-bold mb-1 sm:mb-4 text-[#003366] md:group-hover:text-[#28A745] transition-colors">
-                {item.label}
-              </div>
-              <div className="text-[15px] sm:text-base font-medium leading-relaxed text-[#5E6B76]">
-                {item.desc}
-              </div>
+      {/* Points clés synthétiques */}
+      <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 pb-10">
+          {l.points.map((pt, idx) => (
+            <div key={idx} className="p-6 rounded-2xl bg-[#F7F8FA] border border-[#EAF0F4]">
+              <div className="text-lg font-bold text-[#003366] mb-2">{pt.title}</div>
+              <p className="text-sm text-[#5E6B76] leading-relaxed">
+                {pt.desc}
+              </p>
             </div>
           ))}
         </div>
-      </div>
-    </section>
-  )
-}
 
-// ─── 11. Agbélouvé ─────────────────────────────────────────────────────────────
-function Agbelouve({ t }: { t: TKey }) {
-  const a = t.agbelouve
-
-  return (
-    <section className="py-16 sm:py-24 lg:py-32 bg-[#F7F8FA]">
-      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-14 lg:gap-24 items-center">
-          {/* 1. Image en premier avec cadrage généreux et confortable sur tablette */}
-          <div
-            className="lg:col-span-6 w-full relative rounded-[2.5rem] overflow-hidden shadow-sm border border-[#EAF0F4] h-[300px] sm:h-[400px] md:h-[440px] lg:h-[500px]"
+        {/* Liens institutionnels contextuels */}
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 pt-4 border-t border-[#EAF0F4] text-xs sm:text-sm font-bold text-[#003366]">
+          <button
+            onClick={() => navigate("about" as any)}
+            className="hover:text-[#28A745] transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <img
-              src="https://images.unsplash.com/photo-1611502029437-54521b5e6ada?w=900&h=700&fit=crop&auto=format"
-              alt="Village and community scenery in Togo"
-              className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-            />
-            <div
-              className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white uppercase tracking-widest"
-              style={{
-                backgroundColor: "rgba(23,79,122,0.85)",
-                backdropFilter: "blur(8px)",
-              }}
-            >
-              <MapPinIcon size={16} color="#28A745" />
-              Agbélouvé
-            </div>
-          </div>
-
-          {/* 2. Contenu textuel après l'image : label, titre et description uniques, puis grille 2x3 */}
-          <div className="lg:col-span-6 w-full">
-            <Badge text={a.tag} />
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight mb-4 lg:mb-8 text-[#003366] tracking-[-0.02em]">
-              {a.title}
-            </h2>
-            <p className="text-base sm:text-lg leading-relaxed mb-8 md:mb-10 lg:mb-12 text-[#5E6B76] text-left max-w-3xl">
-              {a.desc}
-            </p>
-
-            <div className="grid grid-cols-2 gap-x-4 sm:gap-x-6 md:gap-x-12 gap-y-6 sm:gap-y-7 md:gap-y-8">
-              {a.facts.map((f, i) => {
-                const icons = [
-                  <MapPinIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#003366" />,
-                  <CompassIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#003366" />,
-                  <PlaneIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#003366" />,
-                  <WheatIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#003366" />,
-                  <UsersIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#003366" />,
-                  <HouseIcon className="w-5 h-5 sm:w-6 sm:h-6" color="#003366" />,
-                ]
-                return (
-                  <div key={f.label} className="flex gap-3 sm:gap-4 items-center text-left">
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-2xl flex items-center justify-center bg-white border border-[#EAF0F4] flex-shrink-0 shadow-xs">
-                      {icons[i]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[10px] sm:text-xs uppercase tracking-widest text-[#5E6B76] font-bold mb-0.5 sm:mb-1 truncate">
-                        {f.label}
-                      </div>
-                      <div className="text-xs sm:text-sm md:text-base font-bold text-[#003366] leading-tight">
-                        {f.value}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+            <span>{l.links.about}</span>
+            <ArrowRightIcon size={14} strokeWidth={2} />
+          </button>
+          <span className="text-slate-300">·</span>
+          <button
+            onClick={() => navigate("projects" as any)}
+            className="hover:text-[#28A745] transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>{l.links.projects}</span>
+            <ArrowRightIcon size={14} strokeWidth={2} />
+          </button>
+          <span className="text-slate-300">·</span>
+          <button
+            onClick={() => navigate("contact" as any)}
+            className="hover:text-[#28A745] transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>{l.links.contact}</span>
+            <ArrowRightIcon size={14} strokeWidth={2} />
+          </button>
         </div>
       </div>
     </section>
   )
 }
 
-// ─── 12. Support & What's Included ─────────────────────────────────────────────
-function Support({ t }: { t: TKey }) {
+// ─── Support & Confirmed Conditions (Streamlined) ─────────────────────────────
+function Conditions({ t }: { t: TKey }) {
   const s = t.support
 
   return (
-    <>
-      <section className="py-24 lg:py-32 bg-[#FFFFFF]">
-        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-20">
-            <Badge text={s.tag} centered />
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight mb-6 text-[#003366] tracking-[-0.02em]">
-              {s.title}
-            </h2>
-            <p className="text-lg lg:text-xl font-medium text-[#5E6B76]">
-              {s.subtitle}
-            </p>
-          </div>
+    <section className="py-20 sm:py-24 bg-[#F7F8FA]">
+      <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+          <Badge text={s.tag} centered />
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight mb-4 text-[#003366] tracking-[-0.02em]">
+            {s.title}
+          </h2>
+          <p className="text-base sm:text-lg font-medium text-[#5E6B76]">
+            {s.subtitle}
+          </p>
+        </div>
 
-          {/* 8 Support Cards Grid (Grille Légère) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-12">
-            {s.items.map((item, i) => {
-              const icons = [
-                <HouseIcon size={32} color="#003366" />,
-                <UtensilsIcon size={32} color="#003366" />,
-                <BusIcon size={32} color="#003366" />,
-                <UserCheckIcon size={32} color="#003366" />,
-                <SmartphoneIcon size={32} color="#003366" />,
-                <ShieldCheckIcon size={32} color="#003366" />,
-                <HeartPulseIcon size={32} color="#003366" />,
-                <LifeBuoyIcon size={32} color="#003366" />,
-              ]
+        {/* Tableau récapitulatif clair des conditions réelles */}
+        <div className="bg-white rounded-[2rem] border border-[#EAF0F4] overflow-hidden shadow-sm">
+          <div className="px-8 py-5 flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#EAF0F4] bg-[#FFFFFF]">
+            <h3 className="text-xl text-[#003366] font-bold">{s.tableTitle}</h3>
+            <span className="text-xs font-bold uppercase tracking-widest text-[#28A745] mt-1 sm:mt-0">
+              {s.tableSummary}
+            </span>
+          </div>
+          <div className="flex flex-col w-full divide-y divide-[#EAF0F4]">
+            {s.tableItems.map(([el, info, status], i) => {
+              const isConfirmed = status === s.statusConfirmed
               return (
                 <div
-                  key={item.label}
-                  className="flex flex-col items-center text-center group"
+                  key={el}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-5 sm:px-8 sm:py-5 hover:bg-[#F7F8FA] transition-colors gap-2 sm:gap-4"
                 >
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 bg-[#F7F8FA] transition-transform group-hover:scale-110">
-                    {icons[i]}
+                  <div className="sm:w-1/3">
+                    <div className="text-sm sm:text-base font-bold text-[#003366]">
+                      {el}
+                    </div>
                   </div>
-                  <div className="text-xl font-bold mb-2 text-[#003366]">
-                    {item.label}
+                  <div className="sm:flex-1 text-xs sm:text-sm text-[#5E6B76] font-medium leading-relaxed">
+                    {info}
                   </div>
-                  <div className="text-base font-medium text-[#5E6B76]">
-                    {item.value}
+                  <div className="sm:w-auto shrink-0 pt-1 sm:pt-0">
+                    <span
+                      className={`inline-block text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg ${
+                        isConfirmed
+                          ? "bg-[#EAF5EA] text-[#28A745]"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {status}
+                    </span>
                   </div>
                 </div>
               )
             })}
           </div>
         </div>
-      </section>
-
-      {/* Institutional 'What's Included?' Table */}
-      <section className="py-24 lg:py-32 bg-[#F7F8FA]">
-        <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-[2rem] border border-[#EAF0F4] overflow-hidden shadow-sm">
-            <div className="px-8 py-6 flex flex-col md:flex-row md:items-center justify-between border-b border-[#EAF0F4] bg-[#FFFFFF]">
-              <h3 className="text-2xl text-[#003366] font-['DM_Serif_Display']">{s.tableTitle}</h3>
-              <span className="text-sm font-bold uppercase tracking-widest text-[#28A745] mt-2 md:mt-0">
-                {s.tableSummary}
-              </span>
-            </div>
-            <div className="flex flex-col w-full">
-              {s.tableItems.map(([el, info, status], i) => {
-                const statusStyle = {
-                  backgroundColor:
-                    status === s.statusConfirmed
-                      ? "#EAF5EA"
-                      : status === s.statusPending
-                        ? "#F7F8FA"
-                        : "#F7F8FA",
-                  color:
-                    status === s.statusConfirmed
-                      ? "#28A745"
-                      : status === s.statusPending
-                        ? "#003366"
-                        : "#5E6B76",
-                }
-
-                return (
-                  <div
-                    key={el}
-                    className="flex flex-col sm:flex-row sm:items-center border-b border-[#EAF0F4] last:border-b-0 hover:bg-[#F7F8FA] transition-colors p-5 sm:p-0"
-                  >
-                    {/* Mobile Top Row: Label + Status / Desktop: Col 1 */}
-                    <div className="flex justify-between items-start sm:items-center sm:w-1/3 sm:py-6 sm:pl-8 sm:pr-6 mb-3 sm:mb-0">
-                      <div className="text-[15px] sm:text-base lg:text-lg font-bold text-[#003366] pr-4">
-                        {el}
-                      </div>
-                      <span
-                        className="sm:hidden text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg whitespace-nowrap flex-shrink-0"
-                        style={statusStyle}
-                      >
-                        {status}
-                      </span>
-                    </div>
-                    
-                    {/* Mobile Bottom Row: Info / Desktop: Col 2 */}
-                    <div className="text-[14px] sm:text-base lg:text-lg text-[#5E6B76] font-medium sm:flex-1 sm:py-6 sm:px-6 leading-relaxed">
-                      {info}
-                    </div>
-                    
-                    {/* Desktop Badge / Desktop: Col 3 */}
-                    <div className="hidden sm:block sm:py-6 sm:pl-6 sm:pr-8 text-right">
-                      <span
-                        className="text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-lg whitespace-nowrap"
-                        style={statusStyle}
-                      >
-                        {status}
-                      </span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
-    </>
+      </div>
+    </section>
   )
 }
 
-// ─── 13. Application Process ───────────────────────────────────────────────────
+// ─── Application Process (5 Steps) ──────────────────────────────────────────
 function ApplicationProcess({
   t,
   navigate,
 }: {
-  t: TKey; navigate: (p: Page) => void
+  t: TKey
+  navigate: (p: Page) => void
 }) {
   const ap = t.appProcess
 
   return (
-    <section className="py-24 lg:py-32 bg-[#FFFFFF]">
+    <section className="py-20 sm:py-24 lg:py-28 bg-[#FFFFFF]">
       <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="text-center mb-24">
+        <div className="text-center mb-16 sm:mb-20">
           <Badge text={ap.tag} centered />
           <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em]">
             {ap.title}
           </h2>
+          <p className="text-base sm:text-lg text-[#5E6B76] max-w-xl mx-auto mt-3 font-medium">
+            {ap.subtitle}
+          </p>
         </div>
 
-        <div className="relative border-l-4 border-[#28A745]/30 ml-6 lg:ml-12 py-8 flex flex-col gap-16 lg:gap-24">
+        <div className="relative border-l-4 border-[#28A745]/30 ml-4 sm:ml-8 lg:ml-12 py-4 flex flex-col gap-10 sm:gap-14">
           {ap.steps.map((s, i) => (
             <div key={s.title} className="relative group">
               <div className="absolute -left-[14px] top-1 w-6 h-6 rounded-full border-4 border-[#FFFFFF] bg-[#28A745] transition-transform duration-500 group-hover:scale-125 shadow-sm" />
-              <div className="ml-10 lg:ml-16">
-                <span className="text-sm font-black uppercase tracking-[0.2em] text-[#28A745] mb-3 block">
+              <div className="ml-8 sm:ml-12 lg:ml-16">
+                <span className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-[#28A745] mb-2 block">
                   {ap.stepLabel} 0{i + 1}
                 </span>
-                <h3 className="text-3xl lg:text-4xl text-[#003366] mb-4 font-['DM_Serif_Display']">
+                <h3 className="text-xl sm:text-2xl lg:text-3xl text-[#003366] mb-2 font-['DM_Serif_Display']">
                   {s.title}
                 </h3>
-                <p className="text-xl text-[#5E6B76] leading-relaxed max-w-2xl font-medium">
+                <p className="text-sm sm:text-base lg:text-lg text-[#5E6B76] leading-relaxed max-w-2xl font-medium">
                   {s.desc}
                 </p>
               </div>
@@ -1028,16 +919,12 @@ function ApplicationProcess({
           ))}
         </div>
 
-        <div className="text-center mt-12 lg:mt-16 flex justify-center">
+        <div className="text-center mt-12 sm:mt-16 flex justify-center">
           <button
             onClick={() => navigate("apply")}
-            className="inline-flex items-center gap-3 sm:gap-4 font-black text-sm sm:text-base px-6 py-4 sm:px-12 sm:py-6 rounded-xl sm:rounded-2xl text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl w-auto max-w-full"
-            style={{
-              backgroundColor: "#28A745",
-              boxShadow: "0 10px 25px rgba(53,168,90,0.3)",
-            }}
+            className="inline-flex items-center gap-3 sm:gap-4 font-black text-sm sm:text-base px-8 py-4 sm:px-10 sm:py-5 rounded-xl text-white shadow-lg transition-all hover:scale-105 bg-[#28A745] hover:bg-[#218838]"
           >
-            <span className="tracking-wide leading-tight">{ap.cta}</span>
+            <span className="tracking-wide">{ap.cta}</span>
             <ArrowRightIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" strokeWidth={2} />
           </button>
         </div>
@@ -1046,163 +933,45 @@ function ApplicationProcess({
   )
 }
 
-// ─── 14. Partners ──────────────────────────────────────────────────────────────
-function Partners({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
-  const p = t.partners
-
-  return (
-    <section className="py-16 sm:py-24 lg:py-40 bg-[#F7F8FA]">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <Badge text={p.tag} centered />
-        <h2 className="text-3xl sm:text-5xl lg:text-7xl leading-snug sm:leading-tight mt-4 sm:mt-6 mb-8 sm:mb-12 text-[#003366] font-black uppercase tracking-tight">
-          {p.titlePart1} <br className="hidden sm:block" />
-          <span className="text-[#28A745]">{p.titlePart2}</span>
-        </h2>
-        
-        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-20 text-lg lg:text-2xl font-bold text-[#5E6B76] tracking-[0.2em] uppercase">
-          <span>{p.countries[0]}</span>
-          <span className="text-[#EAF0F4]">·</span>
-          <span>{p.countries[1]}</span>
-          <span className="text-[#EAF0F4]">·</span>
-          <span>{p.countries[2]}</span>
-          <span className="text-[#EAF0F4]">·</span>
-          <span className="text-[#003366]">{p.countries[3]}</span>
-        </div>
-
-        <button
-          onClick={() => navigate("partner")}
-          className="inline-flex items-center gap-4 font-black text-sm lg:text-base px-10 py-5 rounded-xl text-white transition-all hover:scale-105"
-          style={{
-            backgroundColor: "#003366",
-            boxShadow: "0 10px 25px rgba(23,79,122,0.2)",
-          }}
-        >
-          <span className="tracking-wide uppercase">{p.cta}</span>
-          <ArrowRightIcon size={18} strokeWidth={1.5} />
-        </button>
-      </div>
-    </section>
-  )
-}
-
-// ─── 15. Testimonials ──────────────────────────────────────────────────────────
-function Testimonials({ t }: { t: TKey }) {
-  const ts = t.testimonials
-  const scrollRef = React.useRef<HTMLDivElement>(null)
-  const [activeIndex, setActiveIndex] = React.useState(0)
-
-  const handleScroll = () => {
-    if (scrollRef.current) {
-      const scrollLeft = scrollRef.current.scrollLeft
-      const clientWidth = scrollRef.current.clientWidth
-      const index = Math.round(scrollLeft / clientWidth)
-      setActiveIndex(index)
-    }
-  }
-
-  return (
-    <section className="py-16 sm:py-24 lg:py-32 bg-[#F7F8FA]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-20">
-          <Badge text={ts.tag} centered />
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em]">
-            {ts.title}
-          </h2>
-          <p className="text-sm text-[#5E6B76] mt-6 italic">{ts.disclaimer}</p>
-        </div>
-
-        <div 
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="flex lg:grid lg:grid-cols-3 gap-6 sm:gap-8 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 snap-x snap-mandatory lg:snap-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-        >
-          {ts.cards.map((c: any) => (
-            <div
-              key={c.name}
-              className="flex flex-col justify-between p-8 sm:p-10 rounded-[2.5rem] bg-white border border-[#EAF0F4] lg:hover:-translate-y-2 transition-transform duration-500 shadow-sm shrink-0 w-[85%] sm:w-[65%] md:w-[420px] lg:w-auto snap-center lg:snap-align-none"
-            >
-              <div>
-                <QuoteIcon size={32} color="#EAF0F4" className="mb-4 sm:mb-6" />
-                <p className="text-lg leading-relaxed mb-6 sm:mb-8 font-medium text-[#003366]">
-                  "{c.quote}"
-                </p>
-              </div>
-
-              <div className="flex items-center gap-4 pt-6 border-t border-[#EAF0F4]">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0 bg-[#28A745]">
-                  {c.initials}
-                </div>
-                <div>
-                  <div className="text-lg font-bold text-[#003366]">
-                    {c.name}
-                  </div>
-                  <div className="text-sm text-[#5E6B76]">
-                    {c.country} · {c.role}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        {/* Mobile & Tablet Carousel Indicators */}
-        <div className="flex justify-center gap-2 mt-4 lg:hidden">
-          {ts.cards.map((_: any, idx: number) => (
-            <button 
-              key={idx}
-              onClick={() => {
-                if (scrollRef.current && scrollRef.current.children[idx]) {
-                   scrollRef.current.children[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-                }
-              }}
-              className={`h-2 rounded-full transition-all duration-300 ${activeIndex === idx ? 'w-6 bg-[#003366]' : 'w-2 bg-[#EAF0F4]'}`}
-              aria-label={`Aller au témoignage ${idx + 1}`}
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── 16. FAQ ───────────────────────────────────────────────────────────────────
+// ─── FAQ (Essential Questions) ───────────────────────────────────────────────
 function FAQ({ t, lang }: { t: TKey; lang: string }) {
   const f = t.faq
   const [open, setOpen] = useState<number | null>(null)
 
-
-
   return (
-    <section id="faq" className="py-24 lg:py-32 bg-[#FFFFFF]">
+    <section id="faq" className="py-20 sm:py-24 bg-[#F7F8FA]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-24">
+        <div className="text-center mb-12 sm:mb-16">
           <Badge text={f.tag} centered />
           <h2 className="text-3xl sm:text-4xl lg:text-5xl text-[#003366] tracking-[-0.02em]">
             {f.title}
           </h2>
+          <p className="text-sm sm:text-base text-[#5E6B76] mt-3">
+            {f.subtitle}
+          </p>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3.5">
           {f.items?.map((item: { q: string; a: string }, i: number) => {
             const isOpen = open === i
             return (
               <div
                 key={i}
-                className="rounded-2xl transition-all duration-300 bg-[#F7F8FA] overflow-hidden border border-[#EAF0F4]"
+                className="rounded-2xl transition-all duration-300 bg-white overflow-hidden border border-[#EAF0F4]"
               >
                 <button
-                  className="w-full flex items-center justify-between gap-5 sm:gap-6 p-5 sm:p-6 lg:p-8 text-left cursor-pointer hover:bg-white transition-colors"
+                  className="w-full flex items-center justify-between gap-4 p-5 sm:p-6 text-left cursor-pointer hover:bg-slate-50 transition-colors"
                   onClick={() => setOpen(isOpen ? null : i)}
                   aria-expanded={isOpen}
                 >
-                  <span className="text-lg lg:text-xl font-bold text-[#003366]">
+                  <span className="text-base sm:text-lg font-bold text-[#003366]">
                     {item.q}
                   </span>
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm flex-shrink-0 transition-transform duration-300"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#F7F8FA] flex-shrink-0 transition-transform duration-300"
                     style={{ transform: isOpen ? "rotate(45deg)" : "none" }}
                   >
-                    <PlusIcon size={20} color="#003366" />
+                    <PlusIcon size={18} color="#003366" />
                   </div>
                 </button>
                 <div
@@ -1210,7 +979,7 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
                     isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
                   }`}
                 >
-                  <div className="px-5 sm:px-6 lg:px-8 pb-6 sm:pb-8 pt-2 text-[#5E6B76] text-base sm:text-lg leading-relaxed">
+                  <div className="px-5 sm:px-6 pb-6 pt-1 text-[#5E6B76] text-sm sm:text-base leading-relaxed border-t border-slate-100">
                     {item.a}
                   </div>
                 </div>
@@ -1220,45 +989,40 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
         </div>
 
         {/* Contact direct si question supplémentaire */}
-        <div className="mt-8 sm:mt-12 p-5 sm:p-6 lg:p-8 rounded-2xl bg-[#F7F8FA] border border-[#EAF0F4] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
+        <div className="mt-8 sm:mt-10 p-5 sm:p-6 rounded-2xl bg-white border border-[#EAF0F4] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="min-w-0">
-            <h3 className="text-lg font-bold text-[#003366] mb-1">
-              Vous avez d'autres questions ?
+            <h3 className="text-base font-bold text-[#003366] mb-1">
+              {f.contactBoxTitle}
             </h3>
-            <p className="text-sm text-[#5E6B76]">
-              Notre équipe à Agbélouvé est disponible pour échanger directement avec vous.
+            <p className="text-xs sm:text-sm text-[#5E6B76]">
+              {f.contactBoxSubtitle}
             </p>
           </div>
-          <div className="flex flex-nowrap items-center gap-2 sm:gap-3 shrink-0 w-full md:w-auto justify-between md:justify-start mt-4 md:mt-0">
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             <a
-              href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(lang === "DE" ? "Frage zum APTIC-R Freiwilligendienst" : lang === "EN" ? "APTIC-R Volunteering Question" : "Question Volontariat APTIC-R")}`}
-              onClick={(e) => {
-                e.preventDefault()
+              href="mailto:aptic.rural19@gmail.com?subject=Question%20Volontariat"
+              onClick={() => {
                 trackEvent("contact_click", { source: "faq_email" })
-                const target = e.currentTarget.href
-                setTimeout(() => { window.location.href = target }, 150)
               }}
-              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 rounded-xl bg-[#003366] text-white text-[11px] sm:text-xs font-bold hover:bg-[#002244] transition-colors shadow-xs whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#003366] text-white text-xs font-bold hover:bg-[#002244] transition-colors"
             >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
               <span>aptic.rural19@gmail.com</span>
             </a>
+
             <a
-              href="tel:+22891201990"
-              onClick={(e) => {
-                e.preventDefault()
-                trackEvent("contact_click", { source: "faq_phone" })
-                const target = e.currentTarget.href
-                setTimeout(() => { window.location.href = target }, 150)
+              href={`https://wa.me/22891201990?text=${encodeURIComponent(f.whatsappText)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => {
+                trackEvent("contact_click", { source: "faq_whatsapp" })
               }}
-              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl bg-white border border-[#D8E2E9] text-[#003366] text-[11px] sm:text-xs font-bold hover:bg-slate-50 transition-colors shadow-2xs whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#28A745] text-white text-xs font-bold hover:bg-[#218838] transition-colors shadow-2xs"
             >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#28A745] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              <span>+228 91 20 19 90</span>
+              <span>💬</span>
+              <span>WhatsApp : +228 91 20 19 90</span>
             </a>
           </div>
         </div>
@@ -1267,11 +1031,11 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
   )
 }
 
-// ─── 17. Final CTA ─────────────────────────────────────────────────────────────
+// ─── Final CTA (Dedicated Volunteer Goal) ─────────────────────────────────────
 function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
   const fc = t.finalCta
   return (
-    <section className="py-32 lg:py-48 relative overflow-hidden flex items-center justify-center min-h-[70vh]">
+    <section className="py-24 sm:py-32 lg:py-40 relative overflow-hidden flex items-center justify-center min-h-[60vh]">
       <img
         src="https://images.unsplash.com/photo-1652971876875-05db98fab376?w=1920&h=1080&fit=crop&auto=format"
         alt="Rural landscape in West Africa with community gathering"
@@ -1281,44 +1045,41 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(to top, rgba(23,79,122,0.9) 0%, rgba(23,79,122,0.4) 100%)",
+            "linear-gradient(to top, rgba(0,51,102,0.92) 0%, rgba(0,51,102,0.65) 100%)",
         }}
       />
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center mt-auto">
-        <h2 className="text-4xl sm:text-6xl lg:text-8xl text-white mb-8 tracking-tighter leading-none font-['DM_Serif_Display']">
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <span className="inline-block text-xs font-black uppercase tracking-[0.2em] text-[#28A745] mb-4 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full">
+          {fc.badge}
+        </span>
+        <h2 className="text-3xl sm:text-5xl lg:text-7xl text-white mb-6 tracking-tight font-['DM_Serif_Display']">
           {fc.title}
         </h2>
-        <p
-          className="text-xl sm:text-2xl lg:text-3xl mb-12 sm:mb-16 max-w-4xl mx-auto leading-relaxed font-medium px-5 sm:px-0"
-          style={{ color: "rgba(255,255,255,0.9)" }}
-        >
-          {fc.p1} {fc.p2} {fc.p3}
+        <p className="text-base sm:text-xl lg:text-2xl mb-10 max-w-2xl mx-auto leading-relaxed font-medium text-white/90">
+          {fc.desc}
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <button
             onClick={() => {
               trackEvent("apply_now_click", { source: "final_cta_volunteer" })
               navigate("apply")
             }}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-black text-base sm:text-lg px-8 sm:px-12 py-4 sm:py-6 rounded-2xl text-white transition-all shadow-2xl hover:scale-105 cursor-pointer"
-            style={{ backgroundColor: "#28A745" }}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-black text-sm sm:text-base px-8 sm:px-12 py-4 sm:py-5 rounded-xl text-white transition-all shadow-xl hover:scale-105 cursor-pointer bg-[#28A745] hover:bg-[#218838]"
           >
-            <span className="uppercase tracking-wide">{fc.cta1}</span>
-            <ArrowRightIcon size={18} strokeWidth={1.5} />
+            <span className="uppercase tracking-wide">{fc.ctaVolunteer}</span>
+            <ArrowRightIcon size={18} strokeWidth={2} />
           </button>
+
           <button
             onClick={() => {
               trackEvent("partner_request_click", { source: "final_cta_partner" })
               navigate("partner")
             }}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-bold text-base sm:text-lg px-8 sm:px-12 py-4 sm:py-6 rounded-2xl transition-all shadow-2xl hover:scale-105 cursor-pointer text-white"
-            style={{
-              backgroundColor: "#003366",
-            }}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-bold text-xs sm:text-sm px-6 py-4 rounded-xl text-white/80 hover:text-white transition-colors bg-white/10 hover:bg-white/15 border border-white/20"
           >
-            {fc.cta2}
-            <ArrowRightIcon size={18} strokeWidth={1.5} />
+            <span>{fc.ctaPartner}</span>
+            <ArrowRightIcon size={14} strokeWidth={1.5} />
           </button>
         </div>
       </div>
@@ -1326,30 +1087,40 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
   )
 }
 
-// ─── Main Export ───────────────────────────────────────────────────────────────
+// ─── Main Export : Streamlined Volunteer Recruitment Page ──────────────────────
 export default function Home({ lang, navigate }: HomeProps) {
   const currentLang = (lang || "FR").toUpperCase() as keyof typeof translations
   const t = translations[currentLang] || translations.FR
 
   return (
     <main className="w-full overflow-x-hidden">
+      {/* 1. HERO — Accroche immédiate & Appel à l'action */}
       <Hero t={t} navigate={navigate} />
-      <DualPath t={t} navigate={navigate} />
-      <WhyMission t={t} />
-      <TheChallenge t={t} />
+
+      {/* 2. LA MISSION — Ce que le volontaire vient concrètement faire */}
       <YourMission t={t} />
+
+      {/* 3. VOS MISSIONS — 4 à 6 exemples concrets de réalisations */}
       <WhatCouldYouBuild t={t} />
+
+      {/* 4. PROFILS RECHERCHÉS — Qui peut candidater (étudiants, diplômés, pros) */}
       <ProfilesSought t={t} navigate={navigate} />
-      <NotAnExpert t={t} navigate={navigate} />
-      <WeekWithAptic t={t} />
-      <LifeInTogo t={t} />
-      <Agbelouve t={t} />
-      <Support t={t} />
+
+      {/* 5. CE QUE VOUS VIVREZ — Immersion, terrain et vie associative */}
+      <LifeInTogo t={t} navigate={navigate} />
+
+      {/* 6. CONDITIONS — Cadre confirmé, hébergement, accompagnement */}
+      <Conditions t={t} />
+
+      {/* 7. COMMENT ÇA MARCHE ? — Parcours en 5 étapes claires */}
       <ApplicationProcess t={t} navigate={navigate} />
-      <Partners t={t} navigate={navigate} />
-      <Testimonials t={t} />
+
+      {/* 8. FAQ — Questions essentielles */}
       <FAQ t={t} lang={currentLang} />
+
+      {/* 9. CTA FINAL — Décision & passage à l'action vers le formulaire 9 étapes */}
       <FinalCTA t={t} navigate={navigate} />
     </main>
   )
 }
+

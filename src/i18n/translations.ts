@@ -12,6 +12,7 @@ const translations = {
       faq: "FAQ",
       partners: "Partners",
       applyNow: "BECOME A VOLUNTEER",
+      applyDirect: "APPLY NOW",
       // Institutional navigation
       home: "Home",
       aboutInstitutional: "About",
@@ -225,6 +226,26 @@ const translations = {
     lifeInTogo: {
       tag: "Life in Togo",
       title: "More than a volunteer mission. A life experience.",
+      desc: "An authentic community immersion in the heart of Maritime Region in Togo, combining village life, conviviality and teamwork.",
+      points: [
+        {
+          title: "Immersion & Hospitality",
+          desc: "Welcoming housing in Agbélouvé, shared meals and natural integration into local village life.",
+        },
+        {
+          title: "Climate & Living Environment",
+          desc: "Warm tropical climate, lush surroundings, and proximity to Lomé (65 km on RN1).",
+        },
+        {
+          title: "Team & Safety",
+          desc: "Daily accompaniment by the permanent APTIC-R on-site team and dedicated mentor from day one.",
+        },
+      ],
+      links: {
+        about: "About APTIC-R",
+        projects: "Explore our field projects",
+        contact: "Discover Agbélouvé & access",
+      },
       items: [
         {
           label: "Togolese Culture",
@@ -298,8 +319,9 @@ const translations = {
       ],
     },
     appProcess: {
-      tag: "How to apply",
+      tag: "APPLICATION PROCESS",
       title: "The application process",
+      subtitle: "From your online application to landing in Lomé, a clear and transparent journey.",
       stepLabel: "Step",
       cta: "START YOUR APPLICATION",
       steps: [
@@ -373,6 +395,10 @@ const translations = {
     faq: {
       tag: "FAQ",
       title: "Frequently asked questions",
+      subtitle: "Everything you need to know to prepare your commitment with peace of mind.",
+      contactBoxTitle: "Another question about the mission?",
+      contactBoxSubtitle: "The Agbélouvé coordination team will respond promptly.",
+      whatsappText: "Hello APTIC-R, I have a question regarding volunteering.",
       items: [
         {
           q: "Do I need to speak French?",
@@ -409,7 +435,11 @@ const translations = {
       ],
     },
     finalCta: {
-      title: "Ready to make an impact?",
+      badge: "JOIN THE HUMAN & TECHNICAL ADVENTURE",
+      title: "Ready to join the mission?",
+      desc: "Put your skills at the service of rural community autonomy in Agbélouvé, Togo.",
+      ctaVolunteer: "APPLY FOR THE MISSION",
+      ctaPartner: "Are you an organization? Become a partner",
       p1: "Your skills can become powerful tools for rural communities.",
       p2: "Your experience can become an opportunity for someone else.",
       p3: "Your next adventure could begin in Togo.",
@@ -654,7 +684,7 @@ const translations = {
       select: 'Select...'
     },
     footer: {
-      tagline: "Association pour la Promotion des TIC en milieu Rural.",
+      tagline: "Association for the Promotion of ICT in Rural Areas.",
       tagline2:
         "We connect European volunteers with rural communities to co-create practical digital and low-tech solutions.",
       nav: "Navigation",
@@ -670,7 +700,7 @@ const translations = {
       terms: "Terms of Use",
       cookies: "Cookie Policy",
       copyright:
-        "© 2026 APTIC-R - Association pour la Promotion des TIC en milieu Rural.",
+        "© 2026 APTIC-R - Association for the Promotion of ICT in Rural Areas.",
     },
   },
 
@@ -685,6 +715,7 @@ const translations = {
       faq: "FAQ",
       partners: "Partenaires",
       applyNow: "DEVENIR VOLONTAIRE",
+      applyDirect: "POSTULEZ",
       // Institutional navigation
       home: "Accueil",
       aboutInstitutional: "À propos",
@@ -1134,6 +1165,26 @@ const translations = {
     lifeInTogo: {
       tag: "Vie au Togo",
       title: "Bien plus qu'une mission de bénévolat. Une expérience de vie.",
+      desc: "Une immersion communautaire authentique au cœur de la Région Maritime du Togo, entre vie de village, convivialité et travail d'équipe.",
+      points: [
+        {
+          title: "Immersion & Accueil",
+          desc: "Logement convivial à Agbélouvé, repas partagés et intégration naturelle au sein de la vie locale.",
+        },
+        {
+          title: "Climat & Cadre de Vie",
+          desc: "Climat tropical chaleureux, environnement verdoyant et proximité avec Lomé (65 km sur la RN1).",
+        },
+        {
+          title: "Équipe & Sécurité",
+          desc: "Accompagnement quotidien par l'équipe permanente d'APTIC-R et tuteur dédié dès votre arrivée.",
+        },
+      ],
+      links: {
+        about: "À propos d'APTIC-R",
+        projects: "Découvrir nos projets de terrain",
+        contact: "Découvrir Agbélouvé & accès",
+      },
       items: [
         {
           label: "Culture togolaise",
@@ -1175,7 +1226,7 @@ const translations = {
       ],
     },
     support: {
-      tag: "Votre soutien",
+      tag: "CONDITIONS & CADRE",
       title: "Vous ne serez pas seul.",
       subtitle:
         "APTIC-R fournit un cadre de soutien complet à tous les volontaires tout au long de leur mission.",
@@ -1210,8 +1261,9 @@ const translations = {
       ],
     },
     appProcess: {
-      tag: "Comment postuler",
+      tag: "PROCESSUS DE SÉLECTION",
       title: "Le processus de candidature",
+      subtitle: "De votre candidature en ligne jusqu'à votre atterrissage à Lomé, un parcours clair et transparent.",
       stepLabel: "Étape",
       cta: "COMMENCER MA CANDIDATURE",
       steps: [
@@ -1285,6 +1337,10 @@ const translations = {
     faq: {
       tag: "FAQ",
       title: "Questions fréquentes",
+      subtitle: "Toutes les réponses pour préparer sereinement votre engagement.",
+      contactBoxTitle: "Une autre question sur la mission ?",
+      contactBoxSubtitle: "L'équipe de coordination d'Agbélouvé vous répond rapidement.",
+      whatsappText: "Bonjour APTIC-R, j'ai une question concernant le volontariat.",
       items: [
         {
           q: "Dois-je parler français ?",
@@ -1321,7 +1377,11 @@ const translations = {
       ],
     },
     finalCta: {
-      title: "Prêt à avoir un impact ?",
+      badge: "REJOIGNEZ L'AVENTURE HUMAINE ET TECHNIQUE",
+      title: "Prêt à rejoindre la mission ?",
+      desc: "Mettez vos compétences au service de l'autonomie des communautés rurales à Agbélouvé, Togo.",
+      ctaVolunteer: "POSTULER À LA MISSION",
+      ctaPartner: "Vous êtes une organisation ? Devenir partenaire",
       p1: "Vos compétences peuvent devenir des outils précieux pour les communautés rurales.",
       p2: "Votre expérience peut devenir une opportunité pour quelqu'un d'autre.",
       p3: "Votre prochaine aventure pourrait commencer au Togo.",
@@ -1361,6 +1421,7 @@ const translations = {
       faq: "FAQ",
       partners: "Partner",
       applyNow: "FREIWILLIGER WERDEN",
+      applyDirect: "JETZT BEWERBEN",
       // Institutional navigation
       home: "Startseite",
       aboutInstitutional: "Über uns",
@@ -1574,6 +1635,26 @@ const translations = {
     lifeInTogo: {
       tag: "Leben in Togo",
       title: "Mehr als ein Freiwilligeneinsatz. Eine Lebenserfahrung.",
+      desc: "Ein authentisches Eintauchen in die Gemeinschaft im Herzen der Region Maritime in Togo – zwischen Dorfleben, Herzlichkeit und Teamarbeit.",
+      points: [
+        {
+          title: "Aufnahme & Gemeinschaft",
+          desc: "Gemütliche Unterbringung in Agbélouvé, gemeinsame Mahlzeiten und natürliche Einbindung in das Dorfleben.",
+        },
+        {
+          title: "Klima & Lebensumfeld",
+          desc: "Warmes tropisches Klima, grüne Umgebung und Nähe zu Lomé (65 km auf der RN1).",
+        },
+        {
+          title: "Team & Sicherheit",
+          desc: "Tägliche Begleitung durch das feste APTIC-R-Team und ein engagierter Mentor ab dem ersten Tag.",
+        },
+      ],
+      links: {
+        about: "Über APTIC-R",
+        projects: "Unsere Feldprojekte entdecken",
+        contact: "Agbélouvé & Anfahrt entdecken",
+      },
       items: [
         {
           label: "Togolesische Kultur",
@@ -1621,7 +1702,7 @@ const translations = {
       ],
     },
     support: {
-      tag: "Ihre Unterstützung",
+      tag: "RAHMENBEDINGUNGEN & LOGISTIK",
       title: "Sie werden nicht allein sein.",
       subtitle:
         "APTIC-R bietet allen Freiwilligen während ihrer gesamten Mission ein vollständiges Unterstützungsrahmen.",
@@ -1653,8 +1734,9 @@ const translations = {
       ],
     },
     appProcess: {
-      tag: "Wie bewerben",
+      tag: "BEWERBUNGSPROZESS",
       title: "Der Bewerbungsprozess",
+      subtitle: "Von Ihrer Online-Bewerbung bis zur Ankunft in Lomé – ein klarer und transparenter Ablauf.",
       stepLabel: "Schritt",
       cta: "BEWERBUNG STARTEN",
       steps: [
@@ -1728,6 +1810,10 @@ const translations = {
     faq: {
       tag: "FAQ",
       title: "Häufig gestellte Fragen",
+      subtitle: "Alle Antworten zur Vorbereitung Ihres Engagements.",
+      contactBoxTitle: "Weitere Fragen zum Einsatz?",
+      contactBoxSubtitle: "Das Koordinationsteam in Agbélouvé antwortet Ihnen gerne.",
+      whatsappText: "Hallo APTIC-R, ich habe eine Frage zum Freiwilligendienst.",
       items: [
         {
           q: "Muss ich Französisch sprechen?",
@@ -1764,7 +1850,11 @@ const translations = {
       ],
     },
     finalCta: {
-      title: "Bereit, etwas zu bewirken?",
+      badge: "WERDEN SIE TEIL EINES MENSCHLICHEN & TECHNISCHEN ABENTEUERS",
+      title: "Bereit für den Einsatz?",
+      desc: "Bringen Sie Ihre Fähigkeiten für die Eigenständigkeit ländlicher Gemeinschaften in Agbélouvé, Togo, ein.",
+      ctaVolunteer: "FÜR DEN EINSATZ BEWERBEN",
+      ctaPartner: "Sie sind eine Organisation? Partner werden",
       p1: "Ihre Fähigkeiten können zu wertvollen Werkzeugen für ländliche Gemeinschaften werden.",
       p2: "Ihre Erfahrung kann zu einer Chance für jemand anderen werden.",
       p3: "Ihr nächstes Abenteuer könnte in Togo beginnen.",
@@ -2019,7 +2109,7 @@ const translations = {
     },
 
     footer: {
-      tagline: "Association pour la Promotion des TIC en milieu Rural.",
+      tagline: "Verein zur Förderung von IKT im ländlichen Raum.",
       tagline2:
         "Wir verbinden europäische Freiwillige mit ländlichen Gemeinschaften, um praktische digitale und Low-Tech-Lösungen gemeinsam zu entwickeln.",
       nav: "Navigation",
@@ -2035,7 +2125,7 @@ const translations = {
       terms: "Nutzungsbedingungen",
       cookies: "Cookie-Richtlinie",
       copyright:
-        "© 2026 APTIC-R - Association pour la Promotion des TIC en milieu Rural.",
+        "© 2026 APTIC-R - Verein zur Förderung von IKT im ländlichen Raum.",
     },
   },
 } as const

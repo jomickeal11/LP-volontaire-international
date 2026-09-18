@@ -53,6 +53,8 @@ export default function AdminClientLayout({
     currentPage = "admin-candidates"
   else if (pathname?.includes("/applications"))
     currentPage = "admin-applications"
+  else if (pathname?.includes("/settings"))
+    currentPage = "admin-settings"
   else if (pathname?.includes("/login")) return <>{children}</>
 
   const handleNavigate = (page: Page) => {
@@ -92,6 +94,9 @@ export default function AdminClientLayout({
         break
       case "admin-partners":
         router.push("/backoffice/partners")
+        break
+      case "admin-settings":
+        router.push("/backoffice/settings")
         break
       case "admin-login":
         router.push("/backoffice/login")

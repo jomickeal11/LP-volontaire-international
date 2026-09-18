@@ -1,14 +1,13 @@
 "use client"
 
-import Header from "@/components/Header"
 import Footer from "@/components/Footer"
-import PartnerLandingView from "@/views/PartnerLandingView"
+import PartnerPage from "@/views/PartnerPage"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { useRouter, usePathname } from "next/navigation"
 import { use } from "react"
 
-export default function PartenairesRoute({
+export default function PartnersApplyRoute({
   params,
 }: {
   params: Promise<{ lang: string }>
@@ -19,12 +18,7 @@ export default function PartenairesRoute({
 
   const handleNavigate = (page: Page) => {
     const language = (lang.toUpperCase() as Language) || "FR"
-    const url = getPageUrl(page, language)
-    if (page === "partner") {
-      window.scrollTo({ top: 0, behavior: "smooth" })
-    } else {
-      router.push(url)
-    }
+    router.push(getPageUrl(page, language))
   }
 
   const handleSetLang = (newLang: Language) => {
@@ -36,20 +30,14 @@ export default function PartenairesRoute({
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header
-        lang={language}
-        setLang={handleSetLang}
-        currentPage="partner"
-        navigate={handleNavigate}
-      />
       <main className="flex-1">
-        <PartnerLandingView
+        <PartnerPage
           lang={language}
           navigate={handleNavigate}
+          setLang={handleSetLang}
         />
       </main>
       <Footer lang={language} navigate={handleNavigate} />
     </div>
   )
 }
-

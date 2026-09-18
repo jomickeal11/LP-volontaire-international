@@ -232,45 +232,74 @@ export default function AdminNewsletter() {
       </div>
 
       {/* KPI Cards */}
+      {/* KPI Cards (Design sobre & institutionnel) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-          <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">
-            Total Inscrits
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Total Inscrits
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
           </div>
-          <div className="text-3xl font-black text-gray-900">{totalCount}</div>
-          <div className="text-xs text-gray-500 mt-1">Base complète d'abonnés</div>
+          <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 font-mono">{totalCount}</div>
+          <div className="text-xs text-slate-500 mt-1">Base complète d&apos;abonnés</div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-          <div className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">
-            Abonnés Actifs
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Abonnés Actifs
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
           </div>
-          <div className="text-3xl font-black text-emerald-600">{activeCount}</div>
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 font-mono">{activeCount}</div>
+          <div className="text-xs text-slate-500 mt-1">
             {totalCount > 0 ? Math.round((activeCount / totalCount) * 100) : 0}% de délivrabilité active
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-          <div className="text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">
-            Désinscrits
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Désinscrits
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+            </div>
           </div>
-          <div className="text-3xl font-black text-amber-600">{inactiveCount}</div>
-          <div className="text-xs text-gray-500 mt-1">Ne reçoivent plus les envois</div>
+          <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 font-mono">{inactiveCount}</div>
+          <div className="text-xs text-slate-500 mt-1">Ne reçoivent plus les envois</div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-          <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
-            Par Langue
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Par Langue
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+              </svg>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg border border-blue-100">
+          <div className="flex items-center gap-2 mt-3">
+            <span className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-200">
               FR : {frCount}
             </span>
-            <span className="px-2 py-1 bg-purple-50 text-purple-700 text-xs font-bold rounded-lg border border-purple-100">
+            <span className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-200">
               EN : {enCount}
             </span>
-            <span className="px-2 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg border border-amber-100">
+            <span className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-200">
               DE : {deCount}
             </span>
           </div>

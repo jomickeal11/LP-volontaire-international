@@ -952,17 +952,17 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
             </div>
           </button>
 
-          {/* Droite : Bouton Visiter le site + Sélecteur FR EN DE */}
+          {/* Droite : Bouton Visiter le site / Retour présentation + Sélecteur FR EN DE */}
           <div className="flex items-center gap-3 sm:gap-4">
             <button
-              onClick={() => navigate("home")}
+              onClick={() => navigate("partner")}
               className="hidden sm:flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors cursor-pointer hover:opacity-80"
               style={{ color: BLUE, backgroundColor: "#E8F2FA" }}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              {currentLang === "DE" ? "Website ansehen" : currentLang === "EN" ? "Visit website" : "Visiter le site"}
+              {currentLang === "DE" ? "Zurück zur Übersicht" : currentLang === "EN" ? "Back to Overview" : "Présentation partenaires"}
             </button>
 
             <div className="h-4 w-[1px] bg-slate-200 hidden sm:block" />
@@ -1462,7 +1462,8 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                           className="mt-1 w-4 h-4 rounded text-[#003366] cursor-pointer"
                         />
                         <span className="text-xs text-slate-600 leading-relaxed">
-                          {t.partner?.form?.consent || "Je consens à ce que APTIC-R traite les informations fournies ci-dessus dans le but d'évaluer un partenariat potentiel. Notre organisation dispose de l'autorité requise pour soumettre cette demande."}
+                          <span>{t.partner?.form?.consent || "Je consens à ce que APTIC-R traite les informations fournies ci-dessus dans le but d'évaluer un partenariat potentiel. Notre organisation dispose de l'autorité requise pour soumettre cette demande."}</span>
+                          <span className="text-red-500 font-bold ml-1">*</span>
                         </span>
                       </label>
                     </div>

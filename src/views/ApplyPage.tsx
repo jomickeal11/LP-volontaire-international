@@ -1406,20 +1406,20 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                   <div className="space-y-5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                       <InputField
-                        label={t.apply.form.firstName}
-                        value={form.firstName}
-                        onChange={(v) => set("firstName", v)}
-                        required
-                        placeholder={t.apply.form.firstNamePlaceholder}
-                        error={step1Errors.firstName}
-                      />
-                      <InputField
                         label={t.apply.form.lastName}
                         value={form.lastName}
                         onChange={(v) => set("lastName", v)}
                         required
                         placeholder={t.apply.form.lastNamePlaceholder}
                         error={step1Errors.lastName}
+                      />
+                      <InputField
+                        label={t.apply.form.firstName}
+                        value={form.firstName}
+                        onChange={(v) => set("firstName", v)}
+                        required
+                        placeholder={t.apply.form.firstNamePlaceholder}
+                        error={step1Errors.firstName}
                       />
                     </div>
 
@@ -1717,7 +1717,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
 
                     <div>
                       <label className="text-sm font-semibold mb-3 block text-slate-800">
-                        {t.apply.form.duration || "Durée de la mission"}
+                        <span>{t.apply.form.duration || "Durée de la mission"}</span> <span className="text-red-500 font-bold">*</span>
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                         {[
@@ -1927,7 +1927,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           </button>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 text-xs sm:text-sm">
-                          <div><span className="text-slate-400">{t.apply.review?.fields?.name || (currentLang === "DE" ? "Name :" : currentLang === "EN" ? "Name:" : "Nom :")}</span> <strong className="text-slate-800 ml-1">{form.firstName} {form.lastName}</strong></div>
+                          <div><span className="text-slate-400">{t.apply.review?.fields?.name || (currentLang === "DE" ? "Name :" : currentLang === "EN" ? "Name:" : "Nom :")}</span> <strong className="text-slate-800 ml-1">{form.lastName} {form.firstName}</strong></div>
                           <div><span className="text-slate-400">{t.apply.review?.fields?.email || (currentLang === "DE" ? "E-Mail :" : currentLang === "EN" ? "Email:" : "E-mail :")}</span> <strong className="text-slate-800 ml-1">{form.email}</strong></div>
                           <div><span className="text-slate-400">{t.apply.review?.fields?.phone || (currentLang === "DE" ? "Telefon :" : currentLang === "EN" ? "Phone:" : "Téléphone :")}</span> <strong className="text-slate-800 ml-1">{form.phoneCountryCode ? `${form.phoneCountryCode} ${form.phone}`.trim() : form.phone || (t.apply.review?.notProvided || (currentLang === "DE" ? "Nicht angegeben" : currentLang === "EN" ? "Not provided" : "Non renseigné"))}</strong></div>
                           <div><span className="text-slate-400">{t.apply.review?.fields?.location || (currentLang === "DE" ? "Land / Stadt :" : currentLang === "EN" ? "Country / City:" : "Pays / Ville :")}</span> <strong className="text-slate-800 ml-1">{form.country} {form.city ? `(${form.city})` : ""}</strong></div>
@@ -2022,7 +2022,8 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           className="mt-1 w-4 h-4 rounded text-[#003366] cursor-pointer"
                         />
                         <span className="text-xs text-slate-600 leading-relaxed">
-                          {t.apply.review?.consentLabel || (currentLang === "DE" ? "Ich versichere die Richtigkeit der angegebenen Informationen und stimme zu, dass der Verein APTIC-R meine personenbezogenen Daten ausschließlich im Rahmen der Prüfung meiner Bewerbung für den internationalen Freiwilligendienst verarbeitet." : currentLang === "EN" ? "I certify the accuracy of the information provided and I agree that the APTIC-R association processes my personal data strictly for the evaluation of my international volunteer application." : "J'atteste de l'exactitude des informations fournies et j'accepte que l'association APTIC-R traite mes données personnelles dans le cadre strict de l'évaluation de ma candidature de volontariat international.")}
+                          <span>{t.apply.review?.consentLabel || (currentLang === "DE" ? "Ich versichere die Richtigkeit der angegebenen Informationen und stimme zu, dass der Verein APTIC-R meine personenbezogenen Daten ausschließlich im Rahmen der Prüfung meiner Bewerbung für den internationalen Freiwilligendienst verarbeitet." : currentLang === "EN" ? "I certify the accuracy of the information provided and I agree that the APTIC-R association processes my personal data strictly for the evaluation of my international volunteer application." : "J'atteste de l'exactitude des informations fournies et j'accepte que l'association APTIC-R traite mes données personnelles dans le cadre strict de l'évaluation de ma candidature de volontariat international.")}</span>
+                          <span className="text-red-500 font-bold ml-1">*</span>
                         </span>
                       </label>
                     </div>

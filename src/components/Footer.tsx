@@ -56,7 +56,7 @@ export default function Footer({ lang, navigate }: FooterProps) {
           <div className="col-span-2 md:col-span-12 lg:col-span-1.5 flex flex-col justify-between">
             <div>
               <div className="mb-4">
-                <ApticLogo variant="footer" />
+                <ApticLogo variant="footer" lang={safeLang} />
               </div>
 
               <p className="text-xs text-gray-400 leading-relaxed mb-5 max-w-xs">

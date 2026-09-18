@@ -384,10 +384,13 @@ model Article {
   tags           String?           // JSON string array
   viewsCount     Int               @default(0)
 
+  isFeatured     Boolean           @default(false)
+
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
   @@index([published])
+  @@index([isFeatured])
   @@index([slug])
   @@index([publishedAt])
   @@index([categoryId])
@@ -421,14 +424,14 @@ model Projet {
   domaineId     String?
   domaine       Domaine?  @relation(fields: [domaineId], references: [id], onDelete: SetNull)
 
-  featured      Boolean   @default(false)
-  order         Int       @default(0)
+  isFeatured    Boolean   @default(false)
+  displayOrder  Int       @default(0)
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   @@index([status])
-  @@index([featured])
+  @@index([isFeatured])
   @@index([domaineId])
 }
 
@@ -576,4 +579,17 @@ model NewsletterAbonne {
 
   @@index([email])
   @@index([active])
+}
+
+// ─── 21. CMS : PARAMÈTRES & MÉDIAS DU SITE ───────────────────────────────────
+model ParametreSite {
+  id          String   @id @default(cuid())
+  key         String   @unique // ex: about_story_image, about_story_location, contact_email, contact_phone, contact_director
+  value       String   @db.Text
+  group       String   @default("GENERAL") // GENERAL, ABOUT, HOME, CONTACT, VOLUNTEER
+  description String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@index([group])
 }

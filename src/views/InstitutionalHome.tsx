@@ -6,6 +6,9 @@ import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { trackEvent } from "@/lib/tracker"
 import { subscribeNewsletter } from "@/lib/cms-actions"
+import { ApticNodeMarker, ApticDash, ApticEyebrow } from "@/components/ApticMarker"
+
+import { DomainCharterIcon } from "@/components/DomainIcons"
 
 interface InstitutionalHomeProps {
   lang: Language
@@ -21,56 +24,6 @@ const LIGHT_BG   = "#F7F8FA"   /* Fond neutre gris très clair */
 const BORDER     = "#E5EAF0"   /* Bordure sobre unifiée */
 const TEXT_MAIN  = "#16324A"   /* Texte principal d'autorité */
 const TEXT_MUTED = "#5E6B76"   /* Texte secondaire */
-
-/* ── Icônes vectorielles officielles des 6 Domaines (Toutes en #003366) ─── */
-function DomainVectorIcon({ index, className = "w-10 h-10" }: { index: number; className?: string }) {
-  switch (index) {
-    case 0: /* 01. Agriculture durable */
-      return (
-        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 3v18m0-18C8 3 4 7 4 12c0 3.5 2 6.5 5 8m3-20c4 0 8 4 8 9 0 3.5-2 6.5-5 8M8 10c1.5-1 3.5-1.5 4-1.5m4 4c-1.5 1-3.5 1.5-4 1.5" />
-          <circle cx="12" cy="18" r="2" fill="currentColor" stroke="none" />
-        </svg>
-      )
-    case 1: /* 02. Innovation numérique */
-      return (
-        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <rect x="2" y="4" width="20" height="13" rx="2" strokeWidth={1.75} />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 21h8m-4-4v4M7 8h10M7 11h6" />
-          <circle cx="16" cy="11" r="1" fill="currentColor" />
-        </svg>
-      )
-    case 2: /* 03. Données & intelligence */
-      return (
-        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      )
-    case 3: /* 04. Cybersécurité */
-      return (
-        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          <circle cx="12" cy="11" r="2.5" strokeWidth={1.75} />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 13.5V16" />
-        </svg>
-      )
-    case 4: /* 05. Jeunesse & inclusion */
-      return (
-        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 14l9-5-9-5-9 5 9 5z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 14v7" />
-        </svg>
-      )
-    case 5: /* 06. Développement rural */
-    default:
-      return (
-        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-        </svg>
-      )
-  }
-}
 
 /* ── Textes & Contenus trilingues (FR / EN / DE) ─────────────────────────── */
 const CONTENT = {
@@ -567,6 +520,27 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
   const safeLang = (["FR", "EN", "DE"].includes(lang) ? lang : "FR") as "FR" | "EN" | "DE"
   const c = CONTENT[safeLang]
 
+  const DOMAIN_IDS = [
+    "agri-lowtech",
+    "inclusion-numerique",
+    "data-innovation",
+    "cybersecurite-hygiene",
+    "jeunesse-education",
+    "dev-rural-fablabs",
+  ]
+
+  const [settings, setSettings] = useState<Record<string, string>>({})
+
+  React.useEffect(() => {
+    import("@/lib/cms-actions").then(({ getSiteSettings }) => {
+      getSiteSettings().then((res) => {
+        if (res.success && res.dict) {
+          setSettings((prev) => ({ ...prev, ...res.dict }))
+        }
+      }).catch(console.error)
+    })
+  }, [])
+
   /* Newsletter state */
   const [nlEmail, setNlEmail] = useState("")
   const [nlName, setNlName] = useState("")
@@ -622,11 +596,10 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
     <div className="w-full bg-white text-[#16324A] antialiased overflow-x-clip" style={{ fontFamily: "'Montserrat', system-ui, sans-serif" }}>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
-          01. HERO — PHOTO + OVERLAY #003366 + ACCENT #28A745 + CTA #007BFF
-          Discipline stricte : maximum trois couleurs visibles, aucun bouton vert
+          01. HERO (FORTE) — PHOTO + OVERLAY #003366 + ACCENT #28A745 + CTA #007BFF
       ═══════════════════════════════════════════════════════════════════════════ */}
-      <section className="relative min-h-[700px] lg:min-h-[800px] xl:min-h-[840px] flex items-center overflow-hidden">
-        {/* Photographie de fond avec cadrage laissant respirer les personnes et le champ à droite */}
+      <section className="relative min-h-[720px] lg:min-h-[820px] xl:min-h-[860px] flex items-center overflow-hidden">
+        {/* Photographie de fond */}
         <div className="absolute inset-0">
           <picture>
             <img
@@ -637,7 +610,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
             />
           </picture>
 
-          {/* Overlay progressif horizontal sur desktop : sombre à gauche (lisibilité), lumineux à droite (photo) */}
+          {/* Overlay progressif horizontal sur desktop : sombre à gauche, lumineux à droite */}
           <div
             className="absolute inset-0 hidden lg:block"
             style={{
@@ -655,7 +628,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
             }}
           />
 
-          {/* Dégradé ultra-fin au ras du bas (h-8 à h-14) */}
+          {/* Dégradé ultra-fin au ras du bas */}
           <div
             className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 lg:h-14 pointer-events-none z-10"
             style={{
@@ -665,30 +638,28 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
           />
         </div>
 
-        {/* Conteneur global ~1350px : contenu aligné à gauche avec grande largeur disponible */}
+        {/* Conteneur global : contenu aligné à gauche avec grande largeur disponible */}
         <div className="relative z-10 max-w-[1350px] w-full mx-auto px-6 sm:px-10 lg:px-16 pt-36 sm:pt-44 lg:pt-48 pb-20 sm:pb-28 lg:pb-32">
-          {/* Bloc de contenu large (850–1050px) sans contrainte étroite */}
           <div className="w-full max-w-[850px] lg:max-w-[960px] xl:max-w-[1050px] mr-auto text-left">
             
-            {/* Petit label territorial sobre et institutionnel avec micro-point vert #28A745 */}
-            <div className="inline-flex items-center px-3.5 py-1.5 rounded-full border border-white/25 bg-white/5 backdrop-blur-sm text-white text-xs sm:text-[13px] font-semibold tracking-[0.18em] uppercase mb-8">
-              <span className="w-2 h-2 rounded-full mr-2.5 shrink-0" style={{ backgroundColor: GREEN }} />
+            {/* Badge territorial épuré et sobre */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/25 bg-white/5 backdrop-blur-sm text-white text-xs sm:text-[13px] font-semibold tracking-[0.18em] uppercase mb-6">
               <span>{c.hero.territoryBadge}</span>
             </div>
 
-            {/* H1 : Respiration horizontale en 2 lignes naturelles, 100% blanc, Montserrat 64–76px */}
-            <h1 className="text-4xl sm:text-6xl lg:text-[68px] xl:text-[76px] font-black text-white leading-[1.02] tracking-tight mb-8 max-w-[1050px]">
+            {/* H1 : Respiration horizontale en 2 lignes naturelles, 100% blanc */}
+            <h1 className="text-4xl sm:text-6xl lg:text-[68px] xl:text-[76px] font-black text-white leading-[1.04] tracking-tight mb-6 max-w-[1050px]">
               <span className="block">{c.hero.titleLine1}</span>
               <span className="block">{c.hero.titleLine2}</span>
             </h1>
 
-            {/* Paragraphe large (700–800px) sans coupure prématurée */}
-            <p className="text-base sm:text-lg lg:text-[20px] text-white/85 font-normal leading-[1.6] mb-12 max-w-[760px]">
+            {/* Paragraphe sous-titre */}
+            <p className="text-base sm:text-lg lg:text-[20px] text-white/85 font-normal leading-[1.65] mb-10 max-w-[760px]">
               {c.hero.subtitle}
             </p>
 
-            {/* CTAs : Largeur confortable sur desktop, texte sur UNE ligne */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-5 mb-16 max-w-[850px]">
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-5 mb-14 max-w-[850px]">
               <button
                 onClick={() => {
                   trackEvent("institutional_hero_projects", { lang: safeLang })
@@ -715,7 +686,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
               </button>
             </div>
 
-            {/* Repères / Chiffres du Hero — 100% blancs, sobres, prestigieux */}
+            {/* Repères / Chiffres du Hero — 100% blancs, sobres */}
             <div className="grid grid-cols-3 gap-8 sm:gap-12 pt-8 border-t border-white/15 max-w-[620px]">
               <div>
                 <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-white font-mono">{c.hero.statYears}</div>
@@ -736,57 +707,52 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
-          02. À PROPOS — FOND BLANC (#FFFFFF)
-          H2: #003366, Texte: #16324A, Petit accent: #28A745, CTA: #007BFF
+          02. À PROPOS (MOYENNE) — FOND BLANC (#FFFFFF)
       ═══════════════════════════════════════════════════════════════════════════ */}
-      <section className="py-28 sm:py-36 lg:py-44" style={{ backgroundColor: WHITE }}>
+      <section className="py-20 sm:py-28" style={{ backgroundColor: WHITE }}>
         <div className="max-w-[1480px] mx-auto px-6 sm:px-12 lg:px-20">
-          <div className="grid lg:grid-cols-12 gap-14 lg:gap-24 items-center">
+          <div className="grid lg:grid-cols-12 gap-12 lg:gap-20 items-center">
 
-            {/* Colonne narrative gauche (60%) */}
-            <div className="lg:col-span-7 space-y-10">
+            {/* Colonne narrative gauche */}
+            <div className="lg:col-span-7 space-y-8">
               <div>
-                {/* Petit accent vert rare en eyebrow */}
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="w-6 h-0.5" style={{ backgroundColor: GREEN }} />
-                  <span className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: BLUE_INST }}>
-                    {c.about.eyebrow}
-                  </span>
+                <div className="text-xs sm:text-[13px] font-bold uppercase tracking-[0.2em] mb-3 text-[#003366]">
+                  {c.about.eyebrow}
                 </div>
-                <h2 className="text-4xl sm:text-5xl lg:text-[54px] font-black leading-[1.08] tracking-tight" style={{ color: BLUE_INST }}>
+                <h2 className="text-3xl sm:text-4xl lg:text-[46px] font-black leading-[1.12] tracking-tight" style={{ color: BLUE_INST }}>
                   {c.about.title}
                 </h2>
               </div>
 
-              {/* Citation sobre sur fond gris très clair avec bordure neutre */}
-              <div className="p-8 sm:p-10 rounded-2xl border" style={{ backgroundColor: LIGHT_BG, borderColor: BORDER }}>
-                <p className="text-lg sm:text-xl lg:text-[21px] font-semibold leading-relaxed italic" style={{ color: TEXT_MAIN }}>
+              {/* Citation sobre */}
+              <div className="p-7 sm:p-8 rounded-2xl border" style={{ backgroundColor: LIGHT_BG, borderColor: BORDER }}>
+                <p className="text-base sm:text-lg lg:text-[19px] font-semibold leading-relaxed italic" style={{ color: TEXT_MAIN }}>
                   {c.about.headline}
                 </p>
               </div>
 
               {/* Paragraphes de récit */}
-              <div className="space-y-6 text-base sm:text-lg leading-[1.85]" style={{ color: TEXT_MUTED }}>
+              <div className="space-y-5 text-base sm:text-[17px] leading-[1.8]" style={{ color: TEXT_MUTED }}>
                 <p>{c.about.p1}</p>
                 <p>{c.about.p2}</p>
               </div>
 
-              {/* Triptyque institutionnel unifié — sobre, calme, bordure neutre */}
-              <div className="grid sm:grid-cols-3 gap-8 pt-8 border-t" style={{ borderColor: BORDER }}>
+              {/* Triptyque institutionnel unifié */}
+              <div className="grid sm:grid-cols-3 gap-6 pt-6 border-t" style={{ borderColor: BORDER }}>
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: BLUE_INST }}>
+                  <h3 className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: BLUE_INST }}>
                     {c.about.historyTitle}
                   </h3>
                   <p className="text-sm leading-relaxed" style={{ color: TEXT_MUTED }}>{c.about.historySummary}</p>
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: BLUE_INST }}>
+                  <h3 className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: BLUE_INST }}>
                     {c.about.missionTitle}
                   </h3>
                   <p className="text-sm leading-relaxed" style={{ color: TEXT_MUTED }}>{c.about.missionSummary}</p>
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: BLUE_INST }}>
+                  <h3 className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: BLUE_INST }}>
                     {c.about.visionTitle}
                   </h3>
                   <p className="text-sm leading-relaxed" style={{ color: TEXT_MUTED }}>{c.about.visionSummary}</p>
@@ -805,13 +771,13 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
               </div>
             </div>
 
-            {/* Photo documentaire droite (40%) : ratio 16/9 naturel préservé, aucun recadrage tronqué */}
+            {/* Photo documentaire droite */}
             <div className="lg:col-span-5">
               <div className="relative rounded-3xl overflow-hidden shadow-xl border" style={{ backgroundColor: LIGHT_BG, borderColor: BORDER }}>
-                <div className="relative w-full aspect-[16/9] sm:aspect-[16/10] overflow-hidden bg-black/5">
+                <div className="relative w-full aspect-[16/10] overflow-hidden bg-black/5">
                   <picture>
                     <img
-                      src="/photo-ancrage-togo.png"
+                      src={settings["about_story_image"] || "/photo-ancrage-togo.png"}
                       alt={c.about.altPhoto}
                       className="w-full h-full object-cover object-[center_30%]"
                     />
@@ -820,10 +786,10 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                 <div className="p-6 sm:p-7 text-white" style={{ backgroundColor: BLUE_INST }}>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-bold uppercase tracking-widest text-white/80">
-                      {c.about.photoTag}
+                      {settings["about_story_tag"] || c.about.photoTag}
                     </span>
                     <span className="text-[11px] font-mono text-white/50">
-                      {c.about.photoLoc}
+                      {settings["about_story_location"] || c.about.photoLoc}
                     </span>
                   </div>
                   <p className="text-xs text-white/85 leading-relaxed">
@@ -838,66 +804,63 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
-          03. SIX DOMAINES — FOND GRIS TRÈS CLAIR (#F7F8FA)
-          Toutes les cartes : Fond #FFFFFF, Bordure #E5EAF0, Titre #003366,
-          Icône #003366, Texte #5E6B76, Lien #007BFF. Accent vert : mini-détail.
+          03. SIX DOMAINES (MOYENNE) — FOND GRIS TRÈS CLAIR (#F7F8FA)
+          Cartes agrandies avec vraie présence (3 col x 2 lignes, titres 22px, icônes 44px)
       ═══════════════════════════════════════════════════════════════════════════ */}
-      <section className="py-28 sm:py-36 lg:py-44" style={{ backgroundColor: LIGHT_BG }}>
+      <section className="py-20 sm:py-28" style={{ backgroundColor: LIGHT_BG }}>
         <div className="max-w-[1480px] mx-auto px-6 sm:px-12 lg:px-20">
           
-          <div className="max-w-4xl mb-20">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-6 h-0.5" style={{ backgroundColor: GREEN }} />
-              <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.2em]" style={{ color: BLUE_INST }}>
-                {c.domains.tag}
-              </span>
+          <div className="max-w-4xl mb-12 sm:mb-14">
+            <div className="text-xs sm:text-[13px] font-bold uppercase tracking-[0.2em] mb-3 text-[#003366]">
+              {c.domains.tag}
             </div>
-            <h2 className="text-4xl sm:text-5xl lg:text-[54px] font-black leading-[1.08] tracking-tight mb-6" style={{ color: BLUE_INST }}>
+            <h2 className="text-3xl sm:text-4xl lg:text-[46px] font-black leading-[1.12] tracking-tight mb-4" style={{ color: BLUE_INST }}>
               {c.domains.title}
             </h2>
-            <p className="text-lg sm:text-xl leading-relaxed max-w-3xl" style={{ color: TEXT_MUTED }}>
+            <p className="text-base sm:text-lg lg:text-[19px] leading-relaxed max-w-3xl" style={{ color: TEXT_MUTED }}>
               {c.domains.subtitle}
             </p>
           </div>
 
-          {/* Grille 3x2 — Les 6 cartes sont strictement identiques visuellement */}
+          {/* Grille 3x2 — Cartes plus hautes et spacieuses */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
             {c.domains.list.map((d, index) => (
               <div
                 key={d.num}
-                className="rounded-2xl p-8 sm:p-10 border transition-all duration-300 flex flex-col justify-between hover:shadow-lg group"
+                className="rounded-3xl p-8 sm:p-10 lg:p-11 border transition-all duration-300 flex flex-col justify-between min-h-[380px] sm:min-h-[410px] hover:shadow-xl group"
                 style={{ backgroundColor: WHITE, borderColor: BORDER }}
               >
                 <div>
-                  {/* Entête numéro sobre + Icône toujours en #003366 */}
-                  <div className="flex items-center justify-between pb-6 mb-6">
+                  {/* Entête numéro sobre + Icône agrandie et mise en valeur */}
+                  <div className="flex items-center justify-between pb-6 mb-6 border-b" style={{ borderColor: BORDER }}>
                     <span className="font-mono text-3xl sm:text-4xl font-black text-[#003366]/20">
                       {d.num}
                     </span>
-                    <div style={{ color: BLUE_INST }}>
-                      <DomainVectorIcon index={index} className="w-10 h-10" />
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center transition-colors group-hover:bg-[#003366]/5" style={{ color: BLUE_INST, backgroundColor: LIGHT_BG }}>
+                      <DomainCharterIcon index={index} size={44} className="w-10 h-10" />
                     </div>
                   </div>
 
-                  {/* Grand titre du domaine en #003366 */}
-                  <h3 className="text-2xl font-black mb-3 leading-snug" style={{ color: BLUE_INST }}>
+                  {/* Titre du domaine : 20–22px, fort et lisible */}
+                  <h3 className="text-xl sm:text-[22px] font-black mb-4 leading-snug tracking-tight" style={{ color: BLUE_INST }}>
                     {d.title}
                   </h3>
 
-                  {/* Ligne de séparation neutre */}
-                  <div className="h-px w-full my-4" style={{ backgroundColor: BORDER }} />
-
-                  {/* Description narrative en #5E6B76 */}
-                  <p className="text-[15px] sm:text-base leading-relaxed" style={{ color: TEXT_MUTED }}>
+                  {/* Description narrative : 15–16px avec bonne respiration */}
+                  <p className="text-[15px] sm:text-[16px] leading-relaxed" style={{ color: TEXT_MUTED }}>
                     {d.desc}
                   </p>
                 </div>
 
                 {/* Lien d'action en #007BFF */}
-                <div className="pt-6 mt-6 border-t" style={{ borderColor: LIGHT_BG }}>
+                <div className="pt-6 mt-8 border-t" style={{ borderColor: BORDER }}>
                   <button
-                    onClick={() => navigate("domains")}
-                    className="inline-flex items-center gap-2 text-sm font-bold cursor-pointer group-hover:translate-x-1 transition-transform"
+                    onClick={() => {
+                      const domId = DOMAIN_IDS[index] || "inclusion-numerique"
+                      const url = getPageUrl("domains", lang)
+                      window.location.href = `${url}#${domId}`
+                    }}
+                    className="inline-flex items-center gap-2 text-sm font-bold cursor-pointer group-hover:translate-x-1.5 transition-transform"
                     style={{ color: BLUE_TECH }}
                   >
                     <span>{c.domains.discoverLabel}</span>
@@ -908,7 +871,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
             ))}
           </div>
 
-          <div className="mt-16 text-center">
+          <div className="mt-14 text-center">
             <button
               onClick={() => navigate("domains")}
               className="inline-flex items-center gap-3 px-10 py-4.5 rounded-xl text-sm font-bold border transition-all cursor-pointer shadow-sm hover:shadow-md"
@@ -924,19 +887,16 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
-          04. IMPACT / CHIFFRES — BLEU INSTITUTIONNEL FORT (#003366)
-          Chiffres : TOUS BLANCS (2018, 06, 15+, 100%). Petit accent vert en tag.
+          04. IMPACT / CHIFFRES (FORTE) — BLEU INSTITUTIONNEL MAJEUR (#003366)
       ═══════════════════════════════════════════════════════════════════════════ */}
       <section className="py-28 sm:py-36 w-full text-white relative overflow-hidden" style={{ backgroundColor: BLUE_INST }}>
         <div className="max-w-[1480px] mx-auto px-6 sm:px-12 lg:px-20">
           
-          <div className="mb-20 text-center max-w-3xl mx-auto">
-            {/* Petit accent vert décoratif */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-xs font-bold uppercase tracking-[0.2em] mb-4" style={{ color: GREEN }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: GREEN }} />
+          <div className="mb-16 sm:mb-20 text-center max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-xs font-bold uppercase tracking-[0.2em] mb-4 text-white">
               <span>{c.impact.tag}</span>
             </div>
-            <h2 className="text-3xl sm:text-5xl lg:text-[52px] font-black text-white mt-2 leading-tight">
+            <h2 className="text-3xl sm:text-5xl lg:text-[54px] font-black text-white mt-2 leading-tight">
               {c.impact.title}
             </h2>
           </div>
@@ -971,20 +931,15 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
-          05. PROJETS — FOND BLANC (#FFFFFF)
-          H2: #003366, Projets: #003366, Texte: #5E6B76, CTA: #007BFF, Accent vert léger.
-          La photo apporte toute la couleur naturelle.
+          05. PROJETS (FORTE) — FOND BLANC (#FFFFFF)
       ═══════════════════════════════════════════════════════════════════════════ */}
-      <section className="py-28 sm:py-36 lg:py-44" style={{ backgroundColor: WHITE }}>
+      <section className="py-28 sm:py-36" style={{ backgroundColor: WHITE }}>
         <div className="max-w-[1480px] mx-auto px-6 sm:px-12 lg:px-20">
           
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-20">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-14 sm:mb-16">
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-6 h-0.5" style={{ backgroundColor: GREEN }} />
-                <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.2em]" style={{ color: BLUE_INST }}>
-                  {c.projects.tag}
-                </span>
+              <div className="text-xs sm:text-[13px] font-bold uppercase tracking-[0.2em] mb-3 text-[#003366]">
+                {c.projects.tag}
               </div>
               <h2 className="text-4xl sm:text-5xl lg:text-[54px] font-black leading-[1.08] tracking-tight" style={{ color: BLUE_INST }}>
                 {c.projects.title}
@@ -1001,7 +956,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
           </div>
 
           {/* Projet phare : composition 7/5 avec photographie forte et fond neutre */}
-          <div className="rounded-3xl border overflow-hidden shadow-lg mb-14" style={{ backgroundColor: WHITE, borderColor: BORDER }}>
+          <div className="rounded-3xl border overflow-hidden shadow-lg mb-12 sm:mb-14" style={{ backgroundColor: WHITE, borderColor: BORDER }}>
             <div className="grid lg:grid-cols-12">
               
               <div className="lg:col-span-7 relative min-h-[420px] sm:min-h-[520px]" style={{ backgroundColor: LIGHT_BG }}>
@@ -1038,9 +993,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                 </div>
 
                 <div className="pt-6 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-4" style={{ borderColor: BORDER }}>
-                  {/* Petit accent vert rare en checkmark */}
-                  <div className="text-sm sm:text-base font-bold flex items-center gap-2" style={{ color: TEXT_MAIN }}>
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: GREEN }} />
+                  <div className="text-sm sm:text-base font-bold" style={{ color: TEXT_MAIN }}>
                     <span>{c.projects.flagshipKpi}</span>
                   </div>
                   <button
@@ -1057,7 +1010,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
           </div>
 
           {/* Deux projets secondaires avec bordures neutres unifiées */}
-          <div className="grid md:grid-cols-2 gap-10">
+          <div className="grid md:grid-cols-2 gap-8 sm:gap-10">
             {[
               { loc: c.projects.project2Loc, title: c.projects.project2Title, desc: c.projects.project2Desc, num: "02" },
               { loc: c.projects.project3Loc, title: c.projects.project3Title, desc: c.projects.project3Desc, num: "03" },
@@ -1094,10 +1047,9 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
-          06. PRÉSENCE TERRAIN — PHOTO PLEINE LARGEUR + OVERLAY #003366 + TEXTE BLANC
-          Aucun vert / aucun bleu technologique superflu : la photo et les mots portent tout.
+          06. PRÉSENCE TERRAIN (FORTE) — PHOTO PLEINE LARGEUR + OVERLAY #003366
       ═══════════════════════════════════════════════════════════════════════════ */}
-      <section className="relative min-h-[580px] lg:min-h-[640px] flex items-center overflow-hidden">
+      <section className="relative min-h-[620px] lg:min-h-[700px] flex items-center overflow-hidden">
         <div className="absolute inset-0">
           <img
             src="/photo-recit-documentaire.jpg"
@@ -1113,11 +1065,11 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
           />
         </div>
 
-        <div className="relative z-10 max-w-[1240px] mx-auto px-6 sm:px-12 lg:px-20 py-24 sm:py-32 text-center text-white">
+        <div className="relative z-10 max-w-[1240px] mx-auto px-6 sm:px-12 lg:px-20 py-28 sm:py-36 text-center text-white">
           <span className="inline-block text-xs sm:text-sm font-bold uppercase tracking-[0.25em] px-4 py-1.5 rounded-full bg-white/10 border border-white/20 mb-8 text-white/90">
             {c.fieldReport.tag}
           </span>
-          <blockquote className="text-3xl sm:text-5xl lg:text-[54px] font-black mb-10 leading-[1.12] tracking-tight max-w-4xl mx-auto">
+          <blockquote className="text-3xl sm:text-5xl lg:text-[54px] font-black mb-8 sm:mb-10 leading-[1.12] tracking-tight max-w-4xl mx-auto">
             {c.fieldReport.title}
           </blockquote>
           <p className="text-lg sm:text-xl lg:text-[22px] text-white/90 leading-relaxed max-w-3xl mx-auto mb-10 font-normal">
@@ -1135,31 +1087,24 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
-          07. ENGAGEMENT — FOND GRIS TRÈS CLAIR (#F7F8FA)
-          Les 4 cartes STRICTEMENT IDENTIQUES visuellement :
-          Fond #FFFFFF, Bordure #E5EAF0, H3 #003366, Texte #5E6B76, CTA #007BFF.
-          Un petit point/détail vert dans chaque carte.
-          Aucune carte verte, aucune carte bleue différente.
+          07. ENGAGEMENT (MOYENNE) — FOND GRIS TRÈS CLAIR (#F7F8FA)
       ═══════════════════════════════════════════════════════════════════════════ */}
-      <section id="engagement-section" className="py-28 sm:py-36 lg:py-44" style={{ backgroundColor: LIGHT_BG }}>
+      <section id="engagement-section" className="py-20 sm:py-28" style={{ backgroundColor: LIGHT_BG }}>
         <div className="max-w-[1480px] mx-auto px-6 sm:px-12 lg:px-20">
           
-          <div className="max-w-4xl mb-20">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-6 h-0.5" style={{ backgroundColor: GREEN }} />
-              <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.2em]" style={{ color: BLUE_INST }}>
-                {c.getInvolved.tag}
-              </span>
+          <div className="max-w-4xl mb-12 sm:mb-14">
+            <div className="text-xs sm:text-[13px] font-bold uppercase tracking-[0.2em] mb-3 text-[#003366]">
+              {c.getInvolved.tag}
             </div>
-            <h2 className="text-4xl sm:text-5xl lg:text-[54px] font-black leading-[1.08] tracking-tight mb-6" style={{ color: BLUE_INST }}>
+            <h2 className="text-3xl sm:text-4xl lg:text-[46px] font-black leading-[1.12] tracking-tight mb-4" style={{ color: BLUE_INST }}>
               {c.getInvolved.title}
             </h2>
-            <p className="text-lg sm:text-xl leading-relaxed max-w-3xl" style={{ color: TEXT_MUTED }}>
+            <p className="text-base sm:text-lg lg:text-[19px] leading-relaxed max-w-3xl" style={{ color: TEXT_MUTED }}>
               {c.getInvolved.subtitle}
             </p>
           </div>
 
-          {/* Grille 2×2 — 4 cartes strictement unifiées sur le même système */}
+          {/* Grille 2×2 — 4 cartes unifiées */}
           <div className="grid md:grid-cols-2 gap-8 sm:gap-10">
             {[
               {
@@ -1197,39 +1142,35 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
             ].map((card, idx) => (
               <div
                 key={idx}
-                className="rounded-3xl p-10 sm:p-14 lg:p-16 border transition-all duration-300 flex flex-col justify-between min-h-[440px] hover:shadow-xl group"
+                className="rounded-3xl p-10 sm:p-12 lg:p-14 border transition-all duration-300 flex flex-col justify-between min-h-[420px] hover:shadow-xl group"
                 style={{ backgroundColor: WHITE, borderColor: BORDER }}
               >
                 <div>
-                  <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-2">
-                      {/* Petit détail vert discret unifié */}
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: GREEN }} />
-                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: BLUE_INST }}>
-                        {card.track}
-                      </span>
-                    </div>
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: BLUE_INST }}>
+                      {card.track}
+                    </span>
                     <span className="text-xs font-mono font-bold px-3 py-1.5 rounded-full border" style={{ backgroundColor: LIGHT_BG, borderColor: BORDER, color: TEXT_MUTED }}>
                       {card.tag}
                     </span>
                   </div>
 
-                  {/* Grand titre H3 en #003366 pour toutes les cartes */}
-                  <h3 className="text-3xl sm:text-4xl font-black mb-6 leading-tight" style={{ color: BLUE_INST }}>
+                  {/* Titre H3 */}
+                  <h3 className="text-2xl sm:text-3xl font-black mb-5 leading-tight" style={{ color: BLUE_INST }}>
                     {card.title}
                   </h3>
 
-                  {/* Description narrative en #5E6B76 */}
-                  <p className="text-base sm:text-lg leading-relaxed max-w-md mb-10" style={{ color: TEXT_MUTED }}>
+                  {/* Description narrative */}
+                  <p className="text-base sm:text-lg leading-relaxed max-w-md mb-8" style={{ color: TEXT_MUTED }}>
                     {card.desc}
                   </p>
                 </div>
 
-                {/* Bouton d'action toujours en #007BFF pour toutes les cartes */}
+                {/* Bouton d'action en #007BFF */}
                 <div>
                   <button
                     onClick={() => navigate(card.targetPage)}
-                    className="w-full sm:w-auto px-9 py-4.5 rounded-xl font-bold text-base text-white transition-all shadow-md hover:brightness-110 cursor-pointer text-center inline-flex items-center justify-center gap-3"
+                    className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm sm:text-base text-white transition-all shadow-md hover:brightness-110 cursor-pointer text-center inline-flex items-center justify-center gap-3"
                     style={{ backgroundColor: BLUE_TECH }}
                   >
                     <span>{card.btn}</span>
@@ -1243,25 +1184,21 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
-          08. TÉMOIGNAGES — FOND BLANC (#FFFFFF)
-          Citation #003366, Nom #003366, Accent vert rare, pas de bouton flashy.
+          08. TÉMOIGNAGES (MOYENNE) — FOND BLANC (#FFFFFF)
       ═══════════════════════════════════════════════════════════════════════════ */}
-      <section className="py-28 sm:py-36" style={{ backgroundColor: WHITE }}>
+      <section className="py-20 sm:py-28" style={{ backgroundColor: WHITE }}>
         <div className="max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20">
           
-          <div className="flex items-center justify-between mb-16">
+          <div className="flex items-center justify-between mb-12 sm:mb-14">
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-6 h-0.5" style={{ backgroundColor: GREEN }} />
-                <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.2em]" style={{ color: BLUE_INST }}>
-                  {c.testimonials.eyebrow}
-                </span>
+              <div className="text-xs sm:text-[13px] font-bold uppercase tracking-[0.2em] mb-3 text-[#003366]">
+                {c.testimonials.eyebrow}
               </div>
-              <h2 className="text-3xl sm:text-5xl font-black" style={{ color: BLUE_INST }}>
+              <h2 className="text-3xl sm:text-4xl lg:text-[46px] font-black" style={{ color: BLUE_INST }}>
                 {c.testimonials.title}
               </h2>
             </div>
-            {/* Sélecteur sobre et discret */}
+            {/* Sélecteur sobre */}
             <div className="flex items-center gap-2">
               {testimonialsList.map((item, idx) => (
                 <button
@@ -1284,16 +1221,16 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
             </div>
           </div>
 
-          <div className="p-10 sm:p-16 lg:p-20 rounded-3xl border relative" style={{ backgroundColor: LIGHT_BG, borderColor: BORDER }}>
+          <div className="p-8 sm:p-14 lg:p-16 rounded-3xl border relative" style={{ backgroundColor: LIGHT_BG, borderColor: BORDER }}>
             <span className="absolute top-8 right-10 text-7xl sm:text-8xl font-serif text-[#003366]/10 select-none pointer-events-none">
               “
             </span>
-            <p className="text-xl sm:text-3xl lg:text-[34px] font-semibold leading-relaxed italic mb-12 relative z-10" style={{ color: BLUE_INST }}>
+            <p className="text-lg sm:text-2xl lg:text-[28px] font-semibold leading-relaxed italic mb-10 relative z-10" style={{ color: BLUE_INST }}>
               {"\u00AB"} {testimonialsList[activeTestimonial].quote} {"\u00BB"}
             </p>
-            <div className="pt-8 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-4" style={{ borderColor: BORDER }}>
+            <div className="pt-6 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-4" style={{ borderColor: BORDER }}>
               <div>
-                <div className="text-xl sm:text-2xl font-black" style={{ color: BLUE_INST }}>
+                <div className="text-lg sm:text-xl font-black" style={{ color: BLUE_INST }}>
                   {testimonialsList[activeTestimonial].author}
                 </div>
                 <div className="text-sm mt-1" style={{ color: TEXT_MUTED }}>
@@ -1310,28 +1247,24 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
-          09. LETTRE D'INFORMATION (NEWSLETTER) — FOND GRIS TRÈS CLAIR (#F7F8FA)
-          Sortie du grand bleu : sobre, propre, input blanc, bouton #007BFF.
+          09. LETTRE D'INFORMATION (LÉGÈRE) — FOND GRIS TRÈS CLAIR (#F7F8FA)
       ═══════════════════════════════════════════════════════════════════════════ */}
-      <section className="py-24 sm:py-28" style={{ backgroundColor: LIGHT_BG }}>
-        <div className="max-w-[960px] mx-auto px-6 sm:px-12">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 mb-3">
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: GREEN }} />
-              <span className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: BLUE_INST }}>
-                {c.newsletter.eyebrow}
-              </span>
+      <section className="py-16 sm:py-20" style={{ backgroundColor: LIGHT_BG }}>
+        <div className="max-w-[880px] mx-auto px-6 sm:px-12">
+          <div className="text-center mb-8">
+            <div className="text-xs font-bold uppercase tracking-[0.2em] mb-2 text-[#003366]">
+              {c.newsletter.eyebrow}
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ color: BLUE_INST }}>
+            <h2 className="text-2xl sm:text-3xl font-black mb-3" style={{ color: BLUE_INST }}>
               {c.newsletter.title}
             </h2>
-            <p className="text-base max-w-xl mx-auto leading-relaxed" style={{ color: TEXT_MUTED }}>
+            <p className="text-sm sm:text-base max-w-xl mx-auto leading-relaxed" style={{ color: TEXT_MUTED }}>
               {c.newsletter.desc}
             </p>
           </div>
 
           {nlSuccess ? (
-            <div className="p-6 rounded-2xl border text-center text-sm font-bold" style={{ backgroundColor: "#E6F7ED", borderColor: "#A8E6C3", color: "#1B7A3D" }}>
+            <div className="p-5 rounded-2xl border text-center text-sm font-bold" style={{ backgroundColor: "#E6F7ED", borderColor: "#A8E6C3", color: "#1B7A3D" }}>
               {c.newsletter.success}
             </div>
           ) : (
@@ -1348,13 +1281,13 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                   placeholder={c.newsletter.emailPlaceholder}
                   value={nlEmail}
                   onChange={(e) => setNlEmail(e.target.value)}
-                  className="flex-1 px-5 py-4 border rounded-xl text-sm focus:outline-none focus:ring-2"
+                  className="flex-1 px-5 py-3.5 border rounded-xl text-sm focus:outline-none focus:ring-2"
                   style={{ backgroundColor: WHITE, borderColor: BORDER, color: TEXT_MAIN } as React.CSSProperties}
                 />
                 <button
                   type="submit"
                   disabled={nlSubmitting}
-                  className="px-8 py-4 rounded-xl font-bold text-sm text-white transition-colors cursor-pointer disabled:opacity-60 shadow-sm whitespace-nowrap"
+                  className="px-8 py-3.5 rounded-xl font-bold text-sm text-white transition-colors cursor-pointer disabled:opacity-60 shadow-sm whitespace-nowrap"
                   style={{ backgroundColor: BLUE_TECH }}
                 >
                   {nlSubmitting ? c.newsletter.btnLoading : c.newsletter.btn}
@@ -1377,37 +1310,33 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
-          10. CONTACT & TERRITOIRE — FOND BLANC (#FFFFFF)
-          Titre #003366, Texte #5E6B76, CTA #007BFF, accent #28A745 discret.
+          10. CONTACT & TERRITOIRE (LÉGÈRE) — FOND BLANC (#FFFFFF)
       ═══════════════════════════════════════════════════════════════════════════ */}
-      <section className="py-28 sm:py-36 lg:py-44" style={{ backgroundColor: WHITE }}>
+      <section className="py-16 sm:py-20" style={{ backgroundColor: WHITE }}>
         <div className="max-w-[1480px] mx-auto px-6 sm:px-12 lg:px-20">
-          <div className="grid lg:grid-cols-12 gap-14 lg:gap-20 items-center">
+          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
 
-            <div className="lg:col-span-6 space-y-10">
+            <div className="lg:col-span-6 space-y-8">
               <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="w-6 h-0.5" style={{ backgroundColor: GREEN }} />
-                  <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.2em]" style={{ color: BLUE_INST }}>
-                    {c.contact.tag}
-                  </span>
+                <div className="text-xs font-bold uppercase tracking-[0.2em] mb-2.5 text-[#003366]">
+                  {c.contact.tag}
                 </div>
-                <h2 className="text-4xl sm:text-5xl lg:text-[54px] font-black leading-[1.08] tracking-tight mb-5" style={{ color: BLUE_INST }}>
+                <h2 className="text-3xl sm:text-4xl font-black leading-[1.12] tracking-tight mb-4" style={{ color: BLUE_INST }}>
                   {c.contact.title}
                 </h2>
-                <p className="text-base sm:text-lg leading-relaxed" style={{ color: TEXT_MUTED }}>
+                <p className="text-base leading-relaxed" style={{ color: TEXT_MUTED }}>
                   {c.contact.subtitle}
                 </p>
               </div>
 
-              <div className="border-t pt-10 space-y-7" style={{ borderColor: BORDER }}>
+              <div className="border-t pt-8 space-y-6" style={{ borderColor: BORDER }}>
                 <div>
-                  <span className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: TEXT_MUTED }}>
+                  <span className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: TEXT_MUTED }}>
                     {c.contact.emailLabel}
                   </span>
                   <a
                     href="mailto:aptic.rural19@gmail.com"
-                    className="font-mono text-lg sm:text-xl font-bold hover:underline"
+                    className="font-mono text-base sm:text-lg font-bold hover:underline"
                     style={{ color: BLUE_INST }}
                   >
                     aptic.rural19@gmail.com
@@ -1415,14 +1344,14 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                 </div>
 
                 <div>
-                  <span className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: TEXT_MUTED }}>
+                  <span className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: TEXT_MUTED }}>
                     {c.contact.phoneLabel}
                   </span>
                   <a
                     href="https://wa.me/22891201990"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mono text-lg sm:text-xl font-bold hover:underline flex items-center gap-2"
+                    className="font-mono text-base sm:text-lg font-bold hover:underline flex items-center gap-2"
                     style={{ color: BLUE_INST }}
                   >
                     <span>+228 91 20 19 90</span>
@@ -1433,22 +1362,22 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                 </div>
 
                 <div>
-                  <span className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: TEXT_MUTED }}>
+                  <span className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: TEXT_MUTED }}>
                     {c.contact.addressLabel}
                   </span>
-                  <div className="text-base font-bold" style={{ color: TEXT_MAIN }}>
+                  <div className="text-sm sm:text-base font-bold" style={{ color: TEXT_MAIN }}>
                     {c.contact.addressVal}
                   </div>
-                  <div className="text-xs mt-1" style={{ color: TEXT_MUTED }}>
+                  <div className="text-xs mt-0.5" style={{ color: TEXT_MUTED }}>
                     {c.contact.addressDetail}
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-4 pt-2">
+              <div className="flex flex-wrap gap-4 pt-1">
                 <button
                   onClick={() => navigate("contact")}
-                  className="px-8 py-4 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:brightness-110 cursor-pointer"
+                  className="px-7 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:brightness-110 cursor-pointer"
                   style={{ backgroundColor: BLUE_TECH }}
                 >
                   {c.contact.contactBtn}
@@ -1457,7 +1386,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                   href="https://wa.me/22891201990"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-7 py-4 rounded-xl text-sm font-bold border transition-colors inline-flex items-center gap-2"
+                  className="px-6 py-3.5 rounded-xl text-sm font-bold border transition-colors inline-flex items-center gap-2"
                   style={{ borderColor: BORDER, color: BLUE_INST, backgroundColor: WHITE }}
                 >
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: GREEN }} />
@@ -1467,42 +1396,81 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
             </div>
 
             <div className="lg:col-span-6">
-              <div className="rounded-3xl p-10 sm:p-14 border shadow-sm space-y-6" style={{ backgroundColor: LIGHT_BG, borderColor: BORDER }}>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: BLUE_INST }}>
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-
-                <div>
-                  <h3 className="text-2xl font-black mb-3" style={{ color: BLUE_INST }}>
-                    Agbélouvé, Togo
-                  </h3>
-                  <p className="text-sm font-mono" style={{ color: TEXT_MUTED }}>
-                    {c.contact.gpsLabel}
-                  </p>
-                  <p className="text-xs font-mono mt-1 text-[#7A8A9A]">
-                    {c.contact.mapRegion}
-                  </p>
-                </div>
-
-                <div className="p-6 rounded-2xl border space-y-3 bg-white" style={{ borderColor: BORDER }}>
-                  <div className="text-xs font-bold uppercase tracking-wider" style={{ color: BLUE_INST }}>
-                    {c.contact.accessBoxTitle}
+              <div className="rounded-3xl overflow-hidden border shadow-sm flex flex-col" style={{ backgroundColor: LIGHT_BG, borderColor: BORDER }}>
+                
+                {/* Carte interactive OpenStreetMap */}
+                <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full bg-slate-100 border-b" style={{ borderColor: BORDER }}>
+                  <iframe
+                    title="Carte Agbélouvé APTIC-R"
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    scrolling="no"
+                    marginHeight={0}
+                    marginWidth={0}
+                    src="https://www.openstreetmap.org/export/embed.html?bbox=1.1550%2C6.5500%2C1.2250%2C6.6100&amp;layer=mapnik&amp;marker=6.5786%2C1.1894"
+                    className="w-full h-full filter contrast-[1.02]"
+                  />
+                  
+                  {/* Badge d'ancrage territorial superposé */}
+                  <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl border shadow-xs text-xs space-y-0.5" style={{ borderColor: BORDER }}>
+                    <div className="font-bold flex items-center gap-1.5" style={{ color: BLUE_INST }}>
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: GREEN }} />
+                      <span>Siège & FabLab APTIC-R</span>
+                    </div>
+                    <div style={{ color: TEXT_MUTED }}>Agbélouvé, RN1 (65 km nord Lomé)</div>
                   </div>
-                  <p className="text-xs sm:text-sm leading-relaxed" style={{ color: TEXT_MUTED }}>
-                    {c.contact.mapNotice}
-                  </p>
+
+                  <a
+                    href="https://www.openstreetmap.org/#map=13/6.5786/1.1894"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg border text-[11px] font-bold shadow-xs hover:bg-white transition-colors"
+                    style={{ color: BLUE_TECH, borderColor: BORDER }}
+                  >
+                    OSM ↗
+                  </a>
                 </div>
 
-                <div className="pt-4 flex items-center justify-between text-xs text-[#7A8A9A]">
-                  <span>{c.contact.legalRegStatus}</span>
-                  <span className="font-bold flex items-center gap-1.5" style={{ color: TEXT_MAIN }}>
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: GREEN }} />
-                    {c.contact.fieldPresenceBadge}
-                  </span>
+                {/* Détails d'accès sous la carte */}
+                <div className="p-6 sm:p-7 space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-black" style={{ color: BLUE_INST }}>
+                        Agbélouvé, Togo
+                      </h3>
+                      <p className="text-xs font-mono mt-0.5" style={{ color: TEXT_MUTED }}>
+                        {c.contact.gpsLabel} · {c.contact.mapRegion}
+                      </p>
+                    </div>
+
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full border bg-white shrink-0" style={{ borderColor: BORDER, color: TEXT_MAIN }}>
+                      {c.contact.fieldPresenceBadge}
+                    </span>
+                  </div>
+
+                  <div className="p-4 rounded-xl border bg-white" style={{ borderColor: BORDER }}>
+                    <div className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: BLUE_INST }}>
+                      {c.contact.accessBoxTitle}
+                    </div>
+                    <p className="text-xs leading-relaxed" style={{ color: TEXT_MUTED }}>
+                      {c.contact.mapNotice}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-1 text-[#7A8A9A]">
+                    <span>{c.contact.legalRegStatus}</span>
+                    <button
+                      onClick={() => navigate("contact")}
+                      className="font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
+                      style={{ color: BLUE_TECH }}
+                    >
+                      <span>Plan d&apos;accès détaillé</span>
+                      <span>→</span>
+                    </button>
+                  </div>
                 </div>
+
               </div>
             </div>
 

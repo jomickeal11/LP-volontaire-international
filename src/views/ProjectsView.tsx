@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
@@ -29,7 +29,9 @@ interface ProjectRecord {
   country: string
   status: string
   beneficiaries?: string | null
-  featured: boolean
+  isFeatured: boolean
+  displayOrder: number
+  featuredImage?: string | null
   domaine?: {
     id: string
     slug: string
@@ -41,59 +43,61 @@ interface ProjectRecord {
   } | null
 }
 
-const BG = "#F7F8FA"
+const BG_HERO = "#F7F8FA"
+const BG_LIST = "#F1F5F8"
+const BG_CTA = "#F7F8FA"
 
 const I18N = {
   FR: {
-    badge: "Initiatives de Terrain & Impact Durable",
-    title: "Nos Projets & Réalisations",
-    subtitle:
-      "Découvrez les projets concrets déployés par APTIC-R avec les communautés rurales du Togo : éducation, inclusion, agro-écologie et tiers-lieux d'innovation.",
-    filterAll: "Tous les statuts",
+    eyebrow: "NOS PROJETS",
+    title: "Des initiatives concrètes,\nau service des territoires ruraux.",
+    subtitle: "Découvrez les projets menés ou accompagnés par l’APTIC-R au Togo.",
+    filterAllStatus: "Tous",
+    filterAllDomains: "Tous les domaines",
     statusInProgress: "En cours",
     statusCompleted: "Réalisés",
-    statusPlanned: "À venir / Planifiés",
-    beneficiariesLabel: "Bénéficiaires :",
-    locationLabel: "Localisation :",
-    detailsBtn: "Voir la fiche détaillée",
-    ctaTitle: "Vous souhaitez co-financer ou soutenir un de ces projets ?",
-    ctaSubtitle: "Nous mettons en place des conventions de partenariat transparentes avec bilans d'impact mesurables.",
-    ctaPartner: "DEVENIR PARTENAIRE PROJET",
-    ctaVolunteer: "CANDIDATER COMME VOLONTAIRE",
+    statusPlanned: "À venir",
+    beneficiariesLabel: "Bénéficiaires",
+    locationLabel: "Lieu",
+    detailsBtn: "Voir le projet",
+    ctaTitle: "Collaborer avec nous",
+    ctaSubtitle: "Nous mettons en place des conventions de partenariat transparentes pour le déploiement de projets à impact.",
+    ctaPartner: "Devenir partenaire",
+    projectCount: (count: number) => `${count} projet${count > 1 ? "s" : ""}`,
   },
   EN: {
-    badge: "Grassroots Initiatives & Lasting Impact",
-    title: "Our Field Projects",
-    subtitle:
-      "Explore the concrete projects conducted by APTIC-R alongside rural Togolese communities: digital education, inclusion, agro-ecology, and community makerspaces.",
-    filterAll: "All statuses",
+    eyebrow: "OUR PROJECTS",
+    title: "Concrete initiatives,\nserving rural territories.",
+    subtitle: "Discover the projects led or supported by APTIC-R in Togo.",
+    filterAllStatus: "All",
+    filterAllDomains: "All domains",
     statusInProgress: "In progress",
     statusCompleted: "Completed",
-    statusPlanned: "Planned / Upcoming",
-    beneficiariesLabel: "Beneficiaries:",
-    locationLabel: "Location:",
-    detailsBtn: "View project details",
-    ctaTitle: "Interested in supporting or co-funding a project?",
-    ctaSubtitle: "We establish transparent partnership agreements with verified impact metrics.",
-    ctaPartner: "BECOME A PROJECT PARTNER",
-    ctaVolunteer: "APPLY AS VOLUNTEER",
+    statusPlanned: "Upcoming",
+    beneficiariesLabel: "Beneficiaries",
+    locationLabel: "Location",
+    detailsBtn: "View project",
+    ctaTitle: "Collaborate with us",
+    ctaSubtitle: "We establish transparent partnership agreements to deploy impactful projects.",
+    ctaPartner: "Become a partner",
+    projectCount: (count: number) => `${count} project${count > 1 ? "s" : ""}`,
   },
   DE: {
-    badge: "Praxisprojekte & Nachhaltige Wirkung",
-    title: "Unsere Projekte vor Ort",
-    subtitle:
-      "Entdecken Sie konkrete Vorhaben von APTIC-R in ländlichen Gebieten Togos: Bildung, Inklusion und ökologische Technologien.",
-    filterAll: "Alle Status",
+    eyebrow: "UNSERE PROJEKTE",
+    title: "Konkrete Initiativen,\nim Dienste ländlicher Gebiete.",
+    subtitle: "Entdecken Sie die Projekte, die von APTIC-R in Togo geleitet oder unterstützt werden.",
+    filterAllStatus: "Alle",
+    filterAllDomains: "Alle Bereiche",
     statusInProgress: "Laufend",
     statusCompleted: "Abgeschlossen",
     statusPlanned: "Geplant",
-    beneficiariesLabel: "Begünstigte:",
-    locationLabel: "Standort:",
-    detailsBtn: "Projektdetails ansehen",
-    ctaTitle: "Möchten Sie ein Projekt fördern?",
-    ctaSubtitle: "Wir bieten transparente Kooperationsmodelle mit nachweisbarer Wirkung.",
-    ctaPartner: "PROJEKTPARTNER WERDEN",
-    ctaVolunteer: "ALS FREIWILLIGER BEWERBEN",
+    beneficiariesLabel: "Begünstigte",
+    locationLabel: "Ort",
+    detailsBtn: "Projekt ansehen",
+    ctaTitle: "Arbeiten Sie mit uns zusammen",
+    ctaSubtitle: "Wir schließen transparente Partnerschaftsvereinbarungen ab, um wirkungsvolle Projekte umzusetzen.",
+    ctaPartner: "Partner werden",
+    projectCount: (count: number) => `${count} Projekt${count > 1 ? "e" : ""}`,
   },
 }
 
@@ -105,6 +109,7 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
   const [projects, setProjects] = useState<ProjectRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState("ALL")
+  const [domainFilter, setDomainFilter] = useState("ALL")
   const [selectedProject, setSelectedProject] = useState<ProjectRecord | null>(null)
 
   const navigate = (page: Page) => {
@@ -123,260 +128,339 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
       .finally(() => setLoading(false))
   }, [])
 
-  const filteredProjects =
-    statusFilter === "ALL"
-      ? projects
-      : projects.filter((p) => p.status === statusFilter)
+  // Extract unique domains
+  const availableDomains = useMemo(() => {
+    const domains = new Map<string, string>()
+    projects.forEach((p) => {
+      if (p.domaine) {
+        const name =
+          lang === "EN" && p.domaine.nameEn
+            ? p.domaine.nameEn
+            : lang === "DE" && p.domaine.nameDe
+            ? p.domaine.nameDe
+            : p.domaine.nameFr
+        domains.set(p.domaine.id, name)
+      }
+    })
+    return Array.from(domains.entries()).map(([id, name]) => ({ id, name }))
+  }, [projects, lang])
+
+  const filteredProjects = useMemo(() => {
+    return projects.filter((p) => {
+      const matchStatus = statusFilter === "ALL" || p.status === statusFilter
+      const matchDomain = domainFilter === "ALL" || (p.domaine && p.domaine.id === domainFilter)
+      return matchStatus && matchDomain
+    })
+  }, [projects, statusFilter, domainFilter])
+
+  const featuredProject = useMemo(() => {
+    return filteredProjects.find((p) => p.isFeatured) || null
+  }, [filteredProjects])
+
+  const standardProjects = useMemo(() => {
+    return filteredProjects.filter((p) => !p.isFeatured)
+  }, [filteredProjects])
+
+  const renderProjectCard = (p: ProjectRecord, isLarge: boolean, index: number) => {
+    const title =
+      lang === "EN" && p.titleEn
+        ? p.titleEn
+        : lang === "DE" && p.titleDe
+        ? p.titleDe
+        : p.titleFr
+    const summary =
+      lang === "EN" && p.summaryEn
+        ? p.summaryEn
+        : lang === "DE" && p.summaryDe
+        ? p.summaryDe
+        : p.summaryFr
+    const domaineName =
+      lang === "EN" && p.domaine?.nameEn
+        ? p.domaine.nameEn
+        : lang === "DE" && p.domaine?.nameDe
+        ? p.domaine.nameDe
+        : p.domaine?.nameFr
+
+    return (
+      <div
+        key={p.id}
+        className={isLarge 
+          ? "group cursor-pointer flex flex-col bg-white rounded-2xl p-5 sm:p-7 shadow-sm hover:shadow-md transition-all duration-300 border border-slate-200/80 col-span-1 md:col-span-2" 
+          : "group cursor-pointer flex flex-col bg-white rounded-2xl p-5 sm:p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-slate-200/80 col-span-1"
+        }
+        onClick={() => setSelectedProject(p)}
+      >
+        {/* Image holder */}
+        <div className={isLarge
+          ? "bg-slate-200 rounded-xl overflow-hidden relative shrink-0 w-full aspect-video md:aspect-[21/9] mb-6"
+          : "bg-slate-200 rounded-xl overflow-hidden relative shrink-0 w-full aspect-video mb-5"
+        }>
+          {/* Status Label Overlay */}
+          <div className="absolute top-4 left-4 z-10">
+            <span className={`text-[11px] uppercase tracking-wider font-bold px-3 py-1.5 rounded-md shadow-sm ${
+              p.status === "COMPLETED"
+                ? "bg-white text-slate-700"
+                : p.status === "IN_PROGRESS"
+                ? "bg-[#28A745] text-white"
+                : "bg-[#007BFF] text-white"
+            }`}>
+              {p.status === "COMPLETED" ? t.statusCompleted : p.status === "IN_PROGRESS" ? t.statusInProgress : t.statusPlanned}
+            </span>
+          </div>
+          {p.featuredImage ? (
+            <img src={p.featuredImage} alt={title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          ) : (
+            <img src={['/photo-projet-phare.jpg', '/photo-recit-documentaire.jpg', '/photo-ancrage-togo.png'][index % 3]} alt="Placeholder projet" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-col flex-1">
+          <div className="flex items-center gap-3 mb-3">
+            {p.domaine && (
+              <span className="text-xs font-bold text-[#003366] uppercase tracking-wider">
+                {domaineName}
+              </span>
+            )}
+            <span className="text-slate-300">•</span>
+            <span className="text-xs font-medium text-slate-500">
+              {p.location}
+            </span>
+          </div>
+          
+          <h3 className={`font-bold text-[#003366] mb-3 leading-tight group-hover:text-[#007BFF] transition-colors ${isLarge ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'}`}>
+            {title}
+          </h3>
+          
+          <p className={`text-[#5E6B76] leading-relaxed mb-6 ${isLarge ? 'text-base sm:text-lg max-w-4xl' : 'text-sm'}`}>
+            {summary}
+          </p>
+          
+          <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between">
+            <span className="inline-flex items-center text-sm font-bold text-[#007BFF] group-hover:text-[#003366] transition-colors">
+              {t.detailsBtn} <span className="ml-1.5 group-hover:translate-x-1 transition-transform">→</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: BG }}>
+    <div className="min-h-screen flex flex-col bg-white">
       <Header lang={lang} setLang={handleSetLang} currentPage="projects" navigate={navigate} />
 
-      <main className="flex-1 pt-24 lg:pt-32">
-        {/* ── 1. Hero ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#003366]/10 via-transparent to-transparent">
-          <div className="max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#003366] mb-6">
-              <span>🚀</span>
-              <span>{t.badge}</span>
+      <main className="flex-1 pt-20 lg:pt-24">
+        {/* ── 1. Hero (#F7F8FA) ── */}
+        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20" style={{ backgroundColor: BG_HERO }}>
+          <div className="max-w-5xl mx-auto">
+            <div className="inline-flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-[#28A745]"></span>
+              <span className="text-[#28A745] font-bold tracking-widest text-xs sm:text-sm uppercase">
+                {t.eyebrow}
+              </span>
             </div>
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#142332] tracking-tight mb-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#003366] tracking-tight mb-5 whitespace-pre-line leading-tight">
               {t.title}
             </h1>
-            <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg text-[#5E6B76] max-w-2xl leading-relaxed">
               {t.subtitle}
             </p>
           </div>
         </section>
 
-        {/* ── 2. Filters ── */}
-        <section className="px-4 sm:px-6 lg:px-8 -mt-6 mb-12">
-          <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-2">
-            {[
-              { id: "ALL", label: t.filterAll },
-              { id: "IN_PROGRESS", label: `⚡ ${t.statusInProgress}` },
-              { id: "COMPLETED", label: `✓ ${t.statusCompleted}` },
-              { id: "PLANNED", label: `⏳ ${t.statusPlanned}` },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setStatusFilter(tab.id)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm ${
-                  statusFilter === tab.id
-                    ? "bg-[#003366] text-white shadow-md"
-                    : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+        {/* ── 2. Transition Band & Filters (#FFFFFF) ── */}
+        <section className="px-4 sm:px-6 lg:px-8 py-6 bg-white border-y border-slate-200/80">
+          <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+              {/* Status Filters */}
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: "ALL", label: t.filterAllStatus },
+                  { id: "IN_PROGRESS", label: t.statusInProgress },
+                  { id: "COMPLETED", label: t.statusCompleted },
+                  { id: "PLANNED", label: t.statusPlanned },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setStatusFilter(tab.id)}
+                    className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+                      statusFilter === tab.id
+                        ? "bg-[#003366] text-white shadow-sm"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Domain Filter */}
+              <div className="flex items-center gap-2">
+                <select
+                  value={domainFilter}
+                  onChange={(e) => setDomainFilter(e.target.value)}
+                  className="px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 border border-slate-200 cursor-pointer focus:ring-2 focus:ring-[#003366] outline-none appearance-none pr-8 relative"
+                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%235E6B76\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1rem' }}
+                >
+                  <option value="ALL">{t.filterAllDomains}</option>
+                  {availableDomains.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="text-xs sm:text-sm font-bold text-slate-400">
+              {loading ? "..." : t.projectCount(filteredProjects.length)}
+            </div>
           </div>
         </section>
 
-        {/* ── 3. Projects Grid ── */}
-        <section className="px-4 sm:px-6 lg:px-8 pb-24">
+        {/* ── 3. Projects Grid (#F1F5F8) ── */}
+        <section className="px-4 sm:px-6 lg:px-8 py-12 sm:py-16" style={{ backgroundColor: BG_LIST }}>
           <div className="max-w-6xl mx-auto">
             {loading ? (
               <div className="py-20 text-center text-slate-400 text-sm">
-                Chargement des projets...
+                Chargement...
               </div>
             ) : filteredProjects.length === 0 ? (
-              <div className="py-20 text-center text-slate-500 text-sm bg-white rounded-3xl border border-slate-200">
-                Aucun projet ne correspond à ce filtre actuellement.
+              <div className="py-20 text-center bg-white rounded-2xl border border-slate-200 text-slate-500 text-sm">
+                Aucun projet trouvé.
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredProjects.map((p) => {
-                  const title =
-                    lang === "EN" && p.titleEn
-                      ? p.titleEn
-                      : lang === "DE" && p.titleDe
-                      ? p.titleDe
-                      : p.titleFr
-                  const summary =
-                    lang === "EN" && p.summaryEn
-                      ? p.summaryEn
-                      : lang === "DE" && p.summaryDe
-                      ? p.summaryDe
-                      : p.summaryFr
-                  const domaineName =
-                    lang === "EN" && p.domaine?.nameEn
-                      ? p.domaine.nameEn
-                      : lang === "DE" && p.domaine?.nameDe
-                      ? p.domaine.nameDe
-                      : p.domaine?.nameFr
-
-                  return (
-                    <div
-                      key={p.id}
-                      className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-                    >
-                      <div>
-                        {/* Header badges */}
-                        <div className="flex items-center justify-between gap-2 mb-4">
-                          {p.domaine ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#003366]/10 text-[#003366]">
-                              <span>{p.domaine.icon || "🎯"}</span>
-                              <span className="truncate max-w-[150px]">{domaineName}</span>
-                            </span>
-                          ) : (
-                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600">
-                              Projet
-                            </span>
-                          )}
-
-                          <span
-                            className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                              p.status === "COMPLETED"
-                                ? "bg-slate-100 text-slate-700"
-                                : p.status === "IN_PROGRESS"
-                                ? "bg-[#D1F0DE] text-[#166534]"
-                                : "bg-blue-100 text-blue-800"
-                            }`}
-                          >
-                            {p.status === "COMPLETED"
-                              ? t.statusCompleted
-                              : p.status === "IN_PROGRESS"
-                              ? t.statusInProgress
-                              : t.statusPlanned}
-                          </span>
-                        </div>
-
-                        <h3 className="text-lg font-bold text-[#142332] mb-2 leading-snug">
-                          {title}
-                        </h3>
-
-                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
-                          {summary}
-                        </p>
-                      </div>
-
-                      <div className="space-y-4 pt-4 border-t border-slate-100 text-xs">
-                        <div className="flex items-center justify-between text-slate-600">
-                          <span className="font-semibold">{t.locationLabel}</span>
-                          <span className="text-slate-800 font-medium truncate max-w-[180px]">
-                            {p.location}
-                          </span>
-                        </div>
-
-                        {p.beneficiaries && (
-                          <div className="flex items-center justify-between text-slate-600">
-                            <span className="font-semibold">{t.beneficiariesLabel}</span>
-                            <span className="text-[#28A745] font-bold">
-                              {p.beneficiaries}
-                            </span>
-                          </div>
-                        )}
-
-                        <button
-                          onClick={() => setSelectedProject(p)}
-                          className="w-full text-center py-2.5 rounded-xl font-bold bg-[#003366]/10 text-[#003366] hover:bg-[#003366] hover:text-white transition-all text-xs"
-                        >
-                          {t.detailsBtn} →
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
+              <div className="flex flex-col gap-10 sm:gap-12">
+                {featuredProject && (
+                  <div>
+                    {renderProjectCard(featuredProject, true, 0)}
+                  </div>
+                )}
+                
+                {standardProjects.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {standardProjects.map((p, index) => renderProjectCard(p, false, index + 1))}
+                  </div>
+                )}
               </div>
             )}
           </div>
         </section>
 
-        {/* ── 4. Detail Modal ── */}
+        {/* ── 4. Structured CTA Section (#FFFFFF surrounding with #F7F8FA Card) ── */}
+        <section className="px-4 sm:px-6 lg:px-8 py-16 bg-white">
+          <div className="max-w-4xl mx-auto">
+            <div 
+              className="rounded-2xl p-8 sm:p-12 border border-slate-200 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm"
+              style={{ backgroundColor: BG_CTA, minHeight: "220px" }}
+            >
+              <div className="text-center md:text-left">
+                <div className="text-[11px] font-bold uppercase tracking-widest text-[#28A745] mb-2">
+                  Partenariats & Impact
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#003366] mb-3">
+                  {t.ctaTitle}
+                </h2>
+                <p className="text-[#5E6B76] text-sm sm:text-base max-w-lg leading-relaxed">
+                  {t.ctaSubtitle}
+                </p>
+              </div>
+              
+              <div className="shrink-0">
+                <Link
+                  href={getPageUrl("partner", lang)}
+                  className="px-7 py-3.5 rounded-xl font-bold text-sm bg-[#007BFF] text-white hover:bg-[#003366] transition-colors inline-flex items-center gap-2 shadow-sm hover:shadow"
+                >
+                  {t.ctaPartner} <span>→</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 5. Detail Modal ── */}
         {selectedProject && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#003366]/40 backdrop-blur-sm"
             onClick={() => setSelectedProject(null)}
           >
             <div
-              className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto space-y-6"
+              className="bg-white rounded-2xl p-8 sm:p-10 max-w-3xl w-full shadow-2xl max-h-[90vh] overflow-y-auto space-y-8"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-start justify-between pb-4">
                 <div>
                   {selectedProject.domaine && (
-                    <span className="text-xs font-bold text-[#003366] uppercase tracking-wider block">
-                      {selectedProject.domaine.nameFr}
+                    <span className="text-sm font-bold text-[#28A745] uppercase tracking-wider block mb-2">
+                      {lang === "EN" ? selectedProject.domaine.nameEn : lang === "DE" ? selectedProject.domaine.nameDe : selectedProject.domaine.nameFr}
                     </span>
                   )}
-                  <h2 className="text-xl sm:text-2xl font-bold text-[#142332] mt-1">
-                    {selectedProject.titleFr}
+                  <h2 className="text-3xl font-bold text-[#003366] mt-1 leading-tight">
+                    {lang === "EN" ? (selectedProject.titleEn || selectedProject.titleFr) : lang === "DE" ? (selectedProject.titleDe || selectedProject.titleFr) : selectedProject.titleFr}
                   </h2>
-                  <p className="text-xs text-slate-500 mt-1">
-                    📍 {selectedProject.location}, {selectedProject.country}
+                  <p className="text-sm text-slate-500 mt-2 font-medium">
+                    {selectedProject.location}, {selectedProject.country}
                   </p>
                 </div>
                 <button
                   onClick={() => setSelectedProject(null)}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-sm font-bold"
+                  className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-lg transition-colors"
                 >
                   ✕
                 </button>
               </div>
 
+              {/* Large Image for Modal */}
+              <div className="w-full aspect-video bg-slate-200 rounded-xl relative overflow-hidden">
+                {selectedProject.featuredImage ? (
+                  <img src={selectedProject.featuredImage} alt={selectedProject.titleFr} className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <img src="/photo-projet-phare.jpg" alt="Placeholder projet" className="absolute inset-0 w-full h-full object-cover" />
+                )}
+                <div className="absolute bottom-4 left-4">
+                  <span className={`text-xs uppercase tracking-wider font-bold px-3 py-1 rounded-sm shadow-sm ${
+                    selectedProject.status === "COMPLETED"
+                      ? "bg-white text-slate-700"
+                      : selectedProject.status === "IN_PROGRESS"
+                      ? "bg-[#28A745] text-white"
+                      : "bg-[#007BFF] text-white"
+                  }`}>
+                    {selectedProject.status === "COMPLETED" ? t.statusCompleted : selectedProject.status === "IN_PROGRESS" ? t.statusInProgress : t.statusPlanned}
+                  </span>
+                </div>
+              </div>
+
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  Résumé du projet
-                </h4>
-                <p className="text-sm text-slate-700 leading-relaxed">
-                  {selectedProject.summaryFr}
+                <p className="text-lg text-[#5E6B76] leading-relaxed font-medium">
+                  {lang === "EN" ? (selectedProject.summaryEn || selectedProject.summaryFr) : lang === "DE" ? (selectedProject.summaryDe || selectedProject.summaryFr) : selectedProject.summaryFr}
                 </p>
               </div>
 
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  Description complète & Démarche
-                </h4>
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                  {selectedProject.descriptionFr || selectedProject.summaryFr}
+                <div className="text-base text-[#5E6B76] leading-relaxed whitespace-pre-wrap">
+                  {lang === "EN" ? (selectedProject.descriptionEn || selectedProject.descriptionFr) : lang === "DE" ? (selectedProject.descriptionDe || selectedProject.descriptionFr) : selectedProject.descriptionFr}
                 </div>
               </div>
 
               {selectedProject.beneficiaries && (
-                <div className="p-4 rounded-xl bg-[#28A745]/10 border border-[#28A745]/20 flex items-center justify-between text-xs sm:text-sm">
-                  <span className="font-semibold text-slate-700">Impact & Bénéficiaires :</span>
-                  <span className="font-bold text-[#28A745]">{selectedProject.beneficiaries}</span>
+                <div className="py-4 border-y border-slate-200 flex items-center justify-between text-base">
+                  <span className="font-semibold text-[#003366]">{t.beneficiariesLabel}</span>
+                  <span className="font-bold text-[#5E6B76]">{selectedProject.beneficiaries}</span>
                 </div>
               )}
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <div className="flex justify-end pt-4">
                 <Link
                   href={getPageUrl("partner", lang)}
-                  className="px-5 py-2.5 rounded-xl font-bold text-xs bg-[#003366] text-white hover:bg-[#002244] transition-colors"
+                  className="px-6 py-3 rounded-lg font-bold text-sm bg-[#007BFF] text-white hover:bg-[#003366] transition-colors"
                 >
-                  Soutenir ce projet
+                  {t.ctaPartner}
                 </Link>
               </div>
             </div>
           </div>
         )}
-
-        {/* ── 5. CTA ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#003366] text-white">
-          <div className="max-w-4xl mx-auto text-center space-y-6">
-            <h2 className="text-2xl sm:text-4xl font-extrabold">
-              {t.ctaTitle}
-            </h2>
-            <p className="text-white/80 text-base sm:text-lg max-w-2xl mx-auto">
-              {t.ctaSubtitle}
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 pt-4">
-              <Link
-                href={getPageUrl("partner", lang)}
-                className="px-6 py-3.5 rounded-xl font-bold bg-[#28A745] text-white hover:bg-[#2e924e] transition-colors shadow-md"
-              >
-                {t.ctaPartner}
-              </Link>
-              <Link
-                href={getPageUrl("apply", lang)}
-                className="px-6 py-3.5 rounded-xl font-bold bg-white text-[#003366] hover:bg-slate-100 transition-colors shadow-md"
-              >
-                {t.ctaVolunteer}
-              </Link>
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer lang={lang} navigate={navigate} />

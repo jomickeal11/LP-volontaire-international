@@ -151,7 +151,7 @@ export default function Header({
             className="flex items-center group text-left cursor-pointer transition-transform hover:scale-[1.02]"
             aria-label="APTIC-R Home"
           >
-            <ApticLogo variant="header" />
+            <ApticLogo variant="header" lang={lang} />
           </button>
         </div>
 
@@ -267,35 +267,44 @@ export default function Header({
           </div>
 
           {/* Primary CTA (Desktop only) */}
-          <button
-            onClick={() => {
-              trackEvent("apply_now_click", { lang, source: "header_button" })
-              setTimeout(() => navigate("volunteering"), 100)
-            }}
-            className="hidden lg:inline-flex items-center gap-2 font-bold text-[11px] px-6 py-2.5 rounded-full transition-all cursor-pointer text-white shadow-sm hover:scale-105"
-            style={{ backgroundColor: GREEN }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = GREEN_HOVER)
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = GREEN)
-            }
-          >
-            <span>{t.applyNow}</span>
-            <svg
-              className="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M14 5l7 7m0 0l-7 7m7-7H3"
-              />
-            </svg>
-          </button>
+          {(() => {
+            const isVolunteering = currentPage === "volunteering"
+            const ctaLabel = isVolunteering
+              ? (t as any).applyDirect || (lang === "DE" ? "JETZT BEWERBEN" : lang === "EN" ? "APPLY NOW" : "POSTULEZ")
+              : t.applyNow
+
+            return (
+              <button
+                onClick={() => {
+                  trackEvent("apply_now_click", { lang, source: "header_button" })
+                  setTimeout(() => navigate(isVolunteering ? "apply" : "volunteering"), 100)
+                }}
+                className="hidden lg:inline-flex items-center gap-2 font-bold text-[11px] px-6 py-2.5 rounded-full transition-all cursor-pointer text-white shadow-sm hover:scale-105"
+                style={{ backgroundColor: GREEN }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = GREEN_HOVER)
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = GREEN)
+                }
+              >
+                <span>{ctaLabel}</span>
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                  />
+                </svg>
+              </button>
+            )
+          })()}
 
           {/* Mobile & Tablet Hamburger */}
           <button
@@ -405,16 +414,25 @@ export default function Header({
               </div>
               
               <div className="mt-3 pt-3 sm:pt-4 border-t border-slate-100 flex justify-center pb-1">
-                <button
-                  onClick={() => {
-                    navigate("volunteering")
-                    setMobileOpen(false)
-                  }}
-                  className="w-full text-center font-bold uppercase tracking-widest px-5 py-3 sm:py-3.5 rounded-xl text-white shadow-md text-xs hover:scale-102 transition-transform"
-                  style={{ backgroundColor: GREEN }}
-                >
-                  {t.applyNow}
-                </button>
+                {(() => {
+                  const isVolunteering = currentPage === "volunteering"
+                  const ctaLabel = isVolunteering
+                    ? (t as any).applyDirect || (lang === "DE" ? "JETZT BEWERBEN" : lang === "EN" ? "APPLY NOW" : "POSTULEZ")
+                    : t.applyNow
+
+                  return (
+                    <button
+                      onClick={() => {
+                        navigate(isVolunteering ? "apply" : "volunteering")
+                        setMobileOpen(false)
+                      }}
+                      className="w-full text-center font-bold uppercase tracking-widest px-5 py-3 sm:py-3.5 rounded-xl text-white shadow-md text-xs hover:scale-102 transition-transform"
+                      style={{ backgroundColor: GREEN }}
+                    >
+                      {ctaLabel}
+                    </button>
+                  )
+                })()}
               </div>
             </div>
           </div>

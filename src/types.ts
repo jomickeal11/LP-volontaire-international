@@ -12,7 +12,8 @@ export type Page =
   // Mobilisation pages
   | "volunteering"                // Portail volontariat (ancienne landing)
   | "apply"                       // Formulaire candidature volontariat
-  | "partner"                     // Partenariats
+  | "partner"                     // Partenariats (page de présentation / cadre)
+  | "partner-apply"               // Formulaire demande de partenariat
   | "membership"                  // Devenir membre
   | "support"                     // Soutenir / Faire un don
   // Admin pages
@@ -30,6 +31,7 @@ export type Page =
   | "admin-projects"
   | "admin-events"
   | "admin-newsletter"
+  | "admin-settings"
 
 export type Language = "FR" | "EN" | "DE"
 
@@ -50,6 +52,7 @@ export const PAGE_ROUTES: Record<string, Record<string, string>> = {
   volunteering:  { fr: "volontariat",      en: "volunteering",     de: "freiwilligendienst" },
   apply:         { fr: "volontariat/postuler", en: "volunteering/apply", de: "freiwilligendienst/bewerben" },
   partner:       { fr: "partenaires",      en: "partners",         de: "partner"            },
+  "partner-apply": { fr: "partenaires/demande", en: "partners/apply", de: "partner/anfrage" },
   membership:    { fr: "devenir-membre",   en: "become-member",    de: "mitglied-werden"    },
   support:       { fr: "soutenir",         en: "support",          de: "unterstuetzen"      },
 }

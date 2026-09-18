@@ -22,9 +22,15 @@ interface ArticleRecord {
   excerptFr: string
   excerptEn?: string | null
   excerptDe?: string | null
+  contentFr?: string
+  contentEn?: string | null
+  contentDe?: string | null
+  featuredImage?: string | null
+  published?: boolean
   publishedAt?: Date | null
   authorName?: string | null
   viewsCount: number
+  isFeatured?: boolean
   category?: {
     id: string
     slug: string
@@ -42,41 +48,60 @@ interface CategoryRecord {
   nameDe: string
 }
 
-const BG = "#F7F8FA"
+const BG_PAGE = "#FFFFFF"
+const BG_SECTION_ALT = "#F7F8FA"
 
 const I18N = {
   FR: {
-    badge: "Actualités, Terrains & Communiqués",
-    title: "Le Journal d'APTIC-R",
-    subtitle:
-      "Suivez l'avancement de nos projets, les récits de nos volontaires, nos événements à venir et les communiqués officiels de l'association.",
+    badge: "ACTUALITÉS",
+    title: "Le Journal d’APTIC-R",
+    subtitle: "Projets, initiatives, événements et actualités de l’association.",
     filterAll: "Toutes les publications",
+    featuredBadge: "À LA UNE",
+    latestBadge: "DERNIÈRES PUBLICATIONS",
     readArticle: "Lire l'article",
-    noArticles: "Aucun article publié dans cette catégorie pour le moment.",
-    viewsLabel: "vues",
-    byLabel: "Par",
+    emptyPreTitle: "ACTUALITÉS À VENIR",
+    emptyTitle: "Les premières actualités d’APTIC-R seront bientôt publiées ici.",
+    emptyAction: "Découvrir nos projets",
+    ctaTitle: "Vous souhaitez suivre ou soutenir nos actions de terrain ?",
+    ctaDesc: "Découvrez nos programmes en cours et les opportunités d'engagement solidaire.",
+    ctaProjects: "Consulter nos projets",
+    ctaPartner: "Devenir partenaire",
+    readTime: "min de lecture",
   },
   EN: {
-    badge: "News, Field Updates & Press",
+    badge: "NEWS & UPDATES",
     title: "APTIC-R Dispatch",
-    subtitle:
-      "Follow our field projects, volunteer stories, upcoming events, and official press releases.",
-    filterAll: "All posts",
+    subtitle: "Projects, field initiatives, upcoming events, and official releases.",
+    filterAll: "All publications",
+    featuredBadge: "FEATURED STORY",
+    latestBadge: "LATEST STORIES",
     readArticle: "Read full story",
-    noArticles: "No articles published in this category yet.",
-    viewsLabel: "views",
-    byLabel: "By",
+    emptyPreTitle: "UPCOMING UPDATES",
+    emptyTitle: "The first official stories from APTIC-R will be published here soon.",
+    emptyAction: "Explore our projects",
+    ctaTitle: "Want to follow or support our field initiatives?",
+    ctaDesc: "Discover our current programs and community engagement opportunities.",
+    ctaProjects: "Explore our projects",
+    ctaPartner: "Become a partner",
+    readTime: "min read",
   },
   DE: {
-    badge: "Neuigkeiten, Berichte & Mitteilungen",
+    badge: "AKTUELL",
     title: "APTIC-R Magazin",
-    subtitle:
-      "Erfahren Sie mehr über unsere Projekte, Berichte von Freiwilligen und bevorstehende Veranstaltungen.",
-    filterAll: "Alle Beiträge",
+    subtitle: "Projekte, Initiativen, Veranstaltungen und offizielle Mitteilungen.",
+    filterAll: "Alle Veröffentlichungen",
+    featuredBadge: "IM FOKUS",
+    latestBadge: "NEUESTE BEITRÄGE",
     readArticle: "Artikel lesen",
-    noArticles: "Derzeit keine Artikel in dieser Kategorie.",
-    viewsLabel: "Aufrufe",
-    byLabel: "Von",
+    emptyPreTitle: "NEUE BEITRÄGE IN KÜRZE",
+    emptyTitle: "Die ersten Berichte von APTIC-R werden in Kürze hier veröffentlicht.",
+    emptyAction: "Unsere Projekte entdecken",
+    ctaTitle: "Möchten Sie unsere Aktionen vor Ort unterstützen?",
+    ctaDesc: "Entdecken Sie unsere laufenden Programme und Möglichkeiten zur Zusammenarbeit.",
+    ctaProjects: "Projekte ansehen",
+    ctaPartner: "Partner werden",
+    readTime: "Min. Lesezeit",
   },
 }
 
@@ -112,56 +137,98 @@ export default function NewsView({ lang }: NewsViewProps) {
       .finally(() => setLoading(false))
   }, [])
 
+  // 1. Filtrer d'abord les articles publiés selon la catégorie
   const filteredArticles =
     categoryFilter === "ALL"
       ? articles
       : articles.filter((a) => a.category?.slug === categoryFilter)
 
+  // 2. Règle « À LA UNE » :
+  // - Chercher un article avec isFeatured = true parmi les articles filtrés
+  // - S'il n'y en a pas, utiliser l'article publié le plus récent (trié par date desc)
+  let featuredArticle: ArticleRecord | null = null
+  let regularArticles: ArticleRecord[] = []
+
+  if (filteredArticles.length > 0) {
+    const explicitFeatured = filteredArticles.find((a) => a.isFeatured === true)
+    if (explicitFeatured) {
+      featuredArticle = explicitFeatured
+      // Les autres articles dans "Dernières publications" (sans répéter le featured)
+      regularArticles = filteredArticles.filter((a) => a.id !== explicitFeatured.id)
+    } else {
+      // Fallback : premier article le plus récent
+      featuredArticle = filteredArticles[0]
+      regularArticles = filteredArticles.slice(1)
+    }
+  }
+
+  // Helper for reading time estimation
+  const getReadTime = (contentLength?: number) => {
+    if (!contentLength || contentLength < 500) return 3
+    return Math.min(8, Math.max(3, Math.ceil(contentLength / 800)))
+  }
+
+  // Format date cleanly: 18 SEPTEMBRE 2026
+  const formatDate = (dateInput?: Date | null) => {
+    if (!dateInput) return ""
+    const d = new Date(dateInput)
+    return d.toLocaleDateString(lang === "EN" ? "en-US" : lang === "DE" ? "de-DE" : "fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).toUpperCase()
+  }
+
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: BG }}>
+    <div className="min-h-screen flex flex-col bg-white">
       <Header lang={lang} setLang={handleSetLang} currentPage="news" navigate={navigate} />
 
-      <main className="flex-1 pt-24 lg:pt-32">
-        {/* ── 1. Hero ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#003366]/10 via-transparent to-transparent">
-          <div className="max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#003366] mb-6">
-              <span>📰</span>
-              <span>{t.badge}</span>
-            </div>
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#142332] tracking-tight mb-6">
-              {t.title}
-            </h1>
-            <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-              {t.subtitle}
-            </p>
+      <main className="flex-1 pt-20 lg:pt-24">
+        {/* ── 1. Compact Editorial Hero (#FFFFFF with subtle bottom border) ── */}
+        <section className="px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-8 max-w-[1260px] mx-auto w-full">
+          <div className="inline-flex items-center gap-2 mb-3">
+            <span className="w-2 h-2 rounded-full bg-[#28A745]"></span>
+            <span className="text-[#28A745] font-bold tracking-widest text-xs uppercase">
+              {t.badge}
+            </span>
           </div>
+
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#003366] tracking-tight mb-3">
+            {t.title}
+          </h1>
+
+          <p className="text-base sm:text-lg text-[#5E6B76] max-w-2xl leading-relaxed">
+            {t.subtitle}
+          </p>
         </section>
 
-        {/* ── 2. Category Filters ── */}
-        <section className="px-4 sm:px-6 lg:px-8 -mt-6 mb-12">
-          <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-2">
+        {/* ── 2. Editorial Tab Navigation / Filters (underline style, no floating bubble pills) ── */}
+        <section className="border-b border-slate-200/90 px-4 sm:px-6 lg:px-8 sticky top-16 lg:top-20 z-20 bg-white/95 backdrop-blur-md">
+          <div className="max-w-[1260px] mx-auto flex items-center gap-6 sm:gap-8 overflow-x-auto no-scrollbar py-0">
             <button
               onClick={() => setCategoryFilter("ALL")}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm ${
+              className={`py-3.5 text-xs sm:text-sm font-bold tracking-wide transition-all whitespace-nowrap shrink-0 border-b-2 ${
                 categoryFilter === "ALL"
-                  ? "bg-[#003366] text-white shadow-md"
-                  : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
+                  ? "border-[#003366] text-[#003366]"
+                  : "border-transparent text-[#5E6B76] hover:text-[#003366]"
               }`}
             >
               {t.filterAll}
             </button>
+
             {categories.map((c) => {
               const catName =
                 lang === "EN" ? c.nameEn : lang === "DE" ? c.nameDe : c.nameFr
+              const isActive = categoryFilter === c.slug
+
               return (
                 <button
                   key={c.id}
                   onClick={() => setCategoryFilter(c.slug)}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm ${
-                    categoryFilter === c.slug
-                      ? "bg-[#003366] text-white shadow-md"
-                      : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
+                  className={`py-3.5 text-xs sm:text-sm font-bold tracking-wide transition-all whitespace-nowrap shrink-0 border-b-2 ${
+                    isActive
+                      ? "border-[#003366] text-[#003366]"
+                      : "border-transparent text-[#5E6B76] hover:text-[#003366]"
                   }`}
                 >
                   {catName}
@@ -171,99 +238,249 @@ export default function NewsView({ lang }: NewsViewProps) {
           </div>
         </section>
 
-        {/* ── 3. Articles Grid ── */}
-        <section className="px-4 sm:px-6 lg:px-8 pb-24">
-          <div className="max-w-6xl mx-auto">
-            {loading ? (
-              <div className="py-20 text-center text-slate-400 text-sm">
-                Chargement des articles...
-              </div>
-            ) : filteredArticles.length === 0 ? (
-              <div className="py-20 text-center text-slate-500 text-sm bg-white rounded-3xl border border-slate-200">
-                {t.noArticles}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredArticles.map((art) => {
-                  const title =
-                    lang === "EN" && art.titleEn
-                      ? art.titleEn
-                      : lang === "DE" && art.titleDe
-                      ? art.titleDe
-                      : art.titleFr
-                  const excerpt =
-                    lang === "EN" && art.excerptEn
-                      ? art.excerptEn
-                      : lang === "DE" && art.excerptDe
-                      ? art.excerptDe
-                      : art.excerptFr
-                  const catName =
-                    lang === "EN" && art.category?.nameEn
-                      ? art.category.nameEn
-                      : lang === "DE" && art.category?.nameDe
-                      ? art.category.nameDe
-                      : art.category?.nameFr
+        {/* ── 3. Content Area : Articles Grid OR Compact Editorial Empty State ── */}
+        <section className="px-4 sm:px-6 lg:px-8 py-12 sm:py-16 max-w-[1260px] mx-auto w-full">
+          {loading ? (
+            <div className="py-20 text-center text-[#5E6B76] text-sm">
+              Chargement des publications...
+            </div>
+          ) : filteredArticles.length === 0 ? (
+            /* ── Compact Editorial Empty State (Height 220–260px on #F7F8FA, border #E5EAF0) ── */
+            <div 
+              className="rounded-2xl p-8 sm:p-12 border border-[#E5EAF0] text-center shadow-2xs my-4"
+              style={{ backgroundColor: BG_SECTION_ALT }}
+            >
+              <span className="text-xs font-bold tracking-widest text-[#003366] uppercase block mb-2">
+                {t.emptyPreTitle}
+              </span>
+              <p className="text-base sm:text-lg text-[#5E6B76] max-w-xl mx-auto mb-6 leading-relaxed">
+                {t.emptyTitle}
+              </p>
+              <Link
+                href={getPageUrl("projects", lang)}
+                className="inline-flex items-center text-sm font-bold text-[#007BFF] hover:text-[#003366] transition-colors"
+              >
+                {t.emptyAction} <span className="ml-1.5 font-bold">→</span>
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-16">
+              {/* ── 3.1 À LA UNE (Featured Story) ── */}
+              {featuredArticle && (
+                <div>
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#003366]">
+                      {t.featuredBadge}
+                    </span>
+                    <div className="h-px bg-slate-200 flex-1" />
+                  </div>
 
-                  const articleUrl = `/${lang.toLowerCase()}/actualites/${art.slug}`
+                  {(() => {
+                    const title =
+                      lang === "EN" && featuredArticle.titleEn
+                        ? featuredArticle.titleEn
+                        : lang === "DE" && featuredArticle.titleDe
+                        ? featuredArticle.titleDe
+                        : featuredArticle.titleFr
+                    const excerpt =
+                      lang === "EN" && featuredArticle.excerptEn
+                        ? featuredArticle.excerptEn
+                        : lang === "DE" && featuredArticle.excerptDe
+                        ? featuredArticle.excerptDe
+                        : featuredArticle.excerptFr
+                    const catName =
+                      lang === "EN" && featuredArticle.category?.nameEn
+                        ? featuredArticle.category.nameEn
+                        : lang === "DE" && featuredArticle.category?.nameDe
+                        ? featuredArticle.category.nameDe
+                        : featuredArticle.category?.nameFr || "ACTUALITÉ"
 
-                  return (
-                    <article
-                      key={art.id}
-                      className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-                    >
-                      <div>
-                        {/* Meta header */}
-                        <div className="flex items-center justify-between gap-2 mb-4">
-                          {art.category ? (
-                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#003366]/10 text-[#003366]">
-                              {catName}
-                            </span>
-                          ) : (
-                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600">
-                              Article
-                            </span>
-                          )}
+                    const articleUrl = `/${lang.toLowerCase()}/actualites/${featuredArticle.slug}`
+                    const imageSrc = featuredArticle.featuredImage || "/photo-ancrage-togo.png"
+                    const readMins = getReadTime(featuredArticle.contentFr?.length)
 
-                          <span className="text-xs text-slate-400">
-                            {art.publishedAt
-                              ? new Date(art.publishedAt).toLocaleDateString("fr-FR", {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                })
-                              : ""}
-                          </span>
+                    return (
+                      <article className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow group">
+                        <div className="lg:col-span-7 aspect-[16/10] sm:aspect-[16/9] lg:aspect-[16/10] overflow-hidden bg-slate-100">
+                          <img
+                            src={imageSrc}
+                            alt={title}
+                            className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700"
+                          />
                         </div>
 
-                        <h2 className="text-lg font-bold text-[#142332] mb-2 leading-snug line-clamp-2">
-                          <Link href={articleUrl} className="hover:text-[#003366] transition-colors">
-                            {title}
-                          </Link>
-                        </h2>
+                        <div className="lg:col-span-5 p-6 sm:p-8 lg:p-10 flex flex-col justify-between">
+                          <div>
+                            {/* Metadata */}
+                            <div className="flex items-center gap-2.5 text-xs font-bold tracking-wider text-[#003366] uppercase mb-3">
+                              <span>{catName}</span>
+                              {featuredArticle.publishedAt && (
+                                <>
+                                  <span className="text-slate-300">·</span>
+                                  <span className="text-[#5E6B76] font-medium">
+                                    {formatDate(featuredArticle.publishedAt)}
+                                  </span>
+                                </>
+                              )}
+                              <span className="text-slate-300">·</span>
+                              <span className="text-[#5E6B76] font-medium">
+                                {readMins} {t.readTime}
+                              </span>
+                            </div>
 
-                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6 line-clamp-3">
-                          {excerpt}
-                        </p>
-                      </div>
+                            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#003366] leading-tight mb-4 group-hover:text-[#007BFF] transition-colors">
+                              <Link href={articleUrl}>{title}</Link>
+                            </h2>
 
-                      <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-                        <span className="text-slate-500 font-medium">
-                          {t.byLabel} {art.authorName || "APTIC-R"}
-                        </span>
+                            <p className="text-sm sm:text-base text-[#5E6B76] leading-relaxed mb-6 line-clamp-3">
+                              {excerpt}
+                            </p>
+                          </div>
 
-                        <Link
-                          href={articleUrl}
-                          className="font-bold text-[#003366] hover:underline flex items-center gap-1"
+                          <div>
+                            <Link
+                              href={articleUrl}
+                              className="inline-flex items-center text-sm font-bold text-[#007BFF] group-hover:text-[#003366] transition-colors"
+                            >
+                              {t.readArticle} <span className="ml-1.5">→</span>
+                            </Link>
+                          </div>
+                        </div>
+                      </article>
+                    )
+                  })()}
+                </div>
+              )}
+
+              {/* ── 3.2 DERNIÈRES PUBLICATIONS (3 cols Desktop, 2 cols Tablet, 1 col Mobile) ── */}
+              {regularArticles.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#003366]">
+                      {t.latestBadge}
+                    </span>
+                    <div className="h-px bg-slate-200 flex-1" />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {regularArticles.map((art) => {
+                      const title =
+                        lang === "EN" && art.titleEn
+                          ? art.titleEn
+                          : lang === "DE" && art.titleDe
+                          ? art.titleDe
+                          : art.titleFr
+                      const excerpt =
+                        lang === "EN" && art.excerptEn
+                          ? art.excerptEn
+                          : lang === "DE" && art.excerptDe
+                          ? art.excerptDe
+                          : art.excerptFr
+                      const catName =
+                        lang === "EN" && art.category?.nameEn
+                          ? art.category.nameEn
+                          : lang === "DE" && art.category?.nameDe
+                          ? art.category.nameDe
+                          : art.category?.nameFr || "ACTUALITÉ"
+
+                      const articleUrl = `/${lang.toLowerCase()}/actualites/${art.slug}`
+                      const imageSrc = art.featuredImage || "/photo-projet-phare.jpg"
+                      const readMins = getReadTime(art.contentFr?.length)
+
+                      return (
+                        <article
+                          key={art.id}
+                          className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col group"
                         >
-                          <span>{t.readArticle}</span>
-                          <span>→</span>
-                        </Link>
-                      </div>
-                    </article>
-                  )
-                })}
+                          {/* Image */}
+                          <div className="aspect-[16/10] overflow-hidden bg-slate-100">
+                            <img
+                              src={imageSrc}
+                              alt={title}
+                              className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700"
+                            />
+                          </div>
+
+                          {/* Content */}
+                          <div className="p-6 flex-1 flex flex-col justify-between">
+                            <div>
+                              {/* Metadata */}
+                              <div className="flex items-center gap-2 text-xs font-bold tracking-wider text-[#003366] uppercase mb-2.5">
+                                <span>{catName}</span>
+                                {art.publishedAt && (
+                                  <>
+                                    <span className="text-slate-300">·</span>
+                                    <span className="text-[#5E6B76] font-medium">
+                                      {formatDate(art.publishedAt)}
+                                    </span>
+                                  </>
+                                )}
+                                <span className="text-slate-300">·</span>
+                                <span className="text-[#5E6B76] font-medium">
+                                  {readMins} {t.readTime}
+                                </span>
+                              </div>
+
+                              <h3 className="text-lg font-bold text-[#003366] mb-2.5 leading-snug line-clamp-2 group-hover:text-[#007BFF] transition-colors">
+                                <Link href={articleUrl}>{title}</Link>
+                              </h3>
+
+                              <p className="text-xs sm:text-sm text-[#5E6B76] leading-relaxed mb-6 line-clamp-3">
+                                {excerpt}
+                              </p>
+                            </div>
+
+                            <div className="pt-4 border-t border-slate-100">
+                              <Link
+                                href={articleUrl}
+                                className="inline-flex items-center text-xs sm:text-sm font-bold text-[#007BFF] group-hover:text-[#003366] transition-colors"
+                              >
+                                {t.readArticle} <span className="ml-1.5">→</span>
+                              </Link>
+                            </div>
+                          </div>
+                        </article>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* ── 4. Subtle Discovery CTA (#F7F8FA) before Footer ── */}
+        <section className="px-4 sm:px-6 lg:px-8 py-16 bg-white border-t border-slate-200">
+          <div className="max-w-2xl mx-auto">
+            <div 
+              className="rounded-2xl p-8 sm:p-10 border border-slate-200 text-center shadow-2xs"
+              style={{ backgroundColor: BG_SECTION_ALT }}
+            >
+              <span className="text-xs font-bold uppercase tracking-widest text-[#28A745] block mb-2">
+                ENGAGEMENT & IMPACT
+              </span>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-[#003366] mb-3">
+                {t.ctaTitle}
+              </h2>
+              <p className="text-sm text-[#5E6B76] max-w-md mx-auto mb-6 leading-relaxed">
+                {t.ctaDesc}
+              </p>
+              
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <Link
+                  href={getPageUrl("projects", lang)}
+                  className="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-[#003366] text-white hover:bg-[#002244] transition-colors shadow-xs"
+                >
+                  {t.ctaProjects}
+                </Link>
+                <Link
+                  href={getPageUrl("partner", lang)}
+                  className="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-[#007BFF] text-white hover:bg-[#0060c8] transition-colors shadow-xs"
+                >
+                  {t.ctaPartner}
+                </Link>
               </div>
-            )}
+            </div>
           </div>
         </section>
       </main>

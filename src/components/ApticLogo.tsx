@@ -6,6 +6,13 @@ interface ApticLogoProps {
   variant?: "icon" | "full" | "horizontal" | "header" | "footer"
   size?: number
   theme?: "color" | "white"
+  lang?: string
+}
+
+const TAGLINES: Record<string, string> = {
+  FR: "Le numérique au service des territoires ruraux.",
+  EN: "Digital technology empowering rural communities.",
+  DE: "Digitale Technologien für den ländlichen Raum.",
 }
 
 /* ── Emblème officiel circulaire seul ────────────────────────────────────── */
@@ -34,7 +41,11 @@ export default function ApticLogo({
   className = "",
   variant = "header",
   theme = "color",
+  lang = "FR",
 }: ApticLogoProps) {
+  const currentLang = (lang || "FR").toUpperCase()
+  const tagline = TAGLINES[currentLang] || TAGLINES.FR
+
   if (variant === "icon") {
     return <ApticIcon size={40} className={className} theme={theme} />
   }
@@ -59,7 +70,7 @@ export default function ApticLogo({
           <div className="flex items-center gap-2 mt-2">
             <span className="w-5 h-[2px] rounded-full bg-[#28A745]" />
             <span className="text-xs font-semibold text-white/95 leading-none">
-              Le numérique au service des territoires ruraux.
+              {tagline}
             </span>
           </div>
         </div>
@@ -72,7 +83,7 @@ export default function ApticLogo({
     return (
       <Image
         src="/logo-aptic-official-clean.png"
-        alt="APTIC-R — Le numérique au service des territoires ruraux"
+        alt={`APTIC-R — ${tagline}`}
         width={380}
         height={132}
         className={`h-11 sm:h-12 w-auto object-contain ${className}`}
@@ -105,7 +116,7 @@ export default function ApticLogo({
           <span
             className="text-[11px] sm:text-xs font-semibold tracking-normal text-[#003366] leading-none whitespace-nowrap font-sans"
           >
-            Le numérique au service des territoires ruraux.
+            {tagline}
           </span>
         </div>
       </div>
