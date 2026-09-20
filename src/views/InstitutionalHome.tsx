@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { trackEvent } from "@/lib/tracker"
@@ -530,16 +531,164 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
   ]
 
   const [settings, setSettings] = useState<Record<string, string>>({})
+  const [dbDomains, setDbDomains] = useState<any[]>([])
+  const [dbProjects, setDbProjects] = useState<any[]>([])
+  const [dbTestimonials, setDbTestimonials] = useState<any[]>([])
 
   React.useEffect(() => {
-    import("@/lib/cms-actions").then(({ getSiteSettings }) => {
+    import("@/lib/cms-actions").then(({ getSiteSettings, getDomaines, getProjects, getTestimonials }) => {
       getSiteSettings().then((res) => {
         if (res.success && res.dict) {
           setSettings((prev) => ({ ...prev, ...res.dict }))
         }
       }).catch(console.error)
+
+      getDomaines({ activeOnly: true }).then((res) => {
+        if (res && res.length > 0) {
+          setDbDomains(res)
+        }
+      }).catch(console.error)
+
+      getProjects({ limit: 6 }).then((res) => {
+        if (res && res.length > 0) {
+          setDbProjects(res)
+        }
+      }).catch(console.error)
+
+      getTestimonials({ featuredOnly: true }).then((res) => {
+        if (res && res.length > 0) {
+          setDbTestimonials(res)
+        }
+      }).catch(console.error)
     })
   }, [])
+
+  const domainsList = React.useMemo(() => {
+    if (dbDomains.length > 0) {
+      // Filtrer strictement les domaines qui possèdent un titre et une description traduits dans la langue active
+      const filtered = dbDomains.filter((d) => {
+        if (safeLang === "DE") return !!(d.nameDe && d.descDe)
+        if (safeLang === "EN") return !!(d.nameEn && d.descEn)
+        return !!(d.nameFr && d.descFr)
+      })
+
+      if (filtered.length > 0) {
+        return filtered.map((d, idx) => ({
+          num: String(d.order || idx + 1).padStart(2, "0"),
+          title: safeLang === "DE" ? d.nameDe : safeLang === "EN" ? d.nameEn : d.nameFr,
+          desc: safeLang === "DE" ? d.descDe : safeLang === "EN" ? d.descEn : d.descFr,
+          slug: d.slug,
+          code: d.code,
+        }))
+      }
+    }
+
+    // Fallback par défaut adapté à la langue courante uniquement
+    return c.domains.list.map((d, index) => ({
+      num: d.num,
+      title: d.title,
+      desc: d.desc,
+      slug: DOMAIN_IDS[index] || "inclusion-numerique",
+      code: "INCLUSION_NUMERIQUE",
+    }))
+  }, [dbDomains, safeLang, c.domains.list])
+
+  /* Projects list computation - Règle stricte : zéro mélange de langues */
+  const { flagshipProject, secondaryProjects } = React.useMemo(() => {
+    if (dbProjects.length > 0) {
+      // Filtrer les projets qui possèdent une version complète dans la langue active
+      const validProjects = dbProjects.filter((p) => {
+        if (safeLang === "DE") return !!(p.titleDe && (p.summaryDe || p.descriptionDe))
+        if (safeLang === "EN") return !!(p.titleEn && (p.summaryEn || p.descriptionEn))
+        return !!(p.titleFr && (p.summaryFr || p.descriptionFr))
+      })
+
+      if (validProjects.length > 0) {
+        const featured = validProjects.find((p) => p.isFeatured) || validProjects[0]
+        const secondaries = validProjects.filter((p) => p.id !== featured.id).slice(0, 2)
+
+        const getTitle = (p: any) =>
+          safeLang === "DE" ? p.titleDe : safeLang === "EN" ? p.titleEn : p.titleFr
+        const getDesc = (p: any) =>
+          safeLang === "DE"
+            ? p.summaryDe || p.descriptionDe
+            : safeLang === "EN"
+            ? p.summaryEn || p.descriptionEn
+            : p.summaryFr || p.descriptionFr
+
+        const getDomaineName = (p: any) => {
+          if (!p.domaine) return c.projects.flagshipProgram
+          if (safeLang === "DE") return p.domaine.nameDe || c.projects.flagshipProgram
+          if (safeLang === "EN") return p.domaine.nameEn || c.projects.flagshipProgram
+          return p.domaine.nameFr || c.projects.flagshipProgram
+        }
+
+        const flagship = {
+          title: getTitle(featured),
+          desc: getDesc(featured),
+          loc: featured.location || (featured.country ? `${featured.country}` : c.projects.flagshipLoc),
+          program: getDomaineName(featured),
+          kpi: featured.beneficiaries || c.projects.flagshipKpi,
+          image: featured.featuredImage || "/photo-projet-phare.jpg",
+          slug: featured.slug,
+        }
+
+        const secondariesMapped = secondaries.map((p: any, idx: number) => ({
+          num: String(idx + 2).padStart(2, "0"),
+          title: getTitle(p),
+          desc: getDesc(p),
+          loc: p.location || c.projects[`project${idx + 2}Loc` as keyof typeof c.projects] || "Togo",
+          slug: p.slug,
+        }))
+
+        return { flagshipProject: flagship, secondaryProjects: secondariesMapped }
+      }
+    }
+
+    return {
+      flagshipProject: {
+        title: c.projects.flagshipTitle,
+        desc: c.projects.flagshipDesc,
+        loc: c.projects.flagshipLoc,
+        program: c.projects.flagshipProgram,
+        kpi: c.projects.flagshipKpi,
+        image: "/photo-projet-phare.jpg",
+        slug: "caravane-numerique-salles-solaires",
+      },
+      secondaryProjects: [
+        { loc: c.projects.project2Loc, title: c.projects.project2Title, desc: c.projects.project2Desc, num: "02", slug: "fablab-rural-prototypage" },
+        { loc: c.projects.project3Loc, title: c.projects.project3Title, desc: c.projects.project3Desc, num: "03", slug: "bourses-numeriques-femmes" },
+      ],
+    }
+  }, [dbProjects, safeLang, c.projects])
+
+  /* Testimonials list computation - Règle stricte : zéro mélange de langues */
+  const testimonialsList = React.useMemo(() => {
+    if (dbTestimonials.length > 0) {
+      // Filtrer les témoignages qui ont une citation dans la langue active
+      const validTestimonials = dbTestimonials.filter((t) => {
+        if (safeLang === "DE") return !!t.quoteDe
+        if (safeLang === "EN") return !!t.quoteEn
+        return !!t.quoteFr
+      })
+
+      if (validTestimonials.length > 0) {
+        return validTestimonials.map((t, idx) => ({
+          num: String(idx + 1).padStart(2, "0"),
+          quote: safeLang === "DE" ? t.quoteDe : safeLang === "EN" ? t.quoteEn : t.quoteFr,
+          author: t.authorName,
+          role: t.authorRole,
+          village: t.authorOrg || "Agbélouvé · Togo",
+          photoUrl: t.photoUrl,
+        }))
+      }
+    }
+
+    return [
+      { quote: c.testimonials.t1Quote, author: c.testimonials.t1Author, role: c.testimonials.t1Role, village: c.testimonials.t1Village, num: "01", photoUrl: null },
+      { quote: c.testimonials.t2Quote, author: c.testimonials.t2Author, role: c.testimonials.t2Role, village: c.testimonials.t2Village, num: "02", photoUrl: null },
+    ]
+  }, [dbTestimonials, safeLang, c.testimonials])
 
   /* Newsletter state */
   const [nlEmail, setNlEmail] = useState("")
@@ -586,11 +735,6 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
 
   /* Testimonial carousel state */
   const [activeTestimonial, setActiveTestimonial] = useState(0)
-
-  const testimonialsList = [
-    { quote: c.testimonials.t1Quote, author: c.testimonials.t1Author, role: c.testimonials.t1Role, village: c.testimonials.t1Village, num: "01" },
-    { quote: c.testimonials.t2Quote, author: c.testimonials.t2Author, role: c.testimonials.t2Role, village: c.testimonials.t2Village, num: "02" },
-  ]
 
   return (
     <div className="w-full bg-white text-[#16324A] antialiased overflow-x-clip" style={{ fontFamily: "'Montserrat', system-ui, sans-serif" }}>
@@ -737,37 +881,57 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                 <p>{c.about.p2}</p>
               </div>
 
-              {/* Triptyque institutionnel unifié */}
+              {/* Triptyque institutionnel unifié avec ancres directes */}
               <div className="grid sm:grid-cols-3 gap-6 pt-6 border-t" style={{ borderColor: BORDER }}>
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: BLUE_INST }}>
-                    {c.about.historyTitle}
-                  </h3>
+                <Link 
+                  href={`/${safeLang.toLowerCase()}/a-propos#histoire`} 
+                  className="group/item block p-3.5 -m-3.5 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <h3 className="text-xs font-bold uppercase tracking-widest group-hover/item:text-[#007BFF] transition-colors" style={{ color: BLUE_INST }}>
+                      {c.about.historyTitle}
+                    </h3>
+                    <span className="text-xs text-slate-400 group-hover/item:translate-x-0.5 group-hover/item:text-[#007BFF] transition-all">{"\u2192"}</span>
+                  </div>
                   <p className="text-sm leading-relaxed" style={{ color: TEXT_MUTED }}>{c.about.historySummary}</p>
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: BLUE_INST }}>
-                    {c.about.missionTitle}
-                  </h3>
+                </Link>
+
+                <Link 
+                  href={`/${safeLang.toLowerCase()}/a-propos#missions`} 
+                  className="group/item block p-3.5 -m-3.5 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <h3 className="text-xs font-bold uppercase tracking-widest group-hover/item:text-[#007BFF] transition-colors" style={{ color: BLUE_INST }}>
+                      {c.about.missionTitle}
+                    </h3>
+                    <span className="text-xs text-slate-400 group-hover/item:translate-x-0.5 group-hover/item:text-[#007BFF] transition-all">{"\u2192"}</span>
+                  </div>
                   <p className="text-sm leading-relaxed" style={{ color: TEXT_MUTED }}>{c.about.missionSummary}</p>
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: BLUE_INST }}>
-                    {c.about.visionTitle}
-                  </h3>
+                </Link>
+
+                <Link 
+                  href={`/${safeLang.toLowerCase()}/a-propos#missions`} 
+                  className="group/item block p-3.5 -m-3.5 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <h3 className="text-xs font-bold uppercase tracking-widest group-hover/item:text-[#007BFF] transition-colors" style={{ color: BLUE_INST }}>
+                      {c.about.visionTitle}
+                    </h3>
+                    <span className="text-xs text-slate-400 group-hover/item:translate-x-0.5 group-hover/item:text-[#007BFF] transition-all">{"\u2192"}</span>
+                  </div>
                   <p className="text-sm leading-relaxed" style={{ color: TEXT_MUTED }}>{c.about.visionSummary}</p>
-                </div>
+                </Link>
               </div>
 
               <div className="pt-2">
-                <button
-                  onClick={() => navigate("about")}
+                <Link
+                  href={`/${safeLang.toLowerCase()}/a-propos`}
                   className="inline-flex items-center gap-3 text-sm font-bold uppercase tracking-wider cursor-pointer group"
                   style={{ color: BLUE_TECH }}
                 >
                   <span className="underline underline-offset-8 group-hover:no-underline">{c.about.moreBtn}</span>
                   <span className="text-lg transition-transform group-hover:translate-x-1.5">{"\u2192"}</span>
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -815,18 +979,18 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
               {c.domains.tag}
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-[46px] font-black leading-[1.12] tracking-tight mb-4" style={{ color: BLUE_INST }}>
-              {c.domains.title}
+              {domainsList.length > 0 ? `${domainsList.length} Domaines d'Action Stratégiques` : c.domains.title}
             </h2>
             <p className="text-base sm:text-lg lg:text-[19px] leading-relaxed max-w-3xl" style={{ color: TEXT_MUTED }}>
               {c.domains.subtitle}
             </p>
           </div>
 
-          {/* Grille 3x2 — Cartes plus hautes et spacieuses */}
+          {/* Grille dynamique des Domaines CMS */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
-            {c.domains.list.map((d, index) => (
+            {domainsList.map((d, index) => (
               <div
-                key={d.num}
+                key={d.slug || d.num}
                 className="rounded-3xl p-8 sm:p-10 lg:p-11 border transition-all duration-300 flex flex-col justify-between min-h-[380px] sm:min-h-[410px] hover:shadow-xl group"
                 style={{ backgroundColor: WHITE, borderColor: BORDER }}
               >
@@ -837,7 +1001,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                       {d.num}
                     </span>
                     <div className="w-14 h-14 rounded-2xl flex items-center justify-center transition-colors group-hover:bg-[#003366]/5" style={{ color: BLUE_INST, backgroundColor: LIGHT_BG }}>
-                      <DomainCharterIcon index={index} size={44} className="w-10 h-10" />
+                      <DomainCharterIcon code={d.code} index={index} size={44} className="w-10 h-10" />
                     </div>
                   </div>
 
@@ -856,9 +1020,8 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                 <div className="pt-6 mt-8 border-t" style={{ borderColor: BORDER }}>
                   <button
                     onClick={() => {
-                      const domId = DOMAIN_IDS[index] || "inclusion-numerique"
                       const url = getPageUrl("domains", lang)
-                      window.location.href = `${url}#${domId}`
+                      window.location.href = `${url}#${d.slug}`
                     }}
                     className="inline-flex items-center gap-2 text-sm font-bold cursor-pointer group-hover:translate-x-1.5 transition-transform"
                     style={{ color: BLUE_TECH }}
@@ -879,7 +1042,13 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
               onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = BLUE_INST; e.currentTarget.style.color = WHITE }}
               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = WHITE; e.currentTarget.style.color = BLUE_INST }}
             >
-              <span>{c.domains.moreLink}</span>
+              <span>
+                {safeLang === "DE"
+                  ? `Alle ${domainsList.length} Bereiche im Detail ansehen`
+                  : safeLang === "EN"
+                  ? `Explore our ${domainsList.length} domains in detail`
+                  : `Consulter la fiche détaillée de nos ${domainsList.length} domaines`}
+              </span>
               <span className="text-base">{"\u2192"}</span>
             </button>
           </div>
@@ -905,7 +1074,11 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 text-center">
             {[
               { val: c.impact.stat1Val, lbl: c.impact.stat1Lbl, sub: c.impact.stat1Sub },
-              { val: c.impact.stat2Val, lbl: c.impact.stat2Lbl, sub: c.impact.stat2Sub },
+              {
+                val: String(domainsList.length || 6).padStart(2, "0"),
+                lbl: c.impact.stat2Lbl,
+                sub: c.impact.stat2Sub,
+              },
               { val: c.impact.stat3Val, lbl: c.impact.stat3Lbl, sub: c.impact.stat3Sub },
               { val: c.impact.stat4Val, lbl: c.impact.stat4Lbl, sub: c.impact.stat4Sub },
             ].map((s, i) => (
@@ -962,8 +1135,8 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
               <div className="lg:col-span-7 relative min-h-[420px] sm:min-h-[520px]" style={{ backgroundColor: LIGHT_BG }}>
                 <picture>
                   <img
-                    src="/photo-projet-phare.jpg"
-                    alt={c.projects.flagshipAlt}
+                    src={flagshipProject.image}
+                    alt={flagshipProject.title}
                     className="w-full h-full object-cover object-center"
                   />
                 </picture>
@@ -978,26 +1151,29 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                 <div>
                   <div className="flex items-center gap-2 text-xs sm:text-sm font-mono mb-5" style={{ color: TEXT_MUTED }}>
                     <span>{"\uD83D\uDCCD"}</span>
-                    <span>{c.projects.flagshipLoc}</span>
+                    <span>{flagshipProject.loc}</span>
                     <span>{"\u2022"}</span>
-                    <span>{c.projects.flagshipProgram}</span>
+                    <span>{flagshipProject.program}</span>
                   </div>
 
                   <h3 className="text-2xl sm:text-4xl font-black mb-6 leading-snug" style={{ color: BLUE_INST }}>
-                    {c.projects.flagshipTitle}
+                    {flagshipProject.title}
                   </h3>
 
                   <p className="text-base sm:text-lg leading-relaxed mb-8" style={{ color: TEXT_MUTED }}>
-                    {c.projects.flagshipDesc}
+                    {flagshipProject.desc}
                   </p>
                 </div>
 
                 <div className="pt-6 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-4" style={{ borderColor: BORDER }}>
                   <div className="text-sm sm:text-base font-bold" style={{ color: TEXT_MAIN }}>
-                    <span>{c.projects.flagshipKpi}</span>
+                    <span>{flagshipProject.kpi}</span>
                   </div>
                   <button
-                    onClick={() => navigate("projects")}
+                    onClick={() => {
+                      const url = getPageUrl("projects", lang)
+                      window.location.href = `${url}#${flagshipProject.slug}`
+                    }}
                     className="px-7 py-4 text-white rounded-xl text-sm font-bold transition-all shadow-md hover:brightness-110 cursor-pointer self-start sm:self-auto"
                     style={{ backgroundColor: BLUE_TECH }}
                   >
@@ -1011,12 +1187,9 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
 
           {/* Deux projets secondaires avec bordures neutres unifiées */}
           <div className="grid md:grid-cols-2 gap-8 sm:gap-10">
-            {[
-              { loc: c.projects.project2Loc, title: c.projects.project2Title, desc: c.projects.project2Desc, num: "02" },
-              { loc: c.projects.project3Loc, title: c.projects.project3Title, desc: c.projects.project3Desc, num: "03" },
-            ].map((p, i) => (
+            {secondaryProjects.map((p, i) => (
               <div
-                key={i}
+                key={p.slug || i}
                 className="rounded-3xl p-10 sm:p-14 border hover:shadow-md transition-all flex flex-col justify-between"
                 style={{ backgroundColor: WHITE, borderColor: BORDER }}
               >
@@ -1033,7 +1206,10 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                   </p>
                 </div>
                 <button
-                  onClick={() => navigate("projects")}
+                  onClick={() => {
+                    const url = getPageUrl("projects", lang)
+                    window.location.href = `${url}#${p.slug}`
+                  }}
                   className="inline-flex items-center gap-2 text-sm font-bold hover:underline self-start cursor-pointer"
                   style={{ color: BLUE_TECH }}
                 >

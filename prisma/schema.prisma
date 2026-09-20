@@ -285,25 +285,56 @@ model EvenementStatistique {
 
 // ─── 10. DOMAINES D'INTERVENTION INSTITUTIONNELS ──────────────────────────────
 model Domaine {
-  id        String   @id @default(cuid())
-  slug      String   @unique
-  code      String   @unique // INCLUSION_NUMERIQUE, JEUNESSE, CYBERSECURITE, AGRI_LOWTECH, DATA_INNOVATION, DEV_RURAL
-  nameFr    String
-  nameEn    String
-  nameDe    String
-  descFr    String   @db.Text
-  descEn    String   @db.Text
-  descDe    String   @db.Text
-  icon      String?
-  color     String?
-  order     Int      @default(0)
-  active    Boolean  @default(true)
+  id               String      @id @default(cuid())
+  slug             String      @unique
+  code             String      @unique // INCLUSION_NUMERIQUE, JEUNESSE, CYBERSECURITE, AGRI_LOWTECH, DATA_INNOVATION, DEV_RURAL
+  
+  // Titres & sous-titres
+  nameFr           String
+  nameEn           String?
+  nameDe           String?
+  subtitleFr       String?
+  subtitleEn       String?
+  subtitleDe       String?
+  
+  // Surtitre / Tag
+  tagLabel         String?     @default("Pôle Stratégique")
+  
+  // Descriptions
+  descFr           String      @db.Text
+  descEn           String?     @db.Text
+  descDe           String?     @db.Text
+  
+  // Listes à puces (JSON string ou texte)
+  objectivesFr     String?     @db.Text
+  objectivesEn     String?     @db.Text
+  objectivesDe     String?     @db.Text
+  actionsFr        String?     @db.Text
+  actionsEn        String?     @db.Text
+  actionsDe        String?     @db.Text
+  
+  // Publics cibles
+  targetAudienceFr String?     @db.Text
+  targetAudienceEn String?     @db.Text
+  targetAudienceDe String?     @db.Text
+  
+  // Médias
+  icon             String?
+  color            String?
+  imageUrl         String?
+  imageCaptionFr   String?
+  imageCaptionEn   String?
+  imageCaptionDe   String?
+  imageTag         String?     @default("Ancrage Terrain")
+  
+  order            Int         @default(0)
+  active           Boolean     @default(true)
 
-  projets    Projet[]
-  ressources Ressource[]
+  projets          Projet[]
+  ressources       Ressource[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
   @@index([order])
   @@index([active])

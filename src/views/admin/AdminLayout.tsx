@@ -225,6 +225,27 @@ const NAV_ITEMS = [
         ),
       },
       {
+        page: "admin-domains" as Page,
+        label: "Domaines d'action",
+        icon: (
+          <svg
+            className="w-4.5 h-4.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            width={18}
+            height={18}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+            />
+          </svg>
+        ),
+      },
+      {
         page: "admin-events" as Page,
         label: "Événements & Formations",
         icon: (
@@ -516,6 +537,27 @@ export default function AdminLayout({
                 strokeLinejoin="round"
                 strokeWidth={1.75}
                 d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
+            </svg>
+          ),
+        },
+        {
+          page: "admin-domains" as Page,
+          label: "Domaines d'action",
+          icon: (
+            <svg
+              className="w-4.5 h-4.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              width={18}
+              height={18}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.75}
+                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
               />
             </svg>
           ),

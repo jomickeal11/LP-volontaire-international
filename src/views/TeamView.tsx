@@ -12,6 +12,7 @@ import { getTeamMembers } from "@/lib/cms-actions"
 
 interface TeamViewProps {
   lang: Language
+  initialMembers?: Member[]
 }
 
 const BG = "#F7F8FA"
@@ -31,117 +32,6 @@ interface Member {
   skills?: string | null
   order: number
 }
-
-const INITIAL_FALLBACK_MEMBERS: Member[] = [
-  {
-    id: "1",
-    name: "Kokouvi Mensah",
-    roleFr: "Président & Fondateur d'APTIC-R",
-    roleEn: "President & Founder of APTIC-R",
-    roleDe: "Präsident & Gründer von APTIC-R",
-    category: "DIRECTION",
-    bioFr:
-      "Ingénieur en systèmes d'information formé à Lomé et à Dakar. Engagé depuis plus de 10 ans pour le désenclavement numérique et l'accès universel aux technologies en milieu rural, il coordonne les partenariats stratégiques et porte la vision institutionnelle de l'association.",
-    bioEn:
-      "Information Systems Engineer trained in Lomé and Dakar. Dedicated for over a decade to digital inclusion and rural technology access across West Africa, leading strategic partnerships and institutional development.",
-    bioDe:
-      "IT-Ingenieur mit Ausbildung in Lomé und Dakar. Seit über 10 Jahren engagiert für digitale Inklusion im ländlichen Raum, strategische Partnerschaften und Organisationsentwicklung.",
-    email: "direction@aptic-r.org",
-    photoUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80",
-    skills: JSON.stringify(["Gouvernance", "Stratégie IT", "Plaidoyer institutionnel", "Partenariats"]),
-    order: 1,
-  },
-  {
-    id: "2",
-    name: "Afiwa Lawson",
-    roleFr: "Coordinatrice des Programmes & Ingénierie Pédagogique",
-    roleEn: "Program & Pedagogy Coordinator",
-    roleDe: "Programm- & Pädagogikkoordinatorin",
-    category: "COORDINATION",
-    bioFr:
-      "Spécialiste de l'éducation populaire et de l'ingénierie pédagogique. Elle conçoit les parcours de formation numérique, supervise les formateurs et assure l'accueil et le suivi des volontaires internationaux à Agbélouvé.",
-    bioEn:
-      "Expert in grassroots education and pedagogical engineering. She designs training curricula, supervises trainers, and oversees international volunteer onboarding in Agbélouvé.",
-    bioDe:
-      "Expertin für Pädagogik und Bildungsprogramme. Zuständig für Lehrpläne, Ausbilder und die Betreuung internationaler Freiwilliger vor Ort.",
-    email: "programmes@aptic-r.org",
-    photoUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80",
-    skills: JSON.stringify(["Ingénierie pédagogique", "Coordination", "Égalité F/H"]),
-    order: 2,
-  },
-  {
-    id: "3",
-    name: "Kodjo Agbodjan",
-    roleFr: "Responsable Technique & FabLab Rural",
-    roleEn: "Technical & Rural FabLab Lead",
-    roleDe: "Technischer Leiter & FabLab",
-    category: "FORMATION",
-    bioFr:
-      "Maker et électronicien passionné, spécialiste du prototypage Arduino/Raspberry Pi, de l'impression 3D et de la maintenance d'équipements reconditionnés à basse consommation énergétique adaptés au milieu rural.",
-    bioEn:
-      "Passionate maker and electronics technician specializing in Arduino/Raspberry Pi prototyping, 3D printing, and maintenance of energy-efficient refurbished hardware.",
-    bioDe:
-      "Maker und Techniker, spezialisiert auf 3D-Druck, Arduino/Raspberry Pi und nachhaltige Hardware-Wartung für ländliche Gebiete.",
-    email: "fablab@aptic-r.org",
-    photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
-    skills: JSON.stringify(["FabLab & Prototypage", "Impression 3D", "Low-Tech"]),
-    order: 3,
-  },
-  {
-    id: "4",
-    name: "Essivi Kpogo",
-    roleFr: "Chargée de Mobilisation Communautaire & Genre",
-    roleEn: "Community Engagement & Gender Officer",
-    roleDe: "Referentin für Gemeindeengagement & Gleichstellung",
-    category: "COORDINATION",
-    bioFr:
-      "Travailleuse sociale et animatrice de terrain, elle coordonne les relations avec les groupements de femmes maraîchères et anime le programme d'initiation au numérique « Elles Codent pour le Changement ».",
-    bioEn:
-      "Social worker and community organizer leading partnerships with women farming cooperatives and coordinating the 'Girls Code for Change' empowerment initiative.",
-    bioDe:
-      "Sozialarbeiterin und Koordinatorin für Frauenkooperativen und das Bildungsprogramm für Mädchen und Frauen im ländlichen Raum.",
-    email: "communaute@aptic-r.org",
-    photoUrl: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=800&q=80",
-    skills: JSON.stringify(["Animation rurale", "Autonomisation des femmes", "Médiation"]),
-    order: 4,
-  },
-  {
-    id: "5",
-    name: "Dr. Yao Tete",
-    roleFr: "Conseiller Scientifique & Agro-écologie",
-    roleEn: "Scientific & Agro-Ecology Advisor",
-    roleDe: "Wissenschaftlicher Berater & Agrarökologie",
-    category: "CONSEIL",
-    bioFr:
-      "Enseignant-chercheur agronome, il oriente les projets appliqués d'APTIC-R sur la résilience climatique, la régénération des sols et l'intégration de capteurs d'irrigation solaire Low-Tech.",
-    bioEn:
-      "Agronomy researcher advising APTIC-R projects on climate resilience, soil regeneration, and solar-powered Low-Tech irrigation sensors.",
-    bioDe:
-      "Agrarwissenschaftler mit Schwerpunkt auf Klimaresilienz, Bodenfruchtbarkeit und sparsamer solarer Bewässerungstechnik.",
-    email: "conseil@aptic-r.org",
-    photoUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
-    skills: JSON.stringify(["Agro-écologie", "Recherche appliquée", "Climat"]),
-    order: 5,
-  },
-  {
-    id: "6",
-    name: "Léa Dupont",
-    roleFr: "Volontaire Internationale — UI/UX & Design Numérique",
-    roleEn: "International Volunteer — UI/UX & Digital Design",
-    roleDe: "Internationale Freiwillige — UI/UX & Webdesign",
-    category: "VOLONTAIRE",
-    bioFr:
-      "Designer d'interface diplômée, en mission de volontariat à Agbélouvé pour former les jeunes aux fondamentaux du design graphique, du prototypage web et documenter les actions du FabLab.",
-    bioEn:
-      "UX/UI designer on a volunteer mission in Agbélouvé, mentoring youth in visual design and web prototyping while documenting local FabLab projects.",
-    bioDe:
-      "UX/UI-Designerin im Freiwilligendienst in Agbélouvé zur Ausbildung junger Menschen in Webdesign und Mediengestaltung.",
-    email: "volontariat@aptic-r.org",
-    photoUrl: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=800&q=80",
-    skills: JSON.stringify(["UI/UX Design", "Formation & Mentorat", "Documentation"]),
-    order: 6,
-  },
-]
 
 const I18N = {
   FR: {
@@ -164,6 +54,11 @@ const I18N = {
     joinVolunteer: "Devenir volontaire",
     joinMember: "Devenir membre",
     contactEmail: "Contacter par email",
+    emptyTitle: "Aucun membre publié pour le moment",
+    emptyDesc: "L'équipe d'APTIC-R est en cours de mise à jour. Revenez très bientôt.",
+    errorTitle: "Connexion momentanément indisponible",
+    errorDesc: "Impossible de joindre le serveur pour le moment. Veuillez vérifier votre connexion et réessayer.",
+    retryButton: "Réessayer",
   },
   EN: {
     badge: "Governance, Coordination & Field Action",
@@ -185,6 +80,11 @@ const I18N = {
     joinVolunteer: "Become a volunteer",
     joinMember: "Become a member",
     contactEmail: "Contact via email",
+    emptyTitle: "No team members published yet",
+    emptyDesc: "The APTIC-R team roster is being updated. Please check back soon.",
+    errorTitle: "Connection temporarily unavailable",
+    errorDesc: "Unable to reach the server at this time. Please check your network connection and try again.",
+    retryButton: "Retry",
   },
   DE: {
     badge: "Führung, Koordination & Einsatz vor Ort",
@@ -206,6 +106,11 @@ const I18N = {
     joinVolunteer: "Freiwilliger werden",
     joinMember: "Mitglied werden",
     contactEmail: "Kontakt per E-Mail",
+    emptyTitle: "Derzeit sind keine Teammitglieder veröffentlicht",
+    emptyDesc: "Das APTIC-R-Team wird derzeit aktualisiert. Bitte schauen Sie bald wieder vorbei.",
+    errorTitle: "Verbindung vorübergehend nicht verfügbar",
+    errorDesc: "Der Server konnte nicht erreicht werden. Bitte prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    retryButton: "Erneut versuchen",
   },
 }
 
@@ -272,23 +177,46 @@ function MemberAvatar({
   )
 }
 
-export default function TeamView({ lang }: TeamViewProps) {
+export default function TeamView({ lang, initialMembers }: TeamViewProps) {
   const router = useRouter()
   const pathname = usePathname()
   const t = I18N[lang] || I18N.FR
 
-  const [members, setMembers] = useState<Member[]>(INITIAL_FALLBACK_MEMBERS)
+  const [members, setMembers] = useState<Member[]>(initialMembers || [])
+  const [loading, setLoading] = useState(!initialMembers || initialMembers.length === 0)
+  const [loadError, setLoadError] = useState(false)
 
-  useEffect(() => {
+  const reloadMembers = () => {
+    setLoading(true)
+    setLoadError(false)
     getTeamMembers({ activeOnly: true })
       .then((res) => {
         if (res?.success && Array.isArray(res.members) && res.members.length > 0) {
           setMembers(res.members)
+          setLoadError(false)
+        } else if (!initialMembers || initialMembers.length === 0) {
+          if (res?.error) {
+            setLoadError(true)
+          } else {
+            setMembers(res?.members || [])
+          }
         }
       })
       .catch((err) => {
         console.error("Erreur de chargement des membres d'équipe:", err)
+        if (!initialMembers || initialMembers.length === 0) {
+          setLoadError(true)
+        }
       })
+      .finally(() => {
+        setLoading(false)
+      })
+  }
+
+  useEffect(() => {
+    if (!initialMembers || initialMembers.length === 0) {
+      reloadMembers()
+    }
   }, [])
 
   const navigate = (page: Page) => {
@@ -339,7 +267,70 @@ export default function TeamView({ lang }: TeamViewProps) {
 
         {/* ── 2. Content Container ── */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 space-y-16 sm:space-y-20">
-          {/* ── Direction & Fondateurs ── */}
+          {loading ? (
+            <div className="space-y-12 animate-pulse">
+              {/* Skeleton Leadership */}
+              <div className="space-y-4">
+                <div className="h-6 w-48 bg-slate-200 rounded-md" />
+                <div className="h-4 w-72 bg-slate-100 rounded-md" />
+                <div className="bg-white rounded-2xl p-8 border border-slate-200 flex flex-col md:flex-row gap-6 items-center">
+                  <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl bg-slate-200 shrink-0" />
+                  <div className="flex-1 space-y-3 w-full">
+                    <div className="h-7 w-52 bg-slate-200 rounded-md" />
+                    <div className="h-4 w-40 bg-slate-100 rounded-md" />
+                    <div className="h-16 w-full bg-slate-100 rounded-md" />
+                  </div>
+                </div>
+              </div>
+              {/* Skeleton Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {[1, 2, 3, 4].map((n) => (
+                  <div key={n} className="bg-white rounded-2xl p-6 border border-slate-200 space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-20 h-20 rounded-2xl bg-slate-200 shrink-0" />
+                      <div className="space-y-2 flex-1">
+                        <div className="h-5 w-40 bg-slate-200 rounded-md" />
+                        <div className="h-4 w-28 bg-slate-100 rounded-md" />
+                      </div>
+                    </div>
+                    <div className="h-12 w-full bg-slate-100 rounded-md" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : loadError && members.length === 0 ? (
+            <div className="bg-white rounded-2xl p-10 text-center border border-rose-200 shadow-xs max-w-xl mx-auto my-12">
+              <div className="w-14 h-14 mx-auto rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-4">
+                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-[#003366] mb-2">{t.errorTitle}</h3>
+              <p className="text-sm text-slate-500 mb-6">{t.errorDesc}</p>
+              <button
+                type="button"
+                onClick={reloadMembers}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#003366] text-white hover:bg-[#002244] transition-colors shadow-sm inline-flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>{t.retryButton}</span>
+              </button>
+            </div>
+          ) : members.length === 0 ? (
+            <div className="bg-white rounded-2xl p-12 text-center border border-slate-200/90 shadow-xs max-w-xl mx-auto my-12">
+              <div className="w-14 h-14 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-4">
+                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-[#003366] mb-2">{t.emptyTitle}</h3>
+              <p className="text-sm text-slate-500">{t.emptyDesc}</p>
+            </div>
+          ) : (
+            <>
+              {/* ── Direction & Fondateurs ── */}
           {leadershipList.length > 0 && (
             <section>
               <div className="border-b border-slate-200 pb-3 mb-8">
@@ -584,6 +575,8 @@ export default function TeamView({ lang }: TeamViewProps) {
                 })}
               </div>
             </section>
+          )}
+            </>
           )}
         </div>
 

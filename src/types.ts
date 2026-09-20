@@ -29,6 +29,7 @@ export type Page =
   | "admin-members"
   | "admin-articles"
   | "admin-projects"
+  | "admin-domains"
   | "admin-events"
   | "admin-newsletter"
   | "admin-settings"

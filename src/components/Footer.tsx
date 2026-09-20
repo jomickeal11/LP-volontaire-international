@@ -1,3 +1,6 @@
+"use client"
+
+import React, { useState, useEffect } from "react"
 import type { Page, Language } from "../types"
 import { getPageUrl } from "../types"
 import Image from "next/image"
@@ -12,6 +15,17 @@ interface FooterProps {
 }
 
 export default function Footer({ lang, navigate }: FooterProps) {
+  const [settings, setSettings] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    import("@/lib/cms-actions").then(({ getSiteSettings }) => {
+      getSiteSettings("GENERAL").then((res) => {
+        if (res.success && res.dict) {
+          setSettings(res.dict)
+        }
+      }).catch(console.error)
+    })
+  }, [])
   const currentLang = (lang || "FR").toUpperCase() as keyof typeof translations
   const safeLang = translations[currentLang] ? currentLang : "FR"
   const t = translations[safeLang].footer
@@ -171,7 +185,15 @@ export default function Footer({ lang, navigate }: FooterProps) {
                   {safeLang === "FR" ? "Siège & Territoire" : safeLang === "DE" ? "Sitz & Region" : "Headquarters & Region"}
                 </span>
                 <span className="text-gray-300">
-                  {safeLang === "DE" ? "Agbélouvé, Region Maritime, Togo" : safeLang === "EN" ? "Agbélouvé, Maritime Region, Togo" : "Agbélouvé, Région Maritime, Togo"}
+                  {settings["site_location_address"] 
+                    ? settings["site_location_address"] 
+                    : settings["site_location_city"]
+                    ? `${settings["site_location_city"]}${settings["site_location_country"] ? `, ${settings["site_location_country"]}` : ""}`
+                    : safeLang === "DE" 
+                    ? "Agbélouvé, Region Maritime, Togo" 
+                    : safeLang === "EN" 
+                    ? "Agbélouvé, Maritime Region, Togo" 
+                    : "Agbélouvé, Région Maritime, Togo"}
                 </span>
               </li>
               <li>
@@ -179,12 +201,12 @@ export default function Footer({ lang, navigate }: FooterProps) {
                   {safeLang === "FR" ? "Tél. & WhatsApp" : safeLang === "DE" ? "Tel. & WhatsApp" : "Phone & WhatsApp"}
                 </span>
                 <a
-                  href="https://wa.me/22891201990"
+                  href={`https://wa.me/${(settings["site_social_whatsapp"] || settings["site_contact_phone"] || "22891201990").replace(/\D/g, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-mono text-white hover:text-[#28A745] transition-colors"
                 >
-                  +228 91 20 19 90
+                  {settings["site_contact_phone"] || "+228 91 20 19 90"}
                 </a>
               </li>
               <li>
@@ -192,10 +214,10 @@ export default function Footer({ lang, navigate }: FooterProps) {
                   {safeLang === "FR" ? "Email officiel" : safeLang === "DE" ? "Offizielle E-Mail" : "Official Email"}
                 </span>
                 <a
-                  href="mailto:aptic.rural19@gmail.com"
+                  href={`mailto:${settings["site_contact_email"] || "aptic.rural19@gmail.com"}`}
                   className="font-mono text-white hover:text-[#28A745] transition-colors break-all"
                 >
-                  aptic.rural19@gmail.com
+                  {settings["site_contact_email"] || "aptic.rural19@gmail.com"}
                 </a>
               </li>
             </ul>

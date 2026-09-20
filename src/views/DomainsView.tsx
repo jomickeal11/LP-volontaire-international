@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
@@ -447,26 +447,125 @@ const DOMAIN_PHOTOS: Record<string, { src: string; caption: string }> = {
 export default function DomainsView({ lang, initialSettings = {} }: DomainsViewProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const t = I18N[lang] || I18N.FR
   const [selectedId, setSelectedId] = useState<string | "ALL">("ALL")
-  const [settings, setSettings] = useState<Record<string, string>>(initialSettings)
+  const [dbDomains, setDbDomains] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  React.useEffect(() => {
-    import("@/lib/cms-actions").then(({ getSiteSettings }) => {
-      getSiteSettings("DOMAINS").then((res) => {
-        if (res.success && res.dict) {
-          setSettings((prev) => ({ ...prev, ...res.dict }))
-        }
-      }).catch(console.error)
+  const staticT = I18N[lang] || I18N.FR
+
+  useEffect(() => {
+    import("@/lib/cms-actions").then(({ getDomaines }) => {
+      getDomaines({ activeOnly: true })
+        .then((res) => {
+          if (res && res.length > 0) {
+            setDbDomains(res)
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoading(false))
     })
   }, [])
 
+  // Mapper les domaines DB vers le format attendu par la vue selon la langue
+  const displayedDomains = React.useMemo(() => {
+    if (dbDomains.length > 0) {
+      return dbDomains.map((d) => {
+        let objectives: string[] = []
+        let actions: string[] = []
+
+        try {
+          const rawObj = lang === "EN" ? d.objectivesEn || d.objectivesFr : lang === "DE" ? d.objectivesDe || d.objectivesFr : d.objectivesFr
+          objectives = rawObj ? JSON.parse(rawObj) : []
+        } catch {
+          objectives = []
+        }
+
+        try {
+          const rawAct = lang === "EN" ? d.actionsEn || d.actionsFr : lang === "DE" ? d.actionsDe || d.actionsFr : d.actionsFr
+          actions = rawAct ? JSON.parse(rawAct) : []
+        } catch {
+          actions = []
+        }
+
+        const title =
+          lang === "EN"
+            ? d.nameEn || d.nameFr
+            : lang === "DE"
+            ? d.nameDe || d.nameFr
+            : d.nameFr
+
+        const subtitle =
+          lang === "EN"
+            ? d.subtitleEn || d.subtitleFr || ""
+            : lang === "DE"
+            ? d.subtitleDe || d.subtitleFr || ""
+            : d.subtitleFr || ""
+
+        const desc =
+          lang === "EN"
+            ? d.descEn || d.descFr
+            : lang === "DE"
+            ? d.descDe || d.descFr
+            : d.descFr
+
+        const audience =
+          lang === "EN"
+            ? d.targetAudienceEn || d.targetAudienceFr || ""
+            : lang === "DE"
+            ? d.targetAudienceDe || d.targetAudienceFr || ""
+            : d.targetAudienceFr || ""
+
+        const caption =
+          lang === "EN"
+            ? d.imageCaptionEn || d.imageCaptionFr || title
+            : lang === "DE"
+            ? d.imageCaptionDe || d.imageCaptionFr || title
+            : d.imageCaptionFr || title
+
+        return {
+          id: d.slug,
+          code: d.code,
+          officialTitle: title,
+          subtitle,
+          tagLabel: d.tagLabel || "Pôle Stratégique",
+          fullDesc: desc,
+          objectives,
+          actions,
+          audience,
+          photoSrc: d.imageUrl || DOMAIN_PHOTOS[d.slug]?.src || "/photo-ancrage-togo.png",
+          photoCaption: caption,
+          photoTag: d.imageTag || "Ancrage Terrain",
+          order: d.order,
+          projets: d.projets || [],
+        }
+      })
+    }
+
+    // Fallback aux données statiques si la DB n'est pas encore prête
+    return staticT.domains.map((d) => ({
+      ...d,
+      tagLabel: "Pôle Stratégique",
+      photoSrc: DOMAIN_PHOTOS[d.id]?.src || "/photo-ancrage-togo.png",
+      photoCaption: DOMAIN_PHOTOS[d.id]?.caption || d.officialTitle,
+      photoTag: "Ancrage Terrain",
+      order: 0,
+      projets: [],
+    }))
+  }, [dbDomains, lang, staticT.domains])
+
+  const t = {
+    ...staticT,
+    domains: displayedDomains,
+  }
+
   // Check URL hash or query param on mount to select specific domain
-  React.useEffect(() => {
+  useEffect(() => {
     if (typeof window !== "undefined") {
       const hash = window.location.hash.replace("#", "")
       if (hash) {
-        const found = t.domains.find((d) => d.id === hash || d.code.toLowerCase() === hash.toLowerCase())
+        const found = t.domains.find(
+          (d) => d.id === hash || d.code.toLowerCase() === hash.toLowerCase()
+        )
         if (found) {
           setSelectedId(found.id)
           const elem = document.getElementById(found.id)
@@ -492,53 +591,6 @@ export default function DomainsView({ lang, initialSettings = {} }: DomainsViewP
       ? t.domains
       : t.domains.filter((d) => d.id === selectedId)
 
-  // Map settings keys to domains
-  const getDomainVisual = (domId: string, defaultTitle: string) => {
-    const fallback = DOMAIN_PHOTOS[domId] || {
-      src: "/photo-ancrage-togo.png",
-      caption: defaultTitle,
-    }
-
-    if (domId === "inclusion-numerique") {
-      return {
-        src: settings["domain_photo_inclusion"] || fallback.src,
-        caption: settings["domain_caption_inclusion"] || fallback.caption,
-      }
-    }
-    if (domId === "jeunesse-education") {
-      return {
-        src: settings["domain_photo_jeunesse"] || fallback.src,
-        caption: settings["domain_caption_jeunesse"] || fallback.caption,
-      }
-    }
-    if (domId === "cybersecurite-hygiene") {
-      return {
-        src: settings["domain_photo_cyber"] || fallback.src,
-        caption: settings["domain_caption_cyber"] || fallback.caption,
-      }
-    }
-    if (domId === "agri-lowtech") {
-      return {
-        src: settings["domain_photo_agri"] || fallback.src,
-        caption: settings["domain_caption_agri"] || fallback.caption,
-      }
-    }
-    if (domId === "data-innovation") {
-      return {
-        src: settings["domain_photo_data"] || fallback.src,
-        caption: settings["domain_caption_data"] || fallback.caption,
-      }
-    }
-    if (domId === "dev-rural-fablabs") {
-      return {
-        src: settings["domain_photo_rural"] || fallback.src,
-        caption: settings["domain_caption_rural"] || fallback.caption,
-      }
-    }
-
-    return fallback
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header lang={lang} setLang={handleSetLang} currentPage="domains" navigate={navigate} />
@@ -550,14 +602,18 @@ export default function DomainsView({ lang, initialSettings = {} }: DomainsViewP
             <div className="inline-flex items-center gap-2 mb-4">
               <span className="w-2.5 h-2.5 rounded-full bg-[#28A745]"></span>
               <span className="text-[#28A745] font-bold tracking-widest text-xs uppercase">
-                {t.badge}
+                {t.domains.length > 0 ? `${t.domains.length} Domaines d'Intervention` : t.badge}
               </span>
             </div>
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#003366] tracking-tight mb-5 leading-[1.15]">
               {t.title}
             </h1>
             <p className="text-base sm:text-xl text-[#5E6B76] max-w-3xl leading-relaxed">
-              {t.subtitle}
+              {lang === "DE"
+                ? `${t.domains.length} Handlungsfelder zur Stärkung von Kompetenzen, Autonomie und nachhaltiger Innovation in ländlichen Regionen.`
+                : lang === "EN"
+                ? `${t.domains.length} action domains to build local capacity, autonomy, and sustainable innovation in rural communities.`
+                : `${t.domains.length} domaines d'action pour renforcer les capacités, l'autonomie et l'innovation dans les territoires ruraux.`}
             </p>
           </div>
         </section>
@@ -599,7 +655,6 @@ export default function DomainsView({ lang, initialSettings = {} }: DomainsViewP
             const actualIndex = originalIndex >= 0 ? originalIndex : index
             const isReversed = actualIndex % 2 === 1
             const isAltBg = actualIndex % 2 === 1
-            const photoInfo = getDomainVisual(dom.id, dom.officialTitle)
             const numStr = `0${actualIndex + 1}`
 
             return (
@@ -616,16 +671,16 @@ export default function DomainsView({ lang, initialSettings = {} }: DomainsViewP
                     <div className={`w-full lg:w-[460px] xl:w-[490px] shrink-0 ${isReversed ? "lg:order-2" : "lg:order-1"}`}>
                       <div className="relative rounded-2xl overflow-hidden shadow-md border border-slate-200/90 aspect-[4/3] sm:aspect-[16/11] bg-slate-100 group">
                         <img
-                          src={photoInfo.src}
+                          src={dom.photoSrc}
                           alt={dom.officialTitle}
                           className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#003366]/90 via-[#003366]/20 to-transparent flex flex-col justify-end p-6">
                           <span className="text-[11px] uppercase font-bold tracking-widest text-[#28A745] mb-1">
-                            Ancrage Terrain
+                            {dom.photoTag || "Ancrage Terrain"}
                           </span>
                           <p className="text-white text-xs sm:text-sm font-medium leading-snug">
-                            {photoInfo.caption}
+                            {dom.photoCaption}
                           </p>
                         </div>
                       </div>

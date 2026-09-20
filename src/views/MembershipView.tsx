@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
@@ -434,6 +434,54 @@ export default function MembershipView({ lang }: MembershipViewProps) {
   const pathname = usePathname()
   const safeLang = (lang || "FR").toUpperCase() as "FR" | "EN" | "DE"
   const c = CONTENT[safeLang] || CONTENT.FR
+
+  const [dbDomains, setDbDomains] = useState<any[]>([])
+
+  useEffect(() => {
+    import("@/lib/cms-actions").then(({ getDomaines }) => {
+      getDomaines({ activeOnly: true })
+        .then((res) => {
+          if (res && res.length > 0) {
+            setDbDomains(res)
+          }
+        })
+        .catch(console.error)
+    })
+  }, [])
+
+  const availableDomains = React.useMemo(() => {
+    if (dbDomains.length > 0) {
+      return dbDomains.map((d) => {
+        const label =
+          safeLang === "DE"
+            ? d.nameDe || d.nameFr
+            : safeLang === "EN"
+            ? d.nameEn || d.nameFr
+            : d.nameFr
+
+        let IconComp = MonitorIcon
+        if (d.icon === "GraduationCapIcon" || d.code === "JEUNESSE") IconComp = GraduationCapIcon
+        else if (d.icon === "ShieldIcon" || d.code === "CYBERSECURITE") IconComp = ShieldIcon
+        else if (d.icon === "WheatIcon" || d.code === "AGRI_LOWTECH") IconComp = WheatIcon
+        else if (d.icon === "BarChartIcon" || d.code === "DATA_INNOVATION") IconComp = BarChartIcon
+        else if (d.icon === "CpuIcon" || d.code === "DEV_RURAL") IconComp = CpuIcon
+
+        return {
+          id: d.slug,
+          code: d.code,
+          label,
+          icon: IconComp,
+        }
+      })
+    }
+
+    return DOMAINS_DATA.map((d) => ({
+      id: d.id,
+      code: d.id,
+      label: safeLang === "DE" ? d.labelDe : safeLang === "EN" ? d.labelEn : d.labelFr,
+      icon: d.icon,
+    }))
+  }, [dbDomains, safeLang])
 
   const navigate = (page: Page) => {
     router.push(getPageUrl(page, lang))
@@ -905,11 +953,9 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      {DOMAINS_DATA.map((dom) => {
+                      {availableDomains.map((dom) => {
                         const checked = formData.domainsOfInterest.includes(dom.id)
                         const IconComponent = dom.icon
-                        const label =
-                          safeLang === "DE" ? dom.labelDe : safeLang === "EN" ? dom.labelEn : dom.labelFr
 
                         return (
                           <div
@@ -928,7 +974,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                             >
                               <IconComponent size={16} color="currentColor" strokeWidth={2} />
                             </div>
-                            <span className="text-xs sm:text-sm">{label}</span>
+                            <span className="text-xs sm:text-sm">{dom.label}</span>
                           </div>
                         )
                       })}

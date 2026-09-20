@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import type { Page, Language } from "../types"
-import { getPageUrl } from "../types"
+import { getPageUrl, PAGE_ROUTES } from "../types"
 import translations from "../i18n/translations"
 import { useRouter } from "next/navigation"
 import { trackEvent } from "../lib/tracker"
@@ -59,9 +59,9 @@ export default function Header({
     {
       label: t.aboutInstitutional,
       children: [
-        { label: t.aboutHistory, page: "about" as Page },
-        { label: t.aboutMission, page: "about" as Page },
-        { label: t.aboutValues, page: "about" as Page },
+        { label: t.aboutHistory, page: "about" as Page, href: `/${langLower}/${PAGE_ROUTES.about?.[langLower] || "a-propos"}#histoire` },
+        { label: t.aboutMission, page: "about" as Page, href: `/${langLower}/${PAGE_ROUTES.about?.[langLower] || "a-propos"}#missions` },
+        { label: t.aboutValues, page: "about" as Page, href: `/${langLower}/${PAGE_ROUTES.about?.[langLower] || "a-propos"}#valeurs` },
         { label: t.team, page: "team" as Page },
       ],
     },
@@ -81,6 +81,26 @@ export default function Header({
   ]
 
   const handleNavClick = (item: NavItem) => {
+    if (item.href) {
+      // If there is an explicit href with an anchor hash
+      if (item.href.includes("#")) {
+        const [targetPath, hash] = item.href.split("#")
+        const currentPath = window.location.pathname
+
+        if (currentPage === item.page || currentPath.endsWith(targetPath) || currentPath === targetPath) {
+          // Already on the page, smoothly scroll to element
+          const targetEl = document.getElementById(hash)
+          if (targetEl) {
+            targetEl.scrollIntoView({ behavior: "smooth" })
+            window.history.pushState(null, "", `#${hash}`)
+            return
+          }
+        }
+      }
+      router.push(item.href)
+      return
+    }
+
     if (item.page) {
       if (item.page === "apply" || item.page === "volunteering") {
         trackEvent("apply_now_click", { lang, source: "header_nav" })

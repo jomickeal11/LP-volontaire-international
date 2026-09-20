@@ -132,48 +132,6 @@ export async function subscribeNewsletter(formData: unknown) {
   }
 }
 
-// ─── 3. DOMAINES D'INTERVENTION ───────────────────────────────────────────────
-
-export async function getDomaines() {
-  try {
-    return await prisma.domaine.findMany({
-      where: { active: true },
-      orderBy: { order: "asc" },
-      include: {
-        _count: {
-          select: {
-            projets: true,
-            ressources: true,
-          },
-        },
-      },
-    })
-  } catch (error) {
-    console.error("Error fetching domaines:", error)
-    return []
-  }
-}
-
-export async function getDomaineBySlug(slug: string) {
-  try {
-    return await prisma.domaine.findUnique({
-      where: { slug },
-      include: {
-        projets: {
-          orderBy: { displayOrder: "asc" },
-        },
-        ressources: {
-          where: { published: true },
-          orderBy: { year: "desc" },
-        },
-      },
-    })
-  } catch (error) {
-    console.error(`Error fetching domaine ${slug}:`, error)
-    return null
-  }
-}
-
 // ─── 4. PROJETS ───────────────────────────────────────────────────────────────
 
 export async function getProjects(options?: {
@@ -848,6 +806,20 @@ export async function createEvent(data: {
   }
 }
 
+export async function updateEvent(id: string, data: any) {
+  try {
+    const event = await prisma.evenement.update({
+      where: { id },
+      data,
+    })
+    revalidatePath("/backoffice/events")
+    return { success: true, event }
+  } catch (error: any) {
+    console.error("Error updating event:", error)
+    return { success: false, error: error.message || "Erreur lors de la mise à jour de l'événement." }
+  }
+}
+
 export async function deleteEvent(id: string) {
   try {
     await prisma.evenement.delete({ where: { id } })
@@ -971,6 +943,8 @@ export async function adminAddNewsletterSubscriber(data: {
 
 // ─── 16. CMS : PARAMÈTRES & MÉDIAS DU SITE ───────────────────────────────────
 
+import { INITIAL_ABOUT_SETTINGS } from "./about-seed-data"
+
 export async function getSiteSettings(group?: string) {
   try {
     const where: any = {}
@@ -981,6 +955,22 @@ export async function getSiteSettings(group?: string) {
       where,
       orderBy: { key: "asc" },
     })
+
+    if (group === "ABOUT") {
+      const hasTitle = settings.some((s: any) => s.key === "about_title_fr")
+      if (!hasTitle) {
+        await seedAboutPageSettings()
+        const reloaded = await (prisma as any).parametreSite.findMany({
+          where: { group: "ABOUT" },
+          orderBy: { key: "asc" },
+        })
+        const dict: Record<string, string> = {}
+        reloaded.forEach((s: any) => {
+          dict[s.key] = s.value
+        })
+        return { success: true, settings: reloaded, dict }
+      }
+    }
 
     const dict: Record<string, string> = {}
     settings.forEach((s: any) => {
@@ -1038,61 +1028,103 @@ export async function updateSiteSettings(
   }
 }
 
+export async function seedAboutPageSettings(force = false) {
+  try {
+    const existing = await (prisma as any).parametreSite.findUnique({
+      where: { key: "about_title_fr" },
+    })
+
+    if (existing && !force) {
+      return { success: true, message: "Paramètres À Propos déjà initialisés." }
+    }
+
+    const entries = Object.entries(INITIAL_ABOUT_SETTINGS).map(([key, value]) => ({
+      key,
+      value,
+      group: "ABOUT",
+    }))
+
+    await updateSiteSettings(entries)
+    return { success: true, message: "Paramètres À Propos initialisés avec succès." }
+  } catch (err: any) {
+    console.error("Error seeding about page settings:", err)
+    return { success: false, error: err.message }
+  }
+}
+
 // ─── 17. CMS : ÉQUIPE & GOUVERNANCE (MembreEquipe) ───────────────────────────
 
-export const DEFAULT_TEAM_MEMBERS = [
+const DEFAULT_TEAM_MEMBERS = [
   {
-    name: "Kokouvi Mensah",
-    roleFr: "Président & Fondateur d'APTIC-R",
-    roleEn: "President & Founder of APTIC-R",
-    roleDe: "Präsident & Gründer von APTIC-R",
+    name: "Komal DAGNON",
+    roleFr: "Directeur Exécutif & Co-fondateur",
+    roleEn: "Executive Director & Co-Founder",
+    roleDe: "Geschäftsführender Direktor & Mitgründer",
     category: "DIRECTION",
     bioFr:
-      "Ingénieur en systèmes d'information formé à Lomé et à Dakar. Engagé depuis plus de 10 ans pour le désenclavement numérique et l'accès universel aux technologies en milieu rural, il coordonne les partenariats stratégiques et porte la vision institutionnelle de l'association.",
+      "Fondateur et Directeur Exécutif d'APTIC-R à Agbélouvé. Engagé depuis 2018 pour le désenclavement numérique, l'autonomie technologique des zones rurales et le développement socio-économique communautaire dans la préfecture du Zio et la région Maritime au Togo.",
     bioEn:
-      "Information Systems Engineer trained in Lomé and Dakar. Dedicated for over a decade to digital inclusion and rural technology access across West Africa, leading strategic partnerships and institutional development.",
+      "Founder and Executive Director of APTIC-R in Agbélouvé. Dedicated since 2018 to digital inclusion, technological self-reliance for rural communities, and grassroots socio-economic development across the Zio Prefecture and Maritime Region of Togo.",
     bioDe:
-      "IT-Ingenieur mit Ausbildung in Lomé und Dakar. Seit über 10 Jahren engagiert für digitale Inklusion im ländlichen Raum, strategische Partnerschaften und Organisationsentwicklung.",
+      "Gründer und geschäftsführender Direktor von APTIC-R in Agbélouvé. Seit 2018 engagiert für digitale Inklusion, technologische Eigenständigkeit im ländlichen Raum und sozioökonomische Entwicklung in der Region Maritime in Togo.",
     email: "direction@aptic-r.org",
-    photoUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80",
-    skills: JSON.stringify(["Gouvernance", "Stratégie IT", "Plaidoyer institutionnel", "Partenariats"]),
+    photoUrl: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?auto=format&fit=crop&w=800&q=80",
+    skills: JSON.stringify(["Gouvernance institutionnelle", "Développement rural", "Plaidoyer numérique", "Partenariats stratégiques"]),
     order: 1,
+    active: true,
+  },
+  {
+    name: "Kokouvi Mensah",
+    roleFr: "Président du Conseil d'Administration",
+    roleEn: "President of the Board of Directors",
+    roleDe: "Vorsitzender des Verwaltungsrats",
+    category: "DIRECTION",
+    bioFr:
+      "Ingénieur en systèmes d'information formé à Lomé et à Dakar. Engagé pour l'accès universel aux technologies en milieu rural, il veille au respect des orientations stratégiques, de la charte éthique et des engagements statutaires de l'association.",
+    bioEn:
+      "Information Systems Engineer trained in Lomé and Dakar. Dedicated to digital inclusion and rural technology access across West Africa, steering strategic governance and institutional partnerships.",
+    bioDe:
+      "IT-Ingenieur mit Ausbildung in Lomé und Dakar. Engagiert für digitale Inklusion im ländlichen Raum, strategische Partnerschaften und ethische Organisationsentwicklung.",
+    email: "presidence@aptic-r.org",
+    photoUrl: "https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=800&q=80",
+    skills: JSON.stringify(["Gouvernance", "Stratégie IT", "Plaidoyer institutionnel", "Partenariats"]),
+    order: 2,
     active: true,
   },
   {
     name: "Afiwa Lawson",
     roleFr: "Coordinatrice des Programmes & Ingénierie Pédagogique",
-    roleEn: "Program & Pedagogy Coordinator",
+    roleEn: "Programs & Pedagogical Engineering Coordinator",
     roleDe: "Programm- & Pädagogikkoordinatorin",
     category: "COORDINATION",
     bioFr:
-      "Spécialiste de l'éducation populaire et de l'ingénierie pédagogique. Elle conçoit les parcours de formation numérique, supervise les formateurs et assure l'accueil et le suivi des volontaires internationaux à Agbélouvé.",
+      "Spécialiste de l'éducation populaire et de la formation professionnelle. Elle conçoit les parcours d'alphabétisation numérique, supervise les formateurs et assure l'accueil et le suivi personnalisé des volontaires internationaux à Agbélouvé.",
     bioEn:
-      "Expert in grassroots education and pedagogical engineering. She designs training curricula, supervises trainers, and oversees international volunteer onboarding in Agbélouvé.",
+      "Specialist in popular education and curriculum design. She oversees digital literacy training modules, trainer capacity building, and international volunteer mentorship in Agbélouvé.",
     bioDe:
-      "Expertin für Pädagogik und Bildungsprogramme. Zuständig für Lehrpläne, Ausbilder und die Betreuung internationaler Freiwilliger vor Ort.",
+      "Fachkraft für Bildungswesen und Lehrplanentwicklung. Verantwortlich für digitale Alphabetisierung, Trainerausbildung und Betreuung internationaler Freiwilliger vor Ort.",
     email: "programmes@aptic-r.org",
     photoUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80",
-    skills: JSON.stringify(["Ingénierie pédagogique", "Coordination", "Égalité F/H"]),
-    order: 2,
+    skills: JSON.stringify(["Ingénierie pédagogique", "Coordination de projets", "Égalité F/H", "Formation"]),
+    order: 3,
     active: true,
   },
   {
     name: "Kodjo Agbodjan",
     roleFr: "Responsable Technique & FabLab Rural",
-    roleEn: "Technical & Rural FabLab Lead",
-    roleDe: "Technischer Leiter & FabLab",
+    roleEn: "Technical Lead & Rural FabLab Manager",
+    roleDe: "Technischer Leiter & Rural FabLab",
     category: "FORMATION",
     bioFr:
-      "Maker et électronicien passionné, spécialiste du prototypage Arduino/Raspberry Pi, de l'impression 3D et de la maintenance d'équipements reconditionnés à basse consommation énergétique adaptés au milieu rural.",
+      "Électronicien et maker engagé. Il anime les ateliers de prototypage Low-Tech, supervise l'impression 3D, la maintenance du parc informatique reconditionné et l'expérimentation de capteurs solaires adaptés à l'agriculture locale.",
     bioEn:
-      "Passionate maker and electronics technician specializing in Arduino/Raspberry Pi prototyping, 3D printing, and maintenance of energy-efficient refurbished hardware.",
+      "Electronics technician and passionate maker. He leads Low-Tech prototyping workshops, 3D printing, refurbished hardware maintenance, and solar-powered sensors for local farming.",
     bioDe:
-      "Maker und Techniker, spezialisiert auf 3D-Druck, Arduino/Raspberry Pi und nachhaltige Hardware-Wartung für ländliche Gebiete.",
+      "Elektroniker und Maker. Leitet Low-Tech-Prototyping-Workshops, 3D-Druck, Hardware-Instandsetzung und solarbetriebene Sensorsysteme für die Landwirtschaft.",
     email: "fablab@aptic-r.org",
     photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
-    skills: JSON.stringify(["FabLab & Prototypage", "Impression 3D", "Low-Tech"]),
-    order: 3,
+    skills: JSON.stringify(["FabLab & Prototypage", "Impression 3D", "Électronique Low-Tech", "Maintenance IT"]),
+    order: 4,
     active: true,
   },
   {
@@ -1102,88 +1134,99 @@ export const DEFAULT_TEAM_MEMBERS = [
     roleDe: "Referentin für Gemeindeengagement & Gleichstellung",
     category: "COORDINATION",
     bioFr:
-      "Travailleuse sociale et animatrice de terrain, elle coordonne les relations avec les groupements de femmes maraîchères et anime le programme d'initiation au numérique « Elles Codent pour le Changement ».",
+      "Travailleuse sociale et médiatrice de terrain. Elle coordonne les relations avec les chefferies et les groupements de femmes maraîchères, et anime le programme d'initiation au numérique « Elles Codent pour le Changement ».",
     bioEn:
-      "Social worker and community organizer leading partnerships with women farming cooperatives and coordinating the 'Girls Code for Change' empowerment initiative.",
+      "Social worker and community organizer leading partnerships with traditional leaders and women farming cooperatives, while coordinating the 'Girls Code for Change' empowerment initiative.",
     bioDe:
       "Sozialarbeiterin und Koordinatorin für Frauenkooperativen und das Bildungsprogramm für Mädchen und Frauen im ländlichen Raum.",
     email: "communaute@aptic-r.org",
     photoUrl: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=800&q=80",
-    skills: JSON.stringify(["Animation rurale", "Autonomisation des femmes", "Médiation"]),
-    order: 4,
-    active: true,
-  },
-  {
-    name: "Dr. Yao Tete",
-    roleFr: "Conseiller Scientifique & Agro-écologie",
-    roleEn: "Scientific & Agro-Ecology Advisor",
-    roleDe: "Wissenschaftlicher Berater & Agrarökologie",
-    category: "CONSEIL",
-    bioFr:
-      "Enseignant-chercheur agronome, il oriente les projets appliqués d'APTIC-R sur la résilience climatique, la régénération des sols et l'intégration de capteurs d'irrigation solaire Low-Tech.",
-    bioEn:
-      "Agronomy researcher advising APTIC-R projects on climate resilience, soil regeneration, and solar-powered Low-Tech irrigation sensors.",
-    bioDe:
-      "Agrarwissenschaftler mit Schwerpunkt auf Klimaresilienz, Bodenfruchtbarkeit und sparsamer solarer Bewässerungstechnik.",
-    email: "conseil@aptic-r.org",
-    photoUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
-    skills: JSON.stringify(["Agro-écologie", "Recherche appliquée", "Climat"]),
+    skills: JSON.stringify(["Animation rurale", "Autonomisation des femmes", "Médiation communautaire"]),
     order: 5,
     active: true,
   },
   {
+    name: "Dr. Yao Tete",
+    roleFr: "Conseiller Scientifique, Climat & Agro-Écologie",
+    roleEn: "Scientific Advisor, Climate & Agro-Ecology",
+    roleDe: "Wissenschaftlicher Berater für Klima & Agrarökologie",
+    category: "CONSEIL",
+    bioFr:
+      "Enseignant-chercheur agronome. Il oriente les projets appliqués d'APTIC-R sur la résilience climatique, la régénération des sols et l'intégration de capteurs d'irrigation solaire Low-Tech au service des coopératives maraîchères.",
+    bioEn:
+      "Agronomy researcher advising APTIC-R projects on climate resilience, soil regeneration, and solar-powered Low-Tech irrigation sensors for agricultural cooperatives.",
+    bioDe:
+      "Agrarwissenschaftler mit Schwerpunkt auf Klimaresilienz, Bodenfruchtbarkeit und sparsamer solarer Bewässerungstechnik für landwirtschaftliche Genossenschaften.",
+    email: "conseil@aptic-r.org",
+    photoUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
+    skills: JSON.stringify(["Agro-écologie", "Recherche appliquée", "Résilience climatique"]),
+    order: 6,
+    active: true,
+  },
+  {
     name: "Léa Dupont",
-    roleFr: "Volontaire Internationale — UI/UX & Design Numérique",
+    roleFr: "Volontaire Internationale — UI/UX & Documentation",
     roleEn: "International Volunteer — UI/UX & Digital Design",
-    roleDe: "Internationale Freiwillige — UI/UX & Webdesign",
+    roleDe: "Internationale Freiwillige — UI/UX & Mediengestaltung",
     category: "VOLONTAIRE",
     bioFr:
-      "Designer d'interface diplômée, en mission de volontariat à Agbélouvé pour former les jeunes aux fondamentaux du design graphique, du prototypage web et documenter les actions du FabLab.",
+      "Designer d'interface diplômée en mission de solidarité internationale à Agbélouvé. Elle forme les apprenants aux fondamentaux du design graphique et du prototypage web, et documente en images les projets du FabLab.",
     bioEn:
-      "UX/UI designer on a volunteer mission in Agbélouvé, mentoring youth in visual design and web prototyping while documenting local FabLab projects.",
+      "UI/UX designer on an international volunteer mission in Agbélouvé, mentoring youth in visual design and web prototyping while documenting local FabLab community projects.",
     bioDe:
-      "UX/UI-Designerin im Freiwilligendienst in Agbélouvé zur Ausbildung junger Menschen in Webdesign und Mediengestaltung.",
+      "UI/UX-Designerin im Freiwilligendienst in Agbélouvé zur Ausbildung junger Menschen in Webdesign und Dokumentation der FabLab-Aktivitäten.",
     email: "volontariat@aptic-r.org",
     photoUrl: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=800&q=80",
-    skills: JSON.stringify(["UI/UX Design", "Formation & Mentorat", "Documentation"]),
-    order: 6,
+    skills: JSON.stringify(["UI/UX Design", "Formation & Mentorat", "Documentation visuelle"]),
+    order: 7,
     active: true,
   },
 ]
 
 export async function getTeamMembers(options?: { category?: string; activeOnly?: boolean }) {
-  try {
-    const where: any = {}
-    if (options?.category && options.category !== "ALL") {
-      where.category = options.category
-    }
-    if (options?.activeOnly !== false) {
-      where.active = true
-    }
+  const maxRetries = 3
+  let lastError: any = null
 
-    let members = await (prisma as any).membreEquipe.findMany({
-      where,
-      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-    })
-
-    // Seed initial members if database is empty
-    if (members.length === 0 && !options?.category) {
-      for (const m of DEFAULT_TEAM_MEMBERS) {
-        await (prisma as any).membreEquipe.create({
-          data: m,
-        })
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const where: any = {}
+      if (options?.category && options.category !== "ALL") {
+        where.category = options.category
       }
-      members = await (prisma as any).membreEquipe.findMany({
+      if (options?.activeOnly !== false) {
+        where.active = true
+      }
+
+      let members = await (prisma as any).membreEquipe.findMany({
         where,
         orderBy: [{ order: "asc" }, { createdAt: "asc" }],
       })
-    }
 
-    return { success: true, members }
-  } catch (error: any) {
-    console.error("Error fetching team members:", error)
-    return { success: false, members: [] }
+      // Seed initial members if database is empty
+      if (members.length === 0 && !options?.category) {
+        for (const m of DEFAULT_TEAM_MEMBERS) {
+          await (prisma as any).membreEquipe.create({
+            data: m,
+          })
+        }
+        members = await (prisma as any).membreEquipe.findMany({
+          where,
+          orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+        })
+      }
+
+      return { success: true, members }
+    } catch (error: any) {
+      lastError = error
+      console.warn(`[getTeamMembers] Tentative ${attempt}/${maxRetries} échouée:`, error?.message || error)
+      if (attempt < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, 1500 * attempt))
+      }
+    }
   }
+
+  console.error("Error fetching team members after all retries:", lastError)
+  return { success: false, members: [], error: lastError?.message }
 }
 
 export async function createTeamMember(data: {
@@ -1313,3 +1356,240 @@ export async function deleteTeamMember(id: string) {
     return { success: false, error: error.message || "Erreur lors de la suppression." }
   }
 }
+
+// ─── 22. CMS : GESTION DES DOMAINES D'ACTION ─────────────────────────────────
+
+export async function getDomaines(options?: { activeOnly?: boolean }) {
+  try {
+    const where: any = {}
+    if (options?.activeOnly) {
+      where.active = true
+    }
+
+    const domaines = await (prisma as any).domaine.findMany({
+      where,
+      orderBy: { order: "asc" },
+      include: {
+        projets: {
+          select: {
+            id: true,
+            slug: true,
+            titleFr: true,
+            titleEn: true,
+            titleDe: true,
+            summaryFr: true,
+            status: true,
+            featuredImage: true,
+          },
+        },
+      },
+    })
+    return domaines
+  } catch (error) {
+    console.error("Error fetching domaines:", error)
+    return []
+  }
+}
+
+export async function getDomaineBySlug(slug: string) {
+  try {
+    const domaine = await (prisma as any).domaine.findUnique({
+      where: { slug },
+      include: {
+        projets: true,
+        ressources: true,
+      },
+    })
+    return domaine
+  } catch (error) {
+    console.error("Error fetching domaine by slug:", error)
+    return null
+  }
+}
+
+export async function createDomaine(data: {
+  code: string
+  nameFr: string
+  nameEn?: string
+  nameDe?: string
+  subtitleFr?: string
+  subtitleEn?: string
+  subtitleDe?: string
+  tagLabel?: string
+  descFr: string
+  descEn?: string
+  descDe?: string
+  objectivesFr?: string
+  objectivesEn?: string
+  objectivesDe?: string
+  actionsFr?: string
+  actionsEn?: string
+  actionsDe?: string
+  targetAudienceFr?: string
+  targetAudienceEn?: string
+  targetAudienceDe?: string
+  icon?: string
+  imageUrl?: string
+  imageCaptionFr?: string
+  imageCaptionEn?: string
+  imageCaptionDe?: string
+  imageTag?: string
+  order?: number
+  active?: boolean
+}) {
+  try {
+    const baseSlug = slugify(data.nameFr)
+    let slug = baseSlug
+    let counter = 1
+    while (await (prisma as any).domaine.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`
+      counter++
+    }
+
+    const domaine = await (prisma as any).domaine.create({
+      data: {
+        slug,
+        code: data.code.toUpperCase().trim().replace(/[^A-Z0-9_]/g, "_"),
+        nameFr: data.nameFr.trim(),
+        nameEn: data.nameEn?.trim() || null,
+        nameDe: data.nameDe?.trim() || null,
+        subtitleFr: data.subtitleFr?.trim() || null,
+        subtitleEn: data.subtitleEn?.trim() || null,
+        subtitleDe: data.subtitleDe?.trim() || null,
+        tagLabel: data.tagLabel?.trim() || "Pôle Stratégique",
+        descFr: data.descFr.trim(),
+        descEn: data.descEn?.trim() || null,
+        descDe: data.descDe?.trim() || null,
+        objectivesFr: data.objectivesFr || "[]",
+        objectivesEn: data.objectivesEn || "[]",
+        objectivesDe: data.objectivesDe || "[]",
+        actionsFr: data.actionsFr || "[]",
+        actionsEn: data.actionsEn || "[]",
+        actionsDe: data.actionsDe || "[]",
+        targetAudienceFr: data.targetAudienceFr?.trim() || null,
+        targetAudienceEn: data.targetAudienceEn?.trim() || null,
+        targetAudienceDe: data.targetAudienceDe?.trim() || null,
+        icon: data.icon || "MonitorIcon",
+        imageUrl: data.imageUrl || null,
+        imageCaptionFr: data.imageCaptionFr?.trim() || null,
+        imageCaptionEn: data.imageCaptionEn?.trim() || null,
+        imageCaptionDe: data.imageCaptionDe?.trim() || null,
+        imageTag: data.imageTag || "Ancrage Terrain",
+        order: Number(data.order) || 0,
+        active: data.active !== undefined ? Boolean(data.active) : true,
+      },
+    })
+
+    revalidatePath("/backoffice/domains")
+    revalidatePath("/[lang]/domaines", "page")
+    revalidatePath("/[lang]/domains", "page")
+    revalidatePath("/[lang]/devenir-membre", "page")
+    revalidatePath("/[lang]/projets", "page")
+    return { success: true, domaine, message: "Domaine créé avec succès." }
+  } catch (error: any) {
+    console.error("Error creating domaine:", error)
+    return { success: false, error: error.message || "Erreur lors de la création du domaine." }
+  }
+}
+
+export async function updateDomaine(
+  id: string,
+  data: Partial<{
+    nameFr: string
+    nameEn: string
+    nameDe: string
+    subtitleFr: string
+    subtitleEn: string
+    subtitleDe: string
+    tagLabel: string
+    descFr: string
+    descEn: string
+    descDe: string
+    objectivesFr: string
+    objectivesEn: string
+    objectivesDe: string
+    actionsFr: string
+    actionsEn: string
+    actionsDe: string
+    targetAudienceFr: string
+    targetAudienceEn: string
+    targetAudienceDe: string
+    icon: string
+    imageUrl: string
+    imageCaptionFr: string
+    imageCaptionEn: string
+    imageCaptionDe: string
+    imageTag: string
+    order: number
+    active: boolean
+  }>
+) {
+  try {
+    const updateData: any = { ...data }
+    if (data.order !== undefined) updateData.order = Number(data.order)
+    if (data.active !== undefined) updateData.active = Boolean(data.active)
+
+    const domaine = await (prisma as any).domaine.update({
+      where: { id },
+      data: updateData,
+    })
+
+    revalidatePath("/backoffice/domains")
+    revalidatePath("/[lang]/domaines", "page")
+    revalidatePath("/[lang]/domains", "page")
+    revalidatePath("/[lang]/devenir-membre", "page")
+    revalidatePath("/[lang]/projets", "page")
+    return { success: true, domaine, message: "Domaine mis à jour avec succès." }
+  } catch (error: any) {
+    console.error("Error updating domaine:", error)
+    return { success: false, error: error.message || "Erreur lors de la mise à jour." }
+  }
+}
+
+export async function toggleDomaineActive(id: string, active: boolean) {
+  try {
+    const domaine = await (prisma as any).domaine.update({
+      where: { id },
+      data: { active },
+    })
+
+    revalidatePath("/backoffice/domains")
+    revalidatePath("/[lang]/domaines", "page")
+    revalidatePath("/[lang]/domains", "page")
+    revalidatePath("/[lang]/devenir-membre", "page")
+    return { success: true, message: active ? "Domaine publié." : "Domaine masqué." }
+  } catch (error: any) {
+    console.error("Error toggling domaine active:", error)
+    return { success: false, error: error.message || "Erreur lors du changement de statut." }
+  }
+}
+
+export async function deleteDomaine(id: string) {
+  try {
+    // Vérifier si des projets sont liés
+    const projectCount = await (prisma as any).projet.count({
+      where: { domaineId: id },
+    })
+
+    if (projectCount > 0) {
+      return {
+        success: false,
+        error: `Impossible de supprimer ce domaine : il est associé à ${projectCount} projet(s). Détachez ou réassignez d'abord ces projets.`,
+      }
+    }
+
+    await (prisma as any).domaine.delete({
+      where: { id },
+    })
+
+    revalidatePath("/backoffice/domains")
+    revalidatePath("/[lang]/domaines", "page")
+    revalidatePath("/[lang]/domains", "page")
+    revalidatePath("/[lang]/devenir-membre", "page")
+    return { success: true, message: "Domaine supprimé avec succès." }
+  } catch (error: any) {
+    console.error("Error deleting domaine:", error)
+    return { success: false, error: error.message || "Erreur lors de la suppression." }
+  }
+}
+

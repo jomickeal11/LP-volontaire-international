@@ -1,16 +1,22 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
-import { getEvents, createEvent, deleteEvent } from "@/lib/cms-actions"
+import { getEvents, createEvent, updateEvent, deleteEvent } from "@/lib/cms-actions"
+import { translateCmsFieldsAction } from "@/lib/translator"
 
 interface EventItem {
   id: string
   slug: string
   titleFr: string
+  titleEn?: string | null
+  titleDe?: string | null
+  descriptionFr?: string | null
+  descriptionEn?: string | null
+  descriptionDe?: string | null
   category: string
   location: string
-  startDate: Date
-  endDate?: Date | null
+  startDate: Date | string
+  endDate?: Date | string | null
   isOnline: boolean
   meetingUrl?: string | null
   registrationUrl?: string | null
@@ -22,7 +28,11 @@ export default function AdminEvents() {
   const [events, setEvents] = useState<EventItem[]>([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [translating, setTranslating] = useState(false)
+  const [translatingField, setTranslatingField] = useState<string | null>(null)
+  const [showTranslationHelp, setShowTranslationHelp] = useState(true)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [activeLangTab, setActiveLangTab] = useState<"FR" | "EN" | "DE">("FR")
   const [error, setError] = useState("")
@@ -42,6 +52,7 @@ export default function AdminEvents() {
     descriptionEn: "",
     descriptionDe: "",
     featuredImage: "",
+    published: true,
   })
 
   const loadData = async () => {
@@ -59,6 +70,127 @@ export default function AdminEvents() {
   useEffect(() => {
     loadData()
   }, [])
+
+  const handleOpenModal = (ev?: EventItem) => {
+    if (ev) {
+      setEditingId(ev.id)
+      const formattedDate = typeof ev.startDate === "string" 
+        ? ev.startDate.split("T")[0] 
+        : new Date(ev.startDate).toISOString().split("T")[0]
+
+      setFormData({
+        titleFr: ev.titleFr || "",
+        titleEn: ev.titleEn || "",
+        titleDe: ev.titleDe || "",
+        category: ev.category || "WORKSHOP",
+        location: ev.location || "FabLab d'Agbélouvé",
+        startDate: formattedDate,
+        isOnline: Boolean(ev.isOnline),
+        meetingUrl: ev.meetingUrl || "",
+        registrationUrl: ev.registrationUrl || "",
+        descriptionFr: ev.descriptionFr || "",
+        descriptionEn: ev.descriptionEn || "",
+        descriptionDe: ev.descriptionDe || "",
+        featuredImage: ev.featuredImage || "",
+        published: ev.published !== false,
+      })
+    } else {
+      setEditingId(null)
+      setFormData({
+        titleFr: "",
+        titleEn: "",
+        titleDe: "",
+        category: "WORKSHOP",
+        location: "FabLab d'Agbélouvé",
+        startDate: new Date().toISOString().split("T")[0],
+        isOnline: false,
+        meetingUrl: "",
+        registrationUrl: "",
+        descriptionFr: "",
+        descriptionEn: "",
+        descriptionDe: "",
+        featuredImage: "",
+        published: true,
+      })
+    }
+    setActiveLangTab("FR")
+    setError("")
+    setModalOpen(true)
+  }
+
+  const handleAutoTranslate = async () => {
+    if (!formData.titleFr.trim()) {
+      alert("Veuillez d'abord saisir au moins le titre en français.")
+      return
+    }
+
+    setTranslating(true)
+    try {
+      const fieldsToTranslate = {
+        title: formData.titleFr,
+        description: formData.descriptionFr || "",
+      }
+
+      const res = await translateCmsFieldsAction({
+        texts: {
+          title: formData.titleFr,
+          description: formData.descriptionFr || "",
+        },
+        sourceLang: "FR",
+        targetLangs: ["EN", "DE"],
+      })
+
+      if (res.success) {
+        setFormData((prev) => ({
+          ...prev,
+          titleEn: res.translations.EN.title || prev.titleEn,
+          descriptionEn: res.translations.EN.description || prev.descriptionEn,
+          titleDe: res.translations.DE.title || prev.titleDe,
+          descriptionDe: res.translations.DE.description || prev.descriptionDe,
+        }))
+      } else {
+        alert("Erreur lors de la traduction : " + (res.error || "Service indisponible"))
+      }
+    } catch (err: any) {
+      alert("Erreur de connexion lors de la traduction : " + (err.message || "Inconnue"))
+    } finally {
+      setTranslating(false)
+    }
+  }
+
+  const handleTranslateSingleField = async (field: "title" | "description", targetLang: "EN" | "DE") => {
+    const sourceMap = {
+      title: formData.titleFr,
+      description: formData.descriptionFr || "",
+    }
+    const sourceText = sourceMap[field]
+    if (!sourceText || !sourceText.trim()) {
+      alert("Le texte source en français est vide pour ce champ.")
+      return
+    }
+
+    setTranslatingField(`${field}_${targetLang}`)
+    try {
+      const res = await translateCmsFieldsAction({
+        texts: { [field]: sourceText },
+        sourceLang: "FR",
+        targetLangs: [targetLang],
+      })
+      if (res.success && res.translations?.[targetLang]?.[field]) {
+        const val = res.translations[targetLang][field]
+        const stateKey = targetLang === "EN"
+          ? (field === "title" ? "titleEn" : "descriptionEn")
+          : (field === "title" ? "titleDe" : "descriptionDe")
+        setFormData((prev) => ({ ...prev, [stateKey]: val }))
+      } else {
+        alert(res.error || "Erreur lors de la traduction.")
+      }
+    } catch (err: any) {
+      alert(err.message || "Erreur de connexion.")
+    } finally {
+      setTranslatingField(null)
+    }
+  }
 
   const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -101,7 +233,7 @@ export default function AdminEvents() {
     setError("")
 
     try {
-      const res = await createEvent({
+      const payload = {
         titleFr: formData.titleFr,
         titleEn: formData.titleEn || undefined,
         titleDe: formData.titleDe || undefined,
@@ -115,29 +247,20 @@ export default function AdminEvents() {
         descriptionEn: formData.descriptionEn || undefined,
         descriptionDe: formData.descriptionDe || undefined,
         featuredImage: formData.featuredImage || undefined,
-      })
+        published: formData.published,
+      }
+
+      const res = editingId
+        ? await updateEvent(editingId, payload)
+        : await createEvent(payload)
 
       if (res.success) {
         setModalOpen(false)
+        setEditingId(null)
         setActiveLangTab("FR")
-        setFormData({
-          titleFr: "",
-          titleEn: "",
-          titleDe: "",
-          category: "WORKSHOP",
-          location: "FabLab d'Agbélouvé",
-          startDate: new Date().toISOString().split("T")[0],
-          isOnline: false,
-          meetingUrl: "",
-          registrationUrl: "",
-          descriptionFr: "",
-          descriptionEn: "",
-          descriptionDe: "",
-          featuredImage: "",
-        })
         await loadData()
       } else {
-        setError(res.error || "Erreur lors de la création")
+        setError(res.error || "Erreur lors de l'enregistrement")
       }
     } catch (err: any) {
       setError(err.message || "Erreur réseau")
@@ -170,26 +293,23 @@ export default function AdminEvents() {
         </div>
 
         <button
-          onClick={() => {
-            setActiveLangTab("FR")
-            setModalOpen(true)
-          }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#174F7A] text-white hover:bg-[#123e60] transition-colors shadow-sm self-start sm:self-auto"
+          onClick={() => handleOpenModal()}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#174F7A] text-white hover:bg-[#123e60] transition-colors shadow-sm self-start sm:self-auto cursor-pointer"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          <span>Nouvel Événement</span>
+          <span>Nouvel événement</span>
         </button>
       </div>
 
       {/* ── Events Table ── */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              <tr>
-                <th className="py-3.5 px-4">Événement</th>
+          <table className="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="py-3.5 px-4">Titre</th>
                 <th className="py-3.5 px-4">Catégorie</th>
                 <th className="py-3.5 px-4">Date</th>
                 <th className="py-3.5 px-4">Lieu / Format</th>
@@ -235,15 +355,24 @@ export default function AdminEvents() {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <button
-                        onClick={() => handleDelete(ev.id, ev.titleFr)}
-                        className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 text-xs font-bold transition-colors"
-                        title="Supprimer"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => handleOpenModal(ev)}
+                          className="px-2.5 py-1 rounded-lg bg-[#003366]/10 text-[#003366] hover:bg-[#003366]/20 text-xs font-semibold transition-colors cursor-pointer"
+                          title="Modifier l'événement"
+                        >
+                          Modifier
+                        </button>
+                        <button
+                          onClick={() => handleDelete(ev.id, ev.titleFr)}
+                          className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 text-xs font-bold transition-colors cursor-pointer"
+                          title="Supprimer"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -266,15 +395,15 @@ export default function AdminEvents() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <h2 className="text-xl font-bold text-slate-800">
-                  Planifier un Événement
+                  {editingId ? "Modifier l'Événement" : "Planifier un Événement"}
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Renseignez les détails de l&apos;événement et ses traductions optionnelles.
+                  Renseignez les détails de l&apos;événement et ses traductions multilingues.
                 </p>
               </div>
               <button
                 onClick={() => setModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-sm font-bold"
+                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-sm font-bold cursor-pointer"
               >
                 ✕
               </button>
@@ -286,41 +415,97 @@ export default function AdminEvents() {
               </div>
             )}
 
-            {/* Language Sub-tabs */}
-            <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2">Langue :</span>
+            {/* Note d'explication sur la politique multilingue stricte */}
+            {showTranslationHelp && (
+              <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/90 text-amber-900 text-xs leading-relaxed space-y-1 relative">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-950">
+                    <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Pourquoi traduire ? Règle d'affichage public</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowTranslationHelp(false)}
+                    className="text-amber-700 hover:text-amber-950 font-bold p-1 rounded-lg hover:bg-amber-100/60 transition-colors cursor-pointer"
+                    title="Masquer cette note"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <p className="text-amber-800 pr-6">
+                  Le site applique une <strong>séparation stricte des langues</strong> : un événement sans traduction anglaise ou allemande 
+                  <strong>ne sera pas visible</strong> sur les versions internationales afin de garantir une vitrine bilingue/trilingue parfaite.
+                </p>
+                <p className="text-amber-700 text-[11px]">
+                  Le bouton <strong>« Traduire vers EN & DE »</strong> génère automatiquement ces versions en un instant.
+                </p>
+              </div>
+            )}
+
+            {/* Language Sub-tabs + Auto translate */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2">Langue :</span>
+                <button
+                  type="button"
+                  onClick={() => setActiveLangTab("FR")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    activeLangTab === "FR"
+                      ? "bg-[#003366] text-white shadow-sm"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  Français *
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveLangTab("EN")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    activeLangTab === "EN"
+                      ? "bg-[#003366] text-white shadow-sm"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  English {formData.titleEn && "✓"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveLangTab("DE")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    activeLangTab === "DE"
+                      ? "bg-[#003366] text-white shadow-sm"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  Deutsch {formData.titleDe && "✓"}
+                </button>
+              </div>
+
               <button
                 type="button"
-                onClick={() => setActiveLangTab("FR")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  activeLangTab === "FR"
-                    ? "bg-[#003366] text-white shadow-sm"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
+                onClick={handleAutoTranslate}
+                disabled={translating || !formData.titleFr.trim()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#007BFF]/10 text-[#007BFF] hover:bg-[#007BFF]/20 transition-all border border-[#007BFF]/20 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                title="Traduit automatiquement les champs français vers l'anglais et l'allemand"
               >
-                Français *
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveLangTab("EN")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  activeLangTab === "EN"
-                    ? "bg-[#003366] text-white shadow-sm"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                English {formData.titleEn && "✓"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveLangTab("DE")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  activeLangTab === "DE"
-                    ? "bg-[#003366] text-white shadow-sm"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                Deutsch {formData.titleDe && "✓"}
+                {translating ? (
+                  <>
+                    <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span>Traduction en cours...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                    </svg>
+                    <span>Traduire vers EN & DE</span>
+                  </>
+                )}
               </button>
             </div>
 
@@ -343,9 +528,29 @@ export default function AdminEvents() {
               )}
               {activeLangTab === "EN" && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Event Title (English - Optionnel)
-                  </label>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Event Title (English - Optionnel)
+                    </label>
+                    {formData.titleFr && (
+                      <button
+                        type="button"
+                        onClick={() => handleTranslateSingleField("title", "EN")}
+                        disabled={translatingField === "title_EN"}
+                        className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
+                        </svg>
+                        <span>{translatingField === "title_EN" ? "Traduction..." : "Traduire ce champ"}</span>
+                      </button>
+                    )}
+                  </div>
+                  {formData.titleFr && (
+                    <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
+                      Source (FR) : {formData.titleFr}
+                    </div>
+                  )}
                   <input
                     type="text"
                     placeholder="ex: 3D Printing Workshop"
@@ -357,9 +562,29 @@ export default function AdminEvents() {
               )}
               {activeLangTab === "DE" && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Veranstaltungstitel (Deutsch - Optionnel)
-                  </label>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Veranstaltungstitel (Deutsch - Optionnel)
+                    </label>
+                    {formData.titleFr && (
+                      <button
+                        type="button"
+                        onClick={() => handleTranslateSingleField("title", "DE")}
+                        disabled={translatingField === "title_DE"}
+                        className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
+                        </svg>
+                        <span>{translatingField === "title_DE" ? "Traduction..." : "Traduire ce champ"}</span>
+                      </button>
+                    )}
+                  </div>
+                  {formData.titleFr && (
+                    <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
+                      Source (FR) : {formData.titleFr}
+                    </div>
+                  )}
                   <input
                     type="text"
                     placeholder="ex: 3D-Druck Workshop"
@@ -432,9 +657,29 @@ export default function AdminEvents() {
               )}
               {activeLangTab === "EN" && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Short Description (English - Optionnel)
-                  </label>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Short Description (English - Optionnel)
+                    </label>
+                    {formData.descriptionFr && (
+                      <button
+                        type="button"
+                        onClick={() => handleTranslateSingleField("description", "EN")}
+                        disabled={translatingField === "description_EN"}
+                        className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
+                        </svg>
+                        <span>{translatingField === "description_EN" ? "Traduction..." : "Traduire ce champ"}</span>
+                      </button>
+                    )}
+                  </div>
+                  {formData.descriptionFr && (
+                    <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
+                      Source (FR) : {formData.descriptionFr}
+                    </div>
+                  )}
                   <textarea
                     rows={3}
                     value={formData.descriptionEn}
@@ -446,9 +691,29 @@ export default function AdminEvents() {
               )}
               {activeLangTab === "DE" && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Kurze Beschreibung (Deutsch - Optionnel)
-                  </label>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Kurze Beschreibung (Deutsch - Optionnel)
+                    </label>
+                    {formData.descriptionFr && (
+                      <button
+                        type="button"
+                        onClick={() => handleTranslateSingleField("description", "DE")}
+                        disabled={translatingField === "description_DE"}
+                        className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
+                        </svg>
+                        <span>{translatingField === "description_DE" ? "Traduction..." : "Traduire ce champ"}</span>
+                      </button>
+                    )}
+                  </div>
+                  {formData.descriptionFr && (
+                    <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
+                      Source (FR) : {formData.descriptionFr}
+                    </div>
+                  )}
                   <textarea
                     rows={3}
                     value={formData.descriptionDe}
@@ -517,9 +782,13 @@ export default function AdminEvents() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-2.5 rounded-xl text-xs font-bold bg-[#174F7A] text-white hover:bg-[#123e60] transition-colors disabled:opacity-50 shadow-sm"
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold bg-[#174F7A] text-white hover:bg-[#123e60] transition-colors disabled:opacity-50 shadow-sm cursor-pointer"
                 >
-                  {submitting ? "Enregistrement..." : "Créer l'événement"}
+                  {submitting
+                    ? "Enregistrement..."
+                    : editingId
+                    ? "Enregistrer les modifications"
+                    : "Créer l'événement"}
                 </button>
               </div>
             </form>

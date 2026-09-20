@@ -9,6 +9,14 @@ import {
   updateTeamMember,
   deleteTeamMember,
 } from "@/lib/cms-actions"
+import {
+  ABOUT_SECTIONS,
+  ABOUT_FIELDS,
+  getAboutFieldDbKey,
+  calculateAboutCompleteness,
+  isAboutPagePublished,
+} from "@/lib/about-cms-config"
+import { translateCmsFieldsAction } from "@/lib/translator"
 
 interface TeamMemberItem {
   id: string
@@ -77,32 +85,6 @@ const SETTINGS_CONFIG: Record<
       type: "text",
     },
   ],
-  ABOUT: [
-    {
-      key: "about_story_image",
-      label: "Photo du récit documentaire",
-      description: "Photo de terrain montrant les actions et l'ancrage à Agbélouvé.",
-      type: "image",
-    },
-    {
-      key: "foundation_year",
-      label: "Année de création de l'initiative",
-      description: "Année de départ des premières actions terrain (ex: 2018).",
-      type: "text",
-    },
-    {
-      key: "formalization_year",
-      label: "Année d'enregistrement officiel",
-      description: "Année d'obtention du récépissé préfectoral (ex: 2020).",
-      type: "text",
-    },
-    {
-      key: "about_story_location",
-      label: "Lieu mentionné sur la photo",
-      description: "Légende de localisation (ex: Agbélouvé, Région Maritime).",
-      type: "text",
-    },
-  ],
   VOLUNTEER: [
     {
       key: "volunteer_hero_image",
@@ -119,6 +101,30 @@ const SETTINGS_CONFIG: Record<
   ],
   GENERAL: [
     {
+      key: "site_location_city",
+      label: "Ville du siège social / Territoire",
+      description: "Nom de la ville principale affichée sur tout le site (ex: Agbélouvé).",
+      type: "text",
+    },
+    {
+      key: "site_location_address",
+      label: "Adresse complète du siège",
+      description: "Adresse physique officielle (ex: Centre Communautaire & FabLab d'Agbélouvé).",
+      type: "text",
+    },
+    {
+      key: "site_location_region",
+      label: "Région / Préfecture",
+      description: "Région administrative (ex: Préfecture du Zio, Région Maritime).",
+      type: "text",
+    },
+    {
+      key: "site_location_country",
+      label: "Pays du siège",
+      description: "Pays officiel (ex: Togo).",
+      type: "text",
+    },
+    {
       key: "site_contact_email",
       label: "Email institutionnel principal",
       description: "Adresse email affichée dans le pied de page et les formulaires.",
@@ -127,7 +133,13 @@ const SETTINGS_CONFIG: Record<
     {
       key: "site_contact_phone",
       label: "Téléphone standard / Siège",
-      description: "Numéro de contact officiel du siège d'Agbélouvé.",
+      description: "Numéro de contact officiel du siège avec indicatif (ex: +228 91 20 19 90).",
+      type: "text",
+    },
+    {
+      key: "site_social_whatsapp",
+      label: "Numéro WhatsApp officiel",
+      description: "Numéro pour le bouton de contact direct WhatsApp.",
       type: "text",
     },
     {
@@ -143,6 +155,16 @@ const SETTINGS_CONFIG: Record<
       type: "text",
     },
   ],
+}
+
+const SECTION_NUMBERS: Record<string, string> = {
+  HERO: "01",
+  STORY: "02",
+  PILLARS: "03",
+  STATS: "04",
+  VALUES: "05",
+  GOVERNANCE: "06",
+  CTA: "07",
 }
 
 export default function AdminSettings() {
@@ -182,6 +204,414 @@ export default function AdminSettings() {
     roleDe: "",
     bioDe: "",
   })
+
+  // Team member translation state
+  const [teamTranslating, setTeamTranslating] = useState(false)
+  const [teamTranslateNotice, setTeamTranslateNotice] = useState<{ type: "success" | "error"; text: string } | null>(null)
+
+  // ─── Static Page Editor: Page À Propos State ──────────────────────────
+  const [aboutLangTab, setAboutLangTab] = useState<"FR" | "EN" | "DE">("FR")
+  const [aboutTranslating, setAboutTranslating] = useState(false)
+  const [aboutSectionTranslating, setAboutSectionTranslating] = useState<string | null>(null)
+  const [aboutFieldTranslating, setAboutFieldTranslating] = useState<string | null>(null)
+  const [aboutNotice, setAboutNotice] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null)
+  const [aboutExpandedSections, setAboutExpandedSections] = useState<Record<string, boolean>>({
+    HERO: true,
+    STORY: true,
+    PILLARS: true,
+    STATS: true,
+    VALUES: true,
+    GOVERNANCE: true,
+    CTA: true,
+  })
+
+  const toggleAboutSection = (sectionId: string) => {
+    setAboutExpandedSections((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }))
+  }
+
+  const handleToggleAboutPublish = async (lang: "FR" | "EN" | "DE") => {
+    const completeness = calculateAboutCompleteness(values, lang)
+    const langLower = lang.toLowerCase()
+    const pubKey = `about_published_${langLower}`
+    const currentlyPublished = isAboutPagePublished(values, lang)
+
+    if (currentlyPublished) {
+      const nextVal = "DRAFT"
+      setValues((prev) => ({ ...prev, [pubKey]: nextVal }))
+      try {
+        await updateSiteSettings([
+          {
+            key: pubKey,
+            value: nextVal,
+            group: "ABOUT",
+            description: `Statut publication À Propos (${lang})`,
+          },
+        ])
+        setAboutNotice({
+          type: "info",
+          text: `La version ${lang} est repassée en BROUILLON (les visiteurs voient la page de finalisation).`,
+        })
+      } catch (err: any) {
+        setAboutNotice({ type: "error", text: err.message || "Erreur réseau." })
+      }
+    } else {
+      if (!completeness.isComplete) {
+        setAboutNotice({
+          type: "error",
+          text: `Publication impossible pour la version ${lang} : ${completeness.missingFields.length} champ(s) obligatoire(s) non renseigné(s). Complétude actuelle : ${completeness.percentage}%.`,
+        })
+        return
+      }
+
+      const nextVal = "PUBLISHED"
+      setValues((prev) => ({ ...prev, [pubKey]: nextVal }))
+      try {
+        await updateSiteSettings([
+          {
+            key: pubKey,
+            value: nextVal,
+            group: "ABOUT",
+            description: `Statut publication À Propos (${lang})`,
+          },
+        ])
+        setAboutNotice({
+          type: "success",
+          text: `La version ${lang} est maintenant PUBLIÉE et accessible en ligne.`,
+        })
+      } catch (err: any) {
+        setAboutNotice({ type: "error", text: err.message || "Erreur réseau." })
+      }
+    }
+  }
+
+  const handleAutoTranslateAbout = async () => {
+    setAboutTranslating(true)
+    setAboutNotice(null)
+
+    const textsToTranslate: Record<string, string> = {}
+    ABOUT_FIELDS.filter((f) => f.isTranslatable).forEach((f) => {
+      const frVal = values[`${f.key}_fr`]
+      if (frVal && frVal.trim()) {
+        textsToTranslate[f.key] = frVal.trim()
+      }
+    })
+
+    if (Object.keys(textsToTranslate).length === 0) {
+      setAboutNotice({
+        type: "error",
+        text: "Aucun champ français n'est renseigné pour le moment. Remplissez d'abord les champs en français.",
+      })
+      setAboutTranslating(false)
+      return
+    }
+
+    try {
+      const res = await translateCmsFieldsAction({
+        texts: textsToTranslate,
+        sourceLang: "FR",
+        targetLangs: ["EN", "DE"],
+      })
+
+      if (res.success && res.translations) {
+        const updatedValues = { ...values }
+        const settingsPayload: { key: string; value: string; group: string; description?: string }[] = []
+
+        if (res.translations.EN) {
+          Object.entries(res.translations.EN).forEach(([k, text]) => {
+            const dbKey = `${k}_en`
+            updatedValues[dbKey] = text
+            settingsPayload.push({ key: dbKey, value: text, group: "ABOUT" })
+          })
+        }
+
+        if (res.translations.DE) {
+          Object.entries(res.translations.DE).forEach(([k, text]) => {
+            const dbKey = `${k}_de`
+            updatedValues[dbKey] = text
+            settingsPayload.push({ key: dbKey, value: text, group: "ABOUT" })
+          })
+        }
+
+        setValues(updatedValues)
+
+        if (settingsPayload.length > 0) {
+          await updateSiteSettings(settingsPayload)
+        }
+
+        const providerLabel = res.providerUsed === "deepl" ? "DeepL Pro" : "Moteur libre (MyMemory)"
+        setAboutNotice({
+          type: "success",
+          text: `Traduction automatique (${providerLabel}) réussie et enregistrée pour l'anglais et l'allemand !`,
+        })
+      } else {
+        setAboutNotice({
+          type: "error",
+          text: res.error || "Une erreur est survenue lors de la traduction automatique.",
+        })
+      }
+    } catch (err: any) {
+      setAboutNotice({
+        type: "error",
+        text: err.message || "Erreur de connexion au service de traduction.",
+      })
+    } finally {
+      setAboutTranslating(false)
+    }
+  }
+
+  // ─── Section-level Auto-Translate for À Propos ────────────────────────
+  const handleTranslateAboutSection = async (sectionId: string) => {
+    const fields = ABOUT_FIELDS.filter((f) => f.section === sectionId && f.isTranslatable)
+    const textsToTranslate: Record<string, string> = {}
+
+    fields.forEach((f) => {
+      const frVal = values[`${f.key}_fr`]
+      if (frVal && frVal.trim()) {
+        textsToTranslate[f.key] = frVal.trim()
+      }
+    })
+
+    if (Object.keys(textsToTranslate).length === 0) {
+      setAboutNotice({
+        type: "error",
+        text: `Aucun champ français renseigné pour la section ${sectionId}. Renseignez d'abord les champs en français.`,
+      })
+      return
+    }
+
+    setAboutSectionTranslating(sectionId)
+    setAboutNotice(null)
+
+    try {
+      const res = await translateCmsFieldsAction({
+        texts: textsToTranslate,
+        sourceLang: "FR",
+        targetLangs: ["EN", "DE"],
+      })
+
+      if (res.success && res.translations) {
+        const updatedValues = { ...values }
+        const settingsPayload: { key: string; value: string; group: string; description?: string }[] = []
+
+        if (res.translations.EN) {
+          Object.entries(res.translations.EN).forEach(([k, text]) => {
+            const dbKey = `${k}_en`
+            updatedValues[dbKey] = text
+            settingsPayload.push({ key: dbKey, value: text, group: "ABOUT" })
+          })
+        }
+
+        if (res.translations.DE) {
+          Object.entries(res.translations.DE).forEach(([k, text]) => {
+            const dbKey = `${k}_de`
+            updatedValues[dbKey] = text
+            settingsPayload.push({ key: dbKey, value: text, group: "ABOUT" })
+          })
+        }
+
+        setValues(updatedValues)
+
+        if (settingsPayload.length > 0) {
+          await updateSiteSettings(settingsPayload)
+        }
+
+        const providerLabel = res.providerUsed === "deepl" ? "DeepL Pro" : "Moteur libre"
+        setAboutNotice({
+          type: "success",
+          text: `Section ${sectionId} traduite avec succès vers l'anglais et l'allemand (${providerLabel}) !`,
+        })
+      } else {
+        setAboutNotice({
+          type: "error",
+          text: res.error || "Une erreur est survenue lors de la traduction de la section.",
+        })
+      }
+    } catch (err: any) {
+      setAboutNotice({
+        type: "error",
+        text: err.message || "Erreur de connexion au service de traduction.",
+      })
+    } finally {
+      setAboutSectionTranslating(null)
+    }
+  }
+
+  // ─── Single-field Auto-Translate for À Propos ─────────────────────────
+  const handleTranslateAboutSingleField = async (fieldKey: string, targetLang: "EN" | "DE") => {
+    const frKey = `${fieldKey}_fr`
+    const frVal = values[frKey]
+    if (!frVal || !frVal.trim()) {
+      setAboutNotice({
+        type: "error",
+        text: "Le texte source en français est vide pour ce champ. Saisissez d'abord la version française.",
+      })
+      return
+    }
+
+    setAboutFieldTranslating(fieldKey)
+    try {
+      const res = await translateCmsFieldsAction({
+        texts: { [fieldKey]: frVal.trim() },
+        sourceLang: "FR",
+        targetLangs: [targetLang],
+      })
+
+      if (res.success && res.translations?.[targetLang]?.[fieldKey]) {
+        const translated = res.translations[targetLang][fieldKey]
+        const dbKey = `${fieldKey}_${targetLang.toLowerCase()}`
+        setValues((prev) => ({ ...prev, [dbKey]: translated }))
+        await updateSiteSettings([{ key: dbKey, value: translated, group: "ABOUT" }])
+        setAboutNotice({
+          type: "success",
+          text: `Champ traduit vers ${targetLang === "EN" ? "l'anglais" : "l'allemand"} et enregistré.`,
+        })
+      } else {
+        setAboutNotice({
+          type: "error",
+          text: res.error || "Erreur lors de la traduction du champ.",
+        })
+      }
+    } catch (err: any) {
+      setAboutNotice({
+        type: "error",
+        text: err.message || "Erreur de connexion au service de traduction.",
+      })
+    } finally {
+      setAboutFieldTranslating(null)
+    }
+  }
+
+  // ─── Team Member Auto-Translate ─────────────────────────────────────
+  const handleAutoTranslateTeamMember = async () => {
+    if (!teamFormData.roleFr.trim() && !teamFormData.bioFr.trim()) {
+      setTeamFormError("Veuillez saisir au moins la fonction/rôle en français avant de traduire.")
+      return
+    }
+
+    setTeamTranslating(true)
+    setTeamFormError("")
+    setTeamTranslateNotice(null)
+
+    try {
+      const res = await translateCmsFieldsAction({
+        texts: {
+          role: teamFormData.roleFr,
+          bio: teamFormData.bioFr || "",
+        },
+        sourceLang: "FR",
+        targetLangs: ["EN", "DE"],
+      })
+
+      if (res.success && res.translations) {
+        setTeamFormData((prev) => ({
+          ...prev,
+          roleEn: res.translations.EN.role || prev.roleEn,
+          bioEn: res.translations.EN.bio || prev.bioEn,
+          roleDe: res.translations.DE.role || prev.roleDe,
+          bioDe: res.translations.DE.bio || prev.bioDe,
+        }))
+        const providerName = res.providerUsed === "deepl" ? "DeepL Pro" : "Traducteur automatique"
+        setTeamTranslateNotice({
+          type: "success",
+          text: `Rôle et biographie traduits vers l'anglais et l'allemand (${providerName}).`,
+        })
+      } else {
+        setTeamFormError(res.error || "Erreur lors de la traduction automatique.")
+      }
+    } catch (err: any) {
+      setTeamFormError(err.message || "Erreur de connexion lors de la traduction.")
+    } finally {
+      setTeamTranslating(false)
+    }
+  }
+
+  const handleTranslateSingleTeamField = async (field: "role" | "bio", targetLang: "EN" | "DE") => {
+    const sourceText = field === "role" ? teamFormData.roleFr : teamFormData.bioFr
+    if (!sourceText || !sourceText.trim()) return
+
+    setTeamTranslating(true)
+    try {
+      const res = await translateCmsFieldsAction({
+        texts: { [field]: sourceText },
+        sourceLang: "FR",
+        targetLangs: [targetLang],
+      })
+
+      if (res.success && res.translations?.[targetLang]?.[field]) {
+        const val = res.translations[targetLang][field]
+        if (field === "role") {
+          setTeamFormData((prev) => ({ ...prev, [targetLang === "EN" ? "roleEn" : "roleDe"]: val }))
+        } else {
+          setTeamFormData((prev) => ({ ...prev, [targetLang === "EN" ? "bioEn" : "bioDe"]: val }))
+        }
+      }
+    } catch (err: any) {
+      console.error(err)
+    } finally {
+      setTeamTranslating(false)
+    }
+  }
+
+  const handleSaveAboutTab = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    setSaving(true)
+    setAboutNotice(null)
+
+    const payload: { key: string; value: string; group: string; description?: string }[] = []
+
+    ABOUT_FIELDS.forEach((f) => {
+      if (f.isTranslatable) {
+        ;(["fr", "en", "de"] as const).forEach((l) => {
+          const k = `${f.key}_${l}`
+          payload.push({
+            key: k,
+            value: values[k] || "",
+            group: "ABOUT",
+            description: `${f.label} (${l.toUpperCase()})`,
+          })
+        })
+      } else {
+        payload.push({
+          key: f.key,
+          value: values[f.key] || "",
+          group: "ABOUT",
+          description: f.label,
+        })
+      }
+    })
+
+    ;(["fr", "en", "de"] as const).forEach((l) => {
+      const k = `about_published_${l}`
+      payload.push({
+        key: k,
+        value: values[k] || "DRAFT",
+        group: "ABOUT",
+        description: `Statut publication À Propos (${l.toUpperCase()})`,
+      })
+    })
+
+    try {
+      const res = await updateSiteSettings(payload)
+      if (res.success) {
+        setAboutNotice({
+          type: "success",
+          text: "Tous les contenus de la page À Propos ont été enregistrés avec succès !",
+        })
+      } else {
+        setAboutNotice({
+          type: "error",
+          text: res.error || "Erreur lors de l'enregistrement.",
+        })
+      }
+    } catch (err: any) {
+      setAboutNotice({
+        type: "error",
+        text: err.message || "Erreur réseau.",
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   useEffect(() => {
     loadSettings()
@@ -587,8 +1017,499 @@ export default function AdminSettings() {
         </div>
       )}
 
+      {/* ─── ONGLET ÉDITEUR DE PAGE STATIQUE : À PROPOS ─── */}
+      {activeTab === "ABOUT" && (
+        <div className="space-y-6">
+          {/* Header & Quick Action */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#007BFF] border border-blue-200">
+                    Module CMS • Page Statique
+                  </span>
+                </div>
+                <h2 className="text-xl font-bold text-[#003366] mt-1.5">
+                  Éditeur de Page Statique : « À Propos d&apos;APTIC-R »
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
+                  Gérez l&apos;intégralité des contenus institutionnels : Hero, Chronologie, Piliers d&apos;action, Chiffres d&apos;impact, Valeurs et Gouvernance. Zéro texte codé en dur, contrôle 100% CMS par langue.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleAutoTranslateAbout}
+                  disabled={aboutTranslating}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                  title="Traduit automatiquement les contenus français vers l'anglais et l'allemand"
+                >
+                  {aboutTranslating ? (
+                    <>
+                      <svg className="animate-spin w-4 h-4 text-[#007BFF]" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                      </svg>
+                      <span>Traduction IA en cours...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 text-[#007BFF]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
+                      </svg>
+                      <span>Traduire vers EN &amp; DE</span>
+                    </>
+                  )}
+                </button>
+
+                <a
+                  href={`/${aboutLangTab.toLowerCase()}/a-propos`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-[#003366] bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                >
+                  <span>Aperçu public ({aboutLangTab})</span>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+
+            {aboutNotice && (
+              <div
+                className={`mt-4 p-4 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between gap-4 ${
+                  aboutNotice.type === "success"
+                    ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+                    : aboutNotice.type === "error"
+                    ? "bg-rose-50 border border-rose-200 text-rose-800"
+                    : "bg-blue-50 border border-blue-200 text-blue-800"
+                }`}
+              >
+                <span>{aboutNotice.text}</span>
+                <button
+                  type="button"
+                  onClick={() => setAboutNotice(null)}
+                  className="text-xs font-bold underline opacity-70 hover:opacity-100 cursor-pointer"
+                >
+                  Fermer
+                </button>
+              </div>
+            )}
+
+            {/* ─── Cartes de Statut & Complétude par Langue ─── */}
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              {(["FR", "EN", "DE"] as const).map((lang) => {
+                const completeness = calculateAboutCompleteness(values, lang)
+                const isPub = isAboutPagePublished(values, lang)
+                const langTitle = lang === "FR" ? "Français (Source)" : lang === "EN" ? "English (Anglais)" : "Deutsch (Allemand)"
+
+                return (
+                  <div
+                    key={lang}
+                    className={`p-5 rounded-2xl border transition-all ${
+                      aboutLangTab === lang
+                        ? "bg-white border-[#003366] shadow-sm ring-2 ring-[#003366]/10"
+                        : "bg-slate-50/70 border-slate-200 hover:bg-white"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2.5">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[#003366] text-[11px] font-bold font-mono tracking-wider">
+                          {lang}
+                        </span>
+                        <span className="text-sm font-bold text-slate-800">{langTitle}</span>
+                      </div>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          isPub
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                            : "bg-amber-100 text-amber-800 border border-amber-200"
+                        }`}
+                      >
+                        {isPub ? "● Publié" : "○ Brouillon"}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 mb-4">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500 font-medium">Complétude :</span>
+                        <span className={`font-bold ${completeness.isComplete ? "text-emerald-700" : "text-amber-700"}`}>
+                          {completeness.percentage}%
+                        </span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            completeness.isComplete ? "bg-emerald-500" : "bg-amber-500"
+                          }`}
+                          style={{ width: `${completeness.percentage}%` }}
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        {completeness.filledCount} / {completeness.totalCount} champs requis
+                        {!completeness.isComplete && ` (${completeness.missingFields.length} manquant${completeness.missingFields.length > 1 ? "s" : ""})`}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAboutLangTab(lang)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                          aboutLangTab === lang
+                            ? "bg-[#003366] text-white shadow-xs"
+                            : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                        }`}
+                      >
+                        Éditer {lang}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleToggleAboutPublish(lang)}
+                        disabled={!isPub && !completeness.isComplete}
+                        title={
+                          !isPub && !completeness.isComplete
+                            ? `Complétude à 100% requise pour publier cette langue (${completeness.missingFields.length} champ(s) restant(s))`
+                            : undefined
+                        }
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          isPub
+                            ? "bg-slate-100 border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200"
+                            : completeness.isComplete
+                            ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs"
+                            : "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 opacity-60"
+                        }`}
+                      >
+                        {isPub ? "Passer en Brouillon" : completeness.isComplete ? "Publier" : "Non publiable"}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* ─── Sélecteur d'Onglet de Langue pour le Formulaire ─── */}
+            <div className="mt-8 border-t border-slate-100 pt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Langue en cours d&apos;édition :
+                  </span>
+                </div>
+                <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1 self-start sm:self-auto">
+                  {(["FR", "EN", "DE"] as const).map((lang) => {
+                    const completeness = calculateAboutCompleteness(values, lang)
+                    const isActive = aboutLangTab === lang
+                    return (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => setAboutLangTab(lang)}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                          isActive
+                            ? "bg-[#003366] text-white shadow-xs"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                        }`}
+                      >
+                        <span>{lang === "FR" ? "Français" : lang === "EN" ? "English" : "Deutsch"}</span>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                            isActive
+                              ? "bg-white/20 text-white"
+                              : completeness.isComplete
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-amber-100 text-amber-800"
+                          }`}
+                        >
+                          {completeness.percentage}%
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {aboutLangTab !== "FR" && (
+                <div className="mt-4 p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/70 text-xs text-blue-900 flex items-center gap-3">
+                  <svg className="w-4 h-4 text-[#007BFF] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>
+                    Vous éditez actuellement la version <strong>{aboutLangTab === "EN" ? "Anglaise" : "Allemande"}</strong>.
+                    Pour chaque champ multilingue, le texte de référence français est affiché pour vous guider.
+                    Vous pouvez aussi utiliser le bouton <strong>« Traduire vers EN &amp; DE »</strong> ci-dessus pour pré-remplir automatiquement.
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ─── Formulaire par Sections Accordéon ─── */}
+          <form onSubmit={handleSaveAboutTab} className="space-y-6">
+            {ABOUT_SECTIONS.map((section) => {
+              const fields = ABOUT_FIELDS.filter((f) => f.section === section.id)
+              const isExpanded = aboutExpandedSections[section.id] !== false
+
+              return (
+                <div key={section.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                  {/* Section Header (Toggleable) */}
+                  <div className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
+                    <div
+                      onClick={() => toggleAboutSection(section.id)}
+                      className="flex items-center gap-3 cursor-pointer select-none flex-1"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-mono font-bold text-xs text-[#003366] shrink-0">
+                        {SECTION_NUMBERS[section.id] || "01"}
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                          <span>{section.label}</span>
+                          <span className="text-[11px] font-normal text-slate-400">
+                            ({fields.length} champs)
+                          </span>
+                        </h3>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Section : {section.id}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
+                      {/* Bouton de traduction de la section entière */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleTranslateAboutSection(section.id)
+                        }}
+                        disabled={aboutSectionTranslating === section.id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#007BFF] bg-blue-50/80 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer disabled:opacity-50"
+                        title={`Traduire automatiquement la section « ${section.label} » vers l'anglais et l'allemand`}
+                      >
+                        {aboutSectionTranslating === section.id ? (
+                          <>
+                            <svg className="animate-spin w-3.5 h-3.5 text-[#007BFF]" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
+                            <span>Traduction section...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-3.5 h-3.5 text-[#007BFF]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
+                            </svg>
+                            <span>Traduire cette section</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Bouton Masquer / Déplier */}
+                      <button
+                        type="button"
+                        onClick={() => toggleAboutSection(section.id)}
+                        className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-slate-600 px-2 py-1.5 rounded-lg cursor-pointer"
+                      >
+                        <span>{isExpanded ? "Masquer" : "Déplier"}</span>
+                        <svg
+                          className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Section Fields */}
+                  {isExpanded && (
+                    <div className="p-6 sm:p-8 space-y-6 divide-y divide-slate-100">
+                      {fields.map((field, idx) => {
+                        const dbKey = field.isTranslatable ? getAboutFieldDbKey(field.key, aboutLangTab) : field.key
+                        const frKey = `${field.key}_fr`
+                        const frValue = field.isTranslatable ? values[frKey] || "" : ""
+                        const currentValue = values[dbKey] || ""
+
+                        return (
+                          <div key={field.key} className={idx > 0 ? "pt-6" : ""}>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <label className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+                                  {field.label}
+                                </label>
+                                {field.required ? (
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
+                                    Requis
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-500">
+                                    Optionnel
+                                  </span>
+                                )}
+                                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-blue-50 text-blue-700">
+                                  {field.isTranslatable ? `Multilingue (${aboutLangTab})` : "Commun (Toutes langues)"}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                {aboutLangTab !== "FR" && field.isTranslatable && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleTranslateAboutSingleField(field.key, aboutLangTab)}
+                                    disabled={aboutFieldTranslating === field.key || !frValue}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#007BFF] bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors disabled:opacity-40 cursor-pointer"
+                                    title="Traduire automatiquement ce champ spécifique depuis la source française"
+                                  >
+                                    {aboutFieldTranslating === field.key ? (
+                                      <>
+                                        <svg className="animate-spin w-3 h-3 text-[#007BFF]" fill="none" viewBox="0 0 24 24">
+                                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                        </svg>
+                                        <span>Traduction...</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <svg className="w-3 h-3 text-[#007BFF]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
+                                        </svg>
+                                        <span>Traduire ce champ</span>
+                                      </>
+                                    )}
+                                  </button>
+                                )}
+                                <span className="text-[11px] font-mono text-slate-400">
+                                  Clé BD : {dbKey}
+                                </span>
+                              </div>
+                            </div>
+
+                            {field.description && (
+                              <p className="text-xs text-slate-500 mb-2 leading-relaxed">
+                                {field.description}
+                              </p>
+                            )}
+
+                            {/* Reference source block in French when editing EN or DE */}
+                            {aboutLangTab !== "FR" && field.isTranslatable && frValue && (
+                              <div className="mb-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                                <div className="flex items-center justify-between gap-2 font-bold text-[#003366] text-[11px] uppercase tracking-wider mb-1">
+                                  <span>Référence source (Français) :</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleTranslateAboutSingleField(field.key, aboutLangTab)}
+                                    disabled={aboutFieldTranslating === field.key}
+                                    className="text-[10px] font-semibold text-[#007BFF] hover:underline cursor-pointer lowercase"
+                                  >
+                                    traduire ce texte vers {aboutLangTab}
+                                  </button>
+                                </div>
+                                <p className="italic leading-relaxed whitespace-pre-line text-slate-700">
+                                  {frValue}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Field input according to type */}
+                            {field.type === "image" ? (
+                              <div className="space-y-3">
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                  <input
+                                    type="text"
+                                    value={currentValue}
+                                    onChange={(e) => handleInputChange(dbKey, e.target.value)}
+                                    placeholder="https://... ou /uploads/..."
+                                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-xs font-mono text-slate-800"
+                                  />
+                                  <label className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer transition-colors shrink-0">
+                                    <span>
+                                      {uploadingSettingKey === dbKey ? "Téléversement..." : "Choisir une image"}
+                                    </span>
+                                    <input
+                                      type="file"
+                                      accept="image/jpeg,image/png,image/webp,image/avif"
+                                      className="hidden"
+                                      disabled={uploadingSettingKey === dbKey}
+                                      onChange={(e) => {
+                                        const f = e.target.files?.[0]
+                                        if (f) handleSettingImageUpload(dbKey, f)
+                                      }}
+                                    />
+                                  </label>
+                                </div>
+
+                                {currentValue && (
+                                  <div className="mt-2">
+                                    <span className="text-xs font-semibold text-slate-400 block mb-1.5">
+                                      Aperçu actuel :
+                                    </span>
+                                    <div className="w-56 h-36 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 relative">
+                                      <img
+                                        src={currentValue}
+                                        alt="Aperçu"
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          ;(e.target as HTMLElement).style.display = "none"
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : field.type === "textarea" ? (
+                              <textarea
+                                rows={4}
+                                value={currentValue}
+                                onChange={(e) => handleInputChange(dbKey, e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
+                              />
+                            ) : (
+                              <input
+                                type="text"
+                                value={currentValue}
+                                onChange={(e) => handleInputChange(dbKey, e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
+                              />
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+
+            {/* Sticky Save Bar */}
+            <div className="sticky bottom-4 z-20 bg-white/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-[#28A745] animate-pulse" />
+                <span className="text-xs sm:text-sm font-bold text-slate-700">
+                  Modifications de la page « À Propos » ({aboutLangTab})
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="w-full sm:w-auto px-7 py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-[#007BFF] hover:bg-[#0069d9] transition-all shadow-md hover:shadow-lg disabled:opacity-50 cursor-pointer"
+                >
+                  {saving ? "Enregistrement en cours..." : "Enregistrer tous les contenus"}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* ─── ONGLET SETTINGS GÉNÉRAUX & MÉDIAS ─── */}
-      {activeTab !== "TEAM" && (
+      {activeTab !== "TEAM" && activeTab !== "ABOUT" && (
         <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
           {loading ? (
             <div className="py-12 text-center text-sm text-slate-400">Chargement des paramètres...</div>
@@ -815,27 +1736,73 @@ export default function AdminSettings() {
 
               {/* ─── Onglets de langues pour la fonction et la biographie ─── */}
               <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#003366] uppercase tracking-wider">
-                    Contenu multilingue (Rôle & Biographie)
-                  </span>
-                  <div className="flex bg-white rounded-xl p-1 border border-slate-200 gap-1">
-                    {(["FR", "EN", "DE"] as const).map((l) => (
-                      <button
-                        key={l}
-                        type="button"
-                        onClick={() => setMemberLangTab(l)}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                          memberLangTab === l
-                            ? "bg-[#003366] text-white shadow-xs"
-                            : "text-slate-600 hover:bg-slate-100"
-                        }`}
-                      >
-                        {l === "FR" ? "Français *" : l === "EN" ? "English" : "Deutsch"}
-                      </button>
-                    ))}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-xs font-bold text-[#003366] uppercase tracking-wider block">
+                      Contenu multilingue (Rôle &amp; Biographie)
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Renseignez le français, puis traduisez automatiquement vers l&apos;anglais et l&apos;allemand.
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAutoTranslateTeamMember}
+                      disabled={teamTranslating || !teamFormData.roleFr}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-[#007BFF] hover:bg-[#0069d9] transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                      title="Traduit automatiquement le rôle et la biographie vers l'anglais et l'allemand"
+                    >
+                      {teamTranslating ? (
+                        <>
+                          <svg className="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                          </svg>
+                          <span>Traduction...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
+                          </svg>
+                          <span>Traduire vers EN &amp; DE</span>
+                        </>
+                      )}
+                    </button>
+
+                    <div className="flex bg-white rounded-xl p-1 border border-slate-200 gap-1">
+                      {(["FR", "EN", "DE"] as const).map((l) => (
+                        <button
+                          key={l}
+                          type="button"
+                          onClick={() => setMemberLangTab(l)}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            memberLangTab === l
+                              ? "bg-[#003366] text-white shadow-xs"
+                              : "text-slate-600 hover:bg-slate-100"
+                          }`}
+                        >
+                          {l === "FR" ? "Français *" : l === "EN" ? "English" : "Deutsch"}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
+
+                {teamTranslateNotice && (
+                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between">
+                    <span>{teamTranslateNotice.text}</span>
+                    <button
+                      type="button"
+                      onClick={() => setTeamTranslateNotice(null)}
+                      className="text-xs font-bold underline ml-2 cursor-pointer"
+                    >
+                      Fermer
+                    </button>
+                  </div>
+                )}
 
                 {/* Contenu FR */}
                 {memberLangTab === "FR" && (
@@ -872,9 +1839,29 @@ export default function AdminSettings() {
                 {memberLangTab === "EN" && (
                   <div className="space-y-4 pt-1">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                        Title / Role (English - Optional)
-                      </label>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <label className="block text-xs font-bold text-slate-700 uppercase">
+                          Title / Role (English - Optional)
+                        </label>
+                        {teamFormData.roleFr && (
+                          <button
+                            type="button"
+                            onClick={() => handleTranslateSingleTeamField("role", "EN")}
+                            disabled={teamTranslating}
+                            className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
+                            </svg>
+                            <span>Traduire ce champ</span>
+                          </button>
+                        )}
+                      </div>
+                      {teamFormData.roleFr && (
+                        <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
+                          Source (FR) : {teamFormData.roleFr}
+                        </div>
+                      )}
                       <input
                         type="text"
                         value={teamFormData.roleEn}
@@ -884,9 +1871,29 @@ export default function AdminSettings() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                        Biography (English - Optional)
-                      </label>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <label className="block text-xs font-bold text-slate-700 uppercase">
+                          Biography (English - Optional)
+                        </label>
+                        {teamFormData.bioFr && (
+                          <button
+                            type="button"
+                            onClick={() => handleTranslateSingleTeamField("bio", "EN")}
+                            disabled={teamTranslating}
+                            className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
+                            </svg>
+                            <span>Traduire ce champ</span>
+                          </button>
+                        )}
+                      </div>
+                      {teamFormData.bioFr && (
+                        <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
+                          Source (FR) : {teamFormData.bioFr}
+                        </div>
+                      )}
                       <textarea
                         rows={3}
                         value={teamFormData.bioEn}
@@ -902,9 +1909,29 @@ export default function AdminSettings() {
                 {memberLangTab === "DE" && (
                   <div className="space-y-4 pt-1">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                        Funktion / Rolle (Deutsch - Optional)
-                      </label>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <label className="block text-xs font-bold text-slate-700 uppercase">
+                          Funktion / Rolle (Deutsch - Optional)
+                        </label>
+                        {teamFormData.roleFr && (
+                          <button
+                            type="button"
+                            onClick={() => handleTranslateSingleTeamField("role", "DE")}
+                            disabled={teamTranslating}
+                            className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
+                            </svg>
+                            <span>Traduire ce champ</span>
+                          </button>
+                        )}
+                      </div>
+                      {teamFormData.roleFr && (
+                        <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
+                          Source (FR) : {teamFormData.roleFr}
+                        </div>
+                      )}
                       <input
                         type="text"
                         value={teamFormData.roleDe}
@@ -914,9 +1941,29 @@ export default function AdminSettings() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                        Biografie (Deutsch - Optional)
-                      </label>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <label className="block text-xs font-bold text-slate-700 uppercase">
+                          Biografie (Deutsch - Optional)
+                        </label>
+                        {teamFormData.bioFr && (
+                          <button
+                            type="button"
+                            onClick={() => handleTranslateSingleTeamField("bio", "DE")}
+                            disabled={teamTranslating}
+                            className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
+                            </svg>
+                            <span>Traduire ce champ</span>
+                          </button>
+                        )}
+                      </div>
+                      {teamFormData.bioFr && (
+                        <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
+                          Source (FR) : {teamFormData.bioFr}
+                        </div>
+                      )}
                       <textarea
                         rows={3}
                         value={teamFormData.bioDe}

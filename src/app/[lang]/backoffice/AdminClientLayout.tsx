@@ -60,6 +60,24 @@ export default function AdminClientLayout({
       case "admin-partners":
         router.push(`/${lang}/backoffice/partners`)
         break
+      case "admin-members":
+        router.push(`/${lang}/backoffice/members`)
+        break
+      case "admin-articles":
+        router.push(`/${lang}/backoffice/articles`)
+        break
+      case "admin-projects":
+        router.push(`/${lang}/backoffice/projects`)
+        break
+      case "admin-domains":
+        router.push(`/${lang}/backoffice/domains`)
+        break
+      case "admin-events":
+        router.push(`/${lang}/backoffice/events`)
+        break
+      case "admin-newsletter":
+        router.push(`/${lang}/backoffice/newsletter`)
+        break
       case "admin-settings":
         router.push(`/${lang}/backoffice/settings`)
         break
