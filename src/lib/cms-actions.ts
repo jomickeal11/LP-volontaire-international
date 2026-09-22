@@ -134,16 +134,51 @@ export async function subscribeNewsletter(formData: unknown) {
 
 // ─── 4. PROJETS ───────────────────────────────────────────────────────────────
 
+/**
+ * Validation linguistique stricte pour la publication d'un projet :
+ * - Le projet doit être explicitement marqué comme publié dans la langue cible (publishedFr / publishedEn / publishedDe)
+ * - Le titre et le résumé/description doivent être renseignés dans la langue cible
+ * - Si le projet est rattaché à un domaine, ce domaine doit également être disponible et traduit dans la langue cible
+ */
+function isProjectPublishedForLang(p: any, lang: string): boolean {
+  if (!p) return false
+  const l = (lang || "FR").toUpperCase()
+
+  if (l === "EN") {
+    if (!p.publishedEn) return false
+    if (!p.titleEn || !p.titleEn.trim()) return false
+    if (!((p.summaryEn && p.summaryEn.trim()) || (p.descriptionEn && p.descriptionEn.trim()))) return false
+    if (p.domaine && (!p.domaine.nameEn || !p.domaine.nameEn.trim())) return false
+    return true
+  }
+
+  if (l === "DE") {
+    if (!p.publishedDe) return false
+    if (!p.titleDe || !p.titleDe.trim()) return false
+    if (!((p.summaryDe && p.summaryDe.trim()) || (p.descriptionDe && p.descriptionDe.trim()))) return false
+    if (p.domaine && (!p.domaine.nameDe || !p.domaine.nameDe.trim())) return false
+    return true
+  }
+
+  // Défaut : FR
+  if (p.publishedFr === false) return false
+  if (!p.titleFr || !p.titleFr.trim()) return false
+  if (!((p.summaryFr && p.summaryFr.trim()) || (p.descriptionFr && p.descriptionFr.trim()))) return false
+  if (p.domaine && (!p.domaine.nameFr || !p.domaine.nameFr.trim())) return false
+  return true
+}
+
 export async function getProjects(options?: {
   domaineSlug?: string
   status?: string
   featuredOnly?: boolean
   limit?: number
+  lang?: string
 }) {
   try {
     const where: any = {}
 
-    if (options?.status) {
+    if (options?.status && options.status !== "ALL") {
       where.status = options.status
     }
     if (options?.featuredOnly) {
@@ -153,7 +188,16 @@ export async function getProjects(options?: {
       where.domaine = { slug: options.domaineSlug }
     }
 
-    return await prisma.projet.findMany({
+    const lang = options?.lang ? options.lang.toUpperCase() : null
+    if (lang === "EN") {
+      where.publishedEn = true
+    } else if (lang === "DE") {
+      where.publishedDe = true
+    } else if (lang === "FR") {
+      where.publishedFr = true
+    }
+
+    const projects = await prisma.projet.findMany({
       where,
       orderBy: [{ displayOrder: "asc" }, { createdAt: "desc" }],
       take: options?.limit,
@@ -162,6 +206,7 @@ export async function getProjects(options?: {
           select: {
             id: true,
             slug: true,
+            code: true,
             nameFr: true,
             nameEn: true,
             nameDe: true,
@@ -169,22 +214,50 @@ export async function getProjects(options?: {
             color: true,
           },
         },
+        ressources: {
+          where: { published: true },
+        },
+        medias: {
+          orderBy: { order: "asc" },
+        },
       },
     })
+
+    if (lang) {
+      return projects.filter((p) => isProjectPublishedForLang(p, lang))
+    }
+
+    return projects
   } catch (error) {
     console.error("Error fetching projects:", error)
     return []
   }
 }
 
-export async function getProjectBySlug(slug: string) {
+export async function getProjectBySlug(slug: string, lang?: string) {
   try {
-    return await prisma.projet.findUnique({
+    const project = await prisma.projet.findUnique({
       where: { slug },
       include: {
         domaine: true,
+        ressources: {
+          where: { published: true },
+          orderBy: { year: "desc" },
+        },
+        medias: {
+          orderBy: { order: "asc" },
+        },
       },
     })
+
+    if (!project) return null
+
+    // Stricte étanchéité multilingue si lang est spécifié
+    if (lang && !isProjectPublishedForLang(project, lang)) {
+      return null
+    }
+
+    return project
   } catch (error) {
     console.error(`Error fetching project ${slug}:`, error)
     return null
@@ -659,11 +732,25 @@ export async function createProject(data: {
   descriptionFr: string
   descriptionEn?: string
   descriptionDe?: string
+  objectivesFr?: string
+  objectivesEn?: string
+  objectivesDe?: string
+  actionsFr?: string
+  actionsEn?: string
+  actionsDe?: string
+  resultsFr?: string
+  resultsEn?: string
+  resultsDe?: string
+  publishedFr?: boolean
+  publishedEn?: boolean
+  publishedDe?: boolean
   location: string
   country?: string
   status?: string
   domaineId?: string
   beneficiaries?: string
+  startDate?: Date | null
+  endDate?: Date | null
   isFeatured?: boolean
   displayOrder?: number
   featuredImage?: string
@@ -689,11 +776,25 @@ export async function createProject(data: {
         descriptionFr: data.descriptionFr.trim(),
         descriptionEn: data.descriptionEn?.trim() || null,
         descriptionDe: data.descriptionDe?.trim() || null,
+        objectivesFr: data.objectivesFr?.trim() || null,
+        objectivesEn: data.objectivesEn?.trim() || null,
+        objectivesDe: data.objectivesDe?.trim() || null,
+        actionsFr: data.actionsFr?.trim() || null,
+        actionsEn: data.actionsEn?.trim() || null,
+        actionsDe: data.actionsDe?.trim() || null,
+        resultsFr: data.resultsFr?.trim() || null,
+        resultsEn: data.resultsEn?.trim() || null,
+        resultsDe: data.resultsDe?.trim() || null,
+        publishedFr: data.publishedFr !== undefined ? Boolean(data.publishedFr) : true,
+        publishedEn: data.publishedEn !== undefined ? Boolean(data.publishedEn) : false,
+        publishedDe: data.publishedDe !== undefined ? Boolean(data.publishedDe) : false,
         location: data.location.trim(),
         country: data.country || "Togo",
         status: data.status || "IN_PROGRESS",
         domaineId: data.domaineId || null,
         beneficiaries: data.beneficiaries?.trim() || null,
+        startDate: data.startDate || null,
+        endDate: data.endDate || null,
         isFeatured: Boolean(data.isFeatured),
         displayOrder: data.displayOrder || 0,
         featuredImage: data.featuredImage || null,
@@ -709,6 +810,7 @@ export async function createProject(data: {
 
     revalidatePath("/backoffice/projects")
     revalidatePath("/[lang]/projets", "page")
+    revalidatePath(`/[lang]/projets/${slug}`, "page")
     return { success: true, project: projet }
   } catch (error: any) {
     console.error("Error creating project:", error)
@@ -731,6 +833,7 @@ export async function updateProject(id: string, data: any) {
     })
     revalidatePath("/backoffice/projects")
     revalidatePath("/[lang]/projets", "page")
+    revalidatePath(`/[lang]/projets/${project.slug}`, "page")
     return { success: true, project }
   } catch (error: any) {
     console.error("Error updating project:", error)
@@ -1378,8 +1481,11 @@ export async function getDomaines(options?: { activeOnly?: boolean }) {
             titleEn: true,
             titleDe: true,
             summaryFr: true,
+            summaryEn: true,
+            summaryDe: true,
             status: true,
             featuredImage: true,
+            location: true,
           },
         },
       },
@@ -1391,20 +1497,33 @@ export async function getDomaines(options?: { activeOnly?: boolean }) {
   }
 }
 
-export async function getDomaineBySlug(slug: string) {
-  try {
-    const domaine = await (prisma as any).domaine.findUnique({
-      where: { slug },
-      include: {
-        projets: true,
-        ressources: true,
-      },
-    })
-    return domaine
-  } catch (error) {
-    console.error("Error fetching domaine by slug:", error)
-    return null
+export async function getDomaineBySlug(slugOrId: string) {
+  const maxRetries = 2
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const domaine = await (prisma as any).domaine.findFirst({
+        where: {
+          OR: [{ slug: slugOrId }, { id: slugOrId }],
+        },
+        include: {
+          projets: {
+            orderBy: [{ displayOrder: "asc" }, { createdAt: "desc" }],
+          },
+          ressources: {
+            where: { published: true },
+            orderBy: { year: "desc" },
+          },
+        },
+      })
+      return domaine
+    } catch (error: any) {
+      console.warn(`[getDomaineBySlug] Tentative ${attempt}/${maxRetries} échouée:`, error?.message || error)
+      if (attempt < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      }
+    }
   }
+  return null
 }
 
 export async function createDomaine(data: {

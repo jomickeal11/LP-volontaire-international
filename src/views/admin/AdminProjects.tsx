@@ -1,11 +1,17 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
+import Link from "next/link"
 import { getProjects, getDomaines, createProject, deleteProject, updateProject } from "@/lib/cms-actions"
+import { translateCmsFieldsAction } from "@/lib/translator"
+import { ExternalLink, Star } from "lucide-react"
 
 interface ProjectItem {
   id: string
   slug: string
+  publishedFr: boolean
+  publishedEn: boolean
+  publishedDe: boolean
   titleFr: string
   titleEn?: string | null
   titleDe?: string | null
@@ -15,9 +21,20 @@ interface ProjectItem {
   descriptionFr?: string | null
   descriptionEn?: string | null
   descriptionDe?: string | null
+  objectivesFr?: string | null
+  objectivesEn?: string | null
+  objectivesDe?: string | null
+  actionsFr?: string | null
+  actionsEn?: string | null
+  actionsDe?: string | null
+  resultsFr?: string | null
+  resultsEn?: string | null
+  resultsDe?: string | null
   location: string
   country: string
   status: string
+  startDate?: Date | string | null
+  endDate?: Date | string | null
   beneficiaries?: string | null
   featuredImage?: string | null
   isFeatured: boolean
@@ -36,8 +53,6 @@ interface DomaineItem {
   nameFr: string
 }
 
-import { translateCmsFieldsAction } from "@/lib/translator"
-
 export default function AdminProjects() {
   const [projects, setProjects] = useState<ProjectItem[]>([])
   const [domaines, setDomaines] = useState<DomaineItem[]>([])
@@ -55,6 +70,9 @@ export default function AdminProjects() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
+    publishedFr: true,
+    publishedEn: false,
+    publishedDe: false,
     titleFr: "",
     titleEn: "",
     titleDe: "",
@@ -65,9 +83,20 @@ export default function AdminProjects() {
     descriptionFr: "",
     descriptionEn: "",
     descriptionDe: "",
+    objectivesFr: "",
+    objectivesEn: "",
+    objectivesDe: "",
+    actionsFr: "",
+    actionsEn: "",
+    actionsDe: "",
+    resultsFr: "",
+    resultsEn: "",
+    resultsDe: "",
     location: "Agbélouvé, Préfecture du Zio",
     country: "Togo",
     status: "IN_PROGRESS",
+    startDate: "",
+    endDate: "",
     beneficiaries: "",
     featuredImage: "",
     isFeatured: false,
@@ -138,12 +167,17 @@ export default function AdminProjects() {
     setTranslationNotice("")
 
     try {
+      const textsToTranslate: Record<string, string> = {
+        title: formData.titleFr,
+        summary: formData.summaryFr,
+      }
+      if (formData.descriptionFr) textsToTranslate.description = formData.descriptionFr
+      if (formData.objectivesFr) textsToTranslate.objectives = formData.objectivesFr
+      if (formData.actionsFr) textsToTranslate.actions = formData.actionsFr
+      if (formData.resultsFr) textsToTranslate.results = formData.resultsFr
+
       const res = await translateCmsFieldsAction({
-        texts: {
-          title: formData.titleFr,
-          summary: formData.summaryFr,
-          description: formData.descriptionFr || formData.summaryFr,
-        },
+        texts: textsToTranslate,
         sourceLang: "FR",
         targetLangs: ["EN", "DE"],
       })
@@ -151,15 +185,23 @@ export default function AdminProjects() {
       if (res.success) {
         setFormData((prev) => ({
           ...prev,
+          publishedEn: true,
+          publishedDe: true,
           titleEn: res.translations.EN.title || prev.titleEn,
           summaryEn: res.translations.EN.summary || prev.summaryEn,
           descriptionEn: res.translations.EN.description || prev.descriptionEn,
+          objectivesEn: res.translations.EN.objectives || prev.objectivesEn,
+          actionsEn: res.translations.EN.actions || prev.actionsEn,
+          resultsEn: res.translations.EN.results || prev.resultsEn,
           titleDe: res.translations.DE.title || prev.titleDe,
           summaryDe: res.translations.DE.summary || prev.summaryDe,
           descriptionDe: res.translations.DE.description || prev.descriptionDe,
+          objectivesDe: res.translations.DE.objectives || prev.objectivesDe,
+          actionsDe: res.translations.DE.actions || prev.actionsDe,
+          resultsDe: res.translations.DE.results || prev.resultsDe,
         }))
         const providerName = res.providerUsed === "deepl" ? "DeepL API" : "Traducteur automatique"
-        setTranslationNotice(`Champs traduits avec succès via ${providerName}. Vérifiez les onglets English et Deutsch.`)
+        setTranslationNotice(`Champs traduits avec succès via ${providerName}. Les versions EN et DE ont été pré-remplies et cochées en publication.`)
       } else {
         setError(res.error || "Erreur lors de la traduction automatique.")
       }
@@ -170,11 +212,17 @@ export default function AdminProjects() {
     }
   }
 
-  const handleTranslateSingleField = async (field: "title" | "summary" | "description", targetLang: "EN" | "DE") => {
-    const sourceMap = {
+  const handleTranslateSingleField = async (
+    field: "title" | "summary" | "description" | "objectives" | "actions" | "results",
+    targetLang: "EN" | "DE"
+  ) => {
+    const sourceMap: Record<string, string> = {
       title: formData.titleFr,
       summary: formData.summaryFr,
       description: formData.descriptionFr || formData.summaryFr,
+      objectives: formData.objectivesFr,
+      actions: formData.actionsFr,
+      results: formData.resultsFr,
     }
     const sourceText = sourceMap[field]
     if (!sourceText || !sourceText.trim()) {
@@ -193,8 +241,8 @@ export default function AdminProjects() {
       if (res.success && res.translations?.[targetLang]?.[field]) {
         const val = res.translations[targetLang][field]
         const stateKey = targetLang === "EN"
-          ? (field === "title" ? "titleEn" : field === "summary" ? "summaryEn" : "descriptionEn")
-          : (field === "title" ? "titleDe" : field === "summary" ? "summaryDe" : "descriptionDe")
+          ? (`${field}En` as keyof typeof formData)
+          : (`${field}De` as keyof typeof formData)
         setFormData((prev) => ({ ...prev, [stateKey]: val }))
         setTranslationNotice(`Champ « ${field} » traduit vers ${targetLang === "EN" ? "l'anglais" : "l'allemand"}.`)
       } else {
@@ -214,6 +262,9 @@ export default function AdminProjects() {
     if (project) {
       setEditingId(project.id)
       setFormData({
+        publishedFr: project.publishedFr ?? true,
+        publishedEn: project.publishedEn ?? false,
+        publishedDe: project.publishedDe ?? false,
         titleFr: project.titleFr || "",
         titleEn: project.titleEn || "",
         titleDe: project.titleDe || "",
@@ -224,9 +275,20 @@ export default function AdminProjects() {
         descriptionFr: project.descriptionFr || project.summaryFr || "",
         descriptionEn: project.descriptionEn || "",
         descriptionDe: project.descriptionDe || "",
+        objectivesFr: project.objectivesFr || "",
+        objectivesEn: project.objectivesEn || "",
+        objectivesDe: project.objectivesDe || "",
+        actionsFr: project.actionsFr || "",
+        actionsEn: project.actionsEn || "",
+        actionsDe: project.actionsDe || "",
+        resultsFr: project.resultsFr || "",
+        resultsEn: project.resultsEn || "",
+        resultsDe: project.resultsDe || "",
         location: project.location || "Agbélouvé, Préfecture du Zio",
         country: project.country || "Togo",
         status: project.status || "IN_PROGRESS",
+        startDate: project.startDate ? new Date(project.startDate).toISOString().split("T")[0] : "",
+        endDate: project.endDate ? new Date(project.endDate).toISOString().split("T")[0] : "",
         beneficiaries: project.beneficiaries || "",
         featuredImage: project.featuredImage || "",
         isFeatured: project.isFeatured || false,
@@ -234,11 +296,13 @@ export default function AdminProjects() {
       })
     } else {
       setEditingId(null)
-      // Auto-incrément : max(displayOrder) + 1
       const maxOrder = projects.reduce((max, p) => Math.max(max, p.displayOrder || 0), 0)
       const nextOrder = maxOrder > 0 ? maxOrder + 1 : projects.length + 1
 
       setFormData({
+        publishedFr: true,
+        publishedEn: false,
+        publishedDe: false,
         titleFr: "",
         titleEn: "",
         titleDe: "",
@@ -249,9 +313,20 @@ export default function AdminProjects() {
         descriptionFr: "",
         descriptionEn: "",
         descriptionDe: "",
+        objectivesFr: "",
+        objectivesEn: "",
+        objectivesDe: "",
+        actionsFr: "",
+        actionsEn: "",
+        actionsDe: "",
+        resultsFr: "",
+        resultsEn: "",
+        resultsDe: "",
         location: "Agbélouvé, Préfecture du Zio",
         country: "Togo",
         status: "IN_PROGRESS",
+        startDate: "",
+        endDate: "",
         beneficiaries: "",
         featuredImage: "",
         isFeatured: false,
@@ -288,6 +363,9 @@ export default function AdminProjects() {
       }
 
       const payload = {
+        publishedFr: formData.publishedFr,
+        publishedEn: formData.publishedEn,
+        publishedDe: formData.publishedDe,
         titleFr: formData.titleFr,
         titleEn: formData.titleEn || undefined,
         titleDe: formData.titleDe || undefined,
@@ -298,9 +376,20 @@ export default function AdminProjects() {
         descriptionFr: formData.descriptionFr || formData.summaryFr,
         descriptionEn: formData.descriptionEn || undefined,
         descriptionDe: formData.descriptionDe || undefined,
+        objectivesFr: formData.objectivesFr || undefined,
+        objectivesEn: formData.objectivesEn || undefined,
+        objectivesDe: formData.objectivesDe || undefined,
+        actionsFr: formData.actionsFr || undefined,
+        actionsEn: formData.actionsEn || undefined,
+        actionsDe: formData.actionsDe || undefined,
+        resultsFr: formData.resultsFr || undefined,
+        resultsEn: formData.resultsEn || undefined,
+        resultsDe: formData.resultsDe || undefined,
         location: formData.location,
         country: formData.country,
         status: formData.status,
+        startDate: formData.startDate ? new Date(formData.startDate) : undefined,
+        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
         beneficiaries: formData.beneficiaries || undefined,
         featuredImage: formData.featuredImage || undefined,
         isFeatured: formData.isFeatured,
@@ -339,12 +428,10 @@ export default function AdminProjects() {
   }
 
   const handleToggleFeatured = async (id: string, current: boolean) => {
-    // ⚡ Mise à jour optimiste instantanée de l'interface (plus de lenteur perçue)
     const newFeaturedState = !current
     setProjects((prev) =>
       prev.map((p) => {
         if (newFeaturedState) {
-          // Un seul projet phare à la fois sur l'accueil
           return { ...p, isFeatured: p.id === id }
         }
         return p.id === id ? { ...p, isFeatured: false } : p
@@ -355,7 +442,6 @@ export default function AdminProjects() {
       await updateProject(id, { isFeatured: newFeaturedState })
     } catch (e) {
       console.error(e)
-      // Annuler en cas d'erreur
       await loadData()
     }
   }
@@ -369,16 +455,51 @@ export default function AdminProjects() {
             CMS : Projets Institutionnels
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Gérez les projets de terrain d&apos;APTIC-R, leurs objectifs, localisations et statuts.
+            Gérez les fiches projets détaillées, les statuts de publication par langue, objectifs et jalons terrain.
           </p>
         </div>
 
         <button
           onClick={() => {
             setActiveLangTab("FR")
+            setEditingId(null)
+            const maxOrder = projects.reduce((max, p) => Math.max(max, p.displayOrder || 0), 0)
+            setFormData({
+              publishedFr: true,
+              publishedEn: false,
+              publishedDe: false,
+              titleFr: "",
+              titleEn: "",
+              titleDe: "",
+              domaineId: domaines[0]?.id || "",
+              summaryFr: "",
+              summaryEn: "",
+              summaryDe: "",
+              descriptionFr: "",
+              descriptionEn: "",
+              descriptionDe: "",
+              objectivesFr: "",
+              objectivesEn: "",
+              objectivesDe: "",
+              actionsFr: "",
+              actionsEn: "",
+              actionsDe: "",
+              resultsFr: "",
+              resultsEn: "",
+              resultsDe: "",
+              location: "Agbélouvé, Préfecture du Zio",
+              country: "Togo",
+              status: "IN_PROGRESS",
+              startDate: "",
+              endDate: "",
+              beneficiaries: "",
+              featuredImage: "",
+              isFeatured: false,
+              displayOrder: maxOrder + 1,
+            })
             setModalOpen(true)
           }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#174F7A] text-white hover:bg-[#123e60] transition-colors shadow-sm self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#174F7A] text-white hover:bg-[#123e60] transition-colors shadow-sm self-start sm:self-auto cursor-pointer"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -395,10 +516,9 @@ export default function AdminProjects() {
               <tr>
                 <th className="py-3.5 px-4">Visuel</th>
                 <th className="py-3.5 px-4">Titre du Projet</th>
-                <th className="py-3.5 px-4">Domaine d&apos;Action</th>
-                <th className="py-3.5 px-4">Lieu</th>
-                <th className="py-3.5 px-4">Bénéficiaires</th>
-                <th className="py-3.5 px-4">Statut</th>
+                <th className="py-3.5 px-4">Domaine</th>
+                <th className="py-3.5 px-4">Publication</th>
+                <th className="py-3.5 px-4">Statut Terrain</th>
                 <th className="py-3.5 px-4">Phare</th>
                 <th className="py-3.5 px-4">Ordre</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
@@ -407,13 +527,13 @@ export default function AdminProjects() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
                     Chargement des projets...
                   </td>
                 </tr>
               ) : projects.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
                     Aucun projet enregistré.
                   </td>
                 </tr>
@@ -423,7 +543,6 @@ export default function AdminProjects() {
                     <td className="py-3.5 px-4">
                       {proj.featuredImage ? (
                         <div className="w-12 h-10 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={proj.featuredImage}
                             alt=""
@@ -438,18 +557,53 @@ export default function AdminProjects() {
                         </div>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800 max-w-xs truncate">
-                      {proj.titleFr}
+                    <td className="py-3.5 px-4 max-w-xs">
+                      <div className="font-semibold text-slate-800 truncate">
+                        {proj.titleFr}
+                      </div>
+                      <div className="text-[11px] text-slate-600 truncate mt-0.5">
+                        {proj.location}
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 text-xs font-medium text-[#174F7A]">
                       {proj.domaine?.nameFr || "Non rattaché"}
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-slate-600">
-                      {proj.location}
+                    {/* Publication flags */}
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold ${
+                            proj.publishedFr
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-slate-100 text-slate-600"
+                          }`}
+                          title={proj.publishedFr ? "Publié en Français" : "Non publié en Français"}
+                        >
+                          FR
+                        </span>
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold ${
+                            proj.publishedEn
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-slate-100 text-slate-600"
+                          }`}
+                          title={proj.publishedEn ? "Publié en Anglais" : "Non publié en Anglais"}
+                        >
+                          EN
+                        </span>
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold ${
+                            proj.publishedDe
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-slate-100 text-slate-600"
+                          }`}
+                          title={proj.publishedDe ? "Publié en Allemand" : "Non publié en Allemand"}
+                        >
+                          DE
+                        </span>
+                      </div>
                     </td>
-                    <td className="py-3.5 px-4 text-xs font-medium text-slate-700">
-                      {proj.beneficiaries || "—"}
-                    </td>
+                    {/* Operational status */}
                     <td className="py-3.5 px-4">
                       <span
                         className={`px-2.5 py-1 rounded-full text-xs font-bold ${
@@ -467,6 +621,7 @@ export default function AdminProjects() {
                           : "Planifié"}
                       </span>
                     </td>
+                    {/* Featured flag */}
                     <td className="py-3.5 px-4">
                       <button
                         onClick={() => handleToggleFeatured(proj.id, proj.isFeatured)}
@@ -477,9 +632,7 @@ export default function AdminProjects() {
                         }`}
                         title={proj.isFeatured ? "Projet mis en avant (Accueil) - Cliquer pour retirer" : "Mettre en avant sur la page d'accueil"}
                       >
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
+                        <Star className="w-4 h-4 fill-current" />
                       </button>
                     </td>
                     <td className="py-3.5 px-4 text-xs font-semibold text-slate-600">
@@ -487,6 +640,15 @@ export default function AdminProjects() {
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          href={`/fr/projets/${proj.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#007BFF] hover:bg-blue-50 transition-colors"
+                          title="Ouvrir la fiche publique"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </Link>
                         <button
                           onClick={() => handleOpenModal(proj)}
                           className="px-2.5 py-1 rounded-lg bg-[#003366]/10 text-[#003366] hover:bg-[#003366]/20 text-xs font-semibold transition-colors cursor-pointer"
@@ -513,28 +675,28 @@ export default function AdminProjects() {
         </div>
       </div>
 
-      {/* ── Create Project Modal ── */}
+      {/* ── Modal Création / Édition de Projet ── */}
       {modalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
           onClick={() => setModalOpen(false)}
         >
           <div
-            className="bg-white rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto space-y-6"
+            className="bg-white rounded-3xl p-6 sm:p-8 max-w-4xl w-full shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto space-y-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <h2 className="text-xl font-bold text-slate-800">
-                  Créer un Nouveau Projet
+                  {editingId ? "Modifier la Fiche Projet" : "Créer un Nouveau Projet"}
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Renseignez les détails du projet et ses traductions optionnelles.
+                  Fiche institutionnelle complète avec objectifs, actions de terrain, résultats et publication multilingue.
                 </p>
               </div>
               <button
                 onClick={() => setModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-sm font-bold"
+                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-sm font-bold cursor-pointer"
               >
                 ✕
               </button>
@@ -546,7 +708,7 @@ export default function AdminProjects() {
               </div>
             )}
 
-            {/* Note d'explication sur la politique multilingue stricte */}
+            {/* Note d'explication sur la séparation stricte et le statut */}
             {showTranslationHelp && (
               <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/90 text-amber-900 text-xs leading-relaxed space-y-1 relative">
                 <div className="flex items-center justify-between">
@@ -554,7 +716,7 @@ export default function AdminProjects() {
                     <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span>Pourquoi traduire ? Règle d'affichage public</span>
+                    <span>Règles d&apos;étanchéité multilingue et statut</span>
                   </div>
                   <button
                     type="button"
@@ -566,11 +728,8 @@ export default function AdminProjects() {
                   </button>
                 </div>
                 <p className="text-amber-800 pr-6">
-                  Le site public applique une <strong>séparation stricte des langues</strong> : si un projet n'est pas traduit en anglais ou en allemand, 
-                  il <strong>n'apparaîtra pas</strong> sur les versions <em>/en</em> et <em>/de</em> pour éviter tout mélange de français.
-                </p>
-                <p className="text-amber-700 text-[11px]">
-                  Utilisez le bouton <strong>« Traduire vers EN & DE »</strong> ci-dessous pour générer automatiquement les versions traduites en un clic.
+                  Le statut opérationnel (En cours / Réalisé / Planifié) est distinct de la publication par langue.
+                  Pour qu&apos;un projet apparaisse sur <em>/en</em> ou <em>/de</em>, cochez la case de publication correspondante et remplissez les contenus traduits.
                 </p>
               </div>
             )}
@@ -592,49 +751,49 @@ export default function AdminProjects() {
             {/* Language Sub-tabs & Auto-translate Button */}
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Langue :</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Contenu linguistique :</span>
                 <button
                   type="button"
                   onClick={() => setActiveLangTab("FR")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     activeLangTab === "FR"
                       ? "bg-[#003366] text-white shadow-sm"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
-                  Français *
+                  Français {formData.publishedFr && "●"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveLangTab("EN")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     activeLangTab === "EN"
                       ? "bg-[#003366] text-white shadow-sm"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
-                  English {formData.titleEn && "✓"}
+                  English {formData.publishedEn && "●"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveLangTab("DE")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     activeLangTab === "DE"
                       ? "bg-[#003366] text-white shadow-sm"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
-                  Deutsch {formData.titleDe && "✓"}
+                  Deutsch {formData.publishedDe && "●"}
                 </button>
               </div>
 
-              {/* Bouton de Traduction Automatique (DeepL -> Fallback gratuit) */}
+              {/* Bouton Traduction Automatique */}
               <button
                 type="button"
                 onClick={handleAutoTranslate}
                 disabled={translating || !formData.titleFr.trim()}
                 className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#003366] text-white shadow-xs hover:bg-[#002244] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all"
-                title="Traduit automatiquement le titre, le résumé et la description vers l'anglais et l'allemand"
+                title="Traduit automatiquement les textes vers l'anglais et l'allemand"
               >
                 {translating ? (
                   <>
@@ -655,7 +814,42 @@ export default function AdminProjects() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 text-sm">
+            <form onSubmit={handleSubmit} className="space-y-5 text-sm">
+              {/* Publication checkbox for the active language */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={
+                      activeLangTab === "FR"
+                        ? formData.publishedFr
+                        : activeLangTab === "EN"
+                        ? formData.publishedEn
+                        : formData.publishedDe
+                    }
+                    onChange={(e) => {
+                      const checked = e.target.checked
+                      if (activeLangTab === "FR") setFormData({ ...formData, publishedFr: checked })
+                      else if (activeLangTab === "EN") setFormData({ ...formData, publishedEn: checked })
+                      else setFormData({ ...formData, publishedDe: checked })
+                    }}
+                    className="w-4 h-4 rounded text-[#28A745] focus:ring-[#28A745] border-slate-300"
+                  />
+                  <div>
+                    <span className="font-bold text-xs text-slate-800">
+                      {activeLangTab === "FR"
+                        ? "Publier cette version en Français (accessible sur /fr/projets/...)"
+                        : activeLangTab === "EN"
+                        ? "Publier cette version en Anglais (accessible sur /en/projets/...)"
+                        : "Publier cette version en Allemand (accessible sur /de/projets/...)"}
+                    </span>
+                    <p className="text-[11px] text-slate-500">
+                      Si décoché, la page dans cette langue renverra une erreur 404 sans mélanger de langues.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
               {/* Multilingual Title */}
               {activeLangTab === "FR" && (
                 <div>
@@ -676,27 +870,19 @@ export default function AdminProjects() {
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <label className="block text-xs font-bold text-slate-700">
-                      Project Title (English - Optionnel)
+                      Project Title (English)
                     </label>
                     {formData.titleFr && (
                       <button
                         type="button"
                         onClick={() => handleTranslateSingleField("title", "EN")}
                         disabled={translatingField === "title_EN"}
-                        className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
+                        className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer"
                       >
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
-                        </svg>
-                        <span>{translatingField === "title_EN" ? "Traduction..." : "Traduire ce champ"}</span>
+                        {translatingField === "title_EN" ? "Traduction..." : "Traduire"}
                       </button>
                     )}
                   </div>
-                  {formData.titleFr && (
-                    <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
-                      Source (FR) : {formData.titleFr}
-                    </div>
-                  )}
                   <input
                     type="text"
                     placeholder="ex: Solar Caravan for Digital Literacy"
@@ -710,27 +896,19 @@ export default function AdminProjects() {
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <label className="block text-xs font-bold text-slate-700">
-                      Projekttitel (Deutsch - Optionnel)
+                      Projekttitel (Deutsch)
                     </label>
                     {formData.titleFr && (
                       <button
                         type="button"
                         onClick={() => handleTranslateSingleField("title", "DE")}
                         disabled={translatingField === "title_DE"}
-                        className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
+                        className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer"
                       >
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
-                        </svg>
-                        <span>{translatingField === "title_DE" ? "Traduction..." : "Traduire ce champ"}</span>
+                        {translatingField === "title_DE" ? "Traduction..." : "Traduire"}
                       </button>
                     )}
                   </div>
-                  {formData.titleFr && (
-                    <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
-                      Source (FR) : {formData.titleFr}
-                    </div>
-                  )}
                   <input
                     type="text"
                     placeholder="ex: Solarkarawane für digitale Bildung"
@@ -741,79 +919,16 @@ export default function AdminProjects() {
                 </div>
               )}
 
-              {/* General Metadata */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Domaine d&apos;intervention
-                  </label>
-                  <select
-                    value={formData.domaineId}
-                    onChange={(e) => setFormData({ ...formData, domaineId: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none bg-white"
-                  >
-                    {domaines.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.nameFr}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Statut du projet
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none bg-white"
-                  >
-                    <option value="IN_PROGRESS">En cours</option>
-                    <option value="COMPLETED">Réalisé / Terminé</option>
-                    <option value="PLANNED">Planifié</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Lieu d&apos;exécution <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Bénéficiaires estimés
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="ex: 500+ collégiens"
-                    value={formData.beneficiaries}
-                    onChange={(e) => setFormData({ ...formData, beneficiaries: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none"
-                  />
-                </div>
-              </div>
-
               {/* Multilingual Summary */}
               {activeLangTab === "FR" && (
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Résumé du projet <span className="text-rose-500">*</span>
+                    Résumé synthétique <span className="text-rose-500">*</span>
                   </label>
                   <textarea
                     required
                     rows={2}
-                    placeholder="Résumé percutant des objectifs et actions..."
+                    placeholder="Phrase courte de synthèse décrivant l'action..."
                     value={formData.summaryFr}
                     onChange={(e) => setFormData({ ...formData, summaryFr: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none resize-y"
@@ -822,32 +937,12 @@ export default function AdminProjects() {
               )}
               {activeLangTab === "EN" && (
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <label className="block text-xs font-bold text-slate-700">
-                      Project Summary (English - Optionnel)
-                    </label>
-                    {formData.summaryFr && (
-                      <button
-                        type="button"
-                        onClick={() => handleTranslateSingleField("summary", "EN")}
-                        disabled={translatingField === "summary_EN"}
-                        className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
-                      >
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
-                        </svg>
-                        <span>{translatingField === "summary_EN" ? "Traduction..." : "Traduire ce champ"}</span>
-                      </button>
-                    )}
-                  </div>
-                  {formData.summaryFr && (
-                    <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
-                      Source (FR) : {formData.summaryFr}
-                    </div>
-                  )}
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Summary (English)
+                  </label>
                   <textarea
                     rows={2}
-                    placeholder="Short summary in English..."
+                    placeholder="Short project summary..."
                     value={formData.summaryEn}
                     onChange={(e) => setFormData({ ...formData, summaryEn: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none resize-y"
@@ -856,32 +951,12 @@ export default function AdminProjects() {
               )}
               {activeLangTab === "DE" && (
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <label className="block text-xs font-bold text-slate-700">
-                      Projektzusammenfassung (Deutsch - Optionnel)
-                    </label>
-                    {formData.summaryFr && (
-                      <button
-                        type="button"
-                        onClick={() => handleTranslateSingleField("summary", "DE")}
-                        disabled={translatingField === "summary_DE"}
-                        className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
-                      >
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
-                        </svg>
-                        <span>{translatingField === "summary_DE" ? "Traduction..." : "Traduire ce champ"}</span>
-                      </button>
-                    )}
-                  </div>
-                  {formData.summaryFr && (
-                    <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
-                      Source (FR) : {formData.summaryFr}
-                    </div>
-                  )}
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Zusammenfassung (Deutsch)
+                  </label>
                   <textarea
                     rows={2}
-                    placeholder="Kurze Zusammenfassung auf Deutsch..."
+                    placeholder="Kurze Projektzusammenfassung..."
                     value={formData.summaryDe}
                     onChange={(e) => setFormData({ ...formData, summaryDe: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none resize-y"
@@ -889,15 +964,15 @@ export default function AdminProjects() {
                 </div>
               )}
 
-              {/* Multilingual Detailed Description */}
+              {/* Multilingual Description (À propos) */}
               {activeLangTab === "FR" && (
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Description détaillée
+                    À propos du projet (Contexte & Démarche)
                   </label>
                   <textarea
-                    rows={3}
-                    placeholder="Détails techniques, méthodologie et résultats attendus..."
+                    rows={4}
+                    placeholder="Contexte territorial, problématique adressée et solution apportée par APTIC-R..."
                     value={formData.descriptionFr}
                     onChange={(e) => setFormData({ ...formData, descriptionFr: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none resize-y"
@@ -906,32 +981,12 @@ export default function AdminProjects() {
               )}
               {activeLangTab === "EN" && (
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <label className="block text-xs font-bold text-slate-700">
-                      Detailed Description (English - Optionnel)
-                    </label>
-                    {formData.descriptionFr && (
-                      <button
-                        type="button"
-                        onClick={() => handleTranslateSingleField("description", "EN")}
-                        disabled={translatingField === "description_EN"}
-                        className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
-                      >
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
-                        </svg>
-                        <span>{translatingField === "description_EN" ? "Traduction..." : "Traduire ce champ"}</span>
-                      </button>
-                    )}
-                  </div>
-                  {formData.descriptionFr && (
-                    <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
-                      Source (FR) : {formData.descriptionFr}
-                    </div>
-                  )}
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    About the Project (English)
+                  </label>
                   <textarea
-                    rows={3}
-                    placeholder="Detailed description in English..."
+                    rows={4}
+                    placeholder="Background, problem addressed, and APTIC-R intervention..."
                     value={formData.descriptionEn}
                     onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none resize-y"
@@ -940,32 +995,12 @@ export default function AdminProjects() {
               )}
               {activeLangTab === "DE" && (
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <label className="block text-xs font-bold text-slate-700">
-                      Ausführliche Beschreibung (Deutsch - Optionnel)
-                    </label>
-                    {formData.descriptionFr && (
-                      <button
-                        type="button"
-                        onClick={() => handleTranslateSingleField("description", "DE")}
-                        disabled={translatingField === "description_DE"}
-                        className="text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer flex items-center gap-1"
-                      >
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9c-1.85-3.32-3.8-6.42-5.412-9m0 0a24.25 24.25 0 00-2.088 4.5M15.5 15l2.5 5 2.5-5m-4.5 3h4" />
-                        </svg>
-                        <span>{translatingField === "description_DE" ? "Traduction..." : "Traduire ce champ"}</span>
-                      </button>
-                    )}
-                  </div>
-                  {formData.descriptionFr && (
-                    <div className="mb-2 p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 italic">
-                      Source (FR) : {formData.descriptionFr}
-                    </div>
-                  )}
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Über das Projekt (Deutsch)
+                  </label>
                   <textarea
-                    rows={3}
-                    placeholder="Ausführliche Beschreibung auf Deutsch..."
+                    rows={4}
+                    placeholder="Kontext, Herausforderung und Lösungsansatz..."
                     value={formData.descriptionDe}
                     onChange={(e) => setFormData({ ...formData, descriptionDe: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none resize-y"
@@ -973,10 +1008,183 @@ export default function AdminProjects() {
                 </div>
               )}
 
+              {/* Multilingual Objectives, Actions & Results */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                {/* Objectifs */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Objectifs (un par ligne)
+                  </label>
+                  <textarea
+                    rows={4}
+                    placeholder="• Former 100 jeunes&#10;• Équiper 3 centres..."
+                    value={
+                      activeLangTab === "FR"
+                        ? formData.objectivesFr
+                        : activeLangTab === "EN"
+                        ? formData.objectivesEn
+                        : formData.objectivesDe
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (activeLangTab === "FR") setFormData({ ...formData, objectivesFr: val })
+                      else if (activeLangTab === "EN") setFormData({ ...formData, objectivesEn: val })
+                      else setFormData({ ...formData, objectivesDe: val })
+                    }}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none text-xs"
+                  />
+                </div>
+
+                {/* Actions */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Actions terrain (une par ligne)
+                  </label>
+                  <textarea
+                    rows={4}
+                    placeholder="• Déploiement des kits&#10;• Ateliers hebdomadaires..."
+                    value={
+                      activeLangTab === "FR"
+                        ? formData.actionsFr
+                        : activeLangTab === "EN"
+                        ? formData.actionsEn
+                        : formData.actionsDe
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (activeLangTab === "FR") setFormData({ ...formData, actionsFr: val })
+                      else if (activeLangTab === "EN") setFormData({ ...formData, actionsEn: val })
+                      else setFormData({ ...formData, actionsDe: val })
+                    }}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none text-xs"
+                  />
+                </div>
+
+                {/* Résultats */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Résultats &amp; Impact (un par ligne)
+                  </label>
+                  <textarea
+                    rows={4}
+                    placeholder="• 45 coopératives connectées&#10;• 12 formateurs certifiés..."
+                    value={
+                      activeLangTab === "FR"
+                        ? formData.resultsFr
+                        : activeLangTab === "EN"
+                        ? formData.resultsEn
+                        : formData.resultsDe
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (activeLangTab === "FR") setFormData({ ...formData, resultsFr: val })
+                      else if (activeLangTab === "EN") setFormData({ ...formData, resultsEn: val })
+                      else setFormData({ ...formData, resultsDe: val })
+                    }}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* ── Paramètres Communs (Pôle, Calendrier, Lieu, Bénéficiaires) ── */}
+              <div className="pt-4 border-t border-slate-200 space-y-4">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Paramètres Opérationnels &amp; Territoriaux
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Domaine d&apos;intervention
+                    </label>
+                    <select
+                      value={formData.domaineId}
+                      onChange={(e) => setFormData({ ...formData, domaineId: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none bg-white"
+                    >
+                      {domaines.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.nameFr}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Statut opérationnel terrain
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none bg-white"
+                    >
+                      <option value="IN_PROGRESS">En cours</option>
+                      <option value="COMPLETED">Réalisé / Clôturé</option>
+                      <option value="PLANNED">Planifié / Cadrage</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Date de début
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                      className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Date de fin (ou prévisionnelle)
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.endDate}
+                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                      className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Lieu d&apos;exécution <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Bénéficiaires certifiés
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="ex: 45 jeunes femmes diplômées"
+                      value={formData.beneficiaries}
+                      onChange={(e) => setFormData({ ...formData, beneficiaries: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Image Upload */}
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
                 <label className="block text-xs font-bold text-slate-700">
-                  Image illustrative du projet
+                  Image principale de la fiche projet
                 </label>
                 <div className="flex items-center gap-4">
                   <input
@@ -990,7 +1198,7 @@ export default function AdminProjects() {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingImage}
-                    className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-xs"
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-xs cursor-pointer"
                   >
                     <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -1001,7 +1209,6 @@ export default function AdminProjects() {
                   {formData.featuredImage && (
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-10 rounded-lg overflow-hidden border border-slate-200 bg-white">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={formData.featuredImage}
                           alt="Aperçu"
@@ -1011,7 +1218,7 @@ export default function AdminProjects() {
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, featuredImage: "" })}
-                        className="text-xs text-rose-600 hover:underline font-medium"
+                        className="text-xs text-rose-600 hover:underline font-medium cursor-pointer"
                       >
                         Supprimer
                       </button>
@@ -1020,18 +1227,18 @@ export default function AdminProjects() {
                 </div>
               </div>
 
-              {/* Options */}
+              {/* Options : Projet Phare & Ordre d'affichage (CONSERVÉS OBLIGATOIREMENT) */}
               <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
                 <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.isFeatured}
                     onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                    className="h-4 w-4 rounded text-[#174F7A] focus:ring-[#174F7A] border-slate-300"
+                    className="h-4 w-4 rounded text-[#174F7A] focus:ring-[#174F7A] border-slate-300 cursor-pointer"
                   />
                   <span>Mettre ce projet en avant (Projet Phare sur l&apos;Accueil)</span>
                 </label>
-                
+
                 <div className="flex items-center gap-2">
                   <label htmlFor="displayOrder" className="text-xs font-bold text-slate-700">
                     Ordre d&apos;affichage :
@@ -1073,4 +1280,3 @@ export default function AdminProjects() {
     </div>
   )
 }
-

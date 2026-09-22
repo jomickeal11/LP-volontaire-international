@@ -431,30 +431,62 @@ model Article {
 model Projet {
   id            String    @id @default(cuid())
   slug          String    @unique
+
+  // Publication distincte par langue (stricte étanchéité multilingue)
+  publishedFr   Boolean   @default(true)
+  publishedEn   Boolean   @default(false)
+  publishedDe   Boolean   @default(false)
+
+  // Statut opérationnel sur le terrain (distinct de la publication)
+  status        String    @default("IN_PROGRESS") // PLANNED, IN_PROGRESS, COMPLETED
+
+  // Titres et résumés localisés
   titleFr       String
   titleEn       String?
   titleDe       String?
   summaryFr     String    @db.Text
   summaryEn     String?   @db.Text
   summaryDe     String?   @db.Text
+
+  // Présentations détaillées (contexte & problème traité)
   descriptionFr String    @db.Text
   descriptionEn String?   @db.Text
   descriptionDe String?   @db.Text
+
+  // Objectifs structurés multilingues
+  objectivesFr  String?   @db.Text
+  objectivesEn  String?   @db.Text
+  objectivesDe  String?   @db.Text
+
+  // Actions de mise en œuvre concrète sur le terrain
+  actionsFr     String?   @db.Text
+  actionsEn     String?   @db.Text
+  actionsDe     String?   @db.Text
+
+  // Résultats obtenus & indicateurs validés
+  resultsFr     String?   @db.Text
+  resultsEn     String?   @db.Text
+  resultsDe     String?   @db.Text
+
+  // Repères territoriaux & opérationnels
   location      String    // ex: Agbélouvé, Région Maritime, Togo
   country       String    @default("Togo")
   startDate     DateTime?
   endDate       DateTime?
-  status        String    @default("IN_PROGRESS") // PLANNED, IN_PROGRESS, COMPLETED
-  featuredImage String?
-  gallery       String?   // JSON string array of URLs
-  objectives    String?   @db.Text
-  results       String?   @db.Text
-  beneficiaries String?   // ex: 500+ jeunes
+  beneficiaries String?   // ex: 45 jeunes femmes diplômées (chiffre certifié uniquement)
   budget        String?
 
-  domaineId     String?
-  domaine       Domaine?  @relation(fields: [domaineId], references: [id], onDelete: SetNull)
+  // Image principale
+  featuredImage String?
+  gallery       String?   // JSON fallback legacy
 
+  // Relations directes
+  domaineId     String?
+  domaine       Domaine?    @relation(fields: [domaineId], references: [id], onDelete: SetNull)
+  ressources    Ressource[]
+  medias        Media[]
+
+  // Ordre et mise en avant (conservés obligatoirement)
   isFeatured    Boolean   @default(false)
   displayOrder  Int       @default(0)
 
@@ -462,6 +494,9 @@ model Projet {
   updatedAt     DateTime  @updatedAt
 
   @@index([status])
+  @@index([publishedFr])
+  @@index([publishedEn])
+  @@index([publishedDe])
   @@index([isFeatured])
   @@index([domaineId])
 }
@@ -515,6 +550,9 @@ model Ressource {
   domaineId     String?
   domaine       Domaine? @relation(fields: [domaineId], references: [id], onDelete: SetNull)
 
+  projetId      String?
+  projet        Projet?  @relation(fields: [projetId], references: [id], onDelete: SetNull)
+
   downloadCount Int      @default(0)
   published     Boolean  @default(true)
 
@@ -524,6 +562,7 @@ model Ressource {
   @@index([type])
   @@index([year])
   @@index([domaineId])
+  @@index([projetId])
 }
 
 // ─── 17. CMS : GALERIE MÉDIAS ─────────────────────────────────────────────────
@@ -539,12 +578,16 @@ model Media {
   order        Int      @default(0)
   featured     Boolean  @default(false)
 
+  projetId     String?
+  projet       Projet?  @relation(fields: [projetId], references: [id], onDelete: SetNull)
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@index([album])
   @@index([category])
   @@index([featured])
+  @@index([projetId])
 }
 
 // ─── 18. CMS : ÉQUIPE & GOUVERNANCE ───────────────────────────────────────────
@@ -623,4 +666,33 @@ model ParametreSite {
   createdAt   DateTime @default(now())
 
   @@index([group])
+}
+
+// ─── 22. MESSAGES DU FORMULAIRE DE CONTACT ────────────────────────────────────
+enum MessageContactStatus {
+  UNREAD     // Non lu
+  READ       // Lu
+  REPLIED    // Répondu
+  ARCHIVED   // Archivé
+}
+
+model MessageContact {
+  id           String               @id @default(cuid())
+  name         String
+  email        String
+  organization String?
+  phone        String?
+  subject      String
+  message      String               @db.Text
+  routedTo     String?
+  lang         LanguageCode         @default(FR)
+  status       MessageContactStatus @default(UNREAD)
+  notes        String?              @db.Text
+  repliedAt    DateTime?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([email])
 }

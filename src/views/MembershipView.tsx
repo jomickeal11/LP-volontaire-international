@@ -8,7 +8,7 @@ import RequiredAsterisk from "@/components/RequiredAsterisk"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { useRouter, usePathname } from "next/navigation"
-import { submitMemberApplication } from "@/lib/cms-actions"
+import { submitMemberApplication, getSiteSettings } from "@/lib/cms-actions"
 import {
   ArrowRightIcon,
   MonitorIcon,
@@ -433,9 +433,116 @@ export default function MembershipView({ lang }: MembershipViewProps) {
   const router = useRouter()
   const pathname = usePathname()
   const safeLang = (lang || "FR").toUpperCase() as "FR" | "EN" | "DE"
+  const langLower = (lang || "fr").toLowerCase()
   const c = CONTENT[safeLang] || CONTENT.FR
 
+  const [settings, setSettings] = useState<Record<string, string>>({})
   const [dbDomains, setDbDomains] = useState<any[]>([])
+
+  useEffect(() => {
+    Promise.all([getSiteSettings("MEMBERSHIP"), getSiteSettings("GENERAL")])
+      .then(([resMbr, resGen]) => {
+        const merged: Record<string, string> = {}
+        if (resMbr.success && resMbr.dict) Object.assign(merged, resMbr.dict)
+        if (resGen.success && resGen.dict) Object.assign(merged, resGen.dict)
+        setSettings((prev) => ({ ...prev, ...merged }))
+      })
+      .catch((err) => {
+        console.error("Error fetching membership settings:", err)
+      })
+  }, [])
+
+  // 1. Hero
+  const heroBadge = settings[`membership_hero_badge_${langLower}`] || c.hero.badge
+  const heroTitle = settings[`membership_hero_title_${langLower}`] || c.hero.title
+  const heroDesc = settings[`membership_hero_desc_${langLower}`] || c.hero.desc
+  const heroCta = settings[`membership_hero_cta_${langLower}`] || c.hero.cta
+
+  // 2. Why (dynamique, responsive aux cartes réellement présentes)
+  const whyTag = settings[`membership_why_tag_${langLower}`] || c.why.tag
+  const whyTitle = settings[`membership_why_title_${langLower}`] || c.why.title
+  const whySubtitle = settings[`membership_why_subtitle_${langLower}`] || c.why.subtitle
+
+  const rawWhyItems = [
+    {
+      title: settings[`membership_why_card1_title_${langLower}`] || c.why.items[0]?.title || "",
+      desc: settings[`membership_why_card1_desc_${langLower}`] || c.why.items[0]?.desc || "",
+    },
+    {
+      title: settings[`membership_why_card2_title_${langLower}`] || c.why.items[1]?.title || "",
+      desc: settings[`membership_why_card2_desc_${langLower}`] || c.why.items[1]?.desc || "",
+    },
+    {
+      title: settings[`membership_why_card3_title_${langLower}`] || c.why.items[2]?.title || "",
+      desc: settings[`membership_why_card3_desc_${langLower}`] || c.why.items[2]?.desc || "",
+    },
+    {
+      title: settings[`membership_why_card4_title_${langLower}`] || c.why.items[3]?.title || "",
+      desc: settings[`membership_why_card4_desc_${langLower}`] || c.why.items[3]?.desc || "",
+    },
+  ]
+  const whyItems = rawWhyItems
+    .filter((item) => item.title.trim().length > 0 || item.desc.trim().length > 0)
+    .map((item, idx) => ({
+      ...item,
+      num: String(idx + 1).padStart(2, "0"),
+    }))
+
+  // 3. Contribute (dynamique)
+  const contributeTag = settings[`membership_contribute_tag_${langLower}`] || c.contribute.tag
+  const contributeTitle = settings[`membership_contribute_title_${langLower}`] || c.contribute.title
+  const contributeSubtitle = settings[`membership_contribute_subtitle_${langLower}`] || c.contribute.subtitle
+
+  const rawContributeItems = [
+    {
+      title: settings[`membership_contribute_item1_title_${langLower}`] || c.contribute.items[0]?.title || "",
+      desc: settings[`membership_contribute_item1_desc_${langLower}`] || c.contribute.items[0]?.desc || "",
+    },
+    {
+      title: settings[`membership_contribute_item2_title_${langLower}`] || c.contribute.items[1]?.title || "",
+      desc: settings[`membership_contribute_item2_desc_${langLower}`] || c.contribute.items[1]?.desc || "",
+    },
+    {
+      title: settings[`membership_contribute_item3_title_${langLower}`] || c.contribute.items[2]?.title || "",
+      desc: settings[`membership_contribute_item3_desc_${langLower}`] || c.contribute.items[2]?.desc || "",
+    },
+    {
+      title: settings[`membership_contribute_item4_title_${langLower}`] || c.contribute.items[3]?.title || "",
+      desc: settings[`membership_contribute_item4_desc_${langLower}`] || c.contribute.items[3]?.desc || "",
+    },
+    {
+      title: settings[`membership_contribute_item5_title_${langLower}`] || c.contribute.items[4]?.title || "",
+      desc: settings[`membership_contribute_item5_desc_${langLower}`] || c.contribute.items[4]?.desc || "",
+    },
+    {
+      title: settings[`membership_contribute_item6_title_${langLower}`] || c.contribute.items[5]?.title || "",
+      desc: settings[`membership_contribute_item6_desc_${langLower}`] || c.contribute.items[5]?.desc || "",
+    },
+  ]
+  const contributeItems = rawContributeItems.filter(
+    (item) => item.title.trim().length > 0 || item.desc.trim().length > 0
+  )
+
+  // 4. Who
+  const whoTag = settings[`membership_who_tag_${langLower}`] || c.who.tag
+  const whoTitle = settings[`membership_who_title_${langLower}`] || c.who.title
+  const whoText = settings[`membership_who_text_${langLower}`] || c.who.text
+  const whoSubtext = settings[`membership_who_subtext_${langLower}`] || c.who.subtext
+  const whoBadgesRaw = settings[`membership_who_badges_${langLower}`]
+  const whoBadges = whoBadgesRaw
+    ? whoBadgesRaw.split(",").map((b) => b.trim()).filter(Boolean)
+    : c.who.badges
+
+  // 5. CTA
+  const ctaTag = settings[`membership_cta_tag_${langLower}`] || c.ctaBanner.tag
+  const ctaTitle = settings[`membership_cta_title_${langLower}`] || c.ctaBanner.title
+  const ctaDesc = settings[`membership_cta_desc_${langLower}`] || c.ctaBanner.desc
+  const ctaBtn = settings[`membership_cta_btn_${langLower}`] || c.ctaBanner.btn
+
+  // 6. Form
+  const formTag = settings[`membership_form_tag_${langLower}`] || c.form.tag
+  const formTitle = settings[`membership_form_title_${langLower}`] || c.form.title
+  const formDesc = settings[`membership_form_desc_${langLower}`] || c.form.desc
 
   useEffect(() => {
     import("@/lib/cms-actions").then(({ getDomaines }) => {
@@ -601,17 +708,17 @@ export default function MembershipView({ lang }: MembershipViewProps) {
             {/* Eyebrow */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-bold uppercase tracking-[0.18em] text-[#28A745] mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-[#28A745]" />
-              <span>{c.hero.badge}</span>
+              <span>{heroBadge}</span>
             </div>
 
             {/* H1 Title */}
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-['DM_Serif_Display'] leading-[1.12] mb-6 tracking-tight">
-              {c.hero.title}
+              {heroTitle}
             </h1>
 
             {/* Lead text */}
             <p className="text-base sm:text-lg lg:text-xl text-white/85 max-w-2xl mx-auto leading-relaxed mb-10 font-normal">
-              {c.hero.desc}
+              {heroDesc}
             </p>
 
             {/* Main CTA */}
@@ -620,7 +727,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                 onClick={scrollToForm}
                 className="inline-flex items-center justify-center gap-2.5 font-bold text-xs sm:text-sm uppercase tracking-wider px-8 py-4 rounded-xl text-white transition-all shadow-lg hover:scale-105 cursor-pointer bg-[#007BFF] hover:bg-[#0069d9]"
               >
-                <span>{c.hero.cta}</span>
+                <span>{heroCta}</span>
                 <ArrowRightIcon size={16} strokeWidth={2} />
               </button>
             </div>
@@ -628,105 +735,117 @@ export default function MembershipView({ lang }: MembershipViewProps) {
         </section>
 
         {/* ═════════════════════════════════════════════════════════════════════════
-            02. POURQUOI DEVENIR MEMBRE ? (4 Blocs éditoriaux numérotés)
+            02. POURQUOI DEVENIR MEMBRE ? (Blocs éditoriaux numérotés dynamiques)
         ═════════════════════════════════════════════════════════════════════════ */}
-        <section className="py-20 sm:py-24 lg:py-28 bg-[#FFFFFF]">
-          <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
-            <div className="text-center mb-14 sm:mb-18">
-              <SectionBadge text={c.why.tag} centered />
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em] font-['DM_Serif_Display'] font-normal">
-                {c.why.title}
-              </h2>
-              <p className="text-base sm:text-lg text-[#5E6B76] max-w-xl mx-auto mt-3 font-medium">
-                {c.why.subtitle}
-              </p>
-            </div>
+        {whyItems.length > 0 && (
+          <section className="py-20 sm:py-24 lg:py-28 bg-[#FFFFFF]">
+            <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
+              <div className="text-center mb-14 sm:mb-18">
+                <SectionBadge text={whyTag} centered />
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em] font-['DM_Serif_Display'] font-normal">
+                  {whyTitle}
+                </h2>
+                <p className="text-base sm:text-lg text-[#5E6B76] max-w-xl mx-auto mt-3 font-medium">
+                  {whySubtitle}
+                </p>
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {c.why.items.map((item) => (
-                <div
-                  key={item.num}
-                  className="bg-[#F7F8FA] p-7 rounded-2xl border border-[#EAF0F4] hover:border-[#003366]/20 transition-all duration-300 flex flex-col justify-between group"
-                >
-                  <div>
-                    <span className="text-xs font-black uppercase tracking-[0.2em] text-[#28A745] block mb-3">
-                      {item.num}
-                    </span>
-                    <h3 className="text-lg sm:text-xl font-bold text-[#003366] mb-3 leading-snug">
-                      {item.title}
-                    </h3>
+              <div
+                className={`grid grid-cols-1 sm:grid-cols-2 ${
+                  whyItems.length === 3
+                    ? "lg:grid-cols-3"
+                    : whyItems.length === 2
+                    ? "lg:grid-cols-2"
+                    : "lg:grid-cols-4"
+                } gap-6`}
+              >
+                {whyItems.map((item) => (
+                  <div
+                    key={item.num}
+                    className="bg-[#F7F8FA] p-7 rounded-2xl border border-[#EAF0F4] hover:border-[#003366]/20 transition-all duration-300 flex flex-col justify-between group"
+                  >
+                    <div>
+                      <span className="text-xs font-black uppercase tracking-[0.2em] text-[#28A745] block mb-3">
+                        {item.num}
+                      </span>
+                      <h3 className="text-lg sm:text-xl font-bold text-[#003366] mb-3 leading-snug">
+                        {item.title}
+                      </h3>
+                      <p className="text-sm text-[#5E6B76] leading-relaxed">
+                        {item.desc}
+                      </p>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-[#EAF0F4] flex items-center gap-1.5 text-xs font-bold text-[#007BFF] opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span>APTIC-R</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ═════════════════════════════════════════════════════════════════════════
+            03. COMMENT CONTRIBUER ? (Grande composition éditoriale dynamique)
+        ═════════════════════════════════════════════════════════════════════════ */}
+        {contributeItems.length > 0 && (
+          <section className="py-20 sm:py-24 lg:py-28 bg-[#F7F8FA]">
+            <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
+              <div className="text-center mb-14 sm:mb-18">
+                <SectionBadge text={contributeTag} centered />
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em] font-['DM_Serif_Display'] font-normal">
+                  {contributeTitle}
+                </h2>
+                <p className="text-base sm:text-lg text-[#5E6B76] max-w-xl mx-auto mt-3 font-medium">
+                  {contributeSubtitle}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {contributeItems.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-[#FFFFFF] p-7 rounded-2xl border border-[#EAF0F4] shadow-xs flex flex-col justify-start"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 rounded-lg bg-[#003366]/5 text-[#003366] font-bold text-xs flex items-center justify-center flex-shrink-0 font-mono">
+                        0{idx + 1}
+                      </div>
+                      <h3 className="text-base sm:text-lg font-bold text-[#003366]">
+                        {item.title}
+                      </h3>
+                    </div>
                     <p className="text-sm text-[#5E6B76] leading-relaxed">
                       {item.desc}
                     </p>
                   </div>
-                  <div className="mt-6 pt-4 border-t border-[#EAF0F4] flex items-center gap-1.5 text-xs font-bold text-[#007BFF] opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span>APTIC-R</span>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
-
-        {/* ═════════════════════════════════════════════════════════════════════════
-            03. COMMENT CONTRIBUER ? (Grande composition éditoriale)
-        ═════════════════════════════════════════════════════════════════════════ */}
-        <section className="py-20 sm:py-24 lg:py-28 bg-[#F7F8FA]">
-          <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
-            <div className="text-center mb-14 sm:mb-18">
-              <SectionBadge text={c.contribute.tag} centered />
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em] font-['DM_Serif_Display'] font-normal">
-                {c.contribute.title}
-              </h2>
-              <p className="text-base sm:text-lg text-[#5E6B76] max-w-xl mx-auto mt-3 font-medium">
-                {c.contribute.subtitle}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {c.contribute.items.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="bg-[#FFFFFF] p-7 rounded-2xl border border-[#EAF0F4] shadow-xs flex flex-col justify-start"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-8 h-8 rounded-lg bg-[#003366]/5 text-[#003366] font-bold text-xs flex items-center justify-center flex-shrink-0">
-                      0{idx + 1}
-                    </div>
-                    <h3 className="text-base sm:text-lg font-bold text-[#003366]">
-                      {item.title}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-[#5E6B76] leading-relaxed">
-                    {item.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* ═════════════════════════════════════════════════════════════════════════
             04. QUI PEUT REJOINDRE APTIC-R ? (Section éditoriale sobre)
         ═════════════════════════════════════════════════════════════════════════ */}
         <section className="py-20 sm:py-24 bg-[#FFFFFF]">
           <div className="max-w-4xl mx-auto px-5 sm:px-6 lg:px-8 text-center">
-            <SectionBadge text={c.who.tag} centered />
+            <SectionBadge text={whoTag} centered />
             <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em] mb-6 font-['DM_Serif_Display'] font-normal">
-              {c.who.title}
+              {whoTitle}
             </h2>
 
             <div className="p-8 sm:p-10 rounded-3xl bg-[#F7F8FA] border border-[#EAF0F4] mb-8 text-left sm:text-center">
               <p className="text-base sm:text-lg text-[#142332] leading-relaxed font-medium mb-4">
-                « {c.who.text} »
+                « {whoText} »
               </p>
               <p className="text-xs sm:text-sm text-[#5E6B76] leading-relaxed">
-                {c.who.subtext}
+                {whoSubtext}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-2.5">
-              {c.who.badges.map((b) => (
+              {whoBadges.map((b) => (
                 <span
                   key={b}
                   className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-[#FFFFFF] border border-[#EAF0F4] text-[#003366] shadow-2xs"
@@ -744,20 +863,20 @@ export default function MembershipView({ lang }: MembershipViewProps) {
         <section className="py-20 sm:py-24 relative overflow-hidden flex items-center justify-center min-h-[40vh] bg-[#003366]">
           <div className="relative z-10 max-w-3xl mx-auto px-5 sm:px-6 lg:px-8 text-center text-white">
             <span className="inline-block text-xs font-black uppercase tracking-[0.2em] text-[#28A745] mb-4 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full">
-              {c.ctaBanner.tag}
+              {ctaTag}
             </span>
             <h2 className="text-2xl sm:text-4xl lg:text-5xl text-white mb-4 tracking-tight font-['DM_Serif_Display']">
-              {c.ctaBanner.title}
+              {ctaTitle}
             </h2>
             <p className="text-sm sm:text-base lg:text-lg mb-8 max-w-xl mx-auto leading-relaxed text-white/85">
-              {c.ctaBanner.desc}
+              {ctaDesc}
             </p>
 
             <button
               onClick={scrollToForm}
               className="inline-flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider px-8 py-4 rounded-xl text-white transition-all shadow-lg hover:scale-105 cursor-pointer bg-[#007BFF] hover:bg-[#0069d9]"
             >
-              <span>{c.ctaBanner.btn}</span>
+              <span>{ctaBtn}</span>
               <ArrowRightIcon size={15} strokeWidth={2} />
             </button>
           </div>
@@ -770,12 +889,12 @@ export default function MembershipView({ lang }: MembershipViewProps) {
           <div className="max-w-4xl mx-auto px-5 sm:px-6 lg:px-8">
             {/* Header de section */}
             <div className="text-center mb-12 sm:mb-16">
-              <SectionBadge text={c.form.tag} centered />
+              <SectionBadge text={formTag} centered />
               <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em] font-['DM_Serif_Display'] font-normal">
-                {c.form.title}
+                {formTitle}
               </h2>
               <p className="text-base sm:text-lg text-[#5E6B76] max-w-xl mx-auto mt-3 font-medium">
-                {c.form.desc}
+                {formDesc}
               </p>
             </div>
 

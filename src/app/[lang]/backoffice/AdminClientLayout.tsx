@@ -33,6 +33,8 @@ export default function AdminClientLayout({
     currentPage = "admin-candidates"
   else if (pathname?.includes("/applications"))
     currentPage = "admin-applications"
+  else if (pathname?.includes("/messages"))
+    currentPage = "admin-messages"
   else if (pathname?.includes("/settings"))
     currentPage = "admin-settings"
   else if (pathname?.includes("/login")) return <>{children}</>
@@ -77,6 +79,9 @@ export default function AdminClientLayout({
         break
       case "admin-newsletter":
         router.push(`/${lang}/backoffice/newsletter`)
+        break
+      case "admin-messages":
+        router.push(`/${lang}/backoffice/messages`)
         break
       case "admin-settings":
         router.push(`/${lang}/backoffice/settings`)

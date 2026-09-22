@@ -269,6 +269,7 @@ function SectionBadge({ text, centered = false }: { text: string; centered?: boo
 export default function SupportView({ lang, initialSettings = {} }: SupportViewProps & { initialSettings?: Record<string, string> }) {
   const router = useRouter()
   const safeLang = (["FR", "EN", "DE"].includes(lang) ? lang : "FR") as "FR" | "EN" | "DE"
+  const l = safeLang.toLowerCase()
   const c = CONTENT[safeLang]
 
   const [settings, setSettings] = React.useState<Record<string, string>>(initialSettings)
@@ -283,7 +284,64 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
     })
   }, [])
 
+  // ─── Dynamic CMS Bindings with Fallbacks ──────────────────────────────────
+  const heroBadge = settings[`support_hero_badge_${l}`] || c.hero.badge
+  const heroTitle = settings[`support_hero_title_${l}`] || c.hero.title
+  const heroDesc = settings[`support_hero_desc_${l}`] || c.hero.desc
+  const heroCta = settings[`support_hero_cta_${l}`] || c.hero.cta
   const heroImage = settings["support_hero_image"] || "https://images.unsplash.com/photo-1609252509229-364936a1d1a2?w=1000&h=750&fit=crop&auto=format"
+
+  const axesTag = settings[`support_axes_tag_${l}`] || c.axes.tag
+  const axesTitle = settings[`support_axes_title_${l}`] || c.axes.title
+  const axesSubtitle = settings[`support_axes_subtitle_${l}`] || c.axes.subtitle
+
+  // Dynamic Axes (Only entered items appear, dynamically numbered 01, 02, 03...)
+  const rawAxes = [1, 2, 3, 4].map((idx) => {
+    const fallbackItem = c.axes.items[idx - 1]
+    const title = settings[`support_axes_${idx}_title_${l}`] ?? fallbackItem?.title ?? ""
+    const desc = settings[`support_axes_${idx}_desc_${l}`] ?? fallbackItem?.desc ?? ""
+    const linkText = settings[`support_axes_${idx}_link_${l}`] ?? fallbackItem?.linkText ?? ""
+    return { title, desc, linkText, originalIndex: idx }
+  })
+
+  const activeAxes = rawAxes
+    .filter((axe) => axe.title.trim() || axe.desc.trim())
+    .map((axe, i) => ({
+      ...axe,
+      num: String(i + 1).padStart(2, "0"),
+    }))
+
+  const whyTag = settings[`support_why_tag_${l}`] || c.why.tag
+  const whyTitle = settings[`support_why_title_${l}`] || c.why.title
+  const whyDesc = settings[`support_why_desc_${l}`] || c.why.desc
+
+  const rawWhyPoints = [1, 2, 3].map((idx) => {
+    const fallbackPoint = c.why.points[idx - 1]
+    const title = settings[`support_why_${idx}_title_${l}`] ?? fallbackPoint?.title ?? ""
+    const desc = settings[`support_why_${idx}_desc_${l}`] ?? fallbackPoint?.desc ?? ""
+    return { title, desc }
+  })
+
+  const activeWhyPoints = rawWhyPoints
+    .filter((pt) => pt.title.trim() || pt.desc.trim())
+    .map((pt, i) => ({
+      ...pt,
+      num: String(i + 1).padStart(2, "0"),
+    }))
+
+  const transparencyTag = settings[`support_transparency_tag_${l}`] || c.transparency.tag
+  const transparencyTitle = settings[`support_transparency_title_${l}`] || c.transparency.title
+  const transparencyDesc = settings[`support_transparency_desc_${l}`] || c.transparency.desc
+  const transparencyReceipt = settings[`support_transparency_receipt_${l}`] || c.transparency.receiptNotice
+
+  const futureTag = settings[`support_future_tag_${l}`] || c.future.tag
+  const futureTitle = settings[`support_future_title_${l}`] || c.future.title
+  const futureDesc = settings[`support_future_desc_${l}`] || c.future.desc
+
+  const ctaTitle = settings[`support_cta_title_${l}`] || c.contactCta.title
+  const ctaDesc = settings[`support_cta_desc_${l}`] || c.contactCta.desc
+  const ctaBtnContact = settings[`support_cta_btn_contact_${l}`] || c.contactCta.btnContact
+  const ctaBtnWhatsApp = settings[`support_cta_btn_whatsapp_${l}`] || c.contactCta.btnWhatsApp
 
   const navigate = (page: Page) => {
     router.push(getPageUrl(page, safeLang))
@@ -307,19 +365,19 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
               {/* Colonne de gauche : Titre & Texte */}
               <div className="lg:col-span-7 text-left">
-                <SectionBadge text={c.hero.badge} />
+                {heroBadge && <SectionBadge text={heroBadge} />}
                 <h1 className="text-3xl sm:text-5xl lg:text-6xl font-['DM_Serif_Display'] leading-[1.12] text-[#003366] tracking-tight mb-6">
-                  {c.hero.title}
+                  {heroTitle}
                 </h1>
                 <p className="text-base sm:text-lg lg:text-xl text-[#5E6B76] leading-relaxed mb-8 max-w-2xl font-normal">
-                  {c.hero.desc}
+                  {heroDesc}
                 </p>
                 <div>
                   <button
-                    onClick={() => navigate("contact")}
+                    onClick={() => router.push(getPageUrl("contact", safeLang) + "?subject=financement")}
                     className="inline-flex items-center justify-center gap-2.5 font-bold text-xs sm:text-sm uppercase tracking-wider px-7 py-3.5 rounded-xl text-white transition-all shadow-md hover:shadow-lg hover:scale-105 cursor-pointer bg-[#007BFF] hover:bg-[#0069d9]"
                   >
-                    <span>{c.hero.cta}</span>
+                    <span>{heroCta}</span>
                     <ArrowRightIcon size={15} strokeWidth={2} />
                   </button>
                 </div>
@@ -340,92 +398,108 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
         </section>
 
         {/* ═════════════════════════════════════════════════════════════════════════
-            02. COMMENT SOUTENIR NOS ACTIONS ? (4 Grands axes éditoriaux unifiés)
+            02. COMMENT SOUTENIR NOS ACTIONS ? (Grands axes dynamiques)
         ═════════════════════════════════════════════════════════════════════════ */}
-        <section className="py-20 sm:py-24 bg-[#FFFFFF]">
-          <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
-            <div className="text-center mb-14 sm:mb-18">
-              <SectionBadge text={c.axes.tag} centered />
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em] font-['DM_Serif_Display'] font-normal">
-                {c.axes.title}
-              </h2>
-              <p className="text-base sm:text-lg text-[#5E6B76] max-w-xl mx-auto mt-3 font-medium">
-                {c.axes.subtitle}
-              </p>
-            </div>
+        {activeAxes.length > 0 && (
+          <section className="py-20 sm:py-24 bg-[#FFFFFF]">
+            <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
+              <div className="text-center mb-14 sm:mb-18">
+                {axesTag && <SectionBadge text={axesTag} centered />}
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em] font-['DM_Serif_Display'] font-normal">
+                  {axesTitle}
+                </h2>
+                {axesSubtitle && (
+                  <p className="text-base sm:text-lg text-[#5E6B76] max-w-xl mx-auto mt-3 font-medium">
+                    {axesSubtitle}
+                  </p>
+                )}
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-              {c.axes.items.map((axe, i) => (
-                <div
-                  key={axe.num}
-                  className="bg-[#FFFFFF] p-8 rounded-3xl border border-[#E5EAF0] hover:border-[#003366]/20 transition-all duration-300 flex flex-col justify-between group shadow-2xs"
-                >
-                  <div>
-                    <span className="text-xs font-black uppercase tracking-[0.2em] text-[#28A745] block mb-3">
-                      {axe.num}
-                    </span>
-                    <h3 className="text-xl sm:text-2xl font-bold text-[#003366] mb-3 leading-snug">
-                      {axe.title}
-                    </h3>
-                    <p className="text-sm sm:text-base text-[#5E6B76] leading-relaxed mb-6">
-                      {axe.desc}
-                    </p>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                {activeAxes.map((axe) => (
+                  <div
+                    key={axe.num}
+                    className="bg-[#FFFFFF] p-8 rounded-3xl border border-[#E5EAF0] hover:border-[#003366]/20 transition-all duration-300 flex flex-col justify-between group shadow-2xs"
+                  >
+                    <div>
+                      <span className="text-xs font-black uppercase tracking-[0.2em] text-[#28A745] block mb-3">
+                        {axe.num}
+                      </span>
+                      <h3 className="text-xl sm:text-2xl font-bold text-[#003366] mb-3 leading-snug">
+                        {axe.title}
+                      </h3>
+                      <p className="text-sm sm:text-base text-[#5E6B76] leading-relaxed mb-6">
+                        {axe.desc}
+                      </p>
+                    </div>
 
-                  <div className="pt-4 border-t border-[#E5EAF0]">
-                    <button
-                      onClick={() => {
-                        if (i === 3) {
-                          navigate("partner")
-                        } else {
-                          navigate("contact")
-                        }
-                      }}
-                      className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[#007BFF] hover:text-[#0056b3] transition-colors cursor-pointer group-hover:translate-x-1 duration-200"
-                    >
-                      <span>{axe.linkText}</span>
-                      <ArrowRightIcon size={14} strokeWidth={2} />
-                    </button>
+                    {axe.linkText && (
+                      <div className="pt-4 border-t border-[#E5EAF0]">
+                        <button
+                          onClick={() => {
+                            if (axe.originalIndex === 1) {
+                              router.push(getPageUrl("contact", safeLang) + "?subject=financement")
+                            } else if (axe.originalIndex === 2) {
+                              router.push(getPageUrl("contact", safeLang) + "?subject=materiel")
+                            } else if (axe.originalIndex === 3) {
+                              router.push(getPageUrl("contact", safeLang) + "?subject=competences")
+                            } else if (axe.originalIndex === 4) {
+                              navigate("partner")
+                            } else {
+                              router.push(getPageUrl("contact", safeLang) + "?subject=soutien")
+                            }
+                          }}
+                          className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[#007BFF] hover:text-[#0056b3] transition-colors cursor-pointer group-hover:translate-x-1 duration-200"
+                        >
+                          <span>{axe.linkText}</span>
+                          <ArrowRightIcon size={14} strokeWidth={2} />
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* ═════════════════════════════════════════════════════════════════════════
-            03. POURQUOI VOTRE SOUTIEN COMPTE ? (Section éditoriale + Photo + Points)
+            03. POURQUOI VOTRE SOUTIEN COMPTE ? (Section éditoriale + Points)
         ═════════════════════════════════════════════════════════════════════════ */}
         <section className="py-20 sm:py-24 lg:py-28 bg-[#F7F8FA]">
           <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
             <div className="text-center mb-14 sm:mb-18">
-              <SectionBadge text={c.why.tag} centered />
+              {whyTag && <SectionBadge text={whyTag} centered />}
               <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em] font-['DM_Serif_Display'] font-normal">
-                {c.why.title}
+                {whyTitle}
               </h2>
-              <p className="text-base sm:text-lg text-[#5E6B76] max-w-2xl mx-auto mt-3 font-normal leading-relaxed">
-                {c.why.desc}
-              </p>
+              {whyDesc && (
+                <p className="text-base sm:text-lg text-[#5E6B76] max-w-2xl mx-auto mt-3 font-normal leading-relaxed">
+                  {whyDesc}
+                </p>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-              {c.why.points.map((pt, idx) => (
-                <div
-                  key={idx}
-                  className="bg-[#FFFFFF] p-7 rounded-2xl border border-[#E5EAF0] shadow-2xs"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-[#003366]/5 text-[#003366] font-bold text-xs flex items-center justify-center mb-4">
-                    0{idx + 1}
+            {activeWhyPoints.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+                {activeWhyPoints.map((pt) => (
+                  <div
+                    key={pt.num}
+                    className="bg-[#FFFFFF] p-7 rounded-2xl border border-[#E5EAF0] shadow-2xs"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-[#003366]/5 text-[#003366] font-bold text-xs flex items-center justify-center mb-4">
+                      {pt.num}
+                    </div>
+                    <h3 className="text-base sm:text-lg font-bold text-[#003366] mb-2">
+                      {pt.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-[#5E6B76] leading-relaxed">
+                      {pt.desc}
+                    </p>
                   </div>
-                  <h3 className="text-base sm:text-lg font-bold text-[#003366] mb-2">
-                    {pt.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-[#5E6B76] leading-relaxed">
-                    {pt.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -435,16 +509,18 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
         <section className="py-16 sm:py-20 bg-[#FFFFFF]">
           <div className="max-w-4xl mx-auto px-5 sm:px-6 lg:px-8">
             <div className="p-8 sm:p-12 rounded-3xl bg-[#F7F8FA] border border-[#E5EAF0] text-center">
-              <SectionBadge text={c.transparency.tag} centered />
+              {transparencyTag && <SectionBadge text={transparencyTag} centered />}
               <h2 className="text-2xl sm:text-3xl font-bold text-[#003366] mb-4 font-['DM_Serif_Display']">
-                {c.transparency.title}
+                {transparencyTitle}
               </h2>
               <p className="text-sm sm:text-base text-[#5E6B76] leading-relaxed max-w-2xl mx-auto mb-6">
-                {c.transparency.desc}
+                {transparencyDesc}
               </p>
-              <div className="pt-4 border-t border-[#E5EAF0] text-xs text-[#5E6B76] font-medium">
-                {c.transparency.receiptNotice}
-              </div>
+              {transparencyReceipt && (
+                <div className="pt-4 border-t border-[#E5EAF0] text-xs text-[#5E6B76] font-medium">
+                  {transparencyReceipt}
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -455,14 +531,16 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
         <section className="py-8 bg-[#FFFFFF]">
           <div className="max-w-3xl mx-auto px-5 sm:px-6 lg:px-8">
             <div className="p-6 rounded-2xl border border-dashed border-[#E5EAF0] bg-white text-center">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#5E6B76] block mb-1">
-                {c.future.tag}
-              </span>
+              {futureTag && (
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#5E6B76] block mb-1">
+                  {futureTag}
+                </span>
+              )}
               <h4 className="text-sm font-bold text-[#003366] mb-1.5">
-                {c.future.title}
+                {futureTitle}
               </h4>
               <p className="text-xs text-[#5E6B76] leading-relaxed max-w-lg mx-auto">
-                {c.future.desc}
+                {futureDesc}
               </p>
             </div>
           </div>
@@ -474,18 +552,18 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
         <section className="py-20 sm:py-24 bg-[#F7F8FA]">
           <div className="max-w-4xl mx-auto px-5 sm:px-6 lg:px-8 text-center">
             <h2 className="text-2xl sm:text-4xl font-bold text-[#003366] mb-4 font-['DM_Serif_Display']">
-              {c.contactCta.title}
+              {ctaTitle}
             </h2>
             <p className="text-sm sm:text-base text-[#5E6B76] max-w-xl mx-auto mb-8 leading-relaxed">
-              {c.contactCta.desc}
+              {ctaDesc}
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-3.5">
               <button
-                onClick={() => navigate("contact")}
+                onClick={() => router.push(getPageUrl("contact", safeLang) + "?subject=soutien")}
                 className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider text-white bg-[#007BFF] hover:bg-[#0069d9] transition-all shadow-sm hover:shadow-md cursor-pointer"
               >
-                <span>{c.contactCta.btnContact}</span>
+                <span>{ctaBtnContact}</span>
                 <ArrowRightIcon size={14} strokeWidth={2} />
               </button>
 
@@ -498,7 +576,7 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
                 </svg>
-                <span>{c.contactCta.btnWhatsApp}</span>
+                <span>{ctaBtnWhatsApp}</span>
               </a>
             </div>
           </div>

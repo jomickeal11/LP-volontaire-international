@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import type { Page, Language } from "../types"
 import {
   BuildingIcon,
@@ -13,10 +13,12 @@ import {
   GlobeIcon,
 } from "../components/Icons"
 import { trackEvent } from "../lib/tracker"
+import { getSiteSettings } from "@/lib/cms-actions"
 
 interface PartnerLandingViewProps {
   lang: Language
   navigate: (p: Page) => void
+  initialSettings?: Record<string, string>
 }
 
 // ─── Shared Badge Component (Identique à la page Volontariat) ─────────────────
@@ -29,9 +31,8 @@ function Badge({
 }) {
   return (
     <div
-      className={`flex items-center gap-2 mb-6 ${
-        centered ? "justify-center" : ""
-      }`}
+      className={`flex items-center gap-2 mb-6 ${centered ? "justify-center" : ""
+        }`}
     >
       <svg
         width="12"
@@ -539,524 +540,648 @@ const CONTENT = {
   },
 }
 
-export default function PartnerLandingView({ lang, navigate }: PartnerLandingViewProps) {
+export default function PartnerLandingView({ lang, navigate, initialSettings = {} }: PartnerLandingViewProps) {
   const currentLang = (["FR", "EN", "DE"].includes(lang) ? lang : "FR") as "FR" | "EN" | "DE"
+  const langLower = (lang || "fr").toLowerCase()
   const c = CONTENT[currentLang]
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
+  const [settings, setSettings] = useState<Record<string, string>>(initialSettings)
+
+  useEffect(() => {
+    Promise.all([getSiteSettings("PARTNER"), getSiteSettings("GENERAL")])
+      .then(([resPart, resGen]) => {
+        const merged: Record<string, string> = {}
+        if (resPart.success && resPart.dict) Object.assign(merged, resPart.dict)
+        if (resGen.success && resGen.dict) Object.assign(merged, resGen.dict)
+        setSettings((prev) => ({ ...prev, ...merged }))
+      })
+      .catch((err) => {
+        console.error("Error fetching partner settings:", err)
+      })
+  }, [])
+
+  // 1. Hero
+  const heroBadge = settings[`partner_hero_badge_${langLower}`] || c.hero.badge
+  const heroLine1 = settings[`partner_hero_line1_${langLower}`] || c.hero.line1
+  const heroLine2 = settings[`partner_hero_line2_${langLower}`] || c.hero.line2
+  const heroLine3 = settings[`partner_hero_line3_${langLower}`] || c.hero.line3
+  const heroDesc = settings[`partner_hero_desc_${langLower}`] || c.hero.desc
+  const heroCtaPrimary = settings[`partner_hero_cta_primary_${langLower}`] || c.hero.ctaPrimary
+  const heroCtaSecondary = settings[`partner_hero_cta_secondary_${langLower}`] || c.hero.ctaSecondary
+  const heroImage = settings["partner_hero_image"] || "/meeting-org.jpg"
+  const heroStat1Label = settings[`partner_hero_stat1_label_${langLower}`] || c.hero.stat1Label
+  const heroStat1Sub = settings[`partner_hero_stat1_sub_${langLower}`] || c.hero.stat1Sub
+  const heroStat2Label = settings[`partner_hero_stat2_label_${langLower}`] || c.hero.stat2Label
+  const heroStat2Sub = settings[`partner_hero_stat2_sub_${langLower}`] || c.hero.stat2Sub
+  const heroStat3Label = settings[`partner_hero_stat3_label_${langLower}`] || c.hero.stat3Label
+  const heroStat3Sub = settings[`partner_hero_stat3_sub_${langLower}`] || c.hero.stat3Sub
+
+  // 2. Why
+  const whyTag = settings[`partner_why_tag_${langLower}`] || c.why.tag
+  const whyTitle = settings[`partner_why_title_${langLower}`] || c.why.title
+  const whyCards = [
+    {
+      num: "01",
+      title: settings[`partner_why_card1_title_${langLower}`] || c.why.cards[0]?.title || "",
+      desc: settings[`partner_why_card1_desc_${langLower}`] || c.why.cards[0]?.desc || "",
+    },
+    {
+      num: "02",
+      title: settings[`partner_why_card2_title_${langLower}`] || c.why.cards[1]?.title || "",
+      desc: settings[`partner_why_card2_desc_${langLower}`] || c.why.cards[1]?.desc || "",
+    },
+    {
+      num: "03",
+      title: settings[`partner_why_card3_title_${langLower}`] || c.why.cards[2]?.title || "",
+      desc: settings[`partner_why_card3_desc_${langLower}`] || c.why.cards[2]?.desc || "",
+    },
+    {
+      num: "04",
+      title: settings[`partner_why_card4_title_${langLower}`] || c.why.cards[3]?.title || "",
+      desc: settings[`partner_why_card4_desc_${langLower}`] || c.why.cards[3]?.desc || "",
+    },
+  ]
+
+  // 3. Frameworks
+  const frameworksTag = settings[`partner_frameworks_tag_${langLower}`] || c.frameworks.tag
+  const frameworksTitle = settings[`partner_frameworks_title_${langLower}`] || c.frameworks.title
+  const frameworksSubtitle = settings[`partner_frameworks_subtitle_${langLower}`] || c.frameworks.subtitle
+
+  // 4. Logistics
+  const logisticsTag = settings[`partner_logistics_tag_${langLower}`] || c.lifeAndSafety.tag
+  const logisticsTitle = settings[`partner_logistics_title_${langLower}`] || c.lifeAndSafety.title
+  const logisticsSubtitle = settings[`partner_logistics_subtitle_${langLower}`] || c.lifeAndSafety.subtitle
+
+  // 5. Process
+  const processTag = settings[`partner_process_tag_${langLower}`] || c.process.tag
+  const processTitle = settings[`partner_process_title_${langLower}`] || c.process.title
+  const processSubtitle = settings[`partner_process_subtitle_${langLower}`] || c.process.subtitle
+  const processSteps = [
+    {
+      title: settings[`partner_process_step1_title_${langLower}`] || c.process.steps[0]?.title || "",
+      desc: settings[`partner_process_step1_desc_${langLower}`] || c.process.steps[0]?.desc || "",
+    },
+    {
+      title: settings[`partner_process_step2_title_${langLower}`] || c.process.steps[1]?.title || "",
+      desc: settings[`partner_process_step2_desc_${langLower}`] || c.process.steps[1]?.desc || "",
+    },
+    {
+      title: settings[`partner_process_step3_title_${langLower}`] || c.process.steps[2]?.title || "",
+      desc: settings[`partner_process_step3_desc_${langLower}`] || c.process.steps[2]?.desc || "",
+    },
+    {
+      title: settings[`partner_process_step4_title_${langLower}`] || c.process.steps[3]?.title || "",
+      desc: settings[`partner_process_step4_desc_${langLower}`] || c.process.steps[3]?.desc || "",
+    },
+  ]
+
+  // 6. FAQ
+  const faqTag = settings[`partner_faq_tag_${langLower}`] || c.faq.tag
+  const faqTitle = settings[`partner_faq_title_${langLower}`] || c.faq.title
+  const faqSubtitle = settings[`partner_faq_subtitle_${langLower}`] || c.faq.subtitle
+
+  // 7. CTA
+  const ctaBadge = settings[`partner_cta_badge_${langLower}`] || c.finalCta.badge
+  const ctaTitle = settings[`partner_cta_title_${langLower}`] || c.finalCta.title
+  const ctaDesc = settings[`partner_cta_desc_${langLower}`] || c.finalCta.desc
+  const ctaBtnPrimary = settings[`partner_cta_btn_primary_${langLower}`] || c.finalCta.btnPrimary
+  const ctaBtnSecondary = settings[`partner_cta_btn_secondary_${langLower}`] || c.finalCta.btnSecondary
+
+  const subNavItems = [
+    { id: "why", label: currentLang === "DE" ? "Warum APTIC-R" : currentLang === "EN" ? "Why Partner" : "Pourquoi devenir partenaire" },
+    { id: "frameworks", label: currentLang === "DE" ? "Partnermodelle" : currentLang === "EN" ? "Partner Frameworks" : "Types de partenariats" },
+    { id: "togo", label: currentLang === "DE" ? "Rahmenbedingungen" : currentLang === "EN" ? "Field Framework" : "Cadre & Logistique" },
+    { id: "process", label: currentLang === "DE" ? "Ablauf" : currentLang === "EN" ? "Process" : "Processus" },
+    { id: "faq", label: "FAQ" },
+  ]
+
+  const navBadgeTitle = currentLang === "DE" ? "PARTNERSCHAFT" : currentLang === "EN" ? "PARTNERSHIP" : "PARTENARIAT"
+
   return (
-    <main className="w-full overflow-x-hidden">
+    <div className="w-full flex flex-col">
+      <main className="w-full overflow-x-hidden">
 
-      {/* ═══════════════════════════════════════════════════════════════════════════
-          01. HERO (Exactement même forme, structure et typographie que Volontariat)
-      ═══════════════════════════════════════════════════════════════════════════ */}
-      <section className="relative z-10 min-h-[95vh] lg:min-h-screen flex flex-col">
-        {/* Background Layer with overflow hidden */}
-        <div className="absolute inset-0 overflow-hidden">
-          <picture>
-            <source srcSet="/meeting-org.avif" type="image/avif" />
-            <source srcSet="/meeting-org.webp" type="image/webp" />
-            <img
-              src="/meeting-org.jpg"
-              alt="Partenariat institutionnel et volontariat au Togo"
-              className="absolute inset-0 w-full h-full object-cover object-center"
-              fetchPriority="high"
-              decoding="async"
-            />
-          </picture>
-          <div
-            className="absolute inset-0"
-            style={{ backgroundColor: "rgba(18,59,90,0.27)" }}
-          />
-          {/* Short gradient fade to white */}
-          <div
-            className="absolute bottom-0 left-0 right-0 h-20 lg:h-24"
-            style={{
-              background: "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.45) 50%, #FFFFFF 100%)",
-            }}
-          />
-        </div>
-
-        <div className="flex-1 flex flex-col justify-center pt-32 pb-8 sm:pt-32 sm:pb-24 lg:pt-40 lg:pb-32 relative z-10 max-w-7xl w-full mx-auto px-5 sm:px-6 lg:px-8">
-          <div
-            className="text-center mx-auto mb-10 sm:mb-16 lg:mb-20 w-full"
-            style={{ maxWidth: "900px" }}
-          >
-            <h1
-              className="leading-[1.05] sm:leading-[1.1] tracking-tight mb-6 sm:mb-8"
-              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.14)" }}
-            >
-              {/* Niveau 1 - Principal */}
-              <span className="text-3xl sm:text-5xl lg:text-[72px] block mb-2 sm:mb-3 text-[#FFFFFF]">
-                {c.hero.line1}
-              </span>
-              {/* Niveau 2 - Accent */}
-              <span
-                className="text-[26px] sm:text-5xl lg:text-[64px] block mb-2 sm:mb-3 text-[#28A745] font-extrabold whitespace-nowrap sm:whitespace-normal tracking-tighter sm:tracking-tight"
-                style={{
-                  textShadow: "0 2px 12px rgba(0,0,0,0.45), 0 8px 32px rgba(0,0,0,0.35)",
-                }}
-              >
-                {c.hero.line2}
-              </span>
-              {/* Niveau 3 - Complément */}
-              <span className="text-2xl sm:text-4xl lg:text-[58px] block text-[#FFFFFF] font-medium opacity-90">
-                {c.hero.line3}
-              </span>
-            </h1>
-
-            <p
-              className="text-base sm:text-lg lg:text-xl font-medium leading-[1.6] sm:leading-relaxed max-w-[320px] sm:max-w-[640px] mx-auto mb-10 sm:mb-12"
-              style={{ color: "rgba(255,255,255,0.92)" }}
-            >
-              {c.hero.desc}
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3.5 sm:gap-4">
-              <button
-                onClick={() => {
-                  trackEvent("partner_request_click", { source: "hero_primary", lang: currentLang })
-                  navigate("partner-apply")
-                }}
-                className="inline-flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider px-6 py-3 sm:px-7 sm:py-3.5 rounded-xl transition-all shadow-md cursor-pointer text-white bg-[#28A745] hover:bg-[#218838] hover:scale-105"
-              >
-                <span>{c.hero.ctaPrimary}</span>
-                <ArrowRightIcon size={15} strokeWidth={2} />
-              </button>
-              <button
-                onClick={() => {
-                  const el = document.getElementById("why-section")
-                  el?.scrollIntoView({ behavior: "smooth" })
-                }}
-                className="inline-flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider px-6 py-3 sm:px-7 sm:py-3.5 rounded-xl transition-all cursor-pointer text-white border border-white/50 hover:bg-white/10 backdrop-blur-md"
-              >
-                <span>{c.hero.ctaSecondary}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Key Facts - intentionally overlapping next section */}
-          <div className="relative mt-2 sm:mt-8 mb-4 sm:-mb-12 max-w-4xl mx-auto z-20">
+        {/* ═══════════════════════════════════════════════════════════════════════════
+            01. HERO (Exactement même forme, structure et typographie que Volontariat)
+        ═══════════════════════════════════════════════════════════════════════════ */}
+        <section className="relative z-10 min-h-[95vh] lg:min-h-screen flex flex-col">
+          {/* Background Layer with overflow hidden */}
+          <div className="absolute inset-0 overflow-hidden">
+            {heroImage.startsWith("/meeting-org") ? (
+              <picture>
+                <source srcSet="/meeting-org.avif" type="image/avif" />
+                <source srcSet="/meeting-org.webp" type="image/webp" />
+                <img
+                  src="/meeting-org.jpg"
+                  alt="Partenariat institutionnel et volontariat au Togo"
+                  className="absolute inset-0 w-full h-full object-cover object-center"
+                  fetchPriority="high"
+                  decoding="async"
+                />
+              </picture>
+            ) : (
+              <img
+                src={heroImage}
+                alt="Partenariat institutionnel et volontariat au Togo"
+                className="absolute inset-0 w-full h-full object-cover object-center"
+                fetchPriority="high"
+                decoding="async"
+              />
+            )}
             <div
-              className="absolute inset-0 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+              className="absolute inset-0"
+              style={{ backgroundColor: "rgba(18,59,90,0.27)" }}
+            />
+            {/* Short gradient fade to white */}
+            <div
+              className="absolute bottom-0 left-0 right-0 h-20 lg:h-24"
               style={{
-                backgroundColor: "rgba(23,79,122,0.72)",
-                backdropFilter: "blur(10px)",
-                WebkitBackdropFilter: "blur(10px)",
-                border: "1px solid rgba(255,255,255,0.22)",
-                borderRadius: "20px",
+                background: "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.45) 50%, #FFFFFF 100%)",
               }}
             />
-            <div className="relative grid grid-cols-3 gap-2 sm:gap-8 text-center py-4 sm:py-6 px-2 sm:px-6">
-              {[
-                { label: c.hero.stat1Label, sub: c.hero.stat1Sub },
-                { label: c.hero.stat2Label, sub: c.hero.stat2Sub },
-                { label: c.hero.stat3Label, sub: c.hero.stat3Sub },
-              ].map((s) => (
-                <div key={s.label} className="flex flex-col gap-0.5 sm:gap-1 relative px-1 sm:px-0">
-                  <span
-                    className="text-sm sm:text-xl lg:text-2xl font-bold tracking-tight truncate sm:whitespace-normal"
-                    style={{ color: "#FFFFFF" }}
+          </div>
+
+          <div className="flex-1 flex flex-col justify-center pt-32 pb-8 sm:pt-32 sm:pb-24 lg:pt-40 lg:pb-32 relative z-10 max-w-7xl w-full mx-auto px-5 sm:px-6 lg:px-8">
+            <div
+              className="text-center mx-auto mb-10 sm:mb-16 lg:mb-20 w-full"
+              style={{ maxWidth: "900px" }}
+            >
+              <h1
+                className="leading-[1.05] sm:leading-[1.1] tracking-tight mb-6 sm:mb-8"
+                style={{ textShadow: "0 2px 12px rgba(0,0,0,0.14)" }}
+              >
+                {/* Niveau 1 - Principal */}
+                <span className="text-3xl sm:text-5xl lg:text-[72px] block mb-2 sm:mb-3 text-[#FFFFFF]">
+                  {heroLine1}
+                </span>
+                {/* Niveau 2 - Accent */}
+                <span
+                  className="text-[26px] sm:text-5xl lg:text-[64px] block mb-2 sm:mb-3 text-[#28A745] font-extrabold whitespace-nowrap sm:whitespace-normal tracking-tighter sm:tracking-tight"
+                  style={{
+                    textShadow: "0 2px 12px rgba(0,0,0,0.45), 0 8px 32px rgba(0,0,0,0.35)",
+                  }}
+                >
+                  {heroLine2}
+                </span>
+                {/* Niveau 3 - Complément */}
+                <span className="text-2xl sm:text-4xl lg:text-[58px] block text-[#FFFFFF] font-medium opacity-90">
+                  {heroLine3}
+                </span>
+              </h1>
+
+              <p
+                className="text-base sm:text-lg lg:text-xl font-medium leading-[1.6] sm:leading-relaxed max-w-[320px] sm:max-w-[640px] mx-auto mb-10 sm:mb-12"
+                style={{ color: "rgba(255,255,255,0.92)" }}
+              >
+                {heroDesc}
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3.5 sm:gap-4">
+                <button
+                  onClick={() => {
+                    trackEvent("partner_request_click", { source: "hero_primary", lang: currentLang })
+                    navigate("partner-apply")
+                  }}
+                  className="inline-flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider px-6 py-3 sm:px-7 sm:py-3.5 rounded-xl transition-all shadow-md cursor-pointer text-white bg-[#28A745] hover:bg-[#218838] hover:scale-105"
+                >
+                  <span>{heroCtaPrimary}</span>
+                  <ArrowRightIcon size={15} strokeWidth={2} />
+                </button>
+                <button
+                  onClick={() => {
+                    const el = document.getElementById("why-section")
+                    el?.scrollIntoView({ behavior: "smooth" })
+                  }}
+                  className="inline-flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider px-6 py-3 sm:px-7 sm:py-3.5 rounded-xl transition-all cursor-pointer text-white border border-white/50 hover:bg-white/10 backdrop-blur-md"
+                >
+                  <span>{heroCtaSecondary}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Key Facts - intentionally overlapping next section */}
+            <div className="relative mt-2 sm:mt-8 mb-4 sm:-mb-12 max-w-4xl mx-auto z-20">
+              <div
+                className="absolute inset-0 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+                style={{
+                  backgroundColor: "rgba(23,79,122,0.72)",
+                  backdropFilter: "blur(10px)",
+                  WebkitBackdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  borderRadius: "20px",
+                }}
+              />
+              <div className="relative grid grid-cols-3 gap-2 sm:gap-8 text-center py-4 sm:py-6 px-2 sm:px-6">
+                {[
+                  { label: heroStat1Label, sub: heroStat1Sub },
+                  { label: heroStat2Label, sub: heroStat2Sub },
+                  { label: heroStat3Label, sub: heroStat3Sub },
+                ].map((s) => (
+                  <div key={s.label} className="flex flex-col gap-0.5 sm:gap-1 relative px-1 sm:px-0">
+                    <span
+                      className="text-sm sm:text-xl lg:text-2xl font-bold tracking-tight truncate sm:whitespace-normal"
+                      style={{ color: "#FFFFFF" }}
+                    >
+                      {s.label}
+                    </span>
+                    <span
+                      className="text-[8px] sm:text-[10px] lg:text-xs font-semibold uppercase tracking-widest leading-tight"
+                      style={{ color: "rgba(255,255,255,0.72)" }}
+                    >
+                      {s.sub}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════════════════════════
+          02. POURQUOI COOPÉRER AVEC APTIC-R (Forme identique à WhyMission)
+      ═══════════════════════════════════════════════════════════════════════════ */}
+        <section id="why" className="py-20 sm:py-24 lg:py-32 bg-[#FFFFFF]">
+          <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+            <div className="text-center max-w-4xl mx-auto mb-12 sm:mb-16 lg:mb-24">
+              <Badge text={whyTag} centered />
+              <h2 className="text-3xl sm:text-5xl lg:text-6xl leading-tight text-[#003366] tracking-[-0.02em]">
+                {whyTitle}
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+              {whyCards.map((card, i) => (
+                <div
+                  key={card.title}
+                  className="relative flex flex-col items-start text-left group"
+                >
+                  <div
+                    className="text-[48px] sm:text-[80px] lg:text-[100px] leading-none mb-2 sm:mb-4 lg:mb-6 font-['DM_Serif_Display'] transition-transform duration-500 group-hover:-translate-y-2"
+                    style={{ color: "#EAF0F4" }}
                   >
-                    {s.label}
-                  </span>
-                  <span
-                    className="text-[8px] sm:text-[10px] lg:text-xs font-semibold uppercase tracking-widest leading-tight"
-                    style={{ color: "rgba(255,255,255,0.72)" }}
-                  >
-                    {s.sub}
-                  </span>
+                    {card.num}
+                  </div>
+                  <div className="w-full mb-2 sm:mb-4 border-b-2 border-[#EAF0F4] pb-2 sm:pb-4 min-h-[auto] sm:min-h-[5rem] lg:min-h-[6rem] flex flex-col justify-start">
+                    <h3 className="text-xl sm:text-2xl lg:text-3xl text-[#003366] tracking-tight">
+                      {card.title}
+                    </h3>
+                  </div>
+                  <p className="text-sm sm:text-base text-[#5E6B76] font-medium leading-relaxed mt-1 sm:mt-2">
+                    {card.desc}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════════════
-          02. POURQUOI COOPÉRER AVEC APTIC-R (Forme identique à WhyMission)
-      ═══════════════════════════════════════════════════════════════════════════ */}
-      <section id="why-section" className="py-20 sm:py-24 lg:py-32 bg-[#FFFFFF]">
-        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto mb-12 sm:mb-16 lg:mb-24">
-            <Badge text={c.why.tag} centered />
-            <h2 className="text-3xl sm:text-5xl lg:text-6xl leading-tight text-[#003366] tracking-[-0.02em]">
-              {c.why.title}
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-            {c.why.cards.map((card, i) => (
-              <div
-                key={card.title}
-                className="relative flex flex-col items-start text-left group"
-              >
-                <div
-                  className="text-[48px] sm:text-[80px] lg:text-[100px] leading-none mb-2 sm:mb-4 lg:mb-6 font-['DM_Serif_Display'] transition-transform duration-500 group-hover:-translate-y-2"
-                  style={{ color: "#EAF0F4" }}
-                >
-                  {card.num}
-                </div>
-                <div className="w-full mb-2 sm:mb-4 border-b-2 border-[#EAF0F4] pb-2 sm:pb-4 min-h-[auto] sm:min-h-[5rem] lg:min-h-[6rem] flex flex-col justify-start">
-                  <h3 className="text-xl sm:text-2xl lg:text-3xl text-[#003366] tracking-tight">
-                    {card.title}
-                  </h3>
-                </div>
-                <p className="text-sm sm:text-base text-[#5E6B76] font-medium leading-relaxed mt-1 sm:mt-2">
-                  {card.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════════════
+        {/* ═══════════════════════════════════════════════════════════════════════════
           03. MODALITÉS DE PARTENARIAT (Forme identique à ProfilesSought)
       ═══════════════════════════════════════════════════════════════════════════ */}
-      <section className="py-20 sm:py-24 lg:py-32 bg-[#F7F8FA] overflow-hidden">
-        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-24">
-            <Badge text={c.frameworks.tag} centered />
-            <h2 className="text-3xl sm:text-5xl lg:text-6xl leading-tight mb-4 sm:mb-6 text-[#003366] tracking-[-0.02em]">
-              {c.frameworks.title}
-            </h2>
-            <p className="text-base sm:text-lg lg:text-xl font-medium text-[#5E6B76] leading-relaxed">
-              {c.frameworks.subtitle}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 max-w-5xl mx-auto mb-16 sm:mb-20">
-            {c.frameworks.items.map((item, index) => {
-              const icons = [
-                <UsersIcon className="w-8 h-8 sm:w-12 sm:h-12" color="#003366" />,
-                <GraduationCapIcon className="w-8 h-8 sm:w-12 sm:h-12" color="#28A745" />,
-                <BuildingIcon className="w-8 h-8 sm:w-12 sm:h-12" color="#003366" />,
-                <GlobeIcon className="w-8 h-8 sm:w-12 sm:h-12" color="#003366" />,
-              ]
-              return (
-                <div key={item.title} className="relative flex flex-col p-6 sm:p-10 bg-white rounded-3xl border border-[#EAF0F4] shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[#F7F8FA]">
-                      {icons[index]}
-                    </div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#E8F2FA] text-[#003366]">
-                      {item.badge}
-                    </span>
-                  </div>
-
-                  <h3 className="text-xl sm:text-2xl font-bold text-[#003366] mb-3">
-                    {item.title}
-                  </h3>
-
-                  <p className="text-sm sm:text-base text-[#5E6B76] font-medium leading-relaxed mb-6">
-                    {item.desc}
-                  </p>
-
-                  <div className="mt-auto border-t border-[#EAF0F4] pt-4 text-xs sm:text-sm text-[#5E6B76] font-medium">
-                    {item.points.map((pt, i, arr) => (
-                      <span key={i} className="inline-block">
-                        {pt}
-                        {i < arr.length - 1 && (
-                          <span className="text-[#28A745] font-bold mx-2">·</span>
-                        )}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          <div className="text-center">
-            <button
-              onClick={() => navigate("partner-apply")}
-              className="inline-flex items-center gap-2 font-bold text-[13px] uppercase tracking-wider transition-opacity hover:opacity-70 cursor-pointer"
-              style={{ color: "#003366" }}
-            >
-              <span style={{ borderBottom: "1px solid #003366", paddingBottom: "2px" }}>
-                {c.hero.ctaPrimary}
-              </span>
-              <ArrowRightIcon size={16} strokeWidth={2} />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════════════
-          04. CADRE LOGISTIQUE & TERRAIN (Forme identique à LifeInTogo)
-      ═══════════════════════════════════════════════════════════════════════════ */}
-      <section id="togo" className="py-20 sm:py-24 lg:py-28 bg-[#FFFFFF]">
-        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 text-center mb-12 sm:mb-16">
-          <Badge text={c.lifeAndSafety.tag} centered />
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight mt-3 mb-4 text-[#003366] font-['DM_Serif_Display'] font-normal">
-            {c.lifeAndSafety.title}
-          </h2>
-          <p className="text-base sm:text-lg text-[#5E6B76] max-w-2xl mx-auto font-medium">
-            {c.lifeAndSafety.subtitle}
-          </p>
-        </div>
-
-        {/* Composition photographique compacte et dynamique */}
-        <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8 mb-12 sm:mb-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 h-auto md:h-[340px]">
-            <div className="rounded-2xl overflow-hidden group shadow-sm h-[220px] md:h-full">
-              <img
-                src="https://images.unsplash.com/photo-1637149253733-44ef8365db1c?w=800&h=600&fit=crop&auto=format"
-                alt="Togo landscape"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-            </div>
-            <div className="rounded-2xl overflow-hidden group shadow-sm h-[220px] md:h-full">
-              <img
-                src="https://images.unsplash.com/photo-1609252509229-364936a1d1a2?w=800&h=600&fit=crop&auto=format"
-                alt="Community members in Agbelouve"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-            </div>
-            <div className="rounded-2xl overflow-hidden group shadow-sm h-[220px] md:h-full">
-              <img
-                src="https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800&h=600&fit=crop&auto=format"
-                alt="Nature and village surroundings"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Points clés synthétiques */}
-        <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 pb-10">
-            {c.lifeAndSafety.points.map((pt, idx) => (
-              <div key={idx} className="p-6 rounded-2xl bg-[#F7F8FA] border border-[#EAF0F4]">
-                <div className="text-lg font-bold text-[#003366] mb-2">{pt.title}</div>
-                <p className="text-sm text-[#5E6B76] leading-relaxed">
-                  {pt.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Liens institutionnels contextuels */}
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 pt-4 border-t border-[#EAF0F4] text-xs sm:text-sm font-bold text-[#003366]">
-            <button
-              onClick={() => navigate("about" as any)}
-              className="hover:text-[#28A745] transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>{c.links.about}</span>
-              <ArrowRightIcon size={14} strokeWidth={2} />
-            </button>
-            <span className="text-slate-300">·</span>
-            <button
-              onClick={() => navigate("projects" as any)}
-              className="hover:text-[#28A745] transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>{c.links.projects}</span>
-              <ArrowRightIcon size={14} strokeWidth={2} />
-            </button>
-            <span className="text-slate-300">·</span>
-            <button
-              onClick={() => navigate("contact" as any)}
-              className="hover:text-[#28A745] transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>{c.links.contact}</span>
-              <ArrowRightIcon size={14} strokeWidth={2} />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════════════
-          05. DÉMARCHE EN 4 ÉTAPES (Forme identique à ApplicationProcess)
-      ═══════════════════════════════════════════════════════════════════════════ */}
-      <section className="py-20 sm:py-24 lg:py-28 bg-[#F7F8FA]">
-        <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 sm:mb-20">
-            <Badge text={c.process.tag} centered />
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em]">
-              {c.process.title}
-            </h2>
-            <p className="text-base sm:text-lg text-[#5E6B76] max-w-xl mx-auto mt-3 font-medium">
-              {c.process.subtitle}
-            </p>
-          </div>
-
-          <div className="relative border-l-4 border-[#28A745]/30 ml-4 sm:ml-8 lg:ml-12 py-4 flex flex-col gap-10 sm:gap-14">
-            {c.process.steps.map((s, i) => (
-              <div key={s.title} className="relative group">
-                <div className="absolute -left-[14px] top-1 w-6 h-6 rounded-full border-4 border-[#FFFFFF] bg-[#28A745] transition-transform duration-500 group-hover:scale-125 shadow-sm" />
-                <div className="ml-8 sm:ml-12 lg:ml-16">
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-[#28A745] mb-2 block">
-                    {c.process.stepLabel} 0{i + 1}
-                  </span>
-                  <h3 className="text-xl sm:text-2xl lg:text-3xl text-[#003366] mb-2 font-['DM_Serif_Display']">
-                    {s.title}
-                  </h3>
-                  <p className="text-sm sm:text-base lg:text-lg text-[#5E6B76] leading-relaxed max-w-2xl font-medium">
-                    {s.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-10 sm:mt-12 flex justify-center">
-            <button
-              onClick={() => navigate("partner-apply")}
-              className="inline-flex items-center gap-2 font-bold text-xs uppercase tracking-wider px-7 py-3.5 rounded-xl text-white shadow-md transition-all hover:scale-105 bg-[#28A745] hover:bg-[#218838] cursor-pointer"
-            >
-              <span>{c.hero.ctaPrimary}</span>
-              <ArrowRightIcon className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════════════
-          06. FAQ PARTENAIRES (Forme identique à FAQ)
-      ═══════════════════════════════════════════════════════════════════════════ */}
-      <section id="faq" className="py-20 sm:py-24 bg-[#FFFFFF]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12 sm:mb-16">
-            <Badge text={c.faq.tag} centered />
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl text-[#003366] tracking-[-0.02em]">
-              {c.faq.title}
-            </h2>
-            <p className="text-sm sm:text-base text-[#5E6B76] mt-3">
-              {c.faq.subtitle}
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3.5">
-            {c.faq.items?.map((item, i) => {
-              const isOpen = openFaq === i
-              return (
-                <div
-                  key={i}
-                  className="rounded-2xl transition-all duration-300 bg-[#F7F8FA] overflow-hidden border border-[#EAF0F4]"
-                >
-                  <button
-                    className="w-full flex items-center justify-between gap-4 p-5 sm:p-6 text-left cursor-pointer hover:bg-slate-100/70 transition-colors"
-                    onClick={() => setOpenFaq(isOpen ? null : i)}
-                    aria-expanded={isOpen}
-                  >
-                    <span className="text-base sm:text-lg font-bold text-[#003366]">
-                      {item.q}
-                    </span>
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center bg-white shadow-2xs flex-shrink-0 transition-transform duration-300"
-                      style={{ transform: isOpen ? "rotate(45deg)" : "none" }}
-                    >
-                      <PlusIcon size={18} color="#003366" />
-                    </div>
-                  </button>
-                  <div
-                    className={`overflow-hidden transition-all duration-300 ${
-                      isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-                    }`}
-                  >
-                    <div className="px-5 sm:px-6 pb-6 pt-1 text-[#5E6B76] text-sm sm:text-base leading-relaxed border-t border-slate-200/60">
-                      {item.a}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Contact direct si question supplémentaire */}
-          <div className="mt-8 sm:mt-10 p-5 sm:p-6 rounded-2xl bg-[#F7F8FA] border border-[#EAF0F4] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="min-w-0">
-              <h3 className="text-base font-bold text-[#003366] mb-1">
-                {c.faq.contactBoxTitle}
-              </h3>
-              <p className="text-xs sm:text-sm text-[#5E6B76]">
-                {c.faq.contactBoxSubtitle}
+        <section id="frameworks" className="py-20 sm:py-24 lg:py-32 bg-[#F7F8FA] overflow-hidden">
+          <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+            <div className="text-center max-w-3xl mx-auto mb-24">
+              <Badge text={frameworksTag} centered />
+              <h2 className="text-3xl sm:text-5xl lg:text-6xl leading-tight mb-4 sm:mb-6 text-[#003366] tracking-[-0.02em]">
+                {frameworksTitle}
+              </h2>
+              <p className="text-base sm:text-lg lg:text-xl font-medium text-[#5E6B76] leading-relaxed">
+                {frameworksSubtitle}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-              <a
-                href="mailto:aptic.rural19@gmail.com?subject=Demande%20Partenariat"
-                onClick={() => {
-                  trackEvent("contact_click", { source: "faq_email" })
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#003366] text-white text-xs font-bold hover:bg-[#002244] transition-colors"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <span>aptic.rural19@gmail.com</span>
-              </a>
 
-              <a
-                href={`https://wa.me/22891201990?text=${encodeURIComponent(c.faq.whatsappText)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => {
-                  trackEvent("contact_click", { source: "faq_whatsapp" })
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#28A745] text-white text-xs font-bold hover:bg-[#218838] transition-colors shadow-2xs"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 max-w-5xl mx-auto mb-16 sm:mb-20">
+              {c.frameworks.items.map((item, index) => {
+                const icons = [
+                  <UsersIcon key="f-0" className="w-8 h-8 sm:w-12 sm:h-12" color="#003366" />,
+                  <GraduationCapIcon key="f-1" className="w-8 h-8 sm:w-12 sm:h-12" color="#28A745" />,
+                  <BuildingIcon key="f-2" className="w-8 h-8 sm:w-12 sm:h-12" color="#003366" />,
+                  <GlobeIcon key="f-3" className="w-8 h-8 sm:w-12 sm:h-12" color="#003366" />,
+                ]
+                return (
+                  <div key={item.title} className="relative flex flex-col p-6 sm:p-10 bg-white rounded-3xl border border-[#EAF0F4] shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[#F7F8FA]">
+                        {icons[index]}
+                      </div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#E8F2FA] text-[#003366]">
+                        {item.badge}
+                      </span>
+                    </div>
+
+                    <h3 className="text-xl sm:text-2xl font-bold text-[#003366] mb-3">
+                      {item.title}
+                    </h3>
+
+                    <p className="text-sm sm:text-base text-[#5E6B76] font-medium leading-relaxed mb-6">
+                      {item.desc}
+                    </p>
+
+                    <div className="mt-auto border-t border-[#EAF0F4] pt-4 text-xs sm:text-sm text-[#5E6B76] font-medium">
+                      {item.points.map((pt, i, arr) => (
+                        <span key={i} className="inline-block">
+                          {pt}
+                          {i < arr.length - 1 && (
+                            <span className="text-[#28A745] font-bold mx-2">·</span>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="text-center">
+              <button
+                onClick={() => navigate("partner-apply")}
+                className="inline-flex items-center gap-2 font-bold text-[13px] uppercase tracking-wider transition-opacity hover:opacity-70 cursor-pointer"
+                style={{ color: "#003366" }}
               >
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
-                </svg>
-                <span>WhatsApp : +228 91 20 19 90</span>
-              </a>
+                <span style={{ borderBottom: "1px solid #003366", paddingBottom: "2px" }}>
+                  {heroCtaPrimary}
+                </span>
+                <ArrowRightIcon size={16} strokeWidth={2} />
+              </button>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════════════
+        {/* ═══════════════════════════════════════════════════════════════════════════
+          04. CADRE LOGISTIQUE & TERRAIN (Forme identique à LifeInTogo)
+      ═══════════════════════════════════════════════════════════════════════════ */}
+        <section id="togo" className="py-20 sm:py-24 lg:py-28 bg-[#FFFFFF]">
+          <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 text-center mb-12 sm:mb-16">
+            <Badge text={logisticsTag} centered />
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight mt-3 mb-4 text-[#003366] font-['DM_Serif_Display'] font-normal">
+              {logisticsTitle}
+            </h2>
+            <p className="text-base sm:text-lg text-[#5E6B76] max-w-2xl mx-auto font-medium">
+              {logisticsSubtitle}
+            </p>
+          </div>
+
+          {/* Composition photographique compacte et dynamique */}
+          <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8 mb-12 sm:mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 h-auto md:h-[340px]">
+              <div className="rounded-2xl overflow-hidden group shadow-sm h-[220px] md:h-full">
+                <img
+                  src="https://images.unsplash.com/photo-1637149253733-44ef8365db1c?w=800&h=600&fit=crop&auto=format"
+                  alt="Togo landscape"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
+              <div className="rounded-2xl overflow-hidden group shadow-sm h-[220px] md:h-full">
+                <img
+                  src="https://images.unsplash.com/photo-1609252509229-364936a1d1a2?w=800&h=600&fit=crop&auto=format"
+                  alt="Community members in Agbelouve"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
+              <div className="rounded-2xl overflow-hidden group shadow-sm h-[220px] md:h-full">
+                <img
+                  src="https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800&h=600&fit=crop&auto=format"
+                  alt="Nature and village surroundings"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Points clés synthétiques */}
+          <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 pb-10">
+              {c.lifeAndSafety.points.map((pt, idx) => (
+                <div key={idx} className="p-6 rounded-2xl bg-[#F7F8FA] border border-[#EAF0F4]">
+                  <div className="text-lg font-bold text-[#003366] mb-2">{pt.title}</div>
+                  <p className="text-sm text-[#5E6B76] leading-relaxed">
+                    {pt.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Liens institutionnels contextuels */}
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 pt-4 border-t border-[#EAF0F4] text-xs sm:text-sm font-bold text-[#003366]">
+              <button
+                onClick={() => navigate("about" as any)}
+                className="hover:text-[#28A745] transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>{c.links.about}</span>
+                <ArrowRightIcon size={14} strokeWidth={2} />
+              </button>
+              <span className="text-slate-300">·</span>
+              <button
+                onClick={() => navigate("projects" as any)}
+                className="hover:text-[#28A745] transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>{c.links.projects}</span>
+                <ArrowRightIcon size={14} strokeWidth={2} />
+              </button>
+              <span className="text-slate-300">·</span>
+              <button
+                onClick={() => navigate("contact" as any)}
+                className="hover:text-[#28A745] transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>{c.links.contact}</span>
+                <ArrowRightIcon size={14} strokeWidth={2} />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════════════════════════
+          05. DÉMARCHE EN 4 ÉTAPES (Forme identique à ApplicationProcess)
+      ═══════════════════════════════════════════════════════════════════════════ */}
+        <section id="process" className="py-20 sm:py-24 lg:py-28 bg-[#F7F8FA]">
+          <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
+            <div className="text-center mb-16 sm:mb-20">
+              <Badge text={processTag} centered />
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em]">
+                {processTitle}
+              </h2>
+              <p className="text-base sm:text-lg text-[#5E6B76] max-w-xl mx-auto mt-3 font-medium">
+                {processSubtitle}
+              </p>
+            </div>
+
+            <div className="relative border-l-4 border-[#28A745]/30 ml-4 sm:ml-8 lg:ml-12 py-4 flex flex-col gap-10 sm:gap-14">
+              {processSteps.map((s, i) => (
+                <div key={i} className="relative group">
+                  <div className="absolute -left-[14px] top-1 w-6 h-6 rounded-full border-4 border-[#FFFFFF] bg-[#28A745] transition-transform duration-500 group-hover:scale-125 shadow-sm" />
+                  <div className="ml-8 sm:ml-12 lg:ml-16">
+                    <span className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-[#28A745] mb-2 block">
+                      {c.process.stepLabel} 0{i + 1}
+                    </span>
+                    <h3 className="text-xl sm:text-2xl lg:text-3xl text-[#003366] mb-2 font-['DM_Serif_Display']">
+                      {s.title}
+                    </h3>
+                    <p className="text-sm sm:text-base lg:text-lg text-[#5E6B76] leading-relaxed max-w-2xl font-medium">
+                      {s.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center mt-10 sm:mt-12 flex justify-center">
+              <button
+                onClick={() => navigate("partner-apply")}
+                className="inline-flex items-center gap-2 font-bold text-xs uppercase tracking-wider px-7 py-3.5 rounded-xl text-white shadow-md transition-all hover:scale-105 bg-[#28A745] hover:bg-[#218838] cursor-pointer"
+              >
+                <span>{heroCtaPrimary}</span>
+                <ArrowRightIcon className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════════════════════════
+          06. FAQ PARTENAIRES (Forme identique à FAQ)
+      ═══════════════════════════════════════════════════════════════════════════ */}
+        <section id="faq" className="py-20 sm:py-24 bg-[#FFFFFF]">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-12 sm:mb-16">
+              <Badge text={faqTag} centered />
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl text-[#003366] tracking-[-0.02em]">
+                {faqTitle}
+              </h2>
+              <p className="text-sm sm:text-base text-[#5E6B76] mt-3">
+                {faqSubtitle}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3.5">
+              {c.faq.items?.map((item, i) => {
+                const isOpen = openFaq === i
+                return (
+                  <div
+                    key={i}
+                    className="rounded-2xl transition-all duration-300 bg-[#F7F8FA] overflow-hidden border border-[#EAF0F4]"
+                  >
+                    <button
+                      className="w-full flex items-center justify-between gap-4 p-5 sm:p-6 text-left cursor-pointer hover:bg-slate-100/70 transition-colors"
+                      onClick={() => setOpenFaq(isOpen ? null : i)}
+                      aria-expanded={isOpen}
+                    >
+                      <span className="text-base sm:text-lg font-bold text-[#003366]">
+                        {item.q}
+                      </span>
+                      <div
+                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-white shadow-2xs flex-shrink-0 transition-transform duration-300"
+                        style={{ transform: isOpen ? "rotate(45deg)" : "none" }}
+                      >
+                        <PlusIcon size={18} color="#003366" />
+                      </div>
+                    </button>
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                        }`}
+                    >
+                      <div className="px-5 sm:px-6 pb-6 pt-1 text-[#5E6B76] text-sm sm:text-base leading-relaxed border-t border-slate-200/60">
+                        {item.a}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Contact direct si question supplémentaire */}
+            <div className="mt-8 sm:mt-10 p-5 sm:p-6 rounded-2xl bg-[#F7F8FA] border border-[#EAF0F4] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="min-w-0">
+                <h3 className="text-base font-bold text-[#003366] mb-1">
+                  {c.faq.contactBoxTitle}
+                </h3>
+                <p className="text-xs sm:text-sm text-[#5E6B76]">
+                  {c.faq.contactBoxSubtitle}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                <a
+                  href="mailto:aptic.rural19@gmail.com?subject=Demande%20Partenariat"
+                  onClick={() => {
+                    trackEvent("contact_click", { source: "faq_email" })
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#003366] text-white text-xs font-bold hover:bg-[#002244] transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span>aptic.rural19@gmail.com</span>
+                </a>
+
+                <a
+                  href={`https://wa.me/22891201990?text=${encodeURIComponent(c.faq.whatsappText)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    trackEvent("contact_click", { source: "faq_whatsapp" })
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#28A745] text-white text-xs font-bold hover:bg-[#218838] transition-colors shadow-2xs"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />
+                  </svg>
+                  <span>WhatsApp : +228 91 20 19 90</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════════════════════════
           07. CTA FINAL (Forme identique à FinalCTA)
       ═══════════════════════════════════════════════════════════════════════════ */}
-      <section className="py-20 sm:py-28 relative overflow-hidden flex items-center justify-center min-h-[48vh]">
-        <img
-          src="https://images.unsplash.com/photo-1652971876875-05db98fab376?w=1920&h=1080&fit=crop&auto=format"
-          alt="Rural landscape in West Africa with community gathering"
-          className="absolute inset-0 w-full h-full object-cover object-[center_top] md:object-center"
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(0,51,102,0.92) 0%, rgba(0,51,102,0.65) 100%)",
-          }}
-        />
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="inline-block text-xs font-black uppercase tracking-[0.2em] text-[#28A745] mb-4 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full">
-            {c.finalCta.badge}
-          </span>
-          <h2 className="text-2xl sm:text-4xl lg:text-5xl text-white mb-4 tracking-tight font-['DM_Serif_Display']">
-            {c.finalCta.title}
-          </h2>
-          <p className="text-sm sm:text-base lg:text-lg mb-8 max-w-2xl mx-auto leading-relaxed font-medium text-white/90">
-            {c.finalCta.desc}
-          </p>
+        <section className="py-20 sm:py-28 relative overflow-hidden flex items-center justify-center min-h-[48vh]">
+          <img
+            src="https://images.unsplash.com/photo-1652971876875-05db98fab376?w=1920&h=1080&fit=crop&auto=format"
+            alt="Rural landscape in West Africa with community gathering"
+            className="absolute inset-0 w-full h-full object-cover object-[center_top] md:object-center"
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to top, rgba(0,51,102,0.92) 0%, rgba(0,51,102,0.65) 100%)",
+            }}
+          />
+          <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <span className="inline-block text-xs font-black uppercase tracking-[0.2em] text-[#28A745] mb-4 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full">
+              {ctaBadge}
+            </span>
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl text-white mb-4 tracking-tight font-['DM_Serif_Display']">
+              {ctaTitle}
+            </h2>
+            <p className="text-sm sm:text-base lg:text-lg mb-8 max-w-2xl mx-auto leading-relaxed font-medium text-white/90">
+              {ctaDesc}
+            </p>
 
-          <div className="flex flex-col sm:flex-row gap-3.5 justify-center items-center">
-            <button
-              onClick={() => {
-                trackEvent("partner_request_click", { source: "final_cta_partner", lang: currentLang })
-                navigate("partner-apply")
-              }}
-              className="inline-flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider px-7 py-3.5 rounded-xl text-white transition-all shadow-lg hover:scale-105 cursor-pointer bg-[#28A745] hover:bg-[#218838]"
-            >
-              <span>{c.finalCta.btnPrimary}</span>
-              <ArrowRightIcon size={15} strokeWidth={2} />
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3.5 justify-center items-center">
+              <button
+                onClick={() => {
+                  trackEvent("partner_request_click", { source: "final_cta_partner", lang: currentLang })
+                  navigate("partner-apply")
+                }}
+                className="inline-flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider px-7 py-3.5 rounded-xl text-white transition-all shadow-lg hover:scale-105 cursor-pointer bg-[#28A745] hover:bg-[#218838]"
+              >
+                <span>{ctaBtnPrimary}</span>
+                <ArrowRightIcon size={15} strokeWidth={2} />
+              </button>
 
-            <button
-              onClick={() => navigate("volunteering")}
-              className="inline-flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl text-white/90 hover:text-white transition-colors bg-white/10 hover:bg-white/15 border border-white/30 cursor-pointer backdrop-blur-sm"
-            >
-              <span>{c.finalCta.btnSecondary}</span>
-              <ArrowRightIcon size={14} strokeWidth={1.5} />
-            </button>
+              <button
+                onClick={() => navigate("volunteering")}
+                className="inline-flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl text-white/90 hover:text-white transition-colors bg-white/10 hover:bg-white/15 border border-white/30 cursor-pointer backdrop-blur-sm"
+              >
+                <span>{ctaBtnSecondary}</span>
+                <ArrowRightIcon size={14} strokeWidth={1.5} />
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-    </main>
+      </main>
+    </div>
   )
 }

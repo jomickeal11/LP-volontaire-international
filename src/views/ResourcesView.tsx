@@ -184,15 +184,15 @@ export default function ResourcesView({ lang }: ResourcesViewProps) {
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: BG }}>
       <Header lang={lang} setLang={handleSetLang} currentPage="resources" navigate={navigate} />
 
-      <main className="flex-1 pt-24 lg:pt-32">
+      <main className="flex-1">
         {/* ── 1. Hero ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center bg-gradient-to-b from-[#003366]/10 via-transparent to-transparent">
+        <section className="px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-16 text-center bg-gradient-to-b from-[#003366]/10 via-transparent to-transparent">
           <div className="max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-200 text-xs sm:text-sm font-semibold text-[#003366] mb-6">
-              <span>📚</span>
+              <span className="w-2 h-2 rounded-full bg-[#003366]" />
               <span>{t.badge}</span>
             </div>
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#142332] tracking-tight mb-6">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#142332] tracking-tight mb-4">
               {t.title}
             </h1>
             <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">

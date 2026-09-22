@@ -172,7 +172,6 @@ function MemberAvatar({
           {initials}
         </span>
       )}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#28A745]" />
     </div>
   )
 }
@@ -248,9 +247,9 @@ export default function TeamView({ lang, initialMembers }: TeamViewProps) {
     <div className="min-h-screen flex flex-col font-sans" style={{ backgroundColor: BG }}>
       <Header lang={lang} setLang={handleSetLang} currentPage="team" navigate={navigate} />
 
-      <main className="flex-1 pt-24 lg:pt-32">
+      <main className="flex-1">
         {/* ── 1. Hero Header ── */}
-        <section className="px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pb-16 text-center">
+        <section className="px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-10 sm:pb-14 text-center">
           <div className="max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white border border-slate-200 text-xs font-semibold text-[#003366] mb-5 shadow-sm">
               <span className="w-2 h-2 rounded-full bg-[#28A745]" />

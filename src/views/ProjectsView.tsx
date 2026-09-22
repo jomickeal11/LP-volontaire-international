@@ -110,7 +110,6 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState("ALL")
   const [domainFilter, setDomainFilter] = useState("ALL")
-  const [selectedProject, setSelectedProject] = useState<ProjectRecord | null>(null)
 
   const navigate = (page: Page) => {
     router.push(getPageUrl(page, lang))
@@ -122,11 +121,12 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
   }
 
   useEffect(() => {
-    getProjects()
+    setLoading(true)
+    getProjects({ lang })
       .then((data) => setProjects(data as any))
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [])
+  }, [lang])
 
   // Extract unique domains
   const availableDomains = useMemo(() => {
@@ -182,18 +182,18 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
         : p.domaine?.nameFr
 
     return (
-      <div
+      <Link
         key={p.id}
+        href={`/${lang.toLowerCase()}/projets/${p.slug}`}
         className={isLarge 
-          ? "group cursor-pointer flex flex-col bg-white rounded-2xl p-5 sm:p-7 shadow-sm hover:shadow-md transition-all duration-300 border border-slate-200/80 col-span-1 md:col-span-2" 
-          : "group cursor-pointer flex flex-col bg-white rounded-2xl p-5 sm:p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-slate-200/80 col-span-1"
+          ? "group flex flex-col bg-white rounded-2xl shadow-xs hover:shadow-md transition-all duration-300 border border-slate-200/80 overflow-hidden col-span-1 md:col-span-2" 
+          : "group flex flex-col bg-white rounded-2xl shadow-xs hover:shadow-md transition-all duration-300 border border-slate-200/80 overflow-hidden col-span-1"
         }
-        onClick={() => setSelectedProject(p)}
       >
-        {/* Image holder */}
+        {/* Image holder - Pleine largeur en haut de la carte (full-bleed) */}
         <div className={isLarge
-          ? "bg-slate-200 rounded-xl overflow-hidden relative shrink-0 w-full aspect-video md:aspect-[21/9] mb-6"
-          : "bg-slate-200 rounded-xl overflow-hidden relative shrink-0 w-full aspect-video mb-5"
+          ? "bg-slate-200 relative shrink-0 w-full aspect-video md:aspect-[21/9] overflow-hidden"
+          : "bg-slate-200 relative shrink-0 w-full aspect-video overflow-hidden"
         }>
           {/* Status Label Overlay */}
           <div className="absolute top-4 left-4 z-10">
@@ -214,8 +214,11 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
           )}
         </div>
 
-        {/* Content */}
-        <div className="flex flex-col flex-1">
+        {/* Content avec padding intérieur */}
+        <div className={isLarge 
+          ? "p-6 sm:p-8 flex flex-col flex-1" 
+          : "p-5 sm:p-6 flex flex-col flex-1"
+        }>
           <div className="flex items-center gap-3 mb-3">
             {p.domaine && (
               <span className="text-xs font-bold text-[#003366] uppercase tracking-wider">
@@ -236,13 +239,13 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
             {summary}
           </p>
           
-          <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between">
+          <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
             <span className="inline-flex items-center text-sm font-bold text-[#007BFF] group-hover:text-[#003366] transition-colors">
               {t.detailsBtn} <span className="ml-1.5 group-hover:translate-x-1 transition-transform">→</span>
             </span>
           </div>
         </div>
-      </div>
+      </Link>
     )
   }
 
@@ -250,9 +253,12 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
     <div className="min-h-screen flex flex-col bg-white">
       <Header lang={lang} setLang={handleSetLang} currentPage="projects" navigate={navigate} />
 
-      <main className="flex-1 pt-20 lg:pt-24">
-        {/* ── 1. Hero (#F7F8FA) ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20" style={{ backgroundColor: BG_HERO }}>
+      <main className="flex-1">
+        {/* ── 1. Hero (#F7F8FA) - Fond gris montant jusqu'en haut derrière le header ── */}
+        <section
+          className="px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-10 sm:pb-12 border-b border-slate-200/80"
+          style={{ backgroundColor: BG_HERO }}
+        >
           <div className="max-w-5xl mx-auto">
             <div className="inline-flex items-center gap-2 mb-3">
               <span className="w-2 h-2 rounded-full bg-[#28A745]"></span>
@@ -260,7 +266,7 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
                 {t.eyebrow}
               </span>
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#003366] tracking-tight mb-5 whitespace-pre-line leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#003366] tracking-tight mb-3 whitespace-pre-line leading-tight">
               {t.title}
             </h1>
             <p className="text-base sm:text-lg text-[#5E6B76] max-w-2xl leading-relaxed">
@@ -378,89 +384,6 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
             </div>
           </div>
         </section>
-
-        {/* ── 5. Detail Modal ── */}
-        {selectedProject && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#003366]/40 backdrop-blur-sm"
-            onClick={() => setSelectedProject(null)}
-          >
-            <div
-              className="bg-white rounded-2xl p-8 sm:p-10 max-w-3xl w-full shadow-2xl max-h-[90vh] overflow-y-auto space-y-8"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-start justify-between pb-4">
-                <div>
-                  {selectedProject.domaine && (
-                    <span className="text-sm font-bold text-[#28A745] uppercase tracking-wider block mb-2">
-                      {lang === "EN" ? selectedProject.domaine.nameEn : lang === "DE" ? selectedProject.domaine.nameDe : selectedProject.domaine.nameFr}
-                    </span>
-                  )}
-                  <h2 className="text-3xl font-bold text-[#003366] mt-1 leading-tight">
-                    {lang === "EN" ? (selectedProject.titleEn || selectedProject.titleFr) : lang === "DE" ? (selectedProject.titleDe || selectedProject.titleFr) : selectedProject.titleFr}
-                  </h2>
-                  <p className="text-sm text-slate-500 mt-2 font-medium">
-                    {selectedProject.location}, {selectedProject.country}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setSelectedProject(null)}
-                  className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-lg transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Large Image for Modal */}
-              <div className="w-full aspect-video bg-slate-200 rounded-xl relative overflow-hidden">
-                {selectedProject.featuredImage ? (
-                  <img src={selectedProject.featuredImage} alt={selectedProject.titleFr} className="absolute inset-0 w-full h-full object-cover" />
-                ) : (
-                  <img src="/photo-projet-phare.jpg" alt="Placeholder projet" className="absolute inset-0 w-full h-full object-cover" />
-                )}
-                <div className="absolute bottom-4 left-4">
-                  <span className={`text-xs uppercase tracking-wider font-bold px-3 py-1 rounded-sm shadow-sm ${
-                    selectedProject.status === "COMPLETED"
-                      ? "bg-white text-slate-700"
-                      : selectedProject.status === "IN_PROGRESS"
-                      ? "bg-[#28A745] text-white"
-                      : "bg-[#007BFF] text-white"
-                  }`}>
-                    {selectedProject.status === "COMPLETED" ? t.statusCompleted : selectedProject.status === "IN_PROGRESS" ? t.statusInProgress : t.statusPlanned}
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-lg text-[#5E6B76] leading-relaxed font-medium">
-                  {lang === "EN" ? (selectedProject.summaryEn || selectedProject.summaryFr) : lang === "DE" ? (selectedProject.summaryDe || selectedProject.summaryFr) : selectedProject.summaryFr}
-                </p>
-              </div>
-
-              <div>
-                <div className="text-base text-[#5E6B76] leading-relaxed whitespace-pre-wrap">
-                  {lang === "EN" ? (selectedProject.descriptionEn || selectedProject.descriptionFr) : lang === "DE" ? (selectedProject.descriptionDe || selectedProject.descriptionFr) : selectedProject.descriptionFr}
-                </div>
-              </div>
-
-              {selectedProject.beneficiaries && (
-                <div className="py-4 border-y border-slate-200 flex items-center justify-between text-base">
-                  <span className="font-semibold text-[#003366]">{t.beneficiariesLabel}</span>
-                  <span className="font-bold text-[#5E6B76]">{selectedProject.beneficiaries}</span>
-                </div>
-              )}
-
-              <div className="flex justify-end pt-4">
-                <Link
-                  href={getPageUrl("partner", lang)}
-                  className="px-6 py-3 rounded-lg font-bold text-sm bg-[#007BFF] text-white hover:bg-[#003366] transition-colors"
-                >
-                  {t.ctaPartner}
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
 
       <Footer lang={lang} navigate={navigate} />

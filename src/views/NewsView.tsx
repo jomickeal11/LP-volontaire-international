@@ -105,22 +105,25 @@ const I18N = {
   },
 }
 
-export default function NewsView({ lang }: NewsViewProps) {
+export default function NewsView({ lang, initialSettings = {} }: NewsViewProps & { initialSettings?: Record<string, string> }) {
   const router = useRouter()
   const pathname = usePathname()
-  const t = I18N[lang] || I18N.FR
+  const safeLang = (["FR", "EN", "DE"].includes(lang) ? lang : "FR") as "FR" | "EN" | "DE"
+  const l = safeLang.toLowerCase()
+  const t = I18N[safeLang] || I18N.FR
 
+  const [settings, setSettings] = useState<Record<string, string>>(initialSettings)
   const [articles, setArticles] = useState<ArticleRecord[]>([])
   const [categories, setCategories] = useState<CategoryRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [categoryFilter, setCategoryFilter] = useState("ALL")
 
   const navigate = (page: Page) => {
-    router.push(getPageUrl(page, lang))
+    router.push(getPageUrl(page, safeLang))
   }
 
   const handleSetLang = (newLang: Language) => {
-    const newPath = pathname.replace(`/${lang.toLowerCase()}`, `/${newLang.toLowerCase()}`)
+    const newPath = pathname.replace(`/${safeLang.toLowerCase()}`, `/${newLang.toLowerCase()}`)
     router.push(newPath || `/${newLang.toLowerCase()}`)
   }
 
@@ -128,14 +131,28 @@ export default function NewsView({ lang }: NewsViewProps) {
     Promise.all([
       getArticles({ publishedOnly: true }),
       getArticleCategories(),
+      import("@/lib/cms-actions").then(({ getSiteSettings }) => getSiteSettings("NEWS")),
     ])
-      .then(([arts, cats]) => {
+      .then(([arts, cats, settingsRes]) => {
         setArticles(arts as any)
         setCategories(cats)
+        if (settingsRes && settingsRes.success && settingsRes.dict) {
+          setSettings((prev) => ({ ...prev, ...settingsRes.dict }))
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  // ─── Dynamic CMS Bindings with Fallbacks ──────────────────────────────────
+  const heroBadge = settings[`news_hero_badge_${l}`] || t.badge
+  const heroTitle = settings[`news_hero_title_${l}`] || t.title
+  const heroSubtitle = settings[`news_hero_subtitle_${l}`] || t.subtitle
+
+  const ctaTitle = settings[`news_cta_title_${l}`] || t.ctaTitle
+  const ctaDesc = settings[`news_cta_desc_${l}`] || t.ctaDesc
+  const ctaBtnProjects = settings[`news_cta_btn_projects_${l}`] || t.ctaProjects
+  const ctaBtnPartner = settings[`news_cta_btn_partner_${l}`] || t.ctaPartner
 
   // 1. Filtrer d'abord les articles publiés selon la catégorie
   const filteredArticles =
@@ -172,7 +189,7 @@ export default function NewsView({ lang }: NewsViewProps) {
   const formatDate = (dateInput?: Date | null) => {
     if (!dateInput) return ""
     const d = new Date(dateInput)
-    return d.toLocaleDateString(lang === "EN" ? "en-US" : lang === "DE" ? "de-DE" : "fr-FR", {
+    return d.toLocaleDateString(safeLang === "EN" ? "en-US" : safeLang === "DE" ? "de-DE" : "fr-FR", {
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -181,25 +198,32 @@ export default function NewsView({ lang }: NewsViewProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header lang={lang} setLang={handleSetLang} currentPage="news" navigate={navigate} />
+      <Header lang={safeLang} setLang={handleSetLang} currentPage="news" navigate={navigate} />
 
-      <main className="flex-1 pt-20 lg:pt-24">
-        {/* ── 1. Compact Editorial Hero (#FFFFFF with subtle bottom border) ── */}
-        <section className="px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-8 max-w-[1260px] mx-auto w-full">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <span className="w-2 h-2 rounded-full bg-[#28A745]"></span>
-            <span className="text-[#28A745] font-bold tracking-widest text-xs uppercase">
-              {t.badge}
-            </span>
+      <main className="flex-1">
+        {/* ── 1. Compact Hero (#F7F8FA) - Fond gris montant jusqu'en haut derrière le header ── */}
+        <section
+          className="px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-10 sm:pb-12 border-b border-slate-200/80"
+          style={{ backgroundColor: BG_SECTION_ALT }}
+        >
+          <div className="max-w-[1260px] mx-auto">
+            {heroBadge && (
+              <div className="inline-flex items-center gap-2 mb-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#28A745]"></span>
+                <span className="text-[#28A745] font-bold tracking-widest text-xs uppercase">
+                  {heroBadge}
+                </span>
+              </div>
+            )}
+
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#003366] tracking-tight mb-3 leading-tight">
+              {heroTitle}
+            </h1>
+
+            <p className="text-base sm:text-lg text-[#5E6B76] max-w-2xl leading-relaxed">
+              {heroSubtitle}
+            </p>
           </div>
-
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#003366] tracking-tight mb-3">
-            {t.title}
-          </h1>
-
-          <p className="text-base sm:text-lg text-[#5E6B76] max-w-2xl leading-relaxed">
-            {t.subtitle}
-          </p>
         </section>
 
         {/* ── 2. Editorial Tab Navigation / Filters (underline style, no floating bubble pills) ── */}
@@ -460,24 +484,24 @@ export default function NewsView({ lang }: NewsViewProps) {
                 ENGAGEMENT & IMPACT
               </span>
               <h2 className="text-xl sm:text-2xl font-extrabold text-[#003366] mb-3">
-                {t.ctaTitle}
+                {ctaTitle}
               </h2>
               <p className="text-sm text-[#5E6B76] max-w-md mx-auto mb-6 leading-relaxed">
-                {t.ctaDesc}
+                {ctaDesc}
               </p>
               
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <Link
-                  href={getPageUrl("projects", lang)}
+                  href={getPageUrl("projects", safeLang)}
                   className="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-[#003366] text-white hover:bg-[#002244] transition-colors shadow-xs"
                 >
-                  {t.ctaProjects}
+                  {ctaBtnProjects}
                 </Link>
                 <Link
-                  href={getPageUrl("partner", lang)}
+                  href={getPageUrl("partner", safeLang)}
                   className="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-[#007BFF] text-white hover:bg-[#0060c8] transition-colors shadow-xs"
                 >
-                  {t.ctaPartner}
+                  {ctaBtnPartner}
                 </Link>
               </div>
             </div>

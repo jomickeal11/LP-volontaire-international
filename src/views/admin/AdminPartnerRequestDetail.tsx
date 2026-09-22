@@ -67,7 +67,7 @@ export default function AdminPartnerRequestDetail({
 
   const [emailModalOpen, setEmailModalOpen] = useState(false)
   const [emailSubject, setEmailSubject] = useState(
-    `APTIC-R · Partenariat de volontariat international — ${data.orgName}`
+    `APTIC-R : Partenariat de volontariat international (${data.orgName})`
   )
   const [emailBody, setEmailBody] = useState(
     `Bonjour ${data.contactPerson},\n\nNous vous remercions pour votre intérêt à collaborer avec APTIC-R dans le cadre du déploiement de volontaires internationaux au Togo.\n\n`

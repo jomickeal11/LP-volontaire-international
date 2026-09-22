@@ -51,11 +51,11 @@ export function renderEmailHead(title: string): string {
  */
 export function renderEmailHeader(logoUrl?: string): string {
   const siteUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "https://aptic-rural.org"
-  const finalLogoUrl = logoUrl || `${siteUrl}/aptic-logo.png`
+  const finalLogoUrl = logoUrl || `${siteUrl}/logo-aptic.png`
 
   return `
 <div style="margin-bottom: 24px;">
-  <img src="${finalLogoUrl}" width="42" height="42" alt="APTIC-R" style="display: block; border: 0; outline: none; width: 42px; height: 42px; max-width: 42px;" />
+  <img src="${finalLogoUrl}" width="120" height="auto" alt="" style="display: block; border: 0; outline: none; width: 120px; height: auto; max-width: 120px;" />
 </div>`.trim()
 }
 

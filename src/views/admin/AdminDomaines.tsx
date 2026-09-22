@@ -554,6 +554,16 @@ export default function AdminDomaines() {
                     {dom.active ? "Masquer" : "Activer"}
                   </button>
 
+                  <a
+                    href={`/fr/domaines/${dom.slug || dom.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium transition-colors inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Voir sur le site</span>
+                    <span className="text-[10px]">↗</span>
+                  </a>
+
                   <button
                     onClick={() => handleOpenModal(dom)}
                     className="text-xs px-3 py-1.5 rounded-lg bg-[#003366]/10 text-[#003366] font-semibold hover:bg-[#003366]/20 transition-colors cursor-pointer"

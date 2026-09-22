@@ -2,6 +2,18 @@ import { getEmailProvider } from './index'
 import { renderCandidateConfirmationEmail } from './templates/candidateConfirmation'
 import { renderPartnerConfirmationEmail } from './templates/partnerConfirmation'
 import { renderAdminNotificationEmail } from './templates/adminNotification'
+import { renderContactNotificationEmail, type ContactNotificationParams } from './templates/contactNotification'
+
+export interface ContactMessageEmailInput {
+  name: string
+  email: string
+  organization?: string
+  phone?: string
+  subject: string
+  message: string
+  routedTo: string
+  lang?: "FR" | "EN" | "DE"
+}
 
 export interface CandidateEmailInput {
   firstName: string
@@ -174,5 +186,50 @@ export class EmailService {
     }
 
     return { partnerEmailSent, adminEmailSent }
+  }
+
+  /**
+   * Envoie une alerte pour un nouveau message de contact à l'adresse de routage interne configurée.
+   */
+  static async sendContactMessageNotification(input: ContactMessageEmailInput): Promise<{
+    emailSent: boolean
+    error?: string
+  }> {
+    const provider = getEmailProvider()
+    try {
+      const template = renderContactNotificationEmail({
+        name: input.name,
+        email: input.email,
+        organization: input.organization,
+        phone: input.phone,
+        subject: input.subject,
+        message: input.message,
+        routedTo: input.routedTo,
+        lang: input.lang,
+      })
+
+      const fromAddress = process.env.MAIL_FROM || 'aptic.rural19@gmail.com'
+      const cleanSenderEmail = fromAddress.includes('<') ? (fromAddress.match(/<([^>]+)>/)?.[1] || 'aptic.rural19@gmail.com') : fromAddress
+
+      const res = await provider.sendEmail({
+        from: `"${input.name} (via APTIC-R)" <${cleanSenderEmail}>`,
+        to: input.routedTo,
+        replyTo: input.email,
+        subject: template.subject,
+        html: template.html,
+        text: template.text,
+      })
+
+      if (res.success) {
+        console.log(`🔔 [EmailService] Message de contact (${input.subject}) acheminé vers : ${input.routedTo}`)
+        return { emailSent: true }
+      } else {
+        console.warn(`⚠️ [EmailService] Échec routage email contact: ${res.error}`)
+        return { emailSent: false, error: res.error }
+      }
+    } catch (err: unknown) {
+      console.error('❌ [EmailService] Exception envoi alerte contact:', err)
+      return { emailSent: false, error: err instanceof Error ? err.message : String(err) }
+    }
   }
 }

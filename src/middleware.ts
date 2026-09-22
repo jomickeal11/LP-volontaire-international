@@ -14,6 +14,14 @@ const LEGACY_REDIRECTS: Record<string, string> = {
   "apply": "volontariat/postuler",
   // Old partners → new partenaires
   "partners": "partenaires",
+  // Multilingual route aliases to canonical routes
+  "domains": "domaines",
+  "bereiche": "domaines",
+  "projects": "projets",
+  "projekte": "projets",
+  "about": "a-propos",
+  "ueber-uns": "a-propos",
+  "team": "equipe",
 }
 
 export async function middleware(request: NextRequest) {

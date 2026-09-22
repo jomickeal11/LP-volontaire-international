@@ -1,6 +1,8 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import type { Page, Language } from "../types"
 import translations, { type TKey } from "../i18n/translations"
+import { isVolunteerPagePublished } from "@/lib/volunteer-cms-config"
+import { getSiteSettings } from "@/lib/cms-actions"
 import {
   MonitorIcon,
   CodeIcon,
@@ -46,6 +48,7 @@ import { trackEvent } from "../lib/tracker"
 interface HomeProps {
   lang: Language
   navigate: (p: Page) => void
+  initialSettings?: Record<string, string>
 }
 
 // ─── Shared Components ────────────────────────────────────────────────────────────
@@ -86,23 +89,58 @@ function Badge({
 }
 
 // ─── 1. Hero ───────────────────────────────────────────────────────────────────
-function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
-  const h = t.hero;
+function Hero({
+  t,
+  navigate,
+  settings,
+  langLower,
+}: {
+  t: TKey
+  navigate: (p: Page) => void
+  settings: Record<string, string>
+  langLower: string
+}) {
+  const h = t.hero
+  const line1 = settings[`volunteer_hero_line1_${langLower}`] || h.line1
+  const line2 = settings[`volunteer_hero_line2_${langLower}`] || h.line2
+  const line3 = settings[`volunteer_hero_line3_${langLower}`] || h.line3
+  const desc = settings[`volunteer_hero_desc_${langLower}`] || h.desc
+  const cta1 = settings[`volunteer_hero_cta_primary_${langLower}`] || h.cta1
+  const cta2 = settings[`volunteer_hero_cta_secondary_${langLower}`] || h.cta2
+  const heroImage = settings["volunteer_hero_image"] || "/hero-volunteer-collab.jpg"
+
+  const stat1Label = settings[`volunteer_hero_stat1_label_${langLower}`] || h.stat1Label
+  const stat1Sub = settings[`volunteer_hero_stat1_sub_${langLower}`] || h.stat1Sub
+  const stat2Label = settings[`volunteer_hero_stat2_label_${langLower}`] || h.stat2Label
+  const stat2Sub = settings[`volunteer_hero_stat2_sub_${langLower}`] || h.stat2Sub
+  const stat3Label = settings[`volunteer_hero_stat3_label_${langLower}`] || h.stat3Label
+  const stat3Sub = settings[`volunteer_hero_stat3_sub_${langLower}`] || h.stat3Sub
+
   return (
     <section className="relative z-10 min-h-[95vh] lg:min-h-screen flex flex-col">
       {/* Background Layer with overflow hidden */}
       <div className="absolute inset-0 overflow-hidden">
-        <picture>
-          <source srcSet="/hero-volunteer-collab.avif" type="image/avif" />
-          <source srcSet="/hero-volunteer-collab.webp" type="image/webp" />
+        {heroImage.startsWith("/hero-volunteer-collab") ? (
+          <picture>
+            <source srcSet="/hero-volunteer-collab.avif" type="image/avif" />
+            <source srcSet="/hero-volunteer-collab.webp" type="image/webp" />
+            <img
+              src="/hero-volunteer-collab.jpg"
+              alt="Collaboration in Togo"
+              className="absolute inset-0 w-full h-full object-cover object-[center_top] lg:object-center"
+              fetchPriority="high"
+              decoding="async"
+            />
+          </picture>
+        ) : (
           <img
-            src="/hero-volunteer-collab.jpg"
-            alt="Collaboration in Togo"
+            src={heroImage}
+            alt="Volontariat au Togo"
             className="absolute inset-0 w-full h-full object-cover object-[center_top] lg:object-center"
             fetchPriority="high"
             decoding="async"
           />
-        </picture>
+        )}
         <div
           className="absolute inset-0"
           style={{ backgroundColor: "rgba(18,59,90,0.27)" }}
@@ -127,7 +165,7 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
           >
             {/* Niveau 1 - Principal */}
             <span className="text-3xl sm:text-5xl lg:text-[72px] block mb-2 sm:mb-3 text-[#FFFFFF]">
-              {h.line1}
+              {line1}
             </span>
             {/* Niveau 2 - Accent */}
             <span
@@ -136,11 +174,11 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
                 textShadow: "0 2px 12px rgba(0,0,0,0.45), 0 8px 32px rgba(0,0,0,0.35)",
               }}
             >
-              {h.line2}
+              {line2}
             </span>
             {/* Niveau 3 - Complément */}
             <span className="text-2xl sm:text-4xl lg:text-[58px] block text-[#FFFFFF] font-medium opacity-90">
-              {h.line3}
+              {line3}
             </span>
           </h1>
 
@@ -148,7 +186,7 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
             className="text-base sm:text-lg lg:text-xl font-medium leading-[1.6] sm:leading-relaxed max-w-[320px] sm:max-w-[640px] mx-auto mb-10 sm:mb-12"
             style={{ color: "rgba(255,255,255,0.92)" }}
           >
-            {h.desc}
+            {desc}
           </p>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-5 sm:gap-4">
@@ -166,7 +204,7 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
                 (e.currentTarget.style.backgroundColor = "#28A745")
               }
             >
-              <span>{h.cta1}</span>
+              <span>{cta1}</span>
               <ArrowRightIcon size={18} strokeWidth={1.5} />
             </button>
             <button
@@ -190,7 +228,7 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
                 (e.currentTarget.style.backgroundColor = "transparent")
               }
             >
-              {h.cta2}
+              {cta2}
             </button>
           </div>
         </div>
@@ -209,11 +247,11 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
           />
           <div className="relative grid grid-cols-3 gap-2 sm:gap-8 text-center py-4 sm:py-6 px-2 sm:px-6">
             {[
-              { label: h.stat1Label, sub: h.stat1Sub },
-              { label: h.stat2Label, sub: h.stat2Sub },
-              { label: h.stat3Label, sub: h.stat3Sub },
-            ].map((s) => (
-              <div key={s.label} className="flex flex-col gap-0.5 sm:gap-1 relative px-1 sm:px-0">
+              { label: stat1Label, sub: stat1Sub },
+              { label: stat2Label, sub: stat2Sub },
+              { label: stat3Label, sub: stat3Sub },
+            ].map((s, idx) => (
+              <div key={idx} className="flex flex-col gap-0.5 sm:gap-1 relative px-1 sm:px-0">
                 <span
                   className="text-sm sm:text-xl lg:text-2xl font-bold tracking-tight truncate sm:whitespace-normal"
                   style={{ color: "#FFFFFF" }}
@@ -236,7 +274,17 @@ function Hero({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
 }
 
 // ─── 2. Dual Path ──────────────────────────────────────────────────────────────
-function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
+function DualPath({
+  t,
+  navigate,
+  settings,
+  langLower,
+}: {
+  t: TKey
+  navigate: (p: Page) => void
+  settings: Record<string, string>
+  langLower: string
+}) {
   const d = t.dualPath
   return (
     <section className="pt-24 pb-20 sm:pt-20 sm:pb-20 lg:pt-24 lg:pb-32 bg-[#FFFFFF]">
@@ -315,23 +363,52 @@ function DualPath({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
 }
 
 // ─── 3. Why Volunteer (WhyMission) ─────────────────────────────────────────────
-function WhyMission({ t }: { t: TKey }) {
+function WhyMission({
+  t,
+  settings,
+  langLower,
+}: {
+  t: TKey
+  settings: Record<string, string>
+  langLower: string
+}) {
   const wm = t.whyMission
+  const tag = settings[`volunteer_why_tag_${langLower}`] || wm.tag
+  const title = settings[`volunteer_why_title_${langLower}`] || wm.title
+
+  const cards = [
+    {
+      title: settings[`volunteer_why_card1_title_${langLower}`] || wm.cards[0]?.title || "",
+      desc: settings[`volunteer_why_card1_desc_${langLower}`] || wm.cards[0]?.desc || "",
+    },
+    {
+      title: settings[`volunteer_why_card2_title_${langLower}`] || wm.cards[1]?.title || "",
+      desc: settings[`volunteer_why_card2_desc_${langLower}`] || wm.cards[1]?.desc || "",
+    },
+    {
+      title: settings[`volunteer_why_card3_title_${langLower}`] || wm.cards[2]?.title || "",
+      desc: settings[`volunteer_why_card3_desc_${langLower}`] || wm.cards[2]?.desc || "",
+    },
+    {
+      title: settings[`volunteer_why_card4_title_${langLower}`] || wm.cards[3]?.title || "",
+      desc: settings[`volunteer_why_card4_desc_${langLower}`] || wm.cards[3]?.desc || "",
+    },
+  ]
 
   return (
     <section id="why" className="py-20 sm:py-24 lg:py-32 bg-[#FFFFFF]">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center max-w-4xl mx-auto mb-12 sm:mb-16 lg:mb-24">
-          <Badge text={wm.tag} centered />
+          <Badge text={tag} centered />
           <h2 className="text-3xl sm:text-5xl lg:text-6xl leading-tight text-[#003366] tracking-[-0.02em]">
-            {wm.title}
+            {title}
           </h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-          {wm.cards.map((card, i) => (
+          {cards.map((card, i) => (
             <div
-              key={card.title}
+              key={i}
               className="relative flex flex-col items-start text-left group"
             >
               <div
@@ -357,23 +434,35 @@ function WhyMission({ t }: { t: TKey }) {
 }
 
 // ─── 4. The Challenge (Problem -> Innovation -> Impact) ─────────────────────────
-function TheChallenge({ t }: { t: TKey }) {
+function TheChallenge({
+  t,
+  settings,
+  langLower,
+}: {
+  t: TKey
+  settings: Record<string, string>
+  langLower: string
+}) {
   const c = t.challenge
+  const tag = settings[`volunteer_challenge_tag_${langLower}`] || c.tag
+  const title = settings[`volunteer_challenge_title_${langLower}`] || c.title
+  const p1 = settings[`volunteer_challenge_p1_${langLower}`] || c.p1
+  const p2 = settings[`volunteer_challenge_p2_${langLower}`] || c.p2
 
   return (
     <section id="about" className="py-20 sm:py-24 lg:py-32 bg-[#F7F8FA]">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 sm:gap-16 lg:gap-24 items-start">
           <div className="md:sticky md:top-32">
-            <Badge text={c.tag} />
+            <Badge text={tag} />
             <h2 className="text-3xl sm:text-5xl lg:text-6xl leading-tight mb-6 sm:mb-8 tracking-tight text-[#003366]">
-              {c.title}
+              {title}
             </h2>
             <p className="text-base sm:text-lg lg:text-xl font-medium leading-relaxed mb-4 sm:mb-6 text-[#5E6B76]">
-              {c.p1}
+              {p1}
             </p>
             <p className="text-base sm:text-lg lg:text-xl font-medium leading-relaxed text-[#5E6B76]">
-              {c.p2}
+              {p2}
             </p>
           </div>
 
@@ -383,7 +472,6 @@ function TheChallenge({ t }: { t: TKey }) {
             <div className="absolute left-0 top-12 bottom-12 w-2 rounded-full bg-[#EAF0F4]" />
 
             {c.steps.map((item, i) => {
-              const isCenter = i === 1;
               return (
                 <div key={item.tag} className="relative group">
                   {/* Connecting dash to the dot */}
@@ -391,7 +479,7 @@ function TheChallenge({ t }: { t: TKey }) {
 
                   {/* Visual Anchor Dot on the main line */}
                   <div
-                    className={`absolute -left-[44px] sm:-left-[54px] lg:-left-[70px] top-4 w-7 h-7 rounded-full border-4 transition-transform duration-500 group-hover:scale-125 z-10`}
+                    className="absolute -left-[44px] sm:-left-[54px] lg:-left-[70px] top-4 w-7 h-7 rounded-full border-4 transition-transform duration-500 group-hover:scale-125 z-10"
                     style={{ backgroundColor: "#28A745", borderColor: "#F7F8FA" }}
                   />
 
@@ -420,22 +508,55 @@ function TheChallenge({ t }: { t: TKey }) {
 }
 
 // ─── 5. Your Mission ───────────────────────────────────────────────────────────
-function YourMission({ t }: { t: TKey }) {
+function YourMission({
+  t,
+  settings,
+  langLower,
+}: {
+  t: TKey
+  settings: Record<string, string>
+  langLower: string
+}) {
   const m = t.mission
+  const tag = settings[`volunteer_mission_tag_${langLower}`] || m.tag
+  const title = settings[`volunteer_mission_title_${langLower}`] || m.title
+
+  const steps = [
+    {
+      title: settings[`volunteer_mission_step1_title_${langLower}`] || m.steps[0]?.title || "",
+      desc: settings[`volunteer_mission_step1_desc_${langLower}`] || m.steps[0]?.desc || "",
+    },
+    {
+      title: settings[`volunteer_mission_step2_title_${langLower}`] || m.steps[1]?.title || "",
+      desc: settings[`volunteer_mission_step2_desc_${langLower}`] || m.steps[1]?.desc || "",
+    },
+    {
+      title: settings[`volunteer_mission_step3_title_${langLower}`] || m.steps[2]?.title || "",
+      desc: settings[`volunteer_mission_step3_desc_${langLower}`] || m.steps[2]?.desc || "",
+    },
+    {
+      title: settings[`volunteer_mission_step4_title_${langLower}`] || m.steps[3]?.title || "",
+      desc: settings[`volunteer_mission_step4_desc_${langLower}`] || m.steps[3]?.desc || "",
+    },
+    {
+      title: settings[`volunteer_mission_step5_title_${langLower}`] || m.steps[4]?.title || "",
+      desc: settings[`volunteer_mission_step5_desc_${langLower}`] || m.steps[4]?.desc || "",
+    },
+  ]
 
   return (
     <section id="mission" className="py-20 sm:py-24 lg:py-32 bg-[#FFFFFF]">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="max-w-2xl mb-24">
-          <Badge text={m.tag} />
+          <Badge text={tag} />
           <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight tracking-[-0.02em] text-[#003366]">
-            {m.title}
+            {title}
           </h2>
         </div>
 
         <div className="flex flex-col gap-24 lg:gap-32">
-          {m.steps.map((s, i) => (
-            <div key={s.title} className="relative flex flex-col md:flex-row gap-8 md:gap-16 items-start group">
+          {steps.map((s, i) => (
+            <div key={i} className="relative flex flex-col md:flex-row gap-8 md:gap-16 items-start group">
               <div className="absolute -top-12 -left-4 sm:-top-16 sm:-left-4 md:-top-24 md:-left-8 text-[80px] sm:text-[120px] md:text-[200px] font-black leading-none text-[#EAF0F4] select-none z-0 transition-transform duration-700 group-hover:translate-x-4">
                 0{i + 1}
               </div>
@@ -458,17 +579,33 @@ function YourMission({ t }: { t: TKey }) {
 }
 
 // ─── 6. What Could You Build? (Editorial Asymmetric Layout) ────────────────────
-function WhatCouldYouBuild({ t }: { t: TKey }) {
+function WhatCouldYouBuild({
+  t,
+  settings,
+  langLower,
+}: {
+  t: TKey
+  settings: Record<string, string>
+  langLower: string
+}) {
   const b = t.build
   const [openCardIndex, setOpenCardIndex] = useState<number | null>(null)
+
+  const tag = settings[`volunteer_build_tag_${langLower}`] || b.tag
+  const title = settings[`volunteer_build_title_${langLower}`] || b.title
+
+  const featuredBadge = settings[`volunteer_build_featured_badge_${langLower}`] || b.featured.badge
+  const featuredTitle = settings[`volunteer_build_featured_title_${langLower}`] || b.featured.title
+  const featuredDesc = settings[`volunteer_build_featured_desc_${langLower}`] || b.featured.desc
+  const featuredImage = settings["volunteer_build_featured_image"] || "https://images.unsplash.com/photo-1589923188900-85dae523342b?w=1200&q=80"
 
   return (
     <section id="activities" className="py-20 sm:py-24 lg:py-32 bg-[#F7F8FA]">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-24">
-          <Badge text={b.tag} centered />
+          <Badge text={tag} centered />
           <h2 className="text-3xl sm:text-5xl lg:text-6xl leading-tight text-[#003366] tracking-[-0.02em]">
-            {b.title}
+            {title}
           </h2>
         </div>
 
@@ -478,20 +615,20 @@ function WhatCouldYouBuild({ t }: { t: TKey }) {
           <div className="lg:col-span-12 xl:col-span-7 rounded-[2.5rem] overflow-hidden flex flex-col bg-white border border-[#EAF0F4] group shadow-sm w-full min-w-0">
             <div className="relative h-80 sm:h-[400px] overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1589923188900-85dae523342b?w=1200&q=80"
-                alt="Agriculture Challenge"
+                src={featuredImage}
+                alt={featuredTitle}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <div className="absolute bottom-10 left-10 text-white">
                 <span className="text-sm font-bold uppercase tracking-widest text-[#28A745] mb-2 block">
-                  {b.featured.badge}
+                  {featuredBadge}
                 </span>
-                <h3 className="text-3xl lg:text-4xl">{b.featured.title}</h3>
+                <h3 className="text-3xl lg:text-4xl">{featuredTitle}</h3>
               </div>
             </div>
             <div className="p-10 text-lg text-[#5E6B76] font-medium leading-relaxed">
-              {b.featured.desc}
+              {featuredDesc}
             </div>
           </div>
 
@@ -499,10 +636,10 @@ function WhatCouldYouBuild({ t }: { t: TKey }) {
           <div className="lg:col-span-12 xl:col-span-5 flex flex-col sm:grid sm:grid-cols-2 gap-0 sm:gap-6 w-full min-w-0">
             {b.cards.map((p, i) => {
               const icons = [
-                <SmartphoneIcon size={24} color="#003366" />,
-                <CodeIcon size={24} color="#003366" />,
-                <BarChartIcon size={24} color="#003366" />,
-                <PackageIcon size={24} color="#003366" />,
+                <SmartphoneIcon key="icon-0" size={24} color="#003366" />,
+                <CodeIcon key="icon-1" size={24} color="#003366" />,
+                <BarChartIcon key="icon-2" size={24} color="#003366" />,
+                <PackageIcon key="icon-3" size={24} color="#003366" />,
               ]
               const isOpen = openCardIndex === i;
               
@@ -563,32 +700,41 @@ function WhatCouldYouBuild({ t }: { t: TKey }) {
 function ProfilesSought({
   t,
   navigate,
+  settings,
+  langLower,
 }: {
-  t: TKey; navigate: (p: Page) => void
+  t: TKey
+  navigate: (p: Page) => void
+  settings: Record<string, string>
+  langLower: string
 }) {
   const p = t.profiles
   const [isEligibilityOpen, setEligibilityOpen] = useState(false)
+
+  const tag = settings[`volunteer_profiles_tag_${langLower}`] || p.tag
+  const title = settings[`volunteer_profiles_title_${langLower}`] || p.title
+  const subtitle = settings[`volunteer_profiles_subtitle_${langLower}`] || p.subtitle
 
   return (
     <section className="py-20 sm:py-24 lg:py-32 bg-[#FFFFFF] overflow-hidden">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-24">
-          <Badge text={p.tag} centered />
+          <Badge text={tag} centered />
           <h2 className="text-3xl sm:text-5xl lg:text-6xl leading-tight mb-4 sm:mb-6 text-[#003366] tracking-[-0.02em]">
-            {p.title}
+            {title}
           </h2>
           <p className="text-base sm:text-lg lg:text-xl font-medium text-[#5E6B76] leading-relaxed">
-            {p.subtitle}
+            {subtitle}
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-x-4 sm:gap-x-12 gap-y-8 sm:gap-y-16 max-w-6xl mx-auto mb-16 sm:mb-24">
           {p.categories.map((cat, index) => {
             const icons = [
-              <MonitorIcon className="w-8 h-8 sm:w-12 sm:h-12" color="#003366" />,
-              <WheatIcon className="w-8 h-8 sm:w-12 sm:h-12" color="#28A745" />,
-              <PenToolIcon className="w-8 h-8 sm:w-12 sm:h-12" color="#003366" />,
-              <CpuIcon className="w-8 h-8 sm:w-12 sm:h-12" color="#003366" />,
+              <MonitorIcon key="icon-0" className="w-8 h-8 sm:w-12 sm:h-12" color="#003366" />,
+              <WheatIcon key="icon-1" className="w-8 h-8 sm:w-12 sm:h-12" color="#28A745" />,
+              <PenToolIcon key="icon-2" className="w-8 h-8 sm:w-12 sm:h-12" color="#003366" />,
+              <CpuIcon key="icon-3" className="w-8 h-8 sm:w-12 sm:h-12" color="#003366" />,
             ]
             return (
               <div key={cat.title} className="relative flex flex-col p-4 sm:p-8 lg:p-12 group overflow-hidden rounded-2xl border border-transparent sm:border-none">
@@ -604,9 +750,9 @@ function ProfilesSought({
                   </h3>
 
                   <p className="text-[11px] sm:text-base lg:text-lg leading-relaxed text-[#5E6B76] font-medium">
-                    {cat.tags.split("·").map((tag, i, arr) => (
+                    {cat.tags.split("·").map((tagItem, i, arr) => (
                       <span key={i} className="inline-block">
-                        {tag.trim()}
+                        {tagItem.trim()}
                         {i < arr.length - 1 && (
                           <span className="text-[#EAF0F4] mx-1 sm:mx-2">·</span>
                         )}
@@ -622,7 +768,7 @@ function ProfilesSought({
         <div className="text-center mt-12">
           <button
             onClick={() => setEligibilityOpen(true)}
-            className="inline-flex items-center gap-2 font-bold text-[13px] uppercase tracking-wider transition-opacity hover:opacity-70"
+            className="inline-flex items-center gap-2 font-bold text-[13px] uppercase tracking-wider transition-opacity hover:opacity-70 cursor-pointer"
             style={{ color: "#003366" }}
           >
             <span style={{ borderBottom: "1px solid #003366", paddingBottom: "2px" }}>
@@ -729,18 +875,31 @@ function WeekWithAptic({ t }: { t: TKey }) {
 }
 
 // ─── 10. Life & Immersion in Togo (Streamlined) ──────────────────────────────
-function LifeInTogo({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
+function LifeInTogo({
+  t,
+  navigate,
+  settings,
+  langLower,
+}: {
+  t: TKey
+  navigate: (p: Page) => void
+  settings: Record<string, string>
+  langLower: string
+}) {
   const l = t.lifeInTogo
+  const tag = settings[`volunteer_togo_tag_${langLower}`] || l.tag
+  const title = settings[`volunteer_togo_title_${langLower}`] || l.title
+  const desc = settings[`volunteer_togo_desc_${langLower}`] || l.desc
 
   return (
     <section id="togo" className="py-20 sm:py-24 lg:py-28 bg-[#FFFFFF]">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 text-center mb-12 sm:mb-16">
-        <Badge text={l.tag} centered />
+        <Badge text={tag} centered />
         <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight mt-3 mb-4 text-[#003366] font-['DM_Serif_Display'] font-normal">
-          {l.title}
+          {title}
         </h2>
         <p className="text-base sm:text-lg text-[#5E6B76] max-w-2xl mx-auto font-medium">
-          {l.desc}
+          {desc}
         </p>
       </div>
 
@@ -816,19 +975,30 @@ function LifeInTogo({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
 }
 
 // ─── Support & Confirmed Conditions (Streamlined) ─────────────────────────────
-function Conditions({ t }: { t: TKey }) {
+function Conditions({
+  t,
+  settings,
+  langLower,
+}: {
+  t: TKey
+  settings: Record<string, string>
+  langLower: string
+}) {
   const s = t.support
+  const tag = settings[`volunteer_conditions_tag_${langLower}`] || s.tag
+  const title = settings[`volunteer_conditions_title_${langLower}`] || s.title
+  const subtitle = settings[`volunteer_conditions_subtitle_${langLower}`] || s.subtitle
 
   return (
     <section className="py-20 sm:py-24 bg-[#F7F8FA]">
       <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <Badge text={s.tag} centered />
+          <Badge text={tag} centered />
           <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight mb-4 text-[#003366] tracking-[-0.02em]">
-            {s.title}
+            {title}
           </h2>
           <p className="text-base sm:text-lg font-medium text-[#5E6B76]">
-            {s.subtitle}
+            {subtitle}
           </p>
         </div>
 
@@ -841,7 +1011,7 @@ function Conditions({ t }: { t: TKey }) {
             </span>
           </div>
           <div className="flex flex-col w-full divide-y divide-[#EAF0F4]">
-            {s.tableItems.map(([el, info, status], i) => {
+            {s.tableItems.map(([el, info, status]) => {
               const isConfirmed = status === s.statusConfirmed
               return (
                 <div
@@ -881,22 +1051,29 @@ function Conditions({ t }: { t: TKey }) {
 function ApplicationProcess({
   t,
   navigate,
+  settings,
+  langLower,
 }: {
   t: TKey
   navigate: (p: Page) => void
+  settings: Record<string, string>
+  langLower: string
 }) {
   const ap = t.appProcess
+  const tag = settings[`volunteer_process_tag_${langLower}`] || ap.tag
+  const title = settings[`volunteer_process_title_${langLower}`] || ap.title
+  const subtitle = settings[`volunteer_process_subtitle_${langLower}`] || ap.subtitle
 
   return (
     <section className="py-20 sm:py-24 lg:py-28 bg-[#FFFFFF]">
       <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center mb-16 sm:mb-20">
-          <Badge text={ap.tag} centered />
+          <Badge text={tag} centered />
           <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#003366] tracking-[-0.02em]">
-            {ap.title}
+            {title}
           </h2>
           <p className="text-base sm:text-lg text-[#5E6B76] max-w-xl mx-auto mt-3 font-medium">
-            {ap.subtitle}
+            {subtitle}
           </p>
         </div>
 
@@ -922,7 +1099,7 @@ function ApplicationProcess({
         <div className="text-center mt-12 sm:mt-16 flex justify-center">
           <button
             onClick={() => navigate("apply")}
-            className="inline-flex items-center gap-3 sm:gap-4 font-black text-sm sm:text-base px-8 py-4 sm:px-10 sm:py-5 rounded-xl text-white shadow-lg transition-all hover:scale-105 bg-[#28A745] hover:bg-[#218838]"
+            className="inline-flex items-center gap-3 sm:gap-4 font-black text-sm sm:text-base px-8 py-4 sm:px-10 sm:py-5 rounded-xl text-white shadow-lg transition-all hover:scale-105 bg-[#28A745] hover:bg-[#218838] cursor-pointer"
           >
             <span className="tracking-wide">{ap.cta}</span>
             <ArrowRightIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" strokeWidth={2} />
@@ -934,7 +1111,17 @@ function ApplicationProcess({
 }
 
 // ─── FAQ (Essential Questions) ───────────────────────────────────────────────
-function FAQ({ t, lang }: { t: TKey; lang: string }) {
+function FAQ({
+  t,
+  lang,
+  settings,
+  langLower,
+}: {
+  t: TKey
+  lang: string
+  settings: Record<string, string>
+  langLower: string
+}) {
   const f = t.faq
   const [open, setOpen] = useState<number | null>(null)
 
@@ -1034,8 +1221,24 @@ function FAQ({ t, lang }: { t: TKey; lang: string }) {
 }
 
 // ─── Final CTA (Dedicated Volunteer Goal) ─────────────────────────────────────
-function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
+function FinalCTA({
+  t,
+  navigate,
+  settings,
+  langLower,
+}: {
+  t: TKey
+  navigate: (p: Page) => void
+  settings: Record<string, string>
+  langLower: string
+}) {
   const fc = t.finalCta
+  const badge = settings[`volunteer_cta_badge_${langLower}`] || fc.badge
+  const title = settings[`volunteer_cta_title_${langLower}`] || fc.title
+  const desc = settings[`volunteer_cta_desc_${langLower}`] || fc.desc
+  const ctaVolunteer = settings[`volunteer_cta_btn_primary_${langLower}`] || fc.ctaVolunteer
+  const ctaPartner = settings[`volunteer_cta_btn_secondary_${langLower}`] || fc.ctaPartner
+
   return (
     <section className="py-24 sm:py-32 lg:py-40 relative overflow-hidden flex items-center justify-center min-h-[60vh]">
       <img
@@ -1052,13 +1255,13 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
       />
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <span className="inline-block text-xs font-black uppercase tracking-[0.2em] text-[#28A745] mb-4 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full">
-          {fc.badge}
+          {badge}
         </span>
         <h2 className="text-3xl sm:text-5xl lg:text-7xl text-white mb-6 tracking-tight font-['DM_Serif_Display']">
-          {fc.title}
+          {title}
         </h2>
         <p className="text-base sm:text-xl lg:text-2xl mb-10 max-w-2xl mx-auto leading-relaxed font-medium text-white/90">
-          {fc.desc}
+          {desc}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -1069,7 +1272,7 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
             }}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-black text-sm sm:text-base px-8 sm:px-12 py-4 sm:py-5 rounded-xl text-white transition-all shadow-xl hover:scale-105 cursor-pointer bg-[#28A745] hover:bg-[#218838]"
           >
-            <span className="uppercase tracking-wide">{fc.ctaVolunteer}</span>
+            <span className="uppercase tracking-wide">{ctaVolunteer}</span>
             <ArrowRightIcon size={18} strokeWidth={2} />
           </button>
 
@@ -1078,9 +1281,9 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
               trackEvent("partner_request_click", { source: "final_cta_partner" })
               navigate("partner")
             }}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-bold text-xs sm:text-sm px-6 py-4 rounded-xl text-white/80 hover:text-white transition-colors bg-white/10 hover:bg-white/15 border border-white/20"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-bold text-xs sm:text-sm px-6 py-4 rounded-xl text-white/80 hover:text-white transition-colors bg-white/10 hover:bg-white/15 border border-white/20 cursor-pointer"
           >
-            <span>{fc.ctaPartner}</span>
+            <span>{ctaPartner}</span>
             <ArrowRightIcon size={14} strokeWidth={1.5} />
           </button>
         </div>
@@ -1090,38 +1293,70 @@ function FinalCTA({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
 }
 
 // ─── Main Export : Streamlined Volunteer Recruitment Page ──────────────────────
-export default function Home({ lang, navigate }: HomeProps) {
-  const currentLang = (lang || "FR").toUpperCase() as keyof typeof translations
-  const t = translations[currentLang] || translations.FR
+export default function Home({ lang, navigate, initialSettings = {} }: HomeProps) {
+  const currentLang = (lang || "FR").toUpperCase() as Language
+  const langLower = (lang || "fr").toLowerCase()
+  const t = translations[currentLang as keyof typeof translations] || translations.FR
 
+  const [settings, setSettings] = useState<Record<string, string>>(initialSettings)
+  const [loading, setLoading] = useState<boolean>(Object.keys(initialSettings).length === 0)
+
+  useEffect(() => {
+    Promise.all([getSiteSettings("VOLUNTEER"), getSiteSettings("GENERAL")])
+      .then(([resVol, resGen]) => {
+        const merged: Record<string, string> = {}
+        if (resVol.success && resVol.dict) Object.assign(merged, resVol.dict)
+        if (resGen.success && resGen.dict) Object.assign(merged, resGen.dict)
+        setSettings((prev) => ({ ...prev, ...merged }))
+        setLoading(false)
+      })
+      .catch((err) => {
+        console.error("Error fetching volunteer settings:", err)
+        setLoading(false)
+      })
+  }, [])
+
+  // La page s'affiche directement avec les valeurs du CMS ou les traductions par défaut
   return (
     <main className="w-full overflow-x-hidden">
       {/* 1. HERO — Accroche immédiate & Appel à l'action */}
-      <Hero t={t} navigate={navigate} />
+      <Hero t={t} navigate={navigate} settings={settings} langLower={langLower} />
 
-      {/* 2. LA MISSION — Ce que le volontaire vient concrètement faire */}
-      <YourMission t={t} />
+      {/* 2. POURQUOI CETTE MISSION ? */}
+      <WhyMission t={t} settings={settings} langLower={langLower} />
 
-      {/* 3. VOS MISSIONS — 4 à 6 exemples concrets de réalisations */}
-      <WhatCouldYouBuild t={t} />
+      {/* 3. LE DÉFI (Problème → Innovation → Impact) */}
+      <TheChallenge t={t} settings={settings} langLower={langLower} />
 
-      {/* 4. PROFILS RECHERCHÉS — Qui peut candidater (étudiants, diplômés, pros) */}
-      <ProfilesSought t={t} navigate={navigate} />
+      {/* 4. LA MISSION — Ce que le volontaire vient concrètement faire */}
+      <YourMission t={t} settings={settings} langLower={langLower} />
 
-      {/* 5. CE QUE VOUS VIVREZ — Immersion, terrain et vie associative */}
-      <LifeInTogo t={t} navigate={navigate} />
+      {/* 5. VOS MISSIONS — Exemples concrets de réalisations */}
+      <WhatCouldYouBuild t={t} settings={settings} langLower={langLower} />
 
-      {/* 6. CONDITIONS — Cadre confirmé, hébergement, accompagnement */}
-      <Conditions t={t} />
+      {/* 6. PROFILS RECHERCHÉS — Qui peut candidater */}
+      <ProfilesSought t={t} navigate={navigate} settings={settings} langLower={langLower} />
 
-      {/* 7. COMMENT ÇA MARCHE ? — Parcours en 5 étapes claires */}
-      <ApplicationProcess t={t} navigate={navigate} />
+      {/* 7. NOT AN EXPERT — Pas besoin d'être un expert */}
+      <NotAnExpert t={t} navigate={navigate} />
 
-      {/* 8. FAQ — Questions essentielles */}
-      <FAQ t={t} lang={currentLang} />
+      {/* 8. UNE SEMAINE AVEC APTIC-R */}
+      <WeekWithAptic t={t} />
 
-      {/* 9. CTA FINAL — Décision & passage à l'action vers le formulaire 9 étapes */}
-      <FinalCTA t={t} navigate={navigate} />
+      {/* 9. CE QUE VOUS VIVREZ — Immersion, terrain et vie associative */}
+      <LifeInTogo t={t} navigate={navigate} settings={settings} langLower={langLower} />
+
+      {/* 10. CONDITIONS — Cadre confirmé, hébergement, accompagnement */}
+      <Conditions t={t} settings={settings} langLower={langLower} />
+
+      {/* 11. COMMENT ÇA MARCHE ? — Parcours en 5 étapes claires */}
+      <ApplicationProcess t={t} navigate={navigate} settings={settings} langLower={langLower} />
+
+      {/* 12. FAQ — Questions essentielles */}
+      <FAQ t={t} lang={currentLang} settings={settings} langLower={langLower} />
+
+      {/* 13. CTA FINAL — Décision & passage à l'action */}
+      <FinalCTA t={t} navigate={navigate} settings={settings} langLower={langLower} />
     </main>
   )
 }

@@ -12,6 +12,7 @@ import { DomainCharterIcon } from "@/components/DomainIcons"
 interface DomainsViewProps {
   lang: Language
   initialSettings?: Record<string, string>
+  initialDomaines?: any[]
 }
 
 const I18N = {
@@ -25,6 +26,8 @@ const I18N = {
     actionsTitle: "ACTIONS & PROJETS",
     audienceTitle: "PUBLICS CONCERNÉS",
     collabBtn: "Proposer un partenariat",
+    viewDomainDetail: "Découvrir la fiche complète du pôle",
+    associatedProjects: "PROJETS ASSOCIÉS AU PÔLE",
     ctaPreTitle: "COOPÉRATION & DÉPLOIEMENT",
     ctaTitle: "Vous souhaitez développer un projet avec l’APTIC-R ?",
     ctaDesc: "Nous concevons des collaborations adaptées aux besoins des territoires.",
@@ -157,6 +160,8 @@ const I18N = {
     actionsTitle: "ACTIONS & PROJECTS",
     audienceTitle: "TARGET AUDIENCES",
     collabBtn: "Propose a partnership",
+    viewDomainDetail: "Explore full domain overview & projects",
+    associatedProjects: "ASSOCIATED FIELD PROJECTS",
     ctaPreTitle: "COOPERATION & DEPLOYMENT",
     ctaTitle: "Interested in developing a project with APTIC-R?",
     ctaDesc: "We design tailored collaborations adapted to the concrete needs of rural territories.",
@@ -289,6 +294,8 @@ const I18N = {
     actionsTitle: "AKTIONEN & PROJEKTE",
     audienceTitle: "ZIELGRUPPEN",
     collabBtn: "Partnerschaft vorschlagen",
+    viewDomainDetail: "Ausführliche Übersicht & Projekte ansehen",
+    associatedProjects: "ZUGEORDNETE PROJEKTE",
     ctaPreTitle: "KOOPERATION & PROJEKTE",
     ctaTitle: "Möchten Sie ein Projekt mit APTIC-R entwickeln?",
     ctaDesc: "Wir entwickeln passgenaue Kooperationen, die auf die Bedürfnisse der Regionen abgestimmt sind.",
@@ -444,16 +451,21 @@ const DOMAIN_PHOTOS: Record<string, { src: string; caption: string }> = {
   },
 }
 
-export default function DomainsView({ lang, initialSettings = {} }: DomainsViewProps) {
+export default function DomainsView({ lang, initialSettings = {}, initialDomaines = [] }: DomainsViewProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [selectedId, setSelectedId] = useState<string | "ALL">("ALL")
-  const [dbDomains, setDbDomains] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [dbDomains, setDbDomains] = useState<any[]>(initialDomaines)
+  const [loading, setLoading] = useState(initialDomaines.length === 0)
 
   const staticT = I18N[lang] || I18N.FR
 
   useEffect(() => {
+    if (initialDomaines && initialDomaines.length > 0) {
+      setDbDomains(initialDomaines)
+      setLoading(false)
+      return
+    }
     import("@/lib/cms-actions").then(({ getDomaines }) => {
       getDomaines({ activeOnly: true })
         .then((res) => {
@@ -464,7 +476,7 @@ export default function DomainsView({ lang, initialSettings = {} }: DomainsViewP
         .catch(console.error)
         .finally(() => setLoading(false))
     })
-  }, [])
+  }, [initialDomaines])
 
   // Mapper les domaines DB vers le format attendu par la vue selon la langue
   const displayedDomains = React.useMemo(() => {
@@ -595,20 +607,23 @@ export default function DomainsView({ lang, initialSettings = {} }: DomainsViewP
     <div className="min-h-screen flex flex-col bg-white">
       <Header lang={lang} setLang={handleSetLang} currentPage="domains" navigate={navigate} />
 
-      <main className="flex-1 pt-20 lg:pt-24">
-        {/* ── 1. Hero (#F7F8FA) ── */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20" style={{ backgroundColor: BG_HERO }}>
+      <main className="flex-1">
+        {/* ── 1. Hero (#F7F8FA) - Le fond gris monte jusqu'en haut derrière le header ── */}
+        <section
+          className="px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-10 sm:pb-12 border-b border-slate-200/80"
+          style={{ backgroundColor: BG_HERO }}
+        >
           <div className="max-w-[1260px] mx-auto">
-            <div className="inline-flex items-center gap-2 mb-4">
+            <div className="inline-flex items-center gap-2 mb-3">
               <span className="w-2.5 h-2.5 rounded-full bg-[#28A745]"></span>
               <span className="text-[#28A745] font-bold tracking-widest text-xs uppercase">
                 {t.domains.length > 0 ? `${t.domains.length} Domaines d'Intervention` : t.badge}
               </span>
             </div>
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#003366] tracking-tight mb-5 leading-[1.15]">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#003366] tracking-tight mb-4 leading-[1.15]">
               {t.title}
             </h1>
-            <p className="text-base sm:text-xl text-[#5E6B76] max-w-3xl leading-relaxed">
+            <p className="text-base sm:text-lg text-[#5E6B76] max-w-3xl leading-relaxed">
               {lang === "DE"
                 ? `${t.domains.length} Handlungsfelder zur Stärkung von Kompetenzen, Autonomie und nachhaltiger Innovation in ländlichen Regionen.`
                 : lang === "EN"
@@ -661,7 +676,7 @@ export default function DomainsView({ lang, initialSettings = {} }: DomainsViewP
               <section
                 key={dom.id}
                 id={dom.id}
-                className="px-4 sm:px-6 lg:px-8 py-20 sm:py-28 transition-colors"
+                className="px-4 sm:px-6 lg:px-8 py-12 sm:py-16 transition-colors"
                 style={{ backgroundColor: isAltBg ? BG_SECTION_ALT : "#FFFFFF" }}
               >
                 <div className="max-w-[1260px] mx-auto">
@@ -669,7 +684,10 @@ export default function DomainsView({ lang, initialSettings = {} }: DomainsViewP
                     
                     {/* Visual Column: Large Prominent Photo (440–480px on desktop) */}
                     <div className={`w-full lg:w-[460px] xl:w-[490px] shrink-0 ${isReversed ? "lg:order-2" : "lg:order-1"}`}>
-                      <div className="relative rounded-2xl overflow-hidden shadow-md border border-slate-200/90 aspect-[4/3] sm:aspect-[16/11] bg-slate-100 group">
+                      <Link
+                        href={`/${lang.toLowerCase()}/domaines/${dom.id}`}
+                        className="block relative rounded-2xl overflow-hidden shadow-md border border-slate-200/90 aspect-[4/3] sm:aspect-[16/11] bg-slate-100 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#007BFF]"
+                      >
                         <img
                           src={dom.photoSrc}
                           alt={dom.officialTitle}
@@ -683,7 +701,7 @@ export default function DomainsView({ lang, initialSettings = {} }: DomainsViewP
                             {dom.photoCaption}
                           </p>
                         </div>
-                      </div>
+                      </Link>
                     </div>
 
                     {/* Editorial Content Column: Expanded width (650–720px) */}
@@ -707,7 +725,12 @@ export default function DomainsView({ lang, initialSettings = {} }: DomainsViewP
 
                       {/* Official Domain Title (28–34px font-bold/extrabold in #003366) */}
                       <h2 className="text-2xl sm:text-3xl lg:text-[32px] font-extrabold text-[#003366] leading-tight mb-1">
-                        {dom.officialTitle}
+                        <Link
+                          href={`/${lang.toLowerCase()}/domaines/${dom.id}`}
+                          className="hover:text-[#007BFF] transition-colors"
+                        >
+                          {dom.officialTitle}
+                        </Link>
                       </h2>
 
                       {/* Descriptive Subtitle */}
@@ -715,82 +738,77 @@ export default function DomainsView({ lang, initialSettings = {} }: DomainsViewP
                         {dom.subtitle}
                       </p>
 
-                      {/* Presentation Paragraph (15–16px, leading-relaxed in #5E6B76) */}
-                      <p className="text-base text-[#5E6B76] leading-relaxed mb-7">
+                      {/* Presentation Paragraph (concise, 2-3 lines) */}
+                      <p className="text-[15px] sm:text-base text-[#5E6B76] leading-relaxed line-clamp-3 mb-4">
                         {dom.fullDesc}
                       </p>
 
-                      {/* 3 Structured Editorial Sub-sections */}
-                      <div className="space-y-6 pt-6 border-t border-slate-200">
-                        
-                        {/* 1. OBJECTIFS CLÉS */}
-                        <div>
-                          <div className="flex items-center gap-2 mb-3">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[#003366]">
-                              {t.objectivesTitle}
-                            </span>
-                            <div className="h-px bg-slate-200 flex-1 ml-2" />
-                          </div>
-                          <ul className="space-y-2">
-                            {dom.objectives.map((obj, i) => (
-                              <li key={i} className="flex items-start gap-2.5 text-[15px] text-[#5E6B76] leading-relaxed">
-                                <span className="text-[#28A745] font-black text-sm shrink-0 leading-tight">●</span>
-                                <span>{obj}</span>
-                              </li>
+                      {/* Key Highlights & Target Audience Bar (compact) */}
+                      <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs mb-5 space-y-2.5">
+                        {dom.objectives && dom.objectives.length > 0 && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {dom.objectives.slice(0, 2).map((obj: string, i: number) => (
+                              <div key={i} className="flex items-start gap-2 text-xs sm:text-sm text-[#2C3E50] leading-snug">
+                                <span className="text-[#28A745] font-black text-sm shrink-0 mt-0.5">✓</span>
+                                <span className="line-clamp-2">{obj}</span>
+                              </div>
                             ))}
-                          </ul>
-                        </div>
+                          </div>
+                        )}
 
-                        {/* 2. ACTIONS & PROJETS */}
-                        <div>
-                          <div className="flex items-center gap-2 mb-3">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[#003366]">
-                              {t.actionsTitle}
+                        {dom.audience && (
+                          <div className="pt-2 border-t border-slate-100 flex items-center gap-2 text-xs text-[#5E6B76]">
+                            <span className="font-bold uppercase tracking-wider text-[#003366] text-[10px] bg-[#003366]/5 px-2 py-0.5 rounded">
+                              {lang === "EN" ? "Target" : lang === "DE" ? "Zielgruppe" : "Public"}
                             </span>
-                            <div className="h-px bg-slate-200 flex-1 ml-2" />
+                            <span className="truncate">{dom.audience}</span>
                           </div>
-                          <ul className="space-y-2">
-                            {dom.actions.map((act, i) => (
-                              <li key={i} className="flex items-start gap-2.5 text-[15px] text-[#5E6B76] leading-relaxed">
-                                <span className="text-[#007BFF] font-black text-sm shrink-0 leading-tight">●</span>
-                                <span>{act}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        {/* 3. PUBLICS CONCERNÉS */}
-                        <div>
-                          <div className="flex items-center gap-2 mb-3">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[#003366]">
-                              {t.audienceTitle}
-                            </span>
-                            <div className="h-px bg-slate-200 flex-1 ml-2" />
-                          </div>
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[15px] text-[#5E6B76]">
-                            <p className="leading-relaxed">
-                              {dom.audience}
-                            </p>
-
-                            <Link
-                              href={getPageUrl("partner", lang)}
-                              className="inline-flex items-center text-sm font-bold text-[#007BFF] hover:text-[#003366] transition-colors shrink-0 whitespace-nowrap"
-                            >
-                              {t.collabBtn} <span className="ml-1">→</span>
-                            </Link>
-                          </div>
-                        </div>
-
+                        )}
                       </div>
 
-                    </div>
+                      {/* Associated Projects Status Badge (if any) */}
+                      {dom.projets && dom.projets.length > 0 && (
+                        <div className="mb-5 flex items-center gap-2 text-xs text-[#007BFF] font-semibold">
+                          <span className="w-2 h-2 rounded-full bg-[#28A745] animate-pulse"></span>
+                          <span>
+                            {dom.projets.length} {dom.projets.length > 1
+                              ? (lang === "EN" ? "active field projects linked to this domain" : lang === "DE" ? "aktive Projekte in diesem Bereich" : "projets de terrain rattachés à ce pôle")
+                              : (lang === "EN" ? "active field project linked to this domain" : lang === "DE" ? "aktives Projekt in diesem Bereich" : "projet de terrain rattaché à ce pôle")}
+                          </span>
+                        </div>
+                      )}
 
+                      {/* CTA Actions Block: Button on top, discreet underlined link underneath */}
+                      <div className="pt-2 flex flex-col items-start gap-2.5">
+                        <Link
+                          href={`/${lang.toLowerCase()}/domaines/${dom.id}`}
+                          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs sm:text-sm bg-[#003366] text-white hover:bg-[#002244] shadow-xs transition-all group cursor-pointer"
+                        >
+                          <span>{t.viewDomainDetail}</span>
+                          <span className="group-hover:translate-x-1 transition-transform">→</span>
+                        </Link>
+
+                        <Link
+                          href={`/${lang.toLowerCase()}/volontariat/postuler?domaine=${encodeURIComponent(dom.code)}`}
+                          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#28A745] hover:text-[#1e7e34] underline underline-offset-4 decoration-[#28A745]/40 hover:decoration-[#28A745] transition-all"
+                        >
+                          <span>
+                            {lang === "EN"
+                              ? "Volunteer with this domain"
+                              : lang === "DE"
+                              ? "In diesem Bereich mitwirken"
+                              : "S'engager avec ce pôle"}
+                          </span>
+                          <span className="text-xs">↗</span>
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
 
         {/* ── 4. Clean Institutional CTA Box (#F7F8FA) ── */}
         <section className="px-4 sm:px-6 lg:px-8 py-20 bg-white border-t border-slate-200">

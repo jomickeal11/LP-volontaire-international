@@ -32,6 +32,7 @@ export type Page =
   | "admin-domains"
   | "admin-events"
   | "admin-newsletter"
+  | "admin-messages"
   | "admin-settings"
 
 export type Language = "FR" | "EN" | "DE"
