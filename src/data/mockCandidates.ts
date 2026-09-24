@@ -92,7 +92,7 @@ export const statusColors: Record<CandidateStatus, {
   REVIEW: { bg: "#FEF3C7", text: "#92400E", label: "Révision" },
   SELECTED: { bg: "#DBEAFE", text: "#1E40AF", label: "Sélectionné" },
   INTERVIEW: { bg: "#E0E7FF", text: "#4338CA", label: "Entretien" },
-  CHOSEN: { bg: "#D1FAE5", text: "#065F46", label: "Choisi" },
+  CHOSEN: { bg: "#D1FAE5", text: "#065F46", label: "Retenu" },
   PARTNER_VALIDATION: {
     bg: "#FDE68A",
     text: "#78350F",

@@ -344,7 +344,7 @@ export default function AdminArticles() {
       const res = await toggleArticleFeatured(id, nextFeatured)
       if (res.success) {
         setFeedbackMessage(nextFeatured ? "Cet article est maintenant à la une." : "Cet article n'est plus à la une.")
-        setTimeout(() => setFeedbackMessage(null), 3500)
+        setTimeout(() => setFeedbackMessage(null), 2000)
         setArticles((prev) =>
           prev.map((a) => {
             if (a.id === id) {
@@ -377,7 +377,7 @@ export default function AdminArticles() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">
+          <h1 className="text-2xl font-bold text-[#003366] tracking-tight">
             Articles & Actualités
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -390,7 +390,7 @@ export default function AdminArticles() {
             setArticleLangTab("FR")
             setModalOpen(true)
           }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#007BFF] text-white hover:bg-[#0069d9] transition-all shadow-sm cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#003366] text-white font-medium text-sm rounded-xl hover:bg-[#002244] transition-colors shadow-xs shrink-0 cursor-pointer self-start sm:self-auto"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -431,7 +431,12 @@ export default function AdminArticles() {
                 articles.map((art) => (
                   <tr key={art.id} className="hover:bg-slate-50/70 transition-colors">
                     <td className="py-3.5 px-4 font-semibold text-slate-800">
-                      {art.titleFr}
+                      <span
+                        className="hover:text-[#174F7A] transition-colors cursor-pointer select-text"
+                        onClick={() => handleOpenModal(art)}
+                      >
+                        {art.titleFr}
+                      </span>
                     </td>
                     <td className="py-3.5 px-4 text-xs">
                       <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">

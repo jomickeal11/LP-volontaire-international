@@ -78,6 +78,7 @@ model Candidature {
 
   status CandidateStatus @default(NEW)
   lang   LanguageCode    @default(FR)
+  communicationLanguage LanguageCode @default(FR)
 
   // Profil académique & professionnel
   education         String
@@ -104,6 +105,7 @@ model Candidature {
   documents     DocumentCandidature[]
   notes         NoteCandidature[]
   statusHistory HistoriqueCandidature[]
+  emailLogs     EmailLog[]
 
   assignedToId String?
   assignedTo   Utilisateur? @relation("AssignedApplications", fields: [assignedToId], references: [id])
@@ -169,6 +171,34 @@ model HistoriqueCandidature {
   @@index([applicationId])
 }
 
+// ─── 5 BIS. JOURNAL DES EMAILS (Audit Trail & Réessai) ────────────────────────
+model EmailLog {
+  id            String           @id @default(cuid())
+  applicationId String?
+  application   Candidature?     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  recipient     String
+  recipientName String?
+  subject       String
+  bodyHtml      String           @db.Text
+  bodyText      String?          @db.Text
+  status        String           @default("SENT") // "SENT" | "FAILED"
+  error         String?          @db.Text
+
+  actionType    String           // "APPLICATION_CONFIRMATION" | "STATUS_CHANGE" | "INTERVIEW_INVITATION" | "DIRECT_EMAIL" | "PARTNER_CONFIRMATION" | "CONTACT_NOTIFICATION"
+  fromStatus    CandidateStatus?
+  toStatus      CandidateStatus?
+  templateKey   String?
+  metadata      Json?
+
+  sentAt        DateTime         @default(now())
+
+  @@index([applicationId])
+  @@index([recipient])
+  @@index([status])
+  @@index([sentAt])
+}
+
 // ─── 6. NOTES INTERNES ÉQUIPE ────────────────────────────────────────────────
 model NoteCandidature {
   id            String      @id @default(cuid())
@@ -206,6 +236,9 @@ model DemandePartenariat {
   referenceNumber String?     @unique // Ex: PART-2026-XXXX
   partnerId       String?
   partner         Partenaire? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+
+  lang                  LanguageCode @default(FR)
+  communicationLanguage LanguageCode @default(FR)
 
   // Informations organisation
   orgName   String
@@ -340,33 +373,88 @@ model Domaine {
   @@index([active])
 }
 
-// ─── 11. MEMBRES & ADHÉSIONS ──────────────────────────────────────────────────
-model Membre {
+// ─── 11. MEMBRES & DEMANDES D'ADHÉSION ──────────────────────────────────────
+model DemandeAdhesion {
   id                String    @id @default(cuid())
-  referenceNumber   String    @unique // MBR-2026-XXXX
+  referenceNumber   String    @unique // Ex: ADH-2026-XXXX
   firstName         String
   lastName          String
-  email             String    @unique
+  email             String
   phone             String?
   profession        String?
   organization      String?
   country           String
   city              String?
-  domainsOfInterest String    // JSON string array ou valeurs séparées par virgules
+  domainsOfInterest String    // JSON string array
   contributionType  String    // COMPETENCES, FINANCIER, VOLONTARIAT, RESEAU, AUTRE
   availability      String    // HEBDOMADAIRE, MENSUEL, PONCTUEL, TEMPS_PLEIN
   motivation        String    @db.Text
-  status            String    @default("PENDING") // PENDING, APPROVED, REJECTED, SUSPENDED, ALUMNI
-  membershipDate    DateTime?
-  notes             String?   @db.Text
   consentData       Boolean   @default(false)
+  status            String    @default("PENDING") // PENDING (En attente), APPROVED (Validée), REJECTED (Refusée)
+  notes             String?   @db.Text
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  memberId          String?
+  member            Membre?   @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  history           HistoriqueAdhesion[]
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   @@index([status])
   @@index([email])
   @@index([country])
+  @@index([createdAt])
+}
+
+model Membre {
+  id                String    @id @default(cuid())
+  referenceNumber   String    @unique // Ex: MBR-2026-XXXX
+  firstName         String
+  lastName          String
+  email             String
+  phone             String?
+  profession        String?
+  organization      String?
+  country           String
+  city              String?
+  domainsOfInterest String    // JSON string array
+  contributionType  String    // COMPETENCES, FINANCIER, VOLONTARIAT, RESEAU, AUTRE
+  availability      String    // HEBDOMADAIRE, MENSUEL, PONCTUEL, TEMPS_PLEIN
+  motivation        String    @db.Text
+  membershipStatus  String    @default("ACTIVE") // Statut d'adhésion : "ACTIVE" ("Actif")
+  membershipDate    DateTime  @default(now())
+  notes             String?   @db.Text
+
+  applications      DemandeAdhesion[]
+  history           HistoriqueAdhesion[]
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([membershipStatus])
+  @@index([email])
+  @@index([country])
+}
+
+model HistoriqueAdhesion {
+  id            String           @id @default(cuid())
+  applicationId String?
+  application   DemandeAdhesion? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  memberId      String?
+  member        Membre?          @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  action        String           // APPLICATION_SUBMITTED, APPLICATION_APPROVED, APPLICATION_REJECTED, APPLICATION_PENDING, MEMBER_CREATED, MEMBER_ACTIVATED, STATUS_CHANGED
+  fromStatus    String?
+  toStatus      String?
+  authorName    String           @default("Admin APTIC-R")
+  authorId      String?
+  note          String?          @db.Text
+  createdAt     DateTime         @default(now())
+
+  @@index([applicationId])
+  @@index([memberId])
+  @@index([createdAt])
 }
 
 // ─── 12. CMS : CATÉGORIES D'ARTICLES ──────────────────────────────────────────
@@ -533,34 +621,38 @@ model Evenement {
 
 // ─── 16. CMS : BIBLIOTHÈQUE DE RESSOURCES ─────────────────────────────────────
 model Ressource {
-  id            String   @id @default(cuid())
+  id            String       @id @default(cuid())
   titleFr       String
   titleEn       String?
   titleDe       String?
-  descriptionFr String?  @db.Text
-  descriptionEn String?  @db.Text
-  descriptionDe String?  @db.Text
-  type          String   @default("REPORT") // REPORT, GUIDE, BROCHURE, PROJECT_SHEET, POLICY, STATUTE
+  descriptionFr String?      @db.Text
+  descriptionEn String?      @db.Text
+  descriptionDe String?      @db.Text
+  type          String       @default("REPORT") // REPORT, GUIDE, PROJECT_SHEET, STATUTE, OTHER
   year          Int
+  lang          LanguageCode @default(FR)
   fileUrl       String
   fileName      String
-  fileSize      Int?
-  mimeType      String?
+  fileSize      Int?         // Taille en octets ou Ko
+  fileSizeStr   String?      // Format lisible ex: "2.4 Mo"
+  mimeType      String?      @default("application/pdf")
 
   domaineId     String?
-  domaine       Domaine? @relation(fields: [domaineId], references: [id], onDelete: SetNull)
+  domaine       Domaine?     @relation(fields: [domaineId], references: [id], onDelete: SetNull)
 
   projetId      String?
-  projet        Projet?  @relation(fields: [projetId], references: [id], onDelete: SetNull)
+  projet        Projet?      @relation(fields: [projetId], references: [id], onDelete: SetNull)
 
-  downloadCount Int      @default(0)
-  published     Boolean  @default(true)
+  downloadCount Int          @default(0)
+  published     Boolean      @default(true)
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   @@index([type])
   @@index([year])
+  @@index([lang])
+  @@index([published])
   @@index([domaineId])
   @@index([projetId])
 }
@@ -696,3 +788,4 @@ model MessageContact {
   @@index([createdAt])
   @@index([email])
 }
+

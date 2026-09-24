@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import { loginAction } from "@/actions/auth"
-import Image from "next/image"
+import ApticLogo from "@/components/ApticLogo"
 
 // ─── Inline SVG Icons (private to this component) ──────────────────────────────
 
@@ -130,28 +130,15 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
   return (
     <div className="login-page">
       <div className="login-card">
-        {/* ── Header: Logo + Identity ── */}
+        {/* ── Header: Logo vertical officiel APTIC-R ── */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden bg-white border border-[rgba(0,51,102,0.10)] mb-3">
-            <Image
-              src="/logo-aptic.png"
-              alt="APTIC-R Logo"
-              width={56}
-              height={56}
-              className="w-[85%] h-[85%] object-contain"
-              priority
-              unoptimized
-            />
-          </div>
-          <span className="font-extrabold text-base tracking-tight text-[#003366]">
-            APTIC-R
-          </span>
-          <span className="text-sm font-semibold text-[#003366] mt-0.5">
+          <ApticLogo variant="vertical" lang="FR" />
+          <span
+            className="font-semibold uppercase leading-none mt-5"
+            style={{ color: "#8898AA", fontSize: "10.5px", letterSpacing: "0.13em" }}
+          >
             Espace d&apos;administration
           </span>
-          <p className="text-xs text-[#7A8A9A] text-center mt-2 max-w-[300px] leading-relaxed">
-            Gérez les candidatures, les partenaires et le suivi des volontaires.
-          </p>
         </div>
 
         {!showForgot ? (

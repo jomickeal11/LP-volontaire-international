@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : domaine.descFr
 
   return {
-    title: `${title} — Pôle Stratégique | APTIC-R`,
+    title: `${title} | APTIC-R`,
     description: desc ? desc.slice(0, 160) : `Découvrez le pôle ${title} de l'APTIC-R.`,
     alternates: {
       canonical: `/${upperLang.toLowerCase()}/domaines/${domaine.slug || slug}`,

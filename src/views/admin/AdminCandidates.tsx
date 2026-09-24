@@ -134,7 +134,7 @@ export default function AdminCandidates({
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-[#003366]">
             Candidats
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -332,7 +332,13 @@ export default function AdminCandidates({
                             {c.lastName.charAt(0)}
                           </div>
                           <div>
-                            <div className="font-semibold text-slate-900 group-hover:text-[#174F7A] transition-colors">
+                            <div
+                              className="font-semibold text-slate-900 hover:text-[#174F7A] transition-colors cursor-pointer select-text"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onSelectCandidate(c)
+                              }}
+                            >
                               {c.firstName} {c.lastName}
                             </div>
                             <div className="text-xs text-slate-400">

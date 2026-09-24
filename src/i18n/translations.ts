@@ -519,6 +519,13 @@ const translations = {
         country: 'Country',
         city: 'City', cityPlaceholder: 'e.g. Lomé, Tsévié, Kpalimé...',
         dob: 'Date of birth', dobHelp: 'Used only to verify your eligibility for the program.',
+        communicationLanguage: 'Preferred communication language',
+        communicationLanguageHelp: 'In which language would you like to receive communications regarding your application?',
+        communicationLanguageOptions: {
+          FR: 'Français',
+          EN: 'English',
+          DE: 'Deutsch'
+        },
         select: 'Select...',
         optional: '— optional',
         remove: 'Remove',
@@ -644,6 +651,13 @@ const translations = {
         contactPersonPlaceholder: 'e.g. John Doe',
         email: 'Professional email',
         emailPlaceholder: 'contact@organization.org',
+        communicationLanguage: 'Preferred communication language',
+        communicationLanguageHelp: 'In which language would you like to receive communications regarding your partnership request?',
+        communicationLanguageOptions: {
+          FR: 'Français',
+          EN: 'English',
+          DE: 'Deutsch'
+        },
         orgType: 'Type of organization',
         orgTypeOptions: [
           'NGO / Association',
@@ -807,6 +821,13 @@ const translations = {
         country: 'Pays',
         city: 'Ville', cityPlaceholder: 'Ex: Lomé, Tsévié, Kpalimé...',
         dob: 'Date de naissance', dobHelp: 'Utilisée uniquement pour vérifier votre éligibilité au programme.',
+        communicationLanguage: 'Langue de communication préférée',
+        communicationLanguageHelp: 'Dans quelle langue souhaitez-vous recevoir les communications relatives à votre candidature ?',
+        communicationLanguageOptions: {
+          FR: 'Français',
+          EN: 'English',
+          DE: 'Deutsch'
+        },
         select: 'Sélectionner...',
         optional: '— optionnel',
         remove: 'Retirer',
@@ -932,6 +953,13 @@ const translations = {
         contactPersonPlaceholder: 'Ex: Jean Dupont',
         email: 'E-mail professionnel',
         emailPlaceholder: 'contact@organisation.org',
+        communicationLanguage: 'Langue de communication préférée',
+        communicationLanguageHelp: 'Dans quelle langue souhaitez-vous recevoir les communications relatives à votre demande de partenariat ?',
+        communicationLanguageOptions: {
+          FR: 'Français',
+          EN: 'English',
+          DE: 'Deutsch'
+        },
         orgType: 'Type d\'organisation',
         orgTypeOptions: [
           'ONG / Association',
@@ -1943,6 +1971,13 @@ const translations = {
         city: 'Stadt', cityPlaceholder: 'z. B. Lomé, Tsévié...',
         dob: 'Geburtsdatum',
         dobHelp: 'Sie müssen zu Beginn des Einsatzes mindestens 16 Jahre alt sein.',
+        communicationLanguage: 'Bevorzugte Kommunikationssprache',
+        communicationLanguageHelp: 'In welcher Sprache möchten Sie die Mitteilungen zu Ihrer Bewerbung erhalten?',
+        communicationLanguageOptions: {
+          FR: 'Français',
+          EN: 'English',
+          DE: 'Deutsch'
+        },
         select: 'Auswählen...',
         optional: '— optional',
         remove: 'Entfernen',
@@ -2068,6 +2103,13 @@ const translations = {
         contactPersonPlaceholder: "z. B. Max Mustermann",
         email: "Geschäftliche E-Mail",
         emailPlaceholder: "kontakt@organisation.org",
+        communicationLanguage: "Bevorzugte Kommunikationssprache",
+        communicationLanguageHelp: "In welcher Sprache möchten Sie die Mitteilungen zu Ihrer Partnerschaftsanfrage erhalten?",
+        communicationLanguageOptions: {
+          FR: "Français",
+          EN: "English",
+          DE: "Deutsch"
+        },
         orgType: "Art der Organisation",
         orgTypeOptions: [
           "NGO / Verein",

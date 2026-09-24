@@ -67,26 +67,26 @@ export const SUPPORT_FIELDS: SupportCmsField[] = [
   { key: "support_hero_cta", label: "Libellé du Bouton Hero", type: "text", section: "HERO", multilingual: true },
   { key: "support_hero_image", label: "Photo d'illustration Hero", type: "image", section: "HERO", multilingual: false, description: "Photo affichée à droite de la section Hero" },
 
-  // ── 02. AXES (4 FAÇONS D'ACCOMPAGNER) ──
+  // ── 02. AXES (FAÇONS D'ACCOMPAGNER DYNAMIQUES) ──
   { key: "support_axes_tag", label: "Surtitre / Tag Section", type: "text", section: "AXES", multilingual: true },
   { key: "support_axes_title", label: "Titre de la Section", type: "text", section: "AXES", multilingual: true },
   { key: "support_axes_subtitle", label: "Sous-titre explicatif", type: "textarea", section: "AXES", multilingual: true },
 
-  { key: "support_axes_card1_title", label: "Axe 1 - Titre (ex: FINANCEMENT DE PROJETS)", type: "text", section: "AXES", multilingual: true },
-  { key: "support_axes_card1_desc", label: "Axe 1 - Description", type: "textarea", section: "AXES", multilingual: true },
-  { key: "support_axes_card1_link", label: "Axe 1 - Texte du lien", type: "text", section: "AXES", multilingual: true },
+  { key: "support_axes_1_title", label: "Axe 1 - Titre", type: "text", section: "AXES", multilingual: true },
+  { key: "support_axes_1_desc", label: "Axe 1 - Description", type: "textarea", section: "AXES", multilingual: true },
+  { key: "support_axes_1_link", label: "Axe 1 - Texte du lien", type: "text", section: "AXES", multilingual: true },
 
-  { key: "support_axes_card2_title", label: "Axe 2 - Titre (ex: DON DE MATÉRIEL)", type: "text", section: "AXES", multilingual: true },
-  { key: "support_axes_card2_desc", label: "Axe 2 - Description", type: "textarea", section: "AXES", multilingual: true },
-  { key: "support_axes_card2_link", label: "Axe 2 - Texte du lien", type: "text", section: "AXES", multilingual: true },
+  { key: "support_axes_2_title", label: "Axe 2 - Titre", type: "text", section: "AXES", multilingual: true },
+  { key: "support_axes_2_desc", label: "Axe 2 - Description", type: "textarea", section: "AXES", multilingual: true },
+  { key: "support_axes_2_link", label: "Axe 2 - Texte du lien", type: "text", section: "AXES", multilingual: true },
 
-  { key: "support_axes_card3_title", label: "Axe 3 - Titre (ex: MÉCÉNAT DE COMPÉTENCES)", type: "text", section: "AXES", multilingual: true },
-  { key: "support_axes_card3_desc", label: "Axe 3 - Description", type: "textarea", section: "AXES", multilingual: true },
-  { key: "support_axes_card3_link", label: "Axe 3 - Texte du lien", type: "text", section: "AXES", multilingual: true },
+  { key: "support_axes_3_title", label: "Axe 3 - Titre", type: "text", section: "AXES", multilingual: true },
+  { key: "support_axes_3_desc", label: "Axe 3 - Description", type: "textarea", section: "AXES", multilingual: true },
+  { key: "support_axes_3_link", label: "Axe 3 - Texte du lien", type: "text", section: "AXES", multilingual: true },
 
-  { key: "support_axes_card4_title", label: "Axe 4 - Titre (ex: PARTENARIATS & SPONSORING)", type: "text", section: "AXES", multilingual: true },
-  { key: "support_axes_card4_desc", label: "Axe 4 - Description", type: "textarea", section: "AXES", multilingual: true },
-  { key: "support_axes_card4_link", label: "Axe 4 - Texte du lien", type: "text", section: "AXES", multilingual: true },
+  { key: "support_axes_4_title", label: "Axe 4 - Titre", type: "text", section: "AXES", multilingual: true },
+  { key: "support_axes_4_desc", label: "Axe 4 - Description", type: "textarea", section: "AXES", multilingual: true },
+  { key: "support_axes_4_link", label: "Axe 4 - Texte du lien", type: "text", section: "AXES", multilingual: true },
 
   // ── 03. WHY (IMPACT DIRECT & PILIERS) ──
   { key: "support_why_tag", label: "Surtitre / Tag Section", type: "text", section: "WHY", multilingual: true },

@@ -11,21 +11,21 @@ interface LocalizedMeta {
 
 const metaByLang: Record<string, LocalizedMeta> = {
   fr: {
-    title: "Postuler — Volontariat International au Togo (6–12 mois) | APTIC-R",
+    title: "Candidature | APTIC-R",
     description:
       "Formulaire officiel de candidature pour les missions de volontariat international d'APTIC-R à Agbélouvé, Togo.",
     ogTitle: "Candidature Volontariat International Togo — APTIC-R",
     ogDesc: "Rejoignez l'équipe APTIC-R à Agbélouvé pour une mission de 6 à 12 mois.",
   },
   en: {
-    title: "Apply — International Volunteer Missions in Togo (6–12 months) | APTIC-R",
+    title: "Application | APTIC-R",
     description:
       "Official application form for APTIC-R international volunteer missions in Agbélouvé, Togo.",
     ogTitle: "Apply for International Volunteering in Togo — APTIC-R",
     ogDesc: "Join APTIC-R in Agbélouvé for a 6–12 month mission working with rural communities.",
   },
   de: {
-    title: "Bewerbung — Internationaler Freiwilligendienst in Togo (6–12 Monate) | APTIC-R",
+    title: "Bewerbung | APTIC-R",
     description:
       "Offizielles Bewerbungsformular für internationale Freiwilligeneinsätze bei APTIC-R in Agbélouvé, Togo.",
     ogTitle: "Bewerbung Freiwilligendienst Togo — APTIC-R",

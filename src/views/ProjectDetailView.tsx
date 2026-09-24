@@ -402,16 +402,13 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
               title="Accueil APTIC-R"
             >
               <Image
-                src="/logo-aptic-emblem.png"
+                src="/logo-aptic.png"
                 alt="Logo APTIC-R"
-                width={36}
-                height={36}
-                className="w-8 h-8 sm:w-9 sm:h-9 object-contain group-hover:scale-105 transition-transform"
+                width={120}
+                height={40}
+                className="h-8 sm:h-9 w-auto object-contain group-hover:scale-105 transition-transform"
                 priority
               />
-              <span className="font-extrabold text-[#003366] text-sm sm:text-base tracking-tight hidden sm:inline">
-                APTIC-R
-              </span>
             </Link>
 
             <span className="h-5 w-px bg-slate-200 shrink-0 hidden sm:block" />
@@ -669,20 +666,19 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
                     {t.objectivesTitle}
                   </h2>
 
-                  <div className="grid grid-cols-1 gap-3 sm:gap-4">
-                    {objectives.map((obj, i) => (
-                      <div
-                        key={i}
-                        className="flex items-start gap-3.5 p-4 rounded-xl bg-slate-50 border border-slate-200/70 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all"
-                      >
-                        <div className="w-6 h-6 rounded-full bg-emerald-100 text-[#28A745] flex items-center justify-center shrink-0 mt-0.5">
-                          <CheckCircle2 className="w-4 h-4 text-[#28A745]" />
+                  <div className="p-5 sm:p-7 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                      {objectives.map((obj, i) => (
+                        <div key={i} className="flex items-start gap-3">
+                          <div className="w-5 h-5 rounded-full bg-emerald-100 text-[#28A745] flex items-center justify-center shrink-0 mt-0.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#28A745]" />
+                          </div>
+                          <p className="text-sm sm:text-base font-semibold text-[#003366] leading-snug">
+                            {obj}
+                          </p>
                         </div>
-                        <p className="text-sm sm:text-base font-semibold text-[#003366] leading-snug">
-                          {obj}
-                        </p>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </section>
               )}

@@ -7,6 +7,8 @@ import {
   updateDomaine,
   deleteDomaine,
   toggleDomaineActive,
+  reorderDomainesAction,
+  duplicateDomaineAction,
 } from "@/lib/cms-actions"
 import { DomainCharterIcon } from "@/components/DomainIcons"
 
@@ -446,15 +448,114 @@ export default function AdminDomaines() {
     }
   }
 
+  const [searchQuery, setSearchQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "PUBLISHED" | "HIDDEN">("ALL")
+  const [sortBy, setSortBy] = useState<"ORDER" | "NAME">("ORDER")
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [draggedDomaineId, setDraggedDomaineId] = useState<string | null>(null)
+  const [dragOverDomaineId, setDragOverDomaineId] = useState<string | null>(null)
+
+  // Fermer le menu dropdown au clic extérieur
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest("[data-kebab-menu]")) {
+        setOpenMenuId(null)
+      }
+    }
+    document.addEventListener("click", handleOutsideClick)
+    return () => document.removeEventListener("click", handleOutsideClick)
+  }, [])
+
+  const handleDuplicate = async (dom: DomaineItem) => {
+    setOpenMenuId(null)
+    try {
+      const res = await duplicateDomaineAction(dom.id)
+      if (res.success) {
+        await loadData()
+      } else {
+        alert(res.error || "Erreur lors de la duplication du domaine.")
+      }
+    } catch (e: any) {
+      alert(e.message || "Erreur réseau lors de la duplication.")
+    }
+  }
+
+  // Drag & drop pour réordonner
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDraggedDomaineId(id)
+    e.dataTransfer.setData("text/plain", id)
+    e.dataTransfer.effectAllowed = "move"
+  }
+
+  const handleDragOver = (e: React.DragEvent, id: string) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = "move"
+    if (dragOverDomaineId !== id) {
+      setDragOverDomaineId(id)
+    }
+  }
+
+  const handleDragLeave = () => {
+    setDragOverDomaineId(null)
+  }
+
+  const handleDrop = async (e: React.DragEvent, targetId: string) => {
+    e.preventDefault()
+    setDragOverDomaineId(null)
+    const sourceId = draggedDomaineId || e.dataTransfer.getData("text/plain")
+    if (!sourceId || sourceId === targetId) return
+
+    const currentIndex = domaines.findIndex((d) => d.id === sourceId)
+    const targetIndex = domaines.findIndex((d) => d.id === targetId)
+    if (currentIndex === -1 || targetIndex === -1) return
+
+    const reordered = [...domaines]
+    const [moved] = reordered.splice(currentIndex, 1)
+    reordered.splice(targetIndex, 0, moved)
+
+    // Mise à jour optimiste
+    const updatedWithOrder = reordered.map((d, idx) => ({ ...d, order: idx + 1 }))
+    setDomaines(updatedWithOrder)
+    setDraggedDomaineId(null)
+
+    // Persistance serveur
+    try {
+      const ids = updatedWithOrder.map((d) => d.id)
+      await reorderDomainesAction(ids)
+    } catch (err) {
+      console.error("Erreur de sauvegarde de l'ordre:", err)
+      loadData()
+    }
+  }
+
+  // Filtrage et tri
+  const filteredDomaines = domaines
+    .filter((dom) => {
+      if (statusFilter === "PUBLISHED" && !dom.active) return false
+      if (statusFilter === "HIDDEN" && dom.active) return false
+      if (!searchQuery.trim()) return true
+      const q = searchQuery.toLowerCase().trim()
+      return (
+        dom.nameFr.toLowerCase().includes(q) ||
+        dom.code.toLowerCase().includes(q) ||
+        (dom.subtitleFr && dom.subtitleFr.toLowerCase().includes(q)) ||
+        (dom.targetAudienceFr && dom.targetAudienceFr.toLowerCase().includes(q))
+      )
+    })
+    .sort((a, b) => {
+      if (sortBy === "NAME") {
+        return a.nameFr.localeCompare(b.nameFr, "fr")
+      }
+      return (a.order || 0) - (b.order || 0)
+    })
+
   return (
     <div className="space-y-6">
-      {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+      {/* ── 1. En-tête (directement sur le fond, sans carte) ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-50 text-[#003366] text-xs font-semibold uppercase tracking-wider mb-2">
-            <span>Pôles Stratégiques</span>
-          </div>
-          <h1 className="text-2xl font-bold text-[#003366]">Domaines d'action (CMS)</h1>
+          <h1 className="text-2xl font-bold text-[#003366] tracking-tight">Domaines d'action</h1>
           <p className="text-sm text-slate-500 mt-1">
             Gérez les domaines d'intervention, leurs objectifs, actions, cibles et médias d'ancrage terrain.
           </p>
@@ -466,120 +567,375 @@ export default function AdminDomaines() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Nouveau domaine
+          <span>Nouveau domaine</span>
         </button>
       </div>
 
-      {/* ── Table / Cards ── */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+      {/* ── 2. Barre d'outils ── */}
+      <div className="bg-white px-4 py-3 rounded-xl border border-slate-200 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 text-xs">
+        <div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          {/* Recherche */}
+          <div className="relative flex-1 min-w-[200px] max-w-md">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher un domaine..."
+              className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#007BFF] focus:border-[#007BFF] transition-colors text-xs"
+            />
+            <svg
+              className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+
+          {/* Filtre statut */}
+          <div className="flex items-center gap-1.5">
+            <label htmlFor="filter-status" className="text-slate-500 whitespace-nowrap hidden sm:inline">Statut :</label>
+            <select
+              id="filter-status"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#007BFF] focus:border-[#007BFF] cursor-pointer text-xs"
+            >
+              <option value="ALL">Tous les statuts</option>
+              <option value="PUBLISHED">Publié</option>
+              <option value="HIDDEN">Masqué</option>
+            </select>
+          </div>
+
+          {/* Tri */}
+          <div className="flex items-center gap-1.5">
+            <label htmlFor="filter-sort" className="text-slate-500 whitespace-nowrap hidden sm:inline">Tri :</label>
+            <select
+              id="filter-sort"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#007BFF] focus:border-[#007BFF] cursor-pointer text-xs"
+            >
+              <option value="ORDER">Ordre d'affichage</option>
+              <option value="NAME">Nom (A-Z)</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Compteur */}
+        <div className="flex items-center justify-between sm:justify-end gap-2 text-slate-500 text-xs border-t md:border-t-0 pt-2 md:pt-0">
+          <span className="px-2 py-0.5 rounded-full bg-slate-100 font-medium text-slate-600">
+            {filteredDomaines.length} {filteredDomaines.length > 1 ? "domaines" : "domaine"}
+            {filteredDomaines.length !== domaines.length && ` sur ${domaines.length}`}
+          </span>
+        </div>
+      </div>
+
+      {/* ── 3. Liste compacte de lignes ── */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
         {loading ? (
           <div className="p-12 text-center text-slate-400">
-            <div className="inline-block animate-spin w-6 h-6 border-2 border-[#003366] border-t-transparent rounded-full mb-2"></div>
-            <p className="text-sm">Chargement des domaines...</p>
+            <div className="inline-block animate-spin w-5 h-5 border-2 border-[#003366] border-t-transparent rounded-full mb-2"></div>
+            <p className="text-xs">Chargement des domaines...</p>
           </div>
-        ) : domaines.length === 0 ? (
+        ) : filteredDomaines.length === 0 ? (
           <div className="p-12 text-center text-slate-400">
-            <p className="text-sm">Aucun domaine enregistré.</p>
+            <p className="text-xs">Aucun domaine ne correspond aux critères.</p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {domaines.map((dom, idx) => (
-              <div
-                key={dom.id}
-                className="p-5 sm:p-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 hover:bg-slate-50/70 transition-colors"
-              >
-                {/* Visual + Info */}
-                <div className="flex items-start gap-4 flex-1">
-                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200/80">
-                    {dom.imageUrl ? (
-                      <img
-                        src={dom.imageUrl}
-                        alt={dom.nameFr}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400">
-                        <DomainCharterIcon code={dom.code} size={24} color="#003366" />
-                      </div>
-                    )}
-                    <span className="absolute top-1 left-1 bg-black/60 text-white font-mono text-[10px] px-1.5 py-0.5 rounded">
-                      0{dom.order || idx + 1}
-                    </span>
-                  </div>
+            {filteredDomaines.map((dom, idx) => {
+              const isDragSource = draggedDomaineId === dom.id
+              const isDragOver = dragOverDomaineId === dom.id
 
-                  <div className="space-y-1.5 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-base font-bold text-[#003366]">{dom.nameFr}</h3>
-                      <span className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono">
-                        {dom.code}
-                      </span>
-                      <span
-                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                          dom.active
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
-                        }`}
-                      >
-                        {dom.active ? "Actif" : "Masqué"}
+              return (
+                <div
+                  key={dom.id}
+                  draggable={sortBy === "ORDER"}
+                  onDragStart={(e) => handleDragStart(e, dom.id)}
+                  onDragOver={(e) => handleDragOver(e, dom.id)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, dom.id)}
+                  className={`px-4 py-3 transition-colors ${
+                    isDragSource ? "opacity-40 bg-slate-100" : ""
+                  } ${
+                    isDragOver ? "border-t-2 border-t-[#007BFF] bg-blue-50/40" : "hover:bg-slate-50/70"
+                  }`}
+                >
+                  {/* Mode Desktop / Tablette : Ligne compacte */}
+                  <div className="hidden sm:flex items-center gap-3">
+                    {/* Drag Handle & Numéro d'ordre */}
+                    <div
+                      className={`flex items-center gap-1.5 shrink-0 ${
+                        sortBy === "ORDER" ? "cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600" : "text-slate-400"
+                      }`}
+                      title={sortBy === "ORDER" ? "Glisser pour réorganiser" : undefined}
+                    >
+                      {sortBy === "ORDER" && (
+                        <svg className="w-4 h-4 text-slate-300 hover:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                        </svg>
+                      )}
+                      <span className="font-mono text-xs font-semibold text-slate-500 w-6">
+                        {String(dom.order || idx + 1).padStart(2, "0")}
                       </span>
                     </div>
 
-                    {dom.subtitleFr && (
-                      <p className="text-xs font-semibold text-[#007BFF]">{dom.subtitleFr}</p>
-                    )}
-
-                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                      {dom.descFr}
-                    </p>
-
-                    <div className="flex items-center gap-4 text-xs text-slate-400 pt-1">
-                      <span>Projets liés : <strong className="text-slate-700">{dom.projets?.length || 0}</strong></span>
-                      {dom.targetAudienceFr && (
-                        <span className="truncate max-w-[280px]">Cible : {dom.targetAudienceFr}</span>
+                    {/* Miniature 56x56 */}
+                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                      {dom.imageUrl ? (
+                        <img
+                          src={dom.imageUrl}
+                          alt={dom.nameFr}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-400">
+                          <DomainCharterIcon code={dom.code} size={20} color="#003366" />
+                        </div>
                       )}
                     </div>
+
+                    {/* Informations principales & secondaires */}
+                    <div className="min-w-0 flex-1">
+                      {/* Ligne 1 : Nom + Code */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-[#003366] truncate">
+                          {dom.nameFr}
+                        </span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0">
+                          {dom.code}
+                        </span>
+                      </div>
+
+                      {/* Ligne 2 : Sous-titre */}
+                      {dom.subtitleFr && (
+                        <p className="text-xs text-[#007BFF] font-medium truncate mt-0.5">
+                          {dom.subtitleFr}
+                        </p>
+                      )}
+
+                      {/* Ligne 3 : Métadonnées secondaires (projets liés / cible) */}
+                      <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
+                        <span className="shrink-0">
+                          <strong className="text-slate-600 font-medium">{dom.projets?.length || 0}</strong> projet{(dom.projets?.length || 0) > 1 ? "s" : ""} lié{(dom.projets?.length || 0) > 1 ? "s" : ""}
+                        </span>
+                        {dom.targetAudienceFr && (
+                          <>
+                            <span className="text-slate-300">•</span>
+                            <span className="truncate max-w-[260px] md:max-w-[360px] text-slate-500" title={dom.targetAudienceFr}>
+                              Cible : {dom.targetAudienceFr}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Badge de statut */}
+                    <div className="shrink-0">
+                      <span
+                        className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${
+                          dom.active
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-slate-100 text-slate-600 border border-slate-200"
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            dom.active ? "bg-emerald-500" : "bg-slate-400"
+                          }`}
+                        />
+                        {dom.active ? "Publié" : "Masqué"}
+                      </span>
+                    </div>
+
+                    {/* Actions directes */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => handleOpenModal(dom)}
+                        className="text-xs px-2.5 py-1.5 rounded-md border border-slate-200 text-[#003366] font-medium hover:bg-slate-50 transition-colors cursor-pointer"
+                      >
+                        Modifier
+                      </button>
+
+                      <a
+                        href={`/fr/domaines/${dom.slug || dom.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs px-2.5 py-1.5 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium transition-colors inline-flex items-center gap-1 cursor-pointer"
+                        title="Ouvrir la page publique du domaine"
+                      >
+                        <span>Voir sur le site</span>
+                        <span className="text-[10px]">↗</span>
+                      </a>
+
+                      {/* Menu ⋮ */}
+                      <div className="relative" data-kebab-menu>
+                        <button
+                          onClick={() => setOpenMenuId(openMenuId === dom.id ? null : dom.id)}
+                          className="w-7 h-7 flex items-center justify-center rounded-md border border-transparent hover:border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
+                          aria-label="Actions secondaires"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                          </svg>
+                        </button>
+
+                        {openMenuId === dom.id && (
+                          <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg border border-slate-200 shadow-md py-1 z-30 text-xs">
+                            <button
+                              onClick={() => {
+                                setOpenMenuId(null)
+                                handleToggleActive(dom)
+                              }}
+                              className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
+                            >
+                              <span>{dom.active ? "Masquer du site" : "Publier sur le site"}</span>
+                            </button>
+                            <button
+                              onClick={() => handleDuplicate(dom)}
+                              className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
+                            >
+                              <span>Dupliquer</span>
+                            </button>
+                            <div className="border-t border-slate-100 my-1" />
+                            <button
+                              onClick={() => {
+                                setOpenMenuId(null)
+                                handleDelete(dom)
+                              }}
+                              className="w-full text-left px-3 py-1.5 hover:bg-rose-50 text-rose-600 flex items-center gap-2 cursor-pointer"
+                            >
+                              <span>Supprimer</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mode Mobile : Bloc compact sans scroll horizontal */}
+                  <div className="sm:hidden space-y-2">
+                    {/* Première ligne : Nom + Statut + Menu ⋮ */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-[11px] font-semibold text-slate-400">
+                            {String(dom.order || idx + 1).padStart(2, "0")}
+                          </span>
+                          <span className="text-sm font-bold text-[#003366] truncate">
+                            {dom.nameFr}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono px-1 py-0.5 rounded bg-slate-100 text-slate-500">
+                          {dom.code}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span
+                          className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                            dom.active
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : "bg-slate-100 text-slate-600 border border-slate-200"
+                          }`}
+                        >
+                          {dom.active ? "Publié" : "Masqué"}
+                        </span>
+
+                        {/* Menu Mobile */}
+                        <div className="relative" data-kebab-menu>
+                          <button
+                            onClick={() => setOpenMenuId(openMenuId === dom.id ? null : dom.id)}
+                            className="w-7 h-7 flex items-center justify-center rounded-md border border-slate-200 hover:bg-slate-100 text-slate-500"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                            </svg>
+                          </button>
+
+                          {openMenuId === dom.id && (
+                            <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg border border-slate-200 shadow-md py-1 z-30 text-xs">
+                              <button
+                                onClick={() => {
+                                  setOpenMenuId(null)
+                                  handleOpenModal(dom)
+                                }}
+                                className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-slate-700"
+                              >
+                                Modifier
+                              </button>
+                              <a
+                                href={`/fr/domaines/${dom.slug || dom.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block w-full text-left px-3 py-1.5 hover:bg-slate-50 text-slate-700"
+                              >
+                                Voir sur le site ↗
+                              </a>
+                              <div className="border-t border-slate-100 my-1" />
+                              <button
+                                onClick={() => {
+                                  setOpenMenuId(null)
+                                  handleToggleActive(dom)
+                                }}
+                                className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-slate-700"
+                              >
+                                {dom.active ? "Masquer du site" : "Publier sur le site"}
+                              </button>
+                              <button
+                                onClick={() => handleDuplicate(dom)}
+                                className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-slate-700"
+                              >
+                                Dupliquer
+                              </button>
+                              <div className="border-t border-slate-100 my-1" />
+                              <button
+                                onClick={() => {
+                                  setOpenMenuId(null)
+                                  handleDelete(dom)
+                                }}
+                                className="w-full text-left px-3 py-1.5 hover:bg-rose-50 text-rose-600"
+                              >
+                                Supprimer
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Image à gauche + sous-titre & infos dessous */}
+                    <div className="flex items-center gap-3 pt-1">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                        {dom.imageUrl ? (
+                          <img
+                            src={dom.imageUrl}
+                            alt={dom.nameFr}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-slate-400">
+                            <DomainCharterIcon code={dom.code} size={18} color="#003366" />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1 space-y-0.5 text-xs">
+                        {dom.subtitleFr && (
+                          <p className="text-[#007BFF] font-medium truncate">{dom.subtitleFr}</p>
+                        )}
+                        <p className="text-slate-500 text-[11px] truncate">
+                          {dom.projets?.length || 0} projet(s)
+                          {dom.targetAudienceFr && ` • ${dom.targetAudienceFr}`}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2 w-full lg:w-auto justify-end border-t lg:border-t-0 pt-3 lg:pt-0">
-                  <button
-                    onClick={() => handleToggleActive(dom)}
-                    className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors cursor-pointer ${
-                      dom.active
-                        ? "border-slate-200 text-slate-600 hover:bg-slate-100"
-                        : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                    }`}
-                  >
-                    {dom.active ? "Masquer" : "Activer"}
-                  </button>
-
-                  <a
-                    href={`/fr/domaines/${dom.slug || dom.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium transition-colors inline-flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>Voir sur le site</span>
-                    <span className="text-[10px]">↗</span>
-                  </a>
-
-                  <button
-                    onClick={() => handleOpenModal(dom)}
-                    className="text-xs px-3 py-1.5 rounded-lg bg-[#003366]/10 text-[#003366] font-semibold hover:bg-[#003366]/20 transition-colors cursor-pointer"
-                  >
-                    Modifier
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(dom)}
-                    className="text-xs px-3 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                  >
-                    Supprimer
-                  </button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

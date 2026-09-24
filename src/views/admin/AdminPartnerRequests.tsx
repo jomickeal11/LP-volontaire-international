@@ -149,7 +149,7 @@ export default function AdminPartnerRequests({
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-[#003366]">
             Demandes de partenariat
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -375,7 +375,13 @@ export default function AdminPartnerRequests({
                         />
                       </td>
                       <td className="px-4 py-3.5">
-                        <div className="text-sm font-semibold text-slate-900 group-hover:text-[#174F7A] transition-colors">
+                        <div
+                          className="text-sm font-semibold text-slate-900 hover:text-[#174F7A] transition-colors cursor-pointer select-text"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onSelectRequest(r.id)
+                          }}
+                        >
                           {r.orgName}
                         </div>
                         <div className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -401,7 +407,15 @@ export default function AdminPartnerRequests({
                         {r.country}
                       </td>
                       <td className="px-4 py-3.5">
-                        <div className="text-sm font-medium text-slate-900">{r.contactPerson}</div>
+                        <div
+                          className="text-sm font-medium text-slate-900 hover:text-[#174F7A] transition-colors cursor-pointer select-text"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onSelectRequest(r.id)
+                          }}
+                        >
+                          {r.contactPerson}
+                        </div>
                         <div className="text-xs text-slate-500 mt-0.5">{r.email}</div>
                       </td>
                       <td className="px-4 py-3.5">

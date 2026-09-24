@@ -60,7 +60,7 @@ export default function AdminMessages({ lang = "fr" }: AdminMessagesProps) {
 
   const showToast = (msg: string) => {
     setSuccessToast(msg)
-    setTimeout(() => setSuccessToast(null), 3000)
+    setTimeout(() => setSuccessToast(null), 2000)
   }
 
   const handleStatusChange = async (
@@ -189,10 +189,10 @@ export default function AdminMessages({ lang = "fr" }: AdminMessagesProps) {
       {/* Header section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#003366] tracking-tight">
+          <h1 className="text-2xl font-bold text-[#003366] tracking-tight">
             Messages de Contact
           </h1>
-          <p className="text-sm text-[#5E6B76] mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Consultez, traitez et suivez l&apos;ensemble des messages reçus depuis le formulaire de contact du site.
           </p>
         </div>
@@ -219,51 +219,16 @@ export default function AdminMessages({ lang = "fr" }: AdminMessagesProps) {
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-            Total Messages
-          </span>
-          <div className="text-3xl font-black text-[#003366] mt-2">{stats.total}</div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-5 border border-amber-200/80 shadow-2xs bg-amber-50/20">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-700 uppercase tracking-wider block">
-              Non lus
-            </span>
-            {stats.unread > 0 && (
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
-            )}
-          </div>
-          <div className="text-3xl font-black text-amber-800 mt-2">{stats.unread}</div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-5 border border-emerald-200/80 shadow-2xs bg-emerald-50/20">
-          <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider block">
-            Répondus
-          </span>
-          <div className="text-3xl font-black text-emerald-800 mt-2">{stats.replied}</div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-            Archivés
-          </span>
-          <div className="text-3xl font-black text-slate-700 mt-2">{stats.archived}</div>
-        </div>
-      </div>
 
       {/* Filter & Search Bar */}
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0">
           {[
-            { id: "ALL", label: "Tous" },
-            { id: "UNREAD", label: "Non lus" },
-            { id: "READ", label: "Lus" },
-            { id: "REPLIED", label: "Répondus" },
-            { id: "ARCHIVED", label: "Archivés" },
+            { id: "ALL", label: `Tous (${stats.total})` },
+            { id: "UNREAD", label: `Non lus (${stats.unread})` },
+            { id: "READ", label: `Lus (${stats.total - stats.unread - stats.replied - stats.archived})` },
+            { id: "REPLIED", label: `Répondus (${stats.replied})` },
+            { id: "ARCHIVED", label: `Archivés (${stats.archived})` },
           ].map((tab) => (
             <button
               key={tab.id}

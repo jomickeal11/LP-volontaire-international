@@ -295,39 +295,41 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
   const axesTitle = settings[`support_axes_title_${l}`] || c.axes.title
   const axesSubtitle = settings[`support_axes_subtitle_${l}`] || c.axes.subtitle
 
-  // Dynamic Axes (Only entered items appear, dynamically numbered 01, 02, 03...)
-  const rawAxes = [1, 2, 3, 4].map((idx) => {
-    const fallbackItem = c.axes.items[idx - 1]
-    const title = settings[`support_axes_${idx}_title_${l}`] ?? fallbackItem?.title ?? ""
-    const desc = settings[`support_axes_${idx}_desc_${l}`] ?? fallbackItem?.desc ?? ""
-    const linkText = settings[`support_axes_${idx}_link_${l}`] ?? fallbackItem?.linkText ?? ""
-    return { title, desc, linkText, originalIndex: idx }
-  })
+  // Dynamic Axes (Pure DB source of truth — shows nothing if not seeded)
+  const axesCount = Math.max(0, parseInt(settings["support_axes_count"] || "0", 10))
+  const rawAxes: { title: string; desc: string; linkText: string; originalIndex: number }[] = []
 
-  const activeAxes = rawAxes
-    .filter((axe) => axe.title.trim() || axe.desc.trim())
-    .map((axe, i) => ({
-      ...axe,
-      num: String(i + 1).padStart(2, "0"),
-    }))
+  for (let idx = 1; idx <= axesCount; idx++) {
+    const title = settings[`support_axes_${idx}_title_${l}`] || ""
+    const desc = settings[`support_axes_${idx}_desc_${l}`] || ""
+    const linkText = settings[`support_axes_${idx}_link_${l}`] || ""
+    if (title.trim() || desc.trim()) {
+      rawAxes.push({ title, desc, linkText, originalIndex: idx })
+    }
+  }
+
+  const activeAxes = rawAxes.map((axe, i) => ({
+    ...axe,
+    num: String(i + 1).padStart(2, "0"),
+  }))
 
   const whyTag = settings[`support_why_tag_${l}`] || c.why.tag
   const whyTitle = settings[`support_why_title_${l}`] || c.why.title
   const whyDesc = settings[`support_why_desc_${l}`] || c.why.desc
 
-  const rawWhyPoints = [1, 2, 3].map((idx) => {
-    const fallbackPoint = c.why.points[idx - 1]
-    const title = settings[`support_why_${idx}_title_${l}`] ?? fallbackPoint?.title ?? ""
-    const desc = settings[`support_why_${idx}_desc_${l}`] ?? fallbackPoint?.desc ?? ""
-    return { title, desc }
-  })
+  // Dynamic WHY Pillars (Pure DB source of truth — shows nothing if not seeded)
+  const whyCount = Math.max(0, parseInt(settings["support_why_count"] || "0", 10))
+  const rawWhyPoints: { title: string; desc: string }[] = []
+  for (let idx = 1; idx <= whyCount; idx++) {
+    const title = settings[`support_why_${idx}_title_${l}`] || ""
+    const desc = settings[`support_why_${idx}_desc_${l}`] || ""
+    if (title.trim() || desc.trim()) rawWhyPoints.push({ title, desc })
+  }
 
-  const activeWhyPoints = rawWhyPoints
-    .filter((pt) => pt.title.trim() || pt.desc.trim())
-    .map((pt, i) => ({
-      ...pt,
-      num: String(i + 1).padStart(2, "0"),
-    }))
+  const activeWhyPoints = rawWhyPoints.map((pt, i) => ({
+    ...pt,
+    num: String(i + 1).padStart(2, "0"),
+  }))
 
   const transparencyTag = settings[`support_transparency_tag_${l}`] || c.transparency.tag
   const transparencyTitle = settings[`support_transparency_title_${l}`] || c.transparency.title

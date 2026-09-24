@@ -81,7 +81,7 @@ export default function AdminNewsletter() {
       setNotification({ type: "error", text: "Erreur serveur" })
     } finally {
       setActionLoading(null)
-      setTimeout(() => setNotification(null), 4000)
+      setTimeout(() => setNotification(null), 2000)
     }
   }
 
@@ -103,7 +103,7 @@ export default function AdminNewsletter() {
       setNotification({ type: "error", text: "Erreur serveur" })
     } finally {
       setActionLoading(null)
-      setTimeout(() => setNotification(null), 4000)
+      setTimeout(() => setNotification(null), 2000)
     }
   }
 
@@ -137,7 +137,7 @@ export default function AdminNewsletter() {
       setModalError("Erreur de communication avec le serveur.")
     } finally {
       setModalSubmitting(false)
-      setTimeout(() => setNotification(null), 4000)
+      setTimeout(() => setNotification(null), 2000)
     }
   }
 
@@ -201,7 +201,7 @@ export default function AdminNewsletter() {
       {/* Header & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-bold text-[#003366] tracking-tight">
             Abonnés à la Newsletter
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">

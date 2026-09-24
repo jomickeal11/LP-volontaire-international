@@ -31,9 +31,24 @@ export default function AdminCandidateDetailWrapper({ application, lang = "fr" }
     }
   }
 
-  const handleStatusChange = async (id: string, status: string) => {
-    await updateCandidateStatus(id, status as CandidateStatus)
+  const handleStatusChange = async (
+    id: string,
+    status: string,
+    emailOptions?: {
+      sendEmail: boolean
+      customSubject?: string
+      customBody?: string
+      interviewDetails?: any
+    }
+  ) => {
+    const res = await updateCandidateStatus(
+      id,
+      status as CandidateStatus,
+      undefined,
+      emailOptions
+    )
     router.refresh()
+    return res
   }
 
   const handleAddNote = async (id: string, note: string) => {
@@ -58,7 +73,9 @@ export default function AdminCandidateDetailWrapper({ application, lang = "fr" }
     dob: application.candidate.dateOfBirth
       ? new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(new Date(application.candidate.dateOfBirth))
       : "",
-    language: application.lang === "FR" ? "Français" : application.lang === "EN" ? "Anglais" : "Allemand",
+    siteLanguage: application.lang || "FR",
+    communicationLanguage: (application.communicationLanguage || application.lang || "FR") as "FR" | "EN" | "DE",
+    language: (application.communicationLanguage || application.lang) === "EN" ? "Anglais" : (application.communicationLanguage || application.lang) === "DE" ? "Allemand" : "Français",
     appliedAt: new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(new Date(application.createdAt)),
     arrivalDate: application.arrivalDate
       ? new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(new Date(application.arrivalDate))
@@ -81,9 +98,12 @@ export default function AdminCandidateDetailWrapper({ application, lang = "fr" }
     skills: application.skills.map((s: any) => s.skill.nameFr || s.skill.nameEn),
     statusHistory: application.statusHistory ? application.statusHistory.map((h: any) => ({
       status: h.toStatus,
-      date: formatDate(h.changedAt, targetLang, { day: "2-digit", month: "2-digit" }),
+      fromStatus: h.fromStatus,
+      date: formatDate(h.changedAt, targetLang, { day: "2-digit", month: "2-digit", year: "numeric" }),
+      rawDate: h.changedAt,
       by: h.changedByName
     })) : [],
+    emailLogs: application.emailLogs || [],
     notes: application.notes ? application.notes.map((n: any) => ({
       id: n.id,
       content: n.content,

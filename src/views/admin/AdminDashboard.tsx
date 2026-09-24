@@ -103,7 +103,7 @@ export default function AdminDashboard({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1 border-b border-slate-200/60">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <h1 className="text-xl font-bold tracking-tight" style={{ color: TEXT_DARK }}>
+            <h1 className="text-2xl font-bold tracking-tight text-[#003366]">
               {t.nav.dashboard}
             </h1>
             <span

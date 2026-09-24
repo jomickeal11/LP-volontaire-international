@@ -478,6 +478,41 @@ function SelectField({
 }) {
   const currentLang = (lang || "FR").toUpperCase()
   const selectPlaceholder = currentLang === "DE" ? "Auswählen..." : currentLang === "EN" ? "Select..." : "Sélectionner..."
+  const otherLabel = currentLang === "DE" ? "Andere" : currentLang === "EN" ? "Other" : "Autre"
+  const specifyPlaceholder = currentLang === "DE" ? "Bitte genauer angeben..." : currentLang === "EN" ? "Please specify..." : "Veuillez préciser..."
+
+  // Vérifier si une option "AUTRE" ou "Autre" existe parmi les options
+  const otherOption = options.find(
+    (o) =>
+      o.value.toUpperCase() === "AUTRE" ||
+      o.value.toUpperCase() === "OTHER" ||
+      o.label.toLowerCase().includes("autre") ||
+      o.label.toLowerCase().includes("other") ||
+      o.label.toLowerCase().includes("andere")
+  )
+
+  const otherValueKey = otherOption ? otherOption.value : "AUTRE"
+
+  // Déterminer si la valeur actuelle correspond à "Autre" (soit clé brute, soit préfixée "Autre : ...")
+  const isOtherSelected =
+    value === otherValueKey ||
+    value.startsWith(`${otherLabel} : `) ||
+    value.startsWith("Autre : ") ||
+    value.startsWith("Other : ") ||
+    (options.length > 0 && !options.some((o) => o.value === value) && value !== "")
+
+  const selectCurrentValue = isOtherSelected ? otherValueKey : value
+  const customText = value.startsWith(`${otherLabel} : `)
+    ? value.slice(`${otherLabel} : `.length)
+    : value.startsWith("Autre : ")
+    ? value.slice("Autre : ".length)
+    : value.startsWith("Other : ")
+    ? value.slice("Other : ".length)
+    : value === otherValueKey
+    ? ""
+    : isOtherSelected
+    ? value
+    : ""
 
   return (
     <div className="flex flex-col gap-1.5 w-full">
@@ -486,8 +521,15 @@ function SelectField({
         {required && <span className="text-red-500 font-bold">*</span>}
       </label>
       <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={selectCurrentValue}
+        onChange={(e) => {
+          const val = e.target.value
+          if (val === otherValueKey) {
+            onChange(otherLabel)
+          } else {
+            onChange(val)
+          }
+        }}
         className="w-full px-4 rounded-xl outline-none transition-all duration-200 cursor-pointer"
         style={{
           height: "48px",
@@ -512,6 +554,29 @@ function SelectField({
           </option>
         ))}
       </select>
+
+      {/* Champ texte libre si Autre est sélectionné */}
+      {isOtherSelected && (
+        <div className="mt-1 animate-fadeIn">
+          <input
+            type="text"
+            required={required}
+            value={customText}
+            onChange={(e) => {
+              const typed = e.target.value
+              onChange(typed ? `${otherLabel} : ${typed}` : otherLabel)
+            }}
+            placeholder={specifyPlaceholder}
+            className="w-full px-4 rounded-xl outline-none transition-all duration-200 text-sm"
+            style={{
+              height: "44px",
+              border: "1.5px solid #003366",
+              backgroundColor: "#F8FAFC",
+              color: TEXT_DARK,
+            }}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -680,6 +745,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
     country: "",
     city: "",
     dob: "",
+    communicationLanguage: (["FR", "EN", "DE"].includes(currentLang) ? currentLang : "FR") as "FR" | "EN" | "DE",
     education: "",
     fieldOfStudy: "",
     profession: "",
@@ -712,6 +778,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
           return {
             ...defaultFormState,
             ...parsed,
+            communicationLanguage: parsed.communicationLanguage || (["FR", "EN", "DE"].includes(currentLang) ? currentLang : "FR"),
             cvFile: null,
             motivationFile: null,
             portfolioFile: null,
@@ -1024,6 +1091,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       formData.append("country", form.country)
       if (form.city.trim()) formData.append("city", form.city.trim())
       formData.append("dob", form.dob)
+      formData.append("communicationLanguage", form.communicationLanguage || "FR")
       if (form.education.trim()) formData.append("education", form.education.trim())
       if (form.fieldOfStudy.trim()) formData.append("fieldOfStudy", form.fieldOfStudy.trim())
       if (form.profession.trim()) formData.append("profession", form.profession.trim())
@@ -1483,6 +1551,52 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       <LockIcon size={13} className="shrink-0 text-slate-400" />
                       <span>{t.apply.form.dobHelp}</span>
                     </div>
+
+                    {/* Langue de communication préférée */}
+                    <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
+                      <div>
+                        <label className="text-sm font-semibold flex items-center gap-1 text-[#1A2B3C]">
+                          <span>{t.apply.form.communicationLanguage || "Langue de communication préférée"}</span>
+                          <span className="text-red-500 font-bold">*</span>
+                        </label>
+                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                          {t.apply.form.communicationLanguageHelp || "Dans quelle langue souhaitez-vous recevoir les communications relatives à votre candidature ?"}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                        {[
+                          { code: "FR", label: "Français" },
+                          { code: "EN", label: "English" },
+                          { code: "DE", label: "Deutsch" },
+                        ].map((opt) => {
+                          const isSelected = form.communicationLanguage === opt.code
+                          return (
+                            <button
+                              key={opt.code}
+                              type="button"
+                              onClick={() => set("communicationLanguage", opt.code)}
+                              className={`flex items-center justify-start sm:justify-center gap-2.5 py-3 px-3.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${
+                                isSelected
+                                  ? "border-[#003366] bg-[#003366]/5 text-[#003366] ring-2 ring-[#003366]/20 font-bold"
+                                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                              }`}
+                            >
+                              <span
+                                className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                                  isSelected
+                                    ? "border-[#003366] bg-[#003366]"
+                                    : "border-slate-300 bg-white"
+                                }`}
+                              >
+                                {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                              </span>
+                              <span>{opt.label}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -1604,10 +1718,11 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           </div>
                         ))}
                       </div>
-
                       {(!form.languages.french || !form.languages.english) && (
                         <p className="text-xs text-amber-700 bg-amber-50/80 border border-amber-200/60 rounded-xl px-3 py-2 mt-3 flex items-center gap-2">
-                          <span className="shrink-0 font-bold">ℹ️</span>
+                          <svg className="w-4 h-4 shrink-0 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
                           <span>
                             {currentLang === "DE"
                               ? "Bitte wählen Sie Ihr Niveau für Französisch und Englisch aus, um fortzufahren."
@@ -1931,6 +2046,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           <div><span className="text-slate-400">{t.apply.review?.fields?.email || (currentLang === "DE" ? "E-Mail :" : currentLang === "EN" ? "Email:" : "E-mail :")}</span> <strong className="text-slate-800 ml-1">{form.email}</strong></div>
                           <div><span className="text-slate-400">{t.apply.review?.fields?.phone || (currentLang === "DE" ? "Telefon :" : currentLang === "EN" ? "Phone:" : "Téléphone :")}</span> <strong className="text-slate-800 ml-1">{form.phoneCountryCode ? `${form.phoneCountryCode} ${form.phone}`.trim() : form.phone || (t.apply.review?.notProvided || (currentLang === "DE" ? "Nicht angegeben" : currentLang === "EN" ? "Not provided" : "Non renseigné"))}</strong></div>
                           <div><span className="text-slate-400">{t.apply.review?.fields?.location || (currentLang === "DE" ? "Land / Stadt :" : currentLang === "EN" ? "Country / City:" : "Pays / Ville :")}</span> <strong className="text-slate-800 ml-1">{form.country} {form.city ? `(${form.city})` : ""}</strong></div>
+                          <div className="sm:col-span-2"><span className="text-slate-400">{t.apply.form.communicationLanguage || "Langue de communication :"}</span> <strong className="text-slate-800 ml-1">{form.communicationLanguage === "EN" ? "English" : form.communicationLanguage === "DE" ? "Deutsch" : "Français"}</strong></div>
                         </div>
                       </div>
 

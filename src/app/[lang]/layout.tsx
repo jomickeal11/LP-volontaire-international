@@ -14,7 +14,7 @@ interface LocalizedMeta {
 
 const metaByLang: Record<string, LocalizedMeta> = {
   fr: {
-    title: "APTIC-R — Technologie accessible pour les communautés rurales | Agbélouvé, Togo",
+    title: "APTIC-R",
     description:
       "APTIC-R connecte les innovations numériques et low-tech aux besoins concrets des communautés rurales du Togo. Volontariat international, partenariats, projets d'impact.",
     ogTitle: "APTIC-R — Promotion des TIC en milieu Rural au Togo",
@@ -31,7 +31,7 @@ const metaByLang: Record<string, LocalizedMeta> = {
     ],
   },
   en: {
-    title: "APTIC-R — Accessible Technology for Rural Communities | Agbélouvé, Togo",
+    title: "APTIC-R",
     description:
       "APTIC-R connects digital and low-tech innovations to the real needs of rural communities in Togo. International volunteering, partnerships, impact projects.",
     ogTitle: "APTIC-R — ICT Promotion in Rural Togo",
@@ -48,7 +48,7 @@ const metaByLang: Record<string, LocalizedMeta> = {
     ],
   },
   de: {
-    title: "APTIC-R — Zugängliche Technologie für ländliche Gemeinschaften | Agbélouvé, Togo",
+    title: "APTIC-R",
     description:
       "APTIC-R verbindet digitale und Low-Tech-Innovationen mit den Bedürfnissen ländlicher Gemeinschaften in Togo. Freiwilligendienst, Partnerschaften, Wirkungsprojekte.",
     ogTitle: "APTIC-R — IKT-Förderung im ländlichen Togo",
@@ -116,8 +116,16 @@ export async function generateMetadata({
       images: ["/hero_volunteer_collab.jpg"],
     },
     icons: {
-      icon: "/aptic-logo.png",
-      apple: "/aptic-logo.png",
+      icon: [
+        { url: "/logo-aptic-icon-32.png",  sizes: "32x32",   type: "image/png" },
+        { url: "/logo-aptic-icon-64.png",  sizes: "64x64",   type: "image/png" },
+        { url: "/logo-aptic-icon-192.png", sizes: "192x192", type: "image/png" },
+        { url: "/logo-aptic-icon-512.png", sizes: "512x512", type: "image/png" },
+      ],
+      apple: [
+        { url: "/logo-aptic-icon-192.png", sizes: "192x192", type: "image/png" },
+      ],
+      shortcut: "/logo-aptic-icon-32.png",
     },
     verification: {
       google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "google-site-verification-apticr-code",

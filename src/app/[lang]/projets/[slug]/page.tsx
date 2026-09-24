@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : project.summaryFr
 
   return {
-    title: `${title} — Projet de terrain | APTIC-R`,
+    title: `${title} | APTIC-R`,
     description: desc ? desc.slice(0, 160) : `Découvrez le projet ${title} de l'APTIC-R.`,
     alternates: {
       canonical: `/${upperLang.toLowerCase()}/projets/${project.slug || slug}`,

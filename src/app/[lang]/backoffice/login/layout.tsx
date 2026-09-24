@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Connexion Back-office — APTIC-R",
+  title: "Connexion | APTIC-R",
   description: "Portail d'authentification réservé à l'équipe de gestion APTIC-R.",
   robots: {
     index: false,

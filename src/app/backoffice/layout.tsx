@@ -3,7 +3,7 @@ import AdminClientLayout from "./AdminClientLayout"
 import "../globals.css"
 
 export const metadata: Metadata = {
-  title: "Back-office — APTIC-R",
+  title: "Tableau de bord | APTIC-R",
   description: "Espace de gestion réservé à l'équipe de coordination APTIC-R.",
   robots: {
     index: false,

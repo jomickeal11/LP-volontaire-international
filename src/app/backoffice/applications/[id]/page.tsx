@@ -23,7 +23,10 @@ export default async function CandidateDetailPage({
       },
       notes: true,
       statusHistory: true,
-      documents: true
+      documents: true,
+      emailLogs: {
+        orderBy: { sentAt: "desc" },
+      },
     }
   })
 
@@ -46,6 +49,10 @@ export default async function CandidateDetailPage({
     statusHistory: application.statusHistory.map((h: any) => ({
       ...h,
       changedAt: h.changedAt.toISOString(),
+    })),
+    emailLogs: (application.emailLogs || []).map((e: any) => ({
+      ...e,
+      sentAt: e.sentAt.toISOString(),
     })),
     notes: application.notes.map((n: any) => ({
       ...n,

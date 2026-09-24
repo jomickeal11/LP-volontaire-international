@@ -11,21 +11,21 @@ interface LocalizedMeta {
 
 const metaByLang: Record<string, LocalizedMeta> = {
   fr: {
-    title: "Partenariats — Organismes d'Envoi de Volontaires Européens | APTIC-R Togo",
+    title: "Partenariats | APTIC-R",
     description:
       "Construisez un partenariat durable avec APTIC-R à Agbélouvé, Togo. Accueil et encadrement de volontaires européens (weltwärts, France Volontaires, CES, universités).",
     ogTitle: "Partenariats Européens de Volontariat au Togo — APTIC-R",
     ogDesc: "Développez des missions de 6 à 12 mois à fort impact pour vos volontaires au Togo.",
   },
   en: {
-    title: "Partnerships — European Volunteer Sending Organizations | APTIC-R Togo",
+    title: "Partnerships | APTIC-R",
     description:
       "Build a long-term partnership with APTIC-R in Agbélouvé, Togo. Structured hosting and mentoring for European volunteers (weltwärts, France Volontaires, ESC, universities).",
     ogTitle: "European Volunteer Partnerships in Togo — APTIC-R",
     ogDesc: "Develop 6–12 month high-impact volunteer missions alongside rural communities in Togo.",
   },
   de: {
-    title: "Partnerschaften — Europäische Entsendeorganisationen | APTIC-R Togo",
+    title: "Partnerschaften | APTIC-R",
     description:
       "Bauen Sie eine nachhaltige Partnerschaft mit APTIC-R in Agbélouvé, Togo auf. Strukturierte Einsätze und Begleitung für europäische Freiwillige (weltwärts, FV, ESK).",
     ogTitle: "Freiwilligenpartnerschaften in Togo — APTIC-R",

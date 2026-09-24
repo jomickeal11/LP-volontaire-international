@@ -35,6 +35,8 @@ export default function AdminClientLayout({
 
   let currentPage: Page = "admin-dashboard"
   if (pathname?.includes("/analytics") || pathname?.includes("/statistics")) currentPage = "admin-analytics"
+  else if (pathname?.includes("/members/applications"))
+    currentPage = "admin-member-applications"
   else if (pathname?.includes("/members"))
     currentPage = "admin-members"
   else if (pathname?.includes("/articles"))
@@ -45,6 +47,8 @@ export default function AdminClientLayout({
     currentPage = "admin-domains"
   else if (pathname?.includes("/events"))
     currentPage = "admin-events"
+  else if (pathname?.includes("/resources"))
+    currentPage = "admin-resources"
   else if (pathname?.includes("/newsletter"))
     currentPage = "admin-newsletter"
   else if (pathname?.includes("/messages"))
@@ -69,6 +73,9 @@ export default function AdminClientLayout({
       case "admin-dashboard":
         router.push("/backoffice/dashboard")
         break
+      case "admin-member-applications":
+        router.push("/backoffice/members/applications")
+        break
       case "admin-members":
         router.push("/backoffice/members")
         break
@@ -83,6 +90,9 @@ export default function AdminClientLayout({
         break
       case "admin-events":
         router.push("/backoffice/events")
+        break
+      case "admin-resources":
+        router.push("/backoffice/resources")
         break
       case "admin-newsletter":
         router.push("/backoffice/newsletter")

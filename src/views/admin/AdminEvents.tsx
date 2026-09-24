@@ -284,8 +284,8 @@ export default function AdminEvents() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">
-            CMS : Événements & Formations
+          <h1 className="text-2xl font-bold text-[#003366] tracking-tight">
+            Événements & Formations
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             Planifiez et annoncez les ateliers, conférences, hackathons et bootcamps d&apos;APTIC-R.
@@ -294,7 +294,7 @@ export default function AdminEvents() {
 
         <button
           onClick={() => handleOpenModal()}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#174F7A] text-white hover:bg-[#123e60] transition-colors shadow-sm self-start sm:self-auto cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#003366] text-white font-medium text-sm rounded-xl hover:bg-[#002244] transition-colors shadow-xs shrink-0 cursor-pointer self-start sm:self-auto"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -334,7 +334,12 @@ export default function AdminEvents() {
                 events.map((ev) => (
                   <tr key={ev.id} className="hover:bg-slate-50/70 transition-colors">
                     <td className="py-3.5 px-4 font-semibold text-slate-800">
-                      {ev.titleFr}
+                      <span
+                        className="hover:text-[#174F7A] transition-colors cursor-pointer select-text"
+                        onClick={() => handleOpenModal(ev)}
+                      >
+                        {ev.titleFr}
+                      </span>
                     </td>
                     <td className="py-3.5 px-4 text-xs font-semibold text-[#174F7A]">
                       {ev.category}

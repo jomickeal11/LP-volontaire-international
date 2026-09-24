@@ -437,6 +437,44 @@ function SelectField({
   const defaultPlaceholder = currentLang === "DE" ? "Auswählen..." : currentLang === "EN" ? "Select..." : "Sélectionner..."
   const optionalText = currentLang === "DE" ? "— optional" : currentLang === "EN" ? "— optional" : "— optionnel"
 
+  const otherLabel = currentLang === "DE" ? "Andere" : currentLang === "EN" ? "Other" : "Autre"
+  const specifyPlaceholder = currentLang === "DE" ? "Bitte genauer angeben..." : currentLang === "EN" ? "Please specify..." : "Veuillez préciser..."
+
+  // Vérifier si une option "AUTRE" ou "Autre" existe parmi les options
+  const otherOption = options.find((opt) => {
+    const val = typeof opt === "string" ? opt : opt.value
+    const lab = typeof opt === "string" ? opt : opt.label
+    return (
+      val.toUpperCase() === "AUTRE" ||
+      val.toUpperCase() === "OTHER" ||
+      lab.toLowerCase().includes("autre") ||
+      lab.toLowerCase().includes("other") ||
+      lab.toLowerCase().includes("andere")
+    )
+  })
+
+  const otherValueKey = otherOption ? (typeof otherOption === "string" ? otherOption : otherOption.value) : "AUTRE"
+
+  const isOtherSelected =
+    value === otherValueKey ||
+    value.startsWith(`${otherLabel} : `) ||
+    value.startsWith("Autre : ") ||
+    value.startsWith("Other : ") ||
+    (options.length > 0 && !options.some((opt) => (typeof opt === "string" ? opt : opt.value) === value) && value !== "")
+
+  const selectCurrentValue = isOtherSelected ? otherValueKey : value
+  const customText = value.startsWith(`${otherLabel} : `)
+    ? value.slice(`${otherLabel} : `.length)
+    : value.startsWith("Autre : ")
+    ? value.slice("Autre : ".length)
+    : value.startsWith("Other : ")
+    ? value.slice("Other : ".length)
+    : value === otherValueKey
+    ? ""
+    : isOtherSelected
+    ? value
+    : ""
+
   return (
     <div className="flex flex-col gap-1.5 w-full">
       <label className="text-sm font-semibold flex items-center gap-1" style={{ color: TEXT_DARK }}>
@@ -448,8 +486,15 @@ function SelectField({
         )}
       </label>
       <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={selectCurrentValue}
+        onChange={(e) => {
+          const val = e.target.value
+          if (val === otherValueKey) {
+            onChange(otherLabel)
+          } else {
+            onChange(val)
+          }
+        }}
         className="w-full px-4 rounded-xl outline-none transition-all duration-200 cursor-pointer"
         style={{
           height: "48px",
@@ -480,6 +525,29 @@ function SelectField({
           )
         })}
       </select>
+
+      {/* Champ texte libre si Autre est sélectionné */}
+      {isOtherSelected && (
+        <div className="mt-1 animate-fadeIn">
+          <input
+            type="text"
+            required={required}
+            value={customText}
+            onChange={(e) => {
+              const typed = e.target.value
+              onChange(typed ? `${otherLabel} : ${typed}` : otherLabel)
+            }}
+            placeholder={specifyPlaceholder}
+            className="w-full px-4 rounded-xl outline-none transition-all duration-200 text-sm"
+            style={{
+              height: "44px",
+              border: "1.5px solid #003366",
+              backgroundColor: "#F8FAFC",
+              color: TEXT_DARK,
+            }}
+          />
+        </div>
+      )}
       {error && <span className="text-xs text-red-500 font-medium">{error}</span>}
     </div>
   )
@@ -647,6 +715,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
     phoneCountryCode: "+33",
     phoneCountryIso: "FR",
     phone: "",
+    communicationLanguage: (["FR", "EN", "DE"].includes(currentLang) ? currentLang : "FR") as "FR" | "EN" | "DE",
     orgType: "",
     volunteerCount: "",
     targetCountries: "",
@@ -665,6 +734,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
           return {
             ...defaultFormState,
             ...parsed,
+            communicationLanguage: parsed.communicationLanguage || (["FR", "EN", "DE"].includes(currentLang) ? currentLang : "FR"),
             docFile: null,
           }
         }
@@ -837,6 +907,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
       if (form.website.trim()) formData.append("website", form.website.trim())
       formData.append("contactPerson", form.contactPerson.trim())
       formData.append("email", form.email.trim())
+      formData.append("communicationLanguage", form.communicationLanguage || (lang || "FR").toUpperCase())
       
       const fullPhone = form.phoneCountryCode
         ? `${form.phoneCountryCode} ${form.phone.trim()}`.trim()
@@ -941,14 +1012,8 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
             className="flex items-center gap-3 cursor-pointer text-left group"
             aria-label="APTIC-R Accueil"
           >
-            <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-[#D8E2E9] flex items-center justify-center p-0.5 shadow-2xs group-hover:border-[#003366] transition-colors">
-              <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={60} height={60} className="w-full h-full object-contain" unoptimized />
-            </div>
-            <div>
-              <div className="font-extrabold text-sm leading-none tracking-tight text-[#003366]">APTIC-R</div>
-              <div className="text-[9px] font-bold tracking-[0.12em] uppercase mt-0.5 text-slate-500">
-                {currentLang === "DE" ? "Partnerorganisationen" : currentLang === "EN" ? "Partner Organizations" : "Organisations Partenaires"}
-              </div>
+            <div className="h-10 sm:h-12 flex items-center justify-center p-0.5 transition-transform group-hover:scale-105">
+              <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={140} height={48} className="h-full w-auto object-contain" unoptimized />
             </div>
           </button>
 
@@ -1219,6 +1284,52 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                           : "Ces coordonnées serviront uniquement à l'équipe APTIC-R pour échanger au sujet du partenariat."}
                       </span>
                     </div>
+
+                    {/* Langue de communication préférée */}
+                    <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
+                      <div>
+                        <label className="text-sm font-semibold flex items-center gap-1 text-[#1A2B3C]">
+                          <span>{t.partner?.form?.communicationLanguage || "Langue de communication préférée"}</span>
+                          <span className="text-red-500 font-bold">*</span>
+                        </label>
+                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                          {t.partner?.form?.communicationLanguageHelp || "Dans quelle langue souhaitez-vous recevoir les communications relatives à votre demande de partenariat ?"}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                        {[
+                          { code: "FR", label: "Français" },
+                          { code: "EN", label: "English" },
+                          { code: "DE", label: "Deutsch" },
+                        ].map((opt) => {
+                          const isSelected = form.communicationLanguage === opt.code
+                          return (
+                            <button
+                              key={opt.code}
+                              type="button"
+                              onClick={() => set("communicationLanguage", opt.code)}
+                              className={`flex items-center justify-start sm:justify-center gap-2.5 py-3 px-3.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${
+                                isSelected
+                                  ? "border-[#003366] bg-[#003366]/5 text-[#003366] ring-2 ring-[#003366]/20 font-bold"
+                                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                              }`}
+                            >
+                              <span
+                                className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                                  isSelected
+                                    ? "border-[#003366] bg-[#003366]"
+                                    : "border-slate-300 bg-white"
+                                }`}
+                              >
+                                {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                              </span>
+                              <span>{opt.label}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -1399,6 +1510,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                           <div><span className="text-slate-400">{t.partner?.form?.contactPerson || "Contact"} :</span> <strong className="text-slate-800 ml-1">{form.contactPerson}</strong></div>
                           <div><span className="text-slate-400">{t.partner?.form?.email || "E-mail"} :</span> <strong className="text-slate-800 ml-1">{form.email}</strong></div>
                           <div><span className="text-slate-400">{currentLang === "DE" ? "Telefon" : currentLang === "EN" ? "Phone" : "Téléphone"} :</span> <strong className="text-slate-800 ml-1">{form.phone ? `${form.phoneCountryCode} ${form.phone}` : (currentLang === "DE" ? "Nicht angegeben" : currentLang === "EN" ? "Not provided" : "Non renseigné")}</strong></div>
+                          <div className="sm:col-span-2"><span className="text-slate-400">{t.partner?.form?.communicationLanguage || "Langue de communication :"}</span> <strong className="text-slate-800 ml-1">{form.communicationLanguage === "EN" ? "English" : form.communicationLanguage === "DE" ? "Deutsch" : "Français"}</strong></div>
                         </div>
                       </div>
 

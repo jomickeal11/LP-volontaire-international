@@ -135,6 +135,7 @@ export async function submitCandidateApplication(
           candidateId: candidate.id,
           status: "NEW",
           lang: lang as LanguageCode,
+          communicationLanguage: (validated.communicationLanguage || lang) as LanguageCode,
           education: validated.education,
           fieldOfStudy: validated.fieldOfStudy,
           profession: validated.profession,
@@ -164,6 +165,7 @@ export async function submitCandidateApplication(
     // Awaited to prevent Vercel Serverless from killing the background task (especially due to the 1.1s Mailtrap delay)
     try {
       await EmailService.sendCandidateApplicationEmails({
+        applicationId: application.id,
         firstName: application.candidate.firstName,
         lastName: application.candidate.lastName,
         email: application.candidate.email,
@@ -173,7 +175,7 @@ export async function submitCandidateApplication(
         skills: application.skills.map((s: any) => s.skill.nameFr || s.skill.nameEn),
         arrivalDate: application.arrivalDate ? new Intl.DateTimeFormat("fr-FR").format(new Date(application.arrivalDate)) : undefined,
         duration: application.duration === "SIX_MONTHS" ? "6 mois" : application.duration === "NINE_MONTHS" ? "9 mois" : "12 mois",
-        lang: lang as "FR" | "EN" | "DE",
+        lang: (application.communicationLanguage || validated.communicationLanguage || lang) as "FR" | "EN" | "DE",
       })
     } catch (e) {
       console.warn("Emails failed to send, but application was saved:", e)
@@ -216,6 +218,8 @@ export async function submitPartnerRequest(
     const partnerRequest = await (prisma as any).demandePartenariat.create({
       data: {
         referenceNumber: refNum,
+        lang: lang as LanguageCode,
+        communicationLanguage: (validated.communicationLanguage || lang) as LanguageCode,
         orgName: validated.orgName,
         country: validated.country,
         website: validated.website || null,
@@ -241,7 +245,7 @@ export async function submitPartnerRequest(
         referenceNumber: partnerRequest.referenceNumber || refNum,
         country: partnerRequest.country,
         orgType: partnerRequest.orgType,
-        lang: lang as "FR" | "EN" | "DE",
+        lang: (partnerRequest.communicationLanguage || validated.communicationLanguage || lang) as "FR" | "EN" | "DE",
       })
     } catch (e) {
       console.warn("Partner emails failed to send, but request was saved:", e)
@@ -328,11 +332,32 @@ export async function submitPartnerRequestFormData(
   }
 }
 
+export interface UpdateStatusEmailOptions {
+  sendEmail?: boolean
+  customSubject?: string
+  customBody?: string
+  interviewDetails?: {
+    interviewDate?: string
+    interviewTime?: string
+    timezone?: string
+    interviewMode?: string
+    interviewLocation?: string
+    interviewLink?: string
+    additionalMessage?: string
+  }
+}
+
 export async function updateCandidateStatus(
   applicationId: string,
   newStatus: CandidateStatus,
   noteContent?: string,
-) {
+  emailOptions?: UpdateStatusEmailOptions
+): Promise<{
+  success: boolean
+  error?: string
+  emailSent?: boolean
+  emailError?: string
+}> {
   try {
     const session = await verifySession()
     if (!session || !session.userId) {
@@ -340,50 +365,177 @@ export async function updateCandidateStatus(
     }
 
     updateStatusSchema.parse({ candidateId: applicationId, newStatus })
-    
+
+    const adminUser = await prisma.utilisateur.findUnique({
+      where: { id: session.userId },
+      select: { name: true },
+    })
+    const adminName = adminUser?.name || "Admin APTIC-R"
+
+    let targetAppWithCandidate: any = null
+    let previousStatus: CandidateStatus | null = null
+
     await prisma.$transaction(async (tx) => {
       const currentApp = await tx.candidature.findUnique({
-        where: { id: applicationId }
+        where: { id: applicationId },
+        include: { candidate: true },
       })
-      
+
       if (!currentApp) {
         throw new Error("Candidature introuvable")
       }
-      
+
+      targetAppWithCandidate = currentApp
+      previousStatus = currentApp.status
+
       if (currentApp.status === newStatus) {
         return { success: true } // Already at this status
       }
 
       const app = await tx.candidature.update({
         where: { id: applicationId },
-        data: { status: newStatus as any }
+        data: { status: newStatus as any },
       })
-      
+
       await tx.historiqueCandidature.create({
         data: {
           applicationId: app.id,
           fromStatus: currentApp.status,
           toStatus: newStatus as any,
           note: noteContent,
-          changedByName: "Admin APTIC-R"
-        }
+          changedById: session.userId,
+          changedByName: adminName,
+        },
       })
-      
+
       if (noteContent) {
         await tx.noteCandidature.create({
           data: {
             applicationId: app.id,
-            authorName: "Admin APTIC-R",
-            content: noteContent
-          }
+            authorId: session.userId,
+            authorName: adminName,
+            content: noteContent,
+          },
         })
       }
     })
-    
-    return { success: true }
+
+    // 2. Traitement d'envoi d'e-mail optionnel (TOTALEMENT NON-BLOQUANT pour la persistance en base)
+    let emailSent = false
+    let emailError: string | undefined
+
+    if (emailOptions?.sendEmail && targetAppWithCandidate) {
+      try {
+        const candidate = targetAppWithCandidate.candidate
+        const emailRes = await EmailService.sendCandidateStatusEmail({
+          applicationId: targetAppWithCandidate.id,
+          candidateEmail: candidate.email,
+          candidateName: `${candidate.firstName} ${candidate.lastName}`.trim(),
+          referenceNumber: targetAppWithCandidate.referenceNumber,
+          status: newStatus,
+          fromStatus: previousStatus || undefined,
+          customSubject: emailOptions.customSubject,
+          customBody: emailOptions.customBody,
+          interviewDetails: emailOptions.interviewDetails,
+          lang: ((targetAppWithCandidate.communicationLanguage || targetAppWithCandidate.lang || "FR") as "FR" | "EN" | "DE"),
+        })
+
+        emailSent = emailRes.success
+        emailError = emailRes.error
+      } catch (err: unknown) {
+        emailSent = false
+        emailError = err instanceof Error ? err.message : "Erreur d'envoi email"
+      }
+    }
+
+    return {
+      success: true,
+      emailSent,
+      emailError,
+    }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erreur de mise à jour"
     return { success: false, error: message }
+  }
+}
+
+/**
+ * Modifier la langue de communication officielle du candidat depuis le Back-office.
+ */
+export async function updateCandidateCommunicationLanguage(
+  applicationId: string,
+  communicationLanguage: "FR" | "EN" | "DE"
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await verifySession()
+    if (!session || !session.userId) {
+      return { success: false, error: "Action non autorisée. Session administrateur requise." }
+    }
+    await prisma.candidature.update({
+      where: { id: applicationId },
+      data: { communicationLanguage: communicationLanguage as LanguageCode },
+    })
+    return { success: true }
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Erreur de mise à jour" }
+  }
+}
+
+/**
+ * Modifier la langue de communication officielle de la demande de partenariat depuis le Back-office.
+ */
+export async function updatePartnerRequestCommunicationLanguage(
+  requestId: string,
+  communicationLanguage: "FR" | "EN" | "DE"
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await verifySession()
+    if (!session || !session.userId) {
+      return { success: false, error: "Action non autorisée. Session administrateur requise." }
+    }
+    await (prisma as any).demandePartenariat.update({
+      where: { id: requestId },
+      data: { communicationLanguage: communicationLanguage as LanguageCode },
+    })
+    return { success: true }
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Erreur de mise à jour" }
+  }
+}
+
+/**
+ * Réessayer l'envoi d'un email consigné en échec dans le Back-office.
+ */
+export async function resendCandidateEmailAction(emailLogId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await verifySession()
+    if (!session || !session.userId) {
+      return { success: false, error: "Action non autorisée. Session administrateur requise." }
+    }
+    return await EmailService.resendLoggedEmail(emailLogId)
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Erreur lors de la réexpédition" }
+  }
+}
+
+/**
+ * Consulter les détails d'un email envoyé (pour le modal « Voir l'email »).
+ */
+export async function getCandidateEmailLogDetails(emailLogId: string) {
+  try {
+    const session = await verifySession()
+    if (!session || !session.userId) {
+      return { success: false, error: "Action non autorisée. Session administrateur requise." }
+    }
+    const log = await prisma.emailLog.findUnique({
+      where: { id: emailLogId },
+    })
+    if (!log) {
+      return { success: false, error: "Journal d'email introuvable." }
+    }
+    return { success: true, data: log }
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Erreur inattendue" }
   }
 }
 
@@ -650,7 +802,7 @@ export async function sendCandidateDirectEmail({
     await prisma.noteCandidature.create({
       data: {
         applicationId: candidateId,
-        content: `✉️ E-mail envoyé au candidat : "${subject.trim()}"\n\n${message.trim()}`,
+        content: `E-mail envoyé au candidat : "${subject.trim()}"\n\n${message.trim()}`,
         authorId: session.userId,
         authorName: adminName,
       },

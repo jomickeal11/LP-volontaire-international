@@ -95,7 +95,7 @@ export default function AdminPartners({ partners, navigate, onSelectPartner }: P
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-[#003366]">
             Partenaires
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -263,7 +263,15 @@ export default function AdminPartners({ partners, navigate, onSelectPartner }: P
                         />
                       </td>
                       <td className="px-4 py-3.5">
-                        <div className="text-sm font-semibold text-slate-900 group-hover:text-[#174F7A] transition-colors">{partner.orgName}</div>
+                        <div
+                          className="text-sm font-semibold text-slate-900 hover:text-[#174F7A] transition-colors cursor-pointer select-text"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onSelectPartner && onSelectPartner(partner)
+                          }}
+                        >
+                          {partner.orgName}
+                        </div>
                         {partner.website && (
                           <a
                             href={partner.website.startsWith("http") ? partner.website : `https://${partner.website}`}
@@ -278,7 +286,21 @@ export default function AdminPartners({ partners, navigate, onSelectPartner }: P
                       </td>
                       <td className="px-4 py-3.5 text-sm font-medium text-slate-800">{partner.country}</td>
                       <td className="px-4 py-3.5 text-sm text-slate-700">{partner.orgType}</td>
-                      <td className="px-4 py-3.5 text-sm font-medium text-slate-800">{partner.contactPerson || "—"}</td>
+                      <td className="px-4 py-3.5 text-sm font-medium text-slate-800">
+                        {partner.contactPerson ? (
+                          <span
+                            className="hover:text-[#174F7A] transition-colors cursor-pointer select-text"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              onSelectPartner && onSelectPartner(partner)
+                            }}
+                          >
+                            {partner.contactPerson}
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
                       <td className="px-4 py-3.5 text-sm text-slate-700">{partner.volunteerCount ? `${partner.volunteerCount} volontaires` : "—"}</td>
                       <td className="px-4 py-3.5 text-xs text-slate-500 whitespace-nowrap">
                         {partner.createdAt}

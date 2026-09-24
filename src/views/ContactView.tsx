@@ -492,21 +492,21 @@ const CONTEXTUAL_INTENTIONS: Record<
 > = {
   SOUTIEN_FINANCIER: {
     FR: {
-      tag: "💡 FINANCEMENT DE PROJETS",
+      tag: "FINANCEMENT DE PROJETS",
       title: "Soutien direct aux projets ruraux d'APTIC-R",
       desc: "Votre contribution financière permet de déployer des kits solaires pour écoles hors-réseau, d'équiper des espaces numériques communautaires et de financer des bourses pour les jeunes et femmes.",
       placeholder: "Précisez le projet que vous souhaitez financer (électrification solaire d'écoles, FabLab Agbélouvé, bourses d'apprentissage...) ou le montant/format envisagé...",
       whatsappText: "Bonjour APTIC-R, je souhaite échanger au sujet du financement d'un projet.",
     },
     EN: {
-      tag: "💡 PROJECT FUNDING",
+      tag: "PROJECT FUNDING",
       title: "Direct funding for rural community projects",
       desc: "Your financial support powers solar kits for off-grid schools, equips community tech centers, and provides training grants for youth and women.",
       placeholder: "Specify the initiative you wish to sponsor (school solar kits, FabLab equipment, youth scholarships) or your funding scope...",
       whatsappText: "Hello APTIC-R, I would like to discuss project funding.",
     },
     DE: {
-      tag: "💡 PROJEKTFÖRDERUNG",
+      tag: "PROJEKTFÖRDERUNG",
       title: "Direkte Unterstützung für ländliche Projekte",
       desc: "Ihre finanzielle Förderung ermöglicht Solar-Kits für Schulen, Ausstattung unserer FabLabs und Ausbildungsstipendien für Jugendliche und Frauen.",
       placeholder: "Geben Sie an, welches Projekt Sie unterstützen möchten (Solarstationen, FabLab-Ausstattung, Stipendien) oder den gewünschten Rahmen...",
@@ -515,21 +515,21 @@ const CONTEXTUAL_INTENTIONS: Record<
   },
   DON_MATERIEL: {
     FR: {
-      tag: "📦 DON DE MATÉRIEL",
+      tag: "DON DE MATÉRIEL",
       title: "Proposition de don d'équipements informatiques ou solaires",
       desc: "Merci pour votre générosité ! Vos ordinateurs portables, serveurs locaux, routeurs ou composants solaires équiperont directement nos FabLabs et salles communautaires au Togo.",
       placeholder: "Précisez la nature des équipements (ordinateurs, routeurs, onduleurs, etc.), leur état (fonctionnel, reconditionné), la quantité approximative et votre localisation...",
       whatsappText: "Bonjour APTIC-R, je souhaite vous proposer un don de matériel informatique ou solaire.",
     },
     EN: {
-      tag: "📦 HARDWARE DONATION",
+      tag: "HARDWARE DONATION",
       title: "In-kind donation of IT or solar hardware",
       desc: "Thank you for your support! Your laptops, servers, network equipment, or solar components will directly power our community FabLabs in Togo.",
       placeholder: "Please describe the hardware items, condition (functional, refurbished), approximate quantity, and pickup/shipping location...",
       whatsappText: "Hello APTIC-R, I would like to offer a hardware donation.",
     },
     DE: {
-      tag: "📦 SACHSPENDE",
+      tag: "SACHSPENDE",
       title: "Spende von IT- oder Solargeräten",
       desc: "Vielen Dank für Ihre Unterstützung! Ihre Laptops, Server, Netzwerk- oder Solarkomponenten kommen direkt unseren Bildungszentren in Togo zugute.",
       placeholder: "Bitte beschreiben Sie die Geräte, Zustand (funktionsfähig, wiederaufbereitet), ungefähre Menge und Standort...",
@@ -538,21 +538,21 @@ const CONTEXTUAL_INTENTIONS: Record<
   },
   MECENAT_COMPETENCES: {
     FR: {
-      tag: "🤝 MÉCÉNAT DE COMPÉTENCES",
+      tag: "MÉCÉNAT DE COMPÉTENCES",
       title: "Partage d'expertise & Bénévolat pro bono",
       desc: "Mettez votre expertise technique, pédagogique ou organisationnelle à disposition des projets : développement low-tech, énergie solaire, cybersécurité, formation.",
       placeholder: "Indiquez votre domaine de compétences, votre disponibilité approximative et si vous souhaitez intervenir à distance ou sur place à Agbélouvé...",
       whatsappText: "Bonjour APTIC-R, je souhaite mettre mes compétences à disposition de vos actions.",
     },
     EN: {
-      tag: "🤝 SKILLS SPONSORSHIP",
+      tag: "SKILLS SPONSORSHIP",
       title: "Pro bono expertise & skills sharing",
       desc: "Contribute your technical, educational, or management skills to local programs: low-tech development, solar energy, cybersecurity, or training.",
       placeholder: "Please describe your field of expertise, availability, and preferred mode (remote coaching or on-site in Togo)...",
       whatsappText: "Hello APTIC-R, I would like to offer pro bono skills.",
     },
     DE: {
-      tag: "🤝 KOMPETENZSPENDE",
+      tag: "KOMPETENZSPENDE",
       title: "Pro Bono Expertise & Wissenstransfer",
       desc: "Bringen Sie Ihre Fachkenntnisse in unsere Projekte ein: Low-Tech-Lösungen, Solarenergie, IT-Schulungen oder Projektbegleitung.",
       placeholder: "Beschreiben Sie Ihr Fachgebiet, Ihre zeitliche Verfügbarkeit und ob remote oder vor Ort in Togo...",
@@ -1195,9 +1195,12 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
                   href={`https://www.openstreetmap.org/#map=${mapZoom}/${mapLat}/${mapLng}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center text-xs sm:text-sm font-bold text-[#007BFF] hover:text-[#003366] transition-colors self-start sm:self-auto"
+                  className="inline-flex items-center text-xs sm:text-sm font-bold text-[#007BFF] hover:text-[#003366] transition-colors self-start sm:self-auto gap-1"
                 >
-                  {t.openOsm} <span className="ml-1">↗</span>
+                  <span>{t.openOsm}</span>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
                 </a>
               )}
             </div>

@@ -12,7 +12,7 @@ interface LocalizedMeta {
 
 const metaByLang: Record<string, LocalizedMeta> = {
   fr: {
-    title: "Volontariat International au Togo — APTIC-R | Agbélouvé, 6-12 mois",
+    title: "Volontariat international | APTIC-R",
     description:
       "Rejoignez APTIC-R pour une mission de volontariat de 6 à 12 mois au Togo. Co-créez des solutions numériques et low-tech pour les communautés rurales d'Agbélouvé.",
     ogTitle: "Volontariat International au Togo — APTIC-R",
@@ -20,7 +20,7 @@ const metaByLang: Record<string, LocalizedMeta> = {
     keywords: ["Volontariat Togo", "Bénévolat Afrique", "Mission humanitaire Togo", "APTIC-R Agbélouvé", "Volontaire international"],
   },
   en: {
-    title: "International Volunteering in Togo — APTIC-R | Agbélouvé, 6-12 months",
+    title: "International Volunteering | APTIC-R",
     description:
       "Join APTIC-R for 6-12 month international volunteer missions in digital innovation, low-tech agriculture, and rural community development in Togo.",
     ogTitle: "International Volunteers in Togo — APTIC-R",
@@ -28,7 +28,7 @@ const metaByLang: Record<string, LocalizedMeta> = {
     keywords: ["Volunteer Togo", "Volunteering Africa", "International Volunteers Togo", "APTIC-R", "Community development"],
   },
   de: {
-    title: "Internationaler Freiwilligendienst in Togo — APTIC-R | Agbélouvé, 6-12 Monate",
+    title: "Freiwilligendienst | APTIC-R",
     description:
       "Engagieren Sie sich bei APTIC-R in Togo für 6-12 Monate in digitalen Innovationen, nachhaltiger Landwirtschaft und ländlicher Entwicklung.",
     ogTitle: "Internationale Freiwilligendienste in Togo — APTIC-R",

@@ -319,16 +319,13 @@ export default function DomainDetailView({ domaine, allDomaines = [], lang }: Do
               title="Accueil APTIC-R"
             >
               <Image
-                src="/logo-aptic-emblem.png"
+                src="/logo-aptic.png"
                 alt="Logo APTIC-R"
-                width={36}
-                height={36}
-                className="w-8 h-8 sm:w-9 sm:h-9 object-contain group-hover:scale-105 transition-transform"
+                width={120}
+                height={40}
+                className="h-8 sm:h-9 w-auto object-contain group-hover:scale-105 transition-transform"
                 priority
               />
-              <span className="font-extrabold text-[#003366] text-sm sm:text-base tracking-tight hidden sm:inline">
-                APTIC-R
-              </span>
             </Link>
 
             <span className="h-5 w-px bg-slate-200 shrink-0 hidden sm:block" />
@@ -486,22 +483,21 @@ export default function DomainDetailView({ domaine, allDomaines = [], lang }: Do
                         {t.objectivesTitle}
                       </h2>
                     </div>
-                    <div className="grid grid-cols-1 gap-3.5">
-                      {objectives.map((obj, i) => (
-                        <div
-                          key={i}
-                          className="flex items-start gap-3.5 p-4 rounded-xl border border-slate-200/80 bg-white hover:border-[#28A745]/40 transition-colors shadow-2xs"
-                        >
-                          <div className="w-6 h-6 rounded-full bg-[#28A745]/15 text-[#28A745] flex items-center justify-center shrink-0 mt-0.5">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
+                    <div className="p-5 sm:p-7 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                        {objectives.map((obj, i) => (
+                          <div key={i} className="flex items-start gap-3">
+                            <div className="w-5 h-5 rounded-full bg-[#28A745]/15 text-[#28A745] flex items-center justify-center shrink-0 mt-0.5">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            </div>
+                            <p className="text-sm sm:text-base text-[#2C3E50] leading-relaxed font-medium">
+                              {obj}
+                            </p>
                           </div>
-                          <p className="text-[15px] sm:text-base text-[#2C3E50] leading-relaxed font-medium">
-                            {obj}
-                          </p>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -515,20 +511,19 @@ export default function DomainDetailView({ domaine, allDomaines = [], lang }: Do
                         {t.actionsTitle}
                       </h2>
                     </div>
-                    <div className="grid grid-cols-1 gap-3.5">
-                      {actions.map((act, i) => (
-                        <div
-                          key={i}
-                          className="flex items-start gap-3.5 p-4 rounded-xl border border-slate-200/80 bg-white hover:border-[#007BFF]/40 transition-colors shadow-2xs"
-                        >
-                          <div className="w-6 h-6 rounded-full bg-[#007BFF]/15 text-[#007BFF] flex items-center justify-center shrink-0 mt-0.5">
-                            <span className="font-mono text-xs font-bold">{i + 1}</span>
+                    <div className="p-5 sm:p-7 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+                      <div className="divide-y divide-slate-100">
+                        {actions.map((act, i) => (
+                          <div key={i} className="flex items-start gap-4 py-3.5 first:pt-0 last:pb-0">
+                            <div className="w-7 h-7 rounded-lg bg-[#007BFF]/10 text-[#007BFF] flex items-center justify-center shrink-0 font-extrabold text-xs">
+                              {i < 9 ? `0${i + 1}` : i + 1}
+                            </div>
+                            <p className="text-sm sm:text-base text-[#2C3E50] leading-relaxed font-medium">
+                              {act}
+                            </p>
                           </div>
-                          <p className="text-[15px] sm:text-base text-[#2C3E50] leading-relaxed">
-                            {act}
-                          </p>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}

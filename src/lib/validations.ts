@@ -193,6 +193,7 @@ export function getCandidateApplicationSchema(lang: SupportedLanguage = "FR") {
     portfolioFile: z.string().optional(),
 
     source: z.string().optional(),
+    communicationLanguage: z.enum(["FR", "EN", "DE"]).default("FR"),
     consent: z.boolean().refine((val) => val === true, {
       message: m.consentRequired,
     }),
@@ -215,6 +216,7 @@ export function getPartnerRequestSchema(lang: SupportedLanguage = "FR") {
     programme: z.string().optional(),
     message: z.string().min(50, m.messageMin),
     docFile: z.string().optional(),
+    communicationLanguage: z.enum(["FR", "EN", "DE"]).default("FR"),
     consent: z.boolean().refine((val) => val === true, {
       message: m.consentRequired,
     }),

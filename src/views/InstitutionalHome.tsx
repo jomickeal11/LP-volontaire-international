@@ -1601,10 +1601,13 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                     href="https://www.openstreetmap.org/#map=13/6.5786/1.1894"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg border text-[11px] font-bold shadow-xs hover:bg-white transition-colors"
+                    className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg border text-[11px] font-bold shadow-xs hover:bg-white transition-colors inline-flex items-center gap-1"
                     style={{ color: BLUE_TECH, borderColor: BORDER }}
                   >
-                    OSM ↗
+                    <span>OSM</span>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
                   </a>
                 </div>
 

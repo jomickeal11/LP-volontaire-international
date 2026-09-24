@@ -451,8 +451,8 @@ export default function AdminProjects() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">
-            CMS : Projets Institutionnels
+          <h1 className="text-2xl font-bold text-[#003366] tracking-tight">
+            Projets Institutionnels
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             Gérez les fiches projets détaillées, les statuts de publication par langue, objectifs et jalons terrain.
@@ -499,7 +499,7 @@ export default function AdminProjects() {
             })
             setModalOpen(true)
           }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#174F7A] text-white hover:bg-[#123e60] transition-colors shadow-sm self-start sm:self-auto cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#003366] text-white font-medium text-sm rounded-xl hover:bg-[#002244] transition-colors shadow-xs shrink-0 cursor-pointer self-start sm:self-auto"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -558,7 +558,10 @@ export default function AdminProjects() {
                       )}
                     </td>
                     <td className="py-3.5 px-4 max-w-xs">
-                      <div className="font-semibold text-slate-800 truncate">
+                      <div
+                        className="font-semibold text-slate-800 hover:text-[#174F7A] transition-colors cursor-pointer select-text truncate"
+                        onClick={() => handleOpenModal(proj)}
+                      >
                         {proj.titleFr}
                       </div>
                       <div className="text-[11px] text-slate-600 truncate mt-0.5">

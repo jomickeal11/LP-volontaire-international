@@ -618,6 +618,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
     city: "",
     domainsOfInterest: ["inclusion-numerique"] as string[],
     contributionType: "COMPETENCES",
+    customContributionType: "",
     availability: "HEBDOMADAIRE",
     motivation: "",
     charteConsent: false,
@@ -670,7 +671,10 @@ export default function MembershipView({ lang }: MembershipViewProps) {
         country: formData.country,
         city: formData.city || null,
         domainsOfInterest: formData.domainsOfInterest,
-        contributionType: formData.contributionType,
+        contributionType:
+          formData.contributionType === "AUTRE" && formData.customContributionType.trim()
+            ? `Autre : ${formData.customContributionType.trim()}`
+            : formData.contributionType,
         availability: formData.availability,
         motivation: formData.motivation,
         consentData: formData.consentData,
@@ -1125,6 +1129,19 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                           <option value="FINANCIER">{c.form.contribOptions.FINANCIER}</option>
                           <option value="AUTRE">{c.form.contribOptions.AUTRE}</option>
                         </select>
+
+                        {formData.contributionType === "AUTRE" && (
+                          <div className="mt-2 animate-fadeIn">
+                            <input
+                              type="text"
+                              required
+                              value={formData.customContributionType}
+                              onChange={(e) => setFormData({ ...formData, customContributionType: e.target.value })}
+                              placeholder={safeLang === "DE" ? "Bitte Art des Beitrags genauer angeben..." : safeLang === "EN" ? "Please specify your contribution..." : "Précisez la nature de votre contribution..."}
+                              className="w-full px-4 py-2.5 rounded-xl border border-[#003366] bg-white outline-none text-sm text-[#142332] shadow-2xs"
+                            />
+                          </div>
+                        )}
                       </div>
 
                       <div>

@@ -45,6 +45,22 @@ export default function AdminMembers({}: AdminMembersProps) {
   const [statusFilter, setStatusFilter] = useState("ALL")
   const [selectedMember, setSelectedMember] = useState<MemberRecord | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  const toggleAll = () => {
+    if (selectedIds.size === members.length && members.length > 0) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(members.map((m) => m.id)))
+    }
+  }
+
+  const toggleOne = (id: string) => {
+    const next = new Set(selectedIds)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    setSelectedIds(next)
+  }
 
   const loadData = async () => {
     setLoading(true)
@@ -114,7 +130,8 @@ export default function AdminMembers({}: AdminMembersProps) {
       "Statut",
       "Date",
     ]
-    const rows = members.map((m) => [
+    const itemsToExport = selectedIds.size > 0 ? members.filter((m) => selectedIds.has(m.id)) : members
+    const rows = itemsToExport.map((m) => [
       m.referenceNumber,
       m.lastName,
       m.firstName,
@@ -155,7 +172,7 @@ export default function AdminMembers({}: AdminMembersProps) {
       {/* ── Title & Actions Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">
+          <h1 className="text-2xl font-bold text-[#003366] tracking-tight">
             Gestion des Membres & Adhésions
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -165,79 +182,15 @@ export default function AdminMembers({}: AdminMembersProps) {
 
         <button
           onClick={exportCSV}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors shadow-sm self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-[#174F7A] hover:bg-[#123E60] rounded-lg shadow-xs cursor-pointer transition-colors self-start sm:self-auto"
         >
-          <span>📥</span>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
           <span>Exporter CSV</span>
         </button>
       </div>
 
-      {/* ── KPI Stat Cards (Design institutionnel sobre) ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Total Demandes
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 font-mono">
-            {counts.total}
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              En Attente
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 font-mono">
-            {counts.pending}
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Membres Validés
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 font-mono">
-            {counts.approved}
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Refusés
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 font-mono">
-            {counts.rejected}
-          </div>
-        </div>
-      </div>
 
       {/* ── Filters & Search ── */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
@@ -261,10 +214,10 @@ export default function AdminMembers({}: AdminMembersProps) {
         {/* Status Pills */}
         <div className="flex flex-wrap gap-1.5 w-full md:w-auto">
           {[
-            { id: "ALL", label: "Tous" },
-            { id: "PENDING", label: "En attente" },
-            { id: "APPROVED", label: "Validés" },
-            { id: "REJECTED", label: "Refusés" },
+            { id: "ALL", label: `Tous (${counts.total})` },
+            { id: "PENDING", label: `En attente (${counts.pending})` },
+            { id: "APPROVED", label: `Validés (${counts.approved})` },
+            { id: "REJECTED", label: `Refusés (${counts.rejected})` },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -287,6 +240,9 @@ export default function AdminMembers({}: AdminMembersProps) {
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
+                <th className="py-3.5 px-4 w-12 text-center">
+                  <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-[#174F7A] focus:ring-[#174F7A] accent-[#174F7A] cursor-pointer" checked={members.length > 0 && selectedIds.size === members.length} onChange={toggleAll} />
+                </th>
                 <th className="py-3.5 px-4">Référence</th>
                 <th className="py-3.5 px-4">Adhérent</th>
                 <th className="py-3.5 px-4">Pays / Ville</th>
@@ -313,12 +269,21 @@ export default function AdminMembers({}: AdminMembersProps) {
                 members.map((m) => {
                   const sc = STATUS_COLORS[m.status] || STATUS_COLORS.PENDING
                   return (
-                    <tr key={m.id} className="hover:bg-slate-50/70 transition-colors">
+                    <tr key={m.id} className="hover:bg-slate-50/70 transition-colors cursor-pointer" onClick={() => toggleOne(m.id)}>
+                      <td className="py-3.5 px-4 w-12 text-center">
+                        <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-[#174F7A] focus:ring-[#174F7A] accent-[#174F7A] cursor-pointer" checked={selectedIds.has(m.id)} onChange={() => {}} onClick={(e) => e.stopPropagation()} />
+                      </td>
                       <td className="py-3.5 px-4 font-mono font-bold text-xs text-[#174F7A]">
                         {m.referenceNumber}
                       </td>
                       <td className="py-3.5 px-4">
-                        <div className="font-semibold text-slate-800">
+                        <div
+                          className="font-semibold text-slate-800 hover:text-[#174F7A] transition-colors cursor-pointer select-text"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSelectedMember(m)
+                          }}
+                        >
                           {m.firstName} {m.lastName}
                         </div>
                         <div className="text-xs text-slate-500">{m.email}</div>
@@ -344,30 +309,31 @@ export default function AdminMembers({}: AdminMembersProps) {
                       <td className="py-3.5 px-4 text-right">
                         <div className="inline-flex items-center gap-1.5">
                           <button
-                            onClick={() => setSelectedMember(m)}
-                            className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 text-xs font-semibold"
+                            onClick={(e) => { e.stopPropagation(); setSelectedMember(m); }}
+                            className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 text-xs font-semibold cursor-pointer"
                             title="Voir la fiche"
                           >
-                            👁️
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                           </button>
                           {m.status !== "APPROVED" && (
                             <button
                               disabled={actionLoading === m.id}
-                              onClick={() => handleStatusChange(m.id, "APPROVED")}
-                              className="px-2 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(m.id, "APPROVED"); }}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors cursor-pointer"
                               title="Valider l'adhésion"
                             >
-                              ✓ Valider
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                              <span>Valider</span>
                             </button>
                           )}
                           {m.status !== "REJECTED" && (
                             <button
                               disabled={actionLoading === m.id}
-                              onClick={() => handleStatusChange(m.id, "REJECTED")}
-                              className="px-2 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors"
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(m.id, "REJECTED"); }}
+                              className="p-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
                               title="Refuser"
                             >
-                              ✕
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                           )}
                         </div>

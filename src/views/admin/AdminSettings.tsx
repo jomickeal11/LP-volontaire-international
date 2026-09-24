@@ -1122,14 +1122,37 @@ export default function AdminSettings() {
 
   const handleAutoTranslateSupport = async (targetLang: "EN" | "DE") => {
     const textsToTranslate: Record<string, string> = {}
-    SUPPORT_FIELDS.forEach((f) => {
-      if (f.multilingual) {
-        const frVal = values[`${f.key}_fr`]
-        if (frVal && frVal.trim()) {
-          textsToTranslate[f.key] = frVal.trim()
-        }
-      }
+    // Static fields (excluding AXES and WHY dynamic sections)
+    SUPPORT_FIELDS.filter((f) => f.section !== "AXES" && f.section !== "WHY" && f.multilingual).forEach((f) => {
+      const frVal = values[`${f.key}_fr`]
+      if (frVal && frVal.trim()) textsToTranslate[f.key] = frVal.trim()
     })
+    // AXES header fields
+    ;["support_axes_tag", "support_axes_title", "support_axes_subtitle"].forEach((k) => {
+      const frVal = values[`${k}_fr`]
+      if (frVal && frVal.trim()) textsToTranslate[k] = frVal.trim()
+    })
+    // Dynamic axes
+    const axesCount = Math.max(0, parseInt(values["support_axes_count"] || "4", 10))
+    for (let i = 1; i <= axesCount; i++) {
+      ;[`support_axes_${i}_title`, `support_axes_${i}_desc`, `support_axes_${i}_link`].forEach((k) => {
+        const frVal = values[`${k}_fr`]
+        if (frVal && frVal.trim()) textsToTranslate[k] = frVal.trim()
+      })
+    }
+    // WHY header fields
+    ;["support_why_tag", "support_why_title", "support_why_desc"].forEach((k) => {
+      const frVal = values[`${k}_fr`]
+      if (frVal && frVal.trim()) textsToTranslate[k] = frVal.trim()
+    })
+    // Dynamic why pillars
+    const whyCount = Math.max(0, parseInt(values["support_why_count"] || "3", 10))
+    for (let i = 1; i <= whyCount; i++) {
+      ;[`support_why_${i}_title`, `support_why_${i}_desc`].forEach((k) => {
+        const frVal = values[`${k}_fr`]
+        if (frVal && frVal.trim()) textsToTranslate[k] = frVal.trim()
+      })
+    }
 
     if (Object.keys(textsToTranslate).length === 0) {
       setSupportNotice({
@@ -1191,15 +1214,43 @@ export default function AdminSettings() {
   }
 
   const handleTranslateSupportSection = async (sectionId: string, targetLang: "EN" | "DE") => {
-    const fields = SUPPORT_FIELDS.filter((f) => f.section === sectionId && f.multilingual)
     const textsToTranslate: Record<string, string> = {}
 
-    fields.forEach((f) => {
-      const frVal = values[`${f.key}_fr`]
-      if (frVal && frVal.trim()) {
-        textsToTranslate[f.key] = frVal.trim()
+    if (sectionId === "AXES") {
+      // AXES header fields
+      ;["support_axes_tag", "support_axes_title", "support_axes_subtitle"].forEach((k) => {
+        const frVal = values[`${k}_fr`]
+        if (frVal && frVal.trim()) textsToTranslate[k] = frVal.trim()
+      })
+      // Dynamic axes
+      const axesCount = Math.max(0, parseInt(values["support_axes_count"] || "4", 10))
+      for (let i = 1; i <= axesCount; i++) {
+        ;[`support_axes_${i}_title`, `support_axes_${i}_desc`, `support_axes_${i}_link`].forEach((k) => {
+          const frVal = values[`${k}_fr`]
+          if (frVal && frVal.trim()) textsToTranslate[k] = frVal.trim()
+        })
       }
-    })
+    } else if (sectionId === "WHY") {
+      // WHY header fields
+      ;["support_why_tag", "support_why_title", "support_why_desc"].forEach((k) => {
+        const frVal = values[`${k}_fr`]
+        if (frVal && frVal.trim()) textsToTranslate[k] = frVal.trim()
+      })
+      // Dynamic pillars
+      const whyCount = Math.max(0, parseInt(values["support_why_count"] || "3", 10))
+      for (let i = 1; i <= whyCount; i++) {
+        ;[`support_why_${i}_title`, `support_why_${i}_desc`].forEach((k) => {
+          const frVal = values[`${k}_fr`]
+          if (frVal && frVal.trim()) textsToTranslate[k] = frVal.trim()
+        })
+      }
+    } else {
+      const fields = SUPPORT_FIELDS.filter((f) => f.section === sectionId && f.multilingual)
+      fields.forEach((f) => {
+        const frVal = values[`${f.key}_fr`]
+        if (frVal && frVal.trim()) textsToTranslate[f.key] = frVal.trim()
+      })
+    }
 
     if (Object.keys(textsToTranslate).length === 0) {
       setSupportNotice({
@@ -1310,26 +1361,58 @@ export default function AdminSettings() {
 
     const payload: { key: string; value: string; group: string; description?: string }[] = []
 
-    SUPPORT_FIELDS.forEach((f) => {
+    // Non-AXES, non-WHY static fields
+    SUPPORT_FIELDS.filter((f) => f.section !== "AXES" && f.section !== "WHY").forEach((f) => {
       if (f.multilingual) {
         ;(["fr", "en", "de"] as const).forEach((l) => {
           const k = `${f.key}_${l}`
-          payload.push({
-            key: k,
-            value: values[k] || "",
-            group: "SUPPORT",
-            description: `${f.label} (${l.toUpperCase()})`,
-          })
+          payload.push({ key: k, value: values[k] || "", group: "SUPPORT", description: `${f.label} (${l.toUpperCase()})` })
         })
       } else {
-        payload.push({
-          key: f.key,
-          value: values[f.key] || "",
-          group: "SUPPORT",
-          description: f.label,
-        })
+        payload.push({ key: f.key, value: values[f.key] || "", group: "SUPPORT", description: f.label })
       }
     })
+
+    // AXES header fields
+    ;["support_axes_tag", "support_axes_title", "support_axes_subtitle"].forEach((k) => {
+      const label = k.replace("support_axes_", "")
+      ;(["fr", "en", "de"] as const).forEach((l) => {
+        const dk = `${k}_${l}`
+        payload.push({ key: dk, value: values[dk] || "", group: "SUPPORT", description: `Axes ${label} (${l.toUpperCase()})` })
+      })
+    })
+
+    // Dynamic axes count + per-axe fields
+    const axesCount = Math.max(0, parseInt(values["support_axes_count"] || "4", 10))
+    payload.push({ key: "support_axes_count", value: String(axesCount), group: "SUPPORT", description: "Nombre d'axes" })
+    for (let i = 1; i <= axesCount; i++) {
+      ;[`support_axes_${i}_title`, `support_axes_${i}_desc`, `support_axes_${i}_link`].forEach((k) => {
+        ;(["fr", "en", "de"] as const).forEach((l) => {
+          const dk = `${k}_${l}`
+          payload.push({ key: dk, value: values[dk] || "", group: "SUPPORT" })
+        })
+      })
+    }
+
+    // WHY header fields
+    ;["support_why_tag", "support_why_title", "support_why_desc"].forEach((k) => {
+      ;(["fr", "en", "de"] as const).forEach((l) => {
+        const dk = `${k}_${l}`
+        payload.push({ key: dk, value: values[dk] || "", group: "SUPPORT" })
+      })
+    })
+
+    // Dynamic WHY pillars count + per-pillar fields
+    const whyCount = Math.max(0, parseInt(values["support_why_count"] || "3", 10))
+    payload.push({ key: "support_why_count", value: String(whyCount), group: "SUPPORT", description: "Nombre de piliers" })
+    for (let i = 1; i <= whyCount; i++) {
+      ;[`support_why_${i}_title`, `support_why_${i}_desc`].forEach((k) => {
+        ;(["fr", "en", "de"] as const).forEach((l) => {
+          const dk = `${k}_${l}`
+          payload.push({ key: dk, value: values[dk] || "", group: "SUPPORT" })
+        })
+      })
+    }
 
     try {
       const res = await updateSiteSettings(payload)
@@ -2517,7 +2600,7 @@ export default function AdminSettings() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Paramètres, Médias & Équipe</h1>
+          <h1 className="text-2xl font-bold text-[#003366] tracking-tight">Paramètres, Médias & Équipe</h1>
           <p className="text-sm text-slate-500 mt-1">
             Gérez le personnel, leurs rôles institutionnels, ainsi que les photos et contenus clés du portail.
           </p>
@@ -2560,7 +2643,7 @@ export default function AdminSettings() {
               </div>
               <button
                 onClick={openCreateTeamModal}
-                className="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-[#007BFF] hover:bg-[#0069d9] transition-all shadow-sm cursor-pointer flex items-center justify-center gap-2"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#003366] text-white font-medium text-sm rounded-xl hover:bg-[#002244] transition-colors shadow-xs shrink-0 cursor-pointer self-start sm:self-auto"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -2653,14 +2736,14 @@ export default function AdminSettings() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#007BFF] border border-blue-200">
-                    Module CMS • Page Statique
+                    Page Statique
                   </span>
                 </div>
                 <h2 className="text-xl font-bold text-[#003366] mt-1.5">
                   Éditeur de Page Statique : « À Propos d&apos;APTIC-R »
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-                  Gérez l&apos;intégralité des contenus institutionnels : Hero, Chronologie, Piliers d&apos;action, Chiffres d&apos;impact, Valeurs et Gouvernance. Zéro texte codé en dur, contrôle 100% CMS par langue.
+                  Gérez l&apos;intégralité des contenus institutionnels : Hero, Chronologie, Piliers d&apos;action, Chiffres d&apos;impact, Valeurs et Gouvernance. Zéro texte codé en dur, contrôle multilingue par langue.
                 </p>
               </div>
 
@@ -3144,7 +3227,7 @@ export default function AdminSettings() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#007BFF] border border-blue-200">
-                    Module CMS • Page Volontariat
+                    Page Volontariat
                   </span>
                 </div>
                 <h2 className="text-xl font-bold text-[#003366] mt-1.5">
@@ -4420,107 +4503,391 @@ export default function AdminSettings() {
                   {/* Section Fields */}
                   {isExpanded && (
                     <div className="p-6 space-y-6 bg-white">
-                      {fields.map((field) => {
-                        const dbKey = getSupportFieldDbKey(field, supportLangTab)
-                        const currentValue = values[dbKey] || ""
-                        const frReferenceKey = `${field.key}_fr`
-                        const frReferenceValue = values[frReferenceKey]
+                      {section.id === "AXES" ? (
+                        // ── DYNAMIC AXES EDITOR ──────────────────────────────────────
+                        (() => {
+                          const axesCount = Math.max(0, parseInt(values["support_axes_count"] || "4", 10))
+                          const headerFields = SUPPORT_FIELDS.filter(
+                            (f) => f.section === "AXES" && ["support_axes_tag", "support_axes_title", "support_axes_subtitle"].includes(f.key)
+                          )
+                          return (
+                            <div className="space-y-6">
+                              {/* Header fields: tag, title, subtitle */}
+                              {headerFields.map((field) => {
+                                const dbKey = getSupportFieldDbKey(field, supportLangTab)
+                                const currentValue = values[dbKey] || ""
+                                const frReferenceValue = values[`${field.key}_fr`]
+                                return (
+                                  <div key={field.key} className="space-y-2">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <label className="text-xs font-bold text-slate-700">
+                                        {field.label}
+                                        <span className="ml-1.5 px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-mono">{supportLangTab}</span>
+                                      </label>
+                                      {supportLangTab !== "FR" && frReferenceValue && (
+                                        <button type="button" onClick={() => handleTranslateSupportSingleField(field.key, supportLangTab === "EN" ? "EN" : "DE")} disabled={supportFieldTranslating === field.key} className="text-[11px] font-semibold text-[#007BFF] hover:underline cursor-pointer disabled:opacity-50">
+                                          {supportFieldTranslating === field.key ? "Traduction..." : "Traduire depuis FR"}
+                                        </button>
+                                      )}
+                                    </div>
+                                    {supportLangTab !== "FR" && frReferenceValue && (
+                                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-500">
+                                        <span className="font-bold text-slate-700 block mb-0.5">Version Française de référence :</span>
+                                        <p className="italic">{frReferenceValue}</p>
+                                      </div>
+                                    )}
+                                    {field.type === "textarea" ? (
+                                      <textarea rows={3} value={currentValue} onChange={(e) => handleInputChange(dbKey, e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white" />
+                                    ) : (
+                                      <input type="text" value={currentValue} onChange={(e) => handleInputChange(dbKey, e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white" />
+                                    )}
+                                  </div>
+                                )
+                              })}
 
-                        return (
-                          <div key={field.key} className="space-y-2">
-                            <div className="flex items-center justify-between gap-2">
-                              <label className="text-xs font-bold text-slate-700">
-                                {field.label}
-                                {field.multilingual && (
-                                  <span className="ml-1.5 px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-mono">
-                                    {supportLangTab}
+                              {/* Separator */}
+                              <div className="border-t border-slate-100 pt-4">
+                                <div className="flex items-center justify-between mb-4">
+                                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                                    Cartes d&apos;axes ({axesCount})
                                   </span>
-                                )}
-                              </label>
-
-                              {field.multilingual && supportLangTab !== "FR" && frReferenceValue && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleTranslateSupportSingleField(field.key, supportLangTab === "EN" ? "EN" : "DE")}
-                                  disabled={supportFieldTranslating === field.key}
-                                  className="text-[11px] font-semibold text-[#007BFF] hover:underline cursor-pointer disabled:opacity-50"
-                                >
-                                  {supportFieldTranslating === field.key ? "Traduction..." : "Traduire depuis FR"}
-                                </button>
-                              )}
-                            </div>
-
-                            {/* Reference FR */}
-                            {field.multilingual && supportLangTab !== "FR" && frReferenceValue && (
-                              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-500">
-                                <span className="font-bold text-slate-700 block mb-0.5">Version Française de référence :</span>
-                                <p className="italic">{frReferenceValue}</p>
-                              </div>
-                            )}
-
-                            {field.type === "image" ? (
-                              <div className="space-y-3">
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                  <input
-                                    type="text"
-                                    value={currentValue}
-                                    onChange={(e) => handleInputChange(dbKey, e.target.value)}
-                                    placeholder="https://... ou /uploads/..."
-                                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm font-mono text-slate-800"
-                                  />
-                                  <label className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer transition-colors shrink-0">
-                                    <span>
-                                      {uploadingSettingKey === dbKey ? "Téléversement..." : "Choisir une image"}
-                                    </span>
-                                    <input
-                                      type="file"
-                                      accept="image/jpeg,image/png,image/webp,image/avif"
-                                      className="hidden"
-                                      disabled={uploadingSettingKey === dbKey}
-                                      onChange={(e) => {
-                                        const f = e.target.files?.[0]
-                                        if (f) handleSettingImageUpload(dbKey, f)
-                                      }}
-                                    />
-                                  </label>
                                 </div>
 
-                                {currentValue && (
-                                  <div className="mt-2">
-                                    <span className="text-xs font-semibold text-slate-400 block mb-1.5">
-                                      Aperçu :
-                                    </span>
-                                    <div className="w-48 h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 relative">
-                                      <img
-                                        src={currentValue}
-                                        alt="Aperçu"
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => {
-                                          ;(e.target as HTMLElement).style.display = "none"
-                                        }}
-                                      />
+                                <div className="space-y-5">
+                                  {Array.from({ length: axesCount }, (_, i) => i + 1).map((idx) => {
+                                    const tKey = `support_axes_${idx}_title`
+                                    const dKey = `support_axes_${idx}_desc`
+                                    const lKey = `support_axes_${idx}_link`
+                                    const lang = supportLangTab.toLowerCase()
+                                    const tDbKey = `${tKey}_${lang}`
+                                    const dDbKey = `${dKey}_${lang}`
+                                    const lDbKey = `${lKey}_${lang}`
+                                    return (
+                                      <div key={idx} className="p-4 rounded-xl border border-slate-200 bg-slate-50/40 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-xs font-black uppercase tracking-widest text-[#28A745]">Axe {String(idx).padStart(2, "0")}</span>
+                                          {axesCount > 1 && (
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                // Shift all axes down from idx+1
+                                                const updated: Record<string, string> = { ...values }
+                                                for (let j = idx; j < axesCount; j++) {
+                                                  for (const sfx of ["fr", "en", "de"]) {
+                                                    updated[`support_axes_${j}_title_${sfx}`] = values[`support_axes_${j + 1}_title_${sfx}`] || ""
+                                                    updated[`support_axes_${j}_desc_${sfx}`] = values[`support_axes_${j + 1}_desc_${sfx}`] || ""
+                                                    updated[`support_axes_${j}_link_${sfx}`] = values[`support_axes_${j + 1}_link_${sfx}`] || ""
+                                                  }
+                                                }
+                                                // Clear last
+                                                for (const sfx of ["fr", "en", "de"]) {
+                                                  updated[`support_axes_${axesCount}_title_${sfx}`] = ""
+                                                  updated[`support_axes_${axesCount}_desc_${sfx}`] = ""
+                                                  updated[`support_axes_${axesCount}_link_${sfx}`] = ""
+                                                }
+                                                updated["support_axes_count"] = String(axesCount - 1)
+                                                setValues(updated)
+                                              }}
+                                              className="text-[11px] font-semibold text-rose-500 hover:text-rose-700 cursor-pointer transition-colors"
+                                            >
+                                              ✕ Supprimer
+                                            </button>
+                                          )}
+                                        </div>
+
+                                        {/* Title */}
+                                        <div className="space-y-1">
+                                          <div className="flex items-center justify-between">
+                                            <label className="text-[11px] font-bold text-slate-600">Titre <span className="font-mono text-slate-400">{supportLangTab}</span></label>
+                                            {supportLangTab !== "FR" && values[`${tKey}_fr`] && (
+                                              <button type="button" onClick={() => handleTranslateSupportSingleField(tKey, supportLangTab === "EN" ? "EN" : "DE")} disabled={supportFieldTranslating === tKey} className="text-[10px] font-semibold text-[#007BFF] hover:underline cursor-pointer disabled:opacity-50">
+                                                {supportFieldTranslating === tKey ? "..." : "Traduire FR"}
+                                              </button>
+                                            )}
+                                          </div>
+                                          {supportLangTab !== "FR" && values[`${tKey}_fr`] && (
+                                            <p className="text-[10px] italic text-slate-400 bg-slate-100 px-2 py-1 rounded">{values[`${tKey}_fr`]}</p>
+                                          )}
+                                          <input type="text" value={values[tDbKey] || ""} onChange={(e) => handleInputChange(tDbKey, e.target.value)} placeholder={`Titre de l'axe ${idx}...`} className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white" />
+                                        </div>
+
+                                        {/* Desc */}
+                                        <div className="space-y-1">
+                                          <div className="flex items-center justify-between">
+                                            <label className="text-[11px] font-bold text-slate-600">Description <span className="font-mono text-slate-400">{supportLangTab}</span></label>
+                                            {supportLangTab !== "FR" && values[`${dKey}_fr`] && (
+                                              <button type="button" onClick={() => handleTranslateSupportSingleField(dKey, supportLangTab === "EN" ? "EN" : "DE")} disabled={supportFieldTranslating === dKey} className="text-[10px] font-semibold text-[#007BFF] hover:underline cursor-pointer disabled:opacity-50">
+                                                {supportFieldTranslating === dKey ? "..." : "Traduire FR"}
+                                              </button>
+                                            )}
+                                          </div>
+                                          {supportLangTab !== "FR" && values[`${dKey}_fr`] && (
+                                            <p className="text-[10px] italic text-slate-400 bg-slate-100 px-2 py-1 rounded">{values[`${dKey}_fr`]}</p>
+                                          )}
+                                          <textarea rows={3} value={values[dDbKey] || ""} onChange={(e) => handleInputChange(dDbKey, e.target.value)} placeholder={`Description de l'axe ${idx}...`} className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white" />
+                                        </div>
+
+                                        {/* Link text */}
+                                        <div className="space-y-1">
+                                          <label className="text-[11px] font-bold text-slate-600">Texte du lien <span className="font-mono text-slate-400">{supportLangTab}</span></label>
+                                          <input type="text" value={values[lDbKey] || ""} onChange={(e) => handleInputChange(lDbKey, e.target.value)} placeholder={`Ex: Échanger avec l'équipe`} className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white" />
+                                        </div>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+
+                                {/* Add button — bottom right */}
+                                <div className="mt-4 flex justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const next = axesCount + 1
+                                      handleInputChange("support_axes_count", String(next))
+                                    }}
+                                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 text-slate-500 text-[11px] font-bold hover:border-[#003366] hover:text-[#003366] transition-colors cursor-pointer"
+                                  >
+                                    <span>+</span> Ajouter un axe
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })()
+                      ) : section.id === "WHY" ? (
+                        // ── DYNAMIC PILIERS EDITOR ──────────────────────────────────
+                        (() => {
+                          const whyCount = Math.max(0, parseInt(values["support_why_count"] || "3", 10))
+                          const whyHeaderFields = SUPPORT_FIELDS.filter(
+                            (f) => f.section === "WHY" && ["support_why_tag", "support_why_title", "support_why_desc"].includes(f.key)
+                          )
+                          return (
+                            <div className="space-y-6">
+                              {/* Header fields: tag, title, desc */}
+                              {whyHeaderFields.map((field) => {
+                                const dbKey = getSupportFieldDbKey(field, supportLangTab)
+                                const currentValue = values[dbKey] || ""
+                                const frReferenceValue = values[`${field.key}_fr`]
+                                return (
+                                  <div key={field.key} className="space-y-2">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <label className="text-xs font-bold text-slate-700">
+                                        {field.label}
+                                        <span className="ml-1.5 px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-mono">{supportLangTab}</span>
+                                      </label>
+                                      {supportLangTab !== "FR" && frReferenceValue && (
+                                        <button type="button" onClick={() => handleTranslateSupportSingleField(field.key, supportLangTab === "EN" ? "EN" : "DE")} disabled={supportFieldTranslating === field.key} className="text-[11px] font-semibold text-[#007BFF] hover:underline cursor-pointer disabled:opacity-50">
+                                          {supportFieldTranslating === field.key ? "Traduction..." : "Traduire depuis FR"}
+                                        </button>
+                                      )}
                                     </div>
+                                    {supportLangTab !== "FR" && frReferenceValue && (
+                                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-500">
+                                        <span className="font-bold text-slate-700 block mb-0.5">Version Française de référence :</span>
+                                        <p className="italic">{frReferenceValue}</p>
+                                      </div>
+                                    )}
+                                    {field.type === "textarea" ? (
+                                      <textarea rows={3} value={currentValue} onChange={(e) => handleInputChange(dbKey, e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white" />
+                                    ) : (
+                                      <input type="text" value={currentValue} onChange={(e) => handleInputChange(dbKey, e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white" />
+                                    )}
                                   </div>
+                                )
+                              })}
+
+                              {/* Pilier cards */}
+                              <div className="border-t border-slate-100 pt-4">
+                                <span className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-4">
+                                  Piliers ({whyCount})
+                                </span>
+
+                                <div className="space-y-5">
+                                  {Array.from({ length: whyCount }, (_, i) => i + 1).map((idx) => {
+                                    const tKey = `support_why_${idx}_title`
+                                    const dKey = `support_why_${idx}_desc`
+                                    const lang = supportLangTab.toLowerCase()
+                                    const tDbKey = `${tKey}_${lang}`
+                                    const dDbKey = `${dKey}_${lang}`
+                                    return (
+                                      <div key={idx} className="p-4 rounded-xl border border-slate-200 bg-slate-50/40 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-xs font-black uppercase tracking-widest text-[#007BFF]">Pilier {String(idx).padStart(2, "0")}</span>
+                                          {whyCount > 1 && (
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const updated: Record<string, string> = { ...values }
+                                                for (let j = idx; j < whyCount; j++) {
+                                                  for (const sfx of ["fr", "en", "de"]) {
+                                                    updated[`support_why_${j}_title_${sfx}`] = values[`support_why_${j + 1}_title_${sfx}`] || ""
+                                                    updated[`support_why_${j}_desc_${sfx}`] = values[`support_why_${j + 1}_desc_${sfx}`] || ""
+                                                  }
+                                                }
+                                                for (const sfx of ["fr", "en", "de"]) {
+                                                  updated[`support_why_${whyCount}_title_${sfx}`] = ""
+                                                  updated[`support_why_${whyCount}_desc_${sfx}`] = ""
+                                                }
+                                                updated["support_why_count"] = String(whyCount - 1)
+                                                setValues(updated)
+                                              }}
+                                              className="text-[11px] font-semibold text-rose-500 hover:text-rose-700 cursor-pointer transition-colors"
+                                            >
+                                              ✕ Supprimer
+                                            </button>
+                                          )}
+                                        </div>
+                                        <div className="space-y-1">
+                                          <div className="flex items-center justify-between">
+                                            <label className="text-[11px] font-bold text-slate-600">Titre <span className="font-mono text-slate-400">{supportLangTab}</span></label>
+                                            {supportLangTab !== "FR" && values[`${tKey}_fr`] && (
+                                              <button type="button" onClick={() => handleTranslateSupportSingleField(tKey, supportLangTab === "EN" ? "EN" : "DE")} disabled={supportFieldTranslating === tKey} className="text-[10px] font-semibold text-[#007BFF] hover:underline cursor-pointer disabled:opacity-50">
+                                                {supportFieldTranslating === tKey ? "..." : "Traduire FR"}
+                                              </button>
+                                            )}
+                                          </div>
+                                          {supportLangTab !== "FR" && values[`${tKey}_fr`] && (
+                                            <p className="text-[10px] italic text-slate-400 bg-slate-100 px-2 py-1 rounded">{values[`${tKey}_fr`]}</p>
+                                          )}
+                                          <input type="text" value={values[tDbKey] || ""} onChange={(e) => handleInputChange(tDbKey, e.target.value)} placeholder={`Titre du pilier ${idx}...`} className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white" />
+                                        </div>
+                                        <div className="space-y-1">
+                                          <div className="flex items-center justify-between">
+                                            <label className="text-[11px] font-bold text-slate-600">Description <span className="font-mono text-slate-400">{supportLangTab}</span></label>
+                                            {supportLangTab !== "FR" && values[`${dKey}_fr`] && (
+                                              <button type="button" onClick={() => handleTranslateSupportSingleField(dKey, supportLangTab === "EN" ? "EN" : "DE")} disabled={supportFieldTranslating === dKey} className="text-[10px] font-semibold text-[#007BFF] hover:underline cursor-pointer disabled:opacity-50">
+                                                {supportFieldTranslating === dKey ? "..." : "Traduire FR"}
+                                              </button>
+                                            )}
+                                          </div>
+                                          {supportLangTab !== "FR" && values[`${dKey}_fr`] && (
+                                            <p className="text-[10px] italic text-slate-400 bg-slate-100 px-2 py-1 rounded">{values[`${dKey}_fr`]}</p>
+                                          )}
+                                          <textarea rows={3} value={values[dDbKey] || ""} onChange={(e) => handleInputChange(dDbKey, e.target.value)} placeholder={`Description du pilier ${idx}...`} className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white" />
+                                        </div>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+
+                                {/* Add button — bottom right */}
+                                <div className="mt-4 flex justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleInputChange("support_why_count", String(whyCount + 1))}
+                                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 text-slate-500 text-[11px] font-bold hover:border-[#007BFF] hover:text-[#007BFF] transition-colors cursor-pointer"
+                                  >
+                                    <span>+</span> Ajouter un pilier
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })()
+                      ) : (
+                        // ── STANDARD STATIC FIELDS ──────────────────────────────────
+                        fields.map((field) => {
+                          const dbKey = getSupportFieldDbKey(field, supportLangTab)
+                          const currentValue = values[dbKey] || ""
+                          const frReferenceKey = `${field.key}_fr`
+                          const frReferenceValue = values[frReferenceKey]
+
+                          return (
+                            <div key={field.key} className="space-y-2">
+                              <div className="flex items-center justify-between gap-2">
+                                <label className="text-xs font-bold text-slate-700">
+                                  {field.label}
+                                  {field.multilingual && (
+                                    <span className="ml-1.5 px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-mono">
+                                      {supportLangTab}
+                                    </span>
+                                  )}
+                                </label>
+
+                                {field.multilingual && supportLangTab !== "FR" && frReferenceValue && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleTranslateSupportSingleField(field.key, supportLangTab === "EN" ? "EN" : "DE")}
+                                    disabled={supportFieldTranslating === field.key}
+                                    className="text-[11px] font-semibold text-[#007BFF] hover:underline cursor-pointer disabled:opacity-50"
+                                  >
+                                    {supportFieldTranslating === field.key ? "Traduction..." : "Traduire depuis FR"}
+                                  </button>
                                 )}
                               </div>
-                            ) : field.type === "textarea" ? (
-                              <textarea
-                                rows={4}
-                                value={currentValue}
-                                onChange={(e) => handleInputChange(dbKey, e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
-                              />
-                            ) : (
-                              <input
-                                type="text"
-                                value={currentValue}
-                                onChange={(e) => handleInputChange(dbKey, e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
-                              />
-                            )}
-                          </div>
-                        )
-                      })}
+
+                              {/* Reference FR */}
+                              {field.multilingual && supportLangTab !== "FR" && frReferenceValue && (
+                                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-500">
+                                  <span className="font-bold text-slate-700 block mb-0.5">Version Française de référence :</span>
+                                  <p className="italic">{frReferenceValue}</p>
+                                </div>
+                              )}
+
+                              {field.type === "image" ? (
+                                <div className="space-y-3">
+                                  <div className="flex flex-col sm:flex-row gap-3">
+                                    <input
+                                      type="text"
+                                      value={currentValue}
+                                      onChange={(e) => handleInputChange(dbKey, e.target.value)}
+                                      placeholder="https://... ou /uploads/..."
+                                      className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm font-mono text-slate-800"
+                                    />
+                                    <label className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer transition-colors shrink-0">
+                                      <span>
+                                        {uploadingSettingKey === dbKey ? "Téléversement..." : "Choisir une image"}
+                                      </span>
+                                      <input
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp,image/avif"
+                                        className="hidden"
+                                        disabled={uploadingSettingKey === dbKey}
+                                        onChange={(e) => {
+                                          const f = e.target.files?.[0]
+                                          if (f) handleSettingImageUpload(dbKey, f)
+                                        }}
+                                      />
+                                    </label>
+                                  </div>
+
+                                  {currentValue && (
+                                    <div className="mt-2">
+                                      <span className="text-xs font-semibold text-slate-400 block mb-1.5">
+                                        Aperçu :
+                                      </span>
+                                      <div className="w-48 h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 relative">
+                                        <img
+                                          src={currentValue}
+                                          alt="Aperçu"
+                                          className="w-full h-full object-cover"
+                                          onError={(e) => {
+                                            ;(e.target as HTMLElement).style.display = "none"
+                                          }}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : field.type === "textarea" ? (
+                                <textarea
+                                  rows={4}
+                                  value={currentValue}
+                                  onChange={(e) => handleInputChange(dbKey, e.target.value)}
+                                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
+                                />
+                              ) : (
+                                <input
+                                  type="text"
+                                  value={currentValue}
+                                  onChange={(e) => handleInputChange(dbKey, e.target.value)}
+                                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
+                                />
+                              )}
+                            </div>
+                          )
+                        })
+                      )}
                     </div>
                   )}
                 </div>

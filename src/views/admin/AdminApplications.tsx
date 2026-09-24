@@ -196,7 +196,7 @@ export default function AdminApplications({
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-[#003366]">
             {t.nav.applications}
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -604,9 +604,12 @@ function CandidateRow({
             {c.firstName.charAt(0)}
             {c.lastName.charAt(0)}
           </div>
-          <div>
+          <div
+            className="cursor-pointer select-text"
+            onClick={(e) => { e.stopPropagation(); onOpen(); }}
+          >
             <div
-              className="text-sm font-semibold group-hover:text-[#174F7A] transition-colors"
+              className="text-sm font-semibold transition-colors hover:text-[#1B4F7C] hover:underline"
               style={{ color: "#1A2B3C" }}
             >
               {c.firstName} {c.lastName}

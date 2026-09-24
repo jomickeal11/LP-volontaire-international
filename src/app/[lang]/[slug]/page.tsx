@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const doc = LEGAL_DOCS[docType][safeLang]
   return {
-    title: `${doc.title} — APTIC-R Volontariat International`,
+    title: `${doc.title} | APTIC-R`,
     description: doc.intro.slice(0, 160),
     alternates: {
       canonical: getCanonicalLegalPath(docType, safeLang),

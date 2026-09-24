@@ -49,6 +49,8 @@ export default async function PartnerRequestDetailPage({
     message: request.message,
     consent: request.consent,
     status: request.status || "NEW",
+    siteLanguage: (request.lang || "FR") as "FR" | "EN" | "DE",
+    communicationLanguage: (request.communicationLanguage || request.lang || "FR") as "FR" | "EN" | "DE",
     createdAt: formatDate(request.createdAt, lang, {
       day: "2-digit",
       month: "long",

@@ -71,7 +71,7 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
       {/* ── 1. En-tête ────────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-[#003366]">
             Statistiques
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">

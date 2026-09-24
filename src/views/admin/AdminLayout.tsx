@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import type { Page } from "../../types"
 import { useAdminHeader, type BreadcrumbItem } from "../../lib/AdminHeaderContext"
 import { getAdminTranslations } from "../../i18n/adminTranslations"
@@ -109,9 +109,35 @@ const NAV_ITEMS = [
           </svg>
         ),
       },
+    ],
+  },
+  {
+    group: "Membres",
+    items: [
+      {
+        page: "admin-member-applications" as Page,
+        label: "Demandes d'adhésion",
+        icon: (
+          <svg
+            className="w-4.5 h-4.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            width={18}
+            height={18}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+            />
+          </svg>
+        ),
+      },
       {
         page: "admin-members" as Page,
-        label: "Adhésions & Membres",
+        label: "Membres",
         icon: (
           <svg
             className="w-4.5 h-4.5"
@@ -180,7 +206,7 @@ const NAV_ITEMS = [
     ],
   },
   {
-    group: "Configuration CMS",
+    group: "Contenu",
     items: [
       {
         page: "admin-articles" as Page,
@@ -266,6 +292,32 @@ const NAV_ITEMS = [
           </svg>
         ),
       },
+      {
+        page: "admin-resources" as Page,
+        label: "Ressources Documentaires",
+        icon: (
+          <svg
+            className="w-4.5 h-4.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            width={18}
+            height={18}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        ),
+      },
+    ],
+  },
+  {
+    group: "Communication",
+    items: [
       {
         page: "admin-messages" as Page,
         label: "Messages de contact",
@@ -445,29 +497,56 @@ export default function AdminLayout({
             </svg>
           ),
         },
-        {
-          page: "admin-members" as Page,
-          label: "Adhésions & Membres",
-          icon: (
-            <svg
-              className="w-4.5 h-4.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              width={18}
-              height={18}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.75}
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-              />
-            </svg>
-          ),
-        },
-      ],
-    },
+    ],
+  },
+  {
+    group: "Membres",
+    groupKey: "members",
+    items: [
+      {
+        page: "admin-member-applications" as Page,
+        label: "Demandes d'adhésion",
+        icon: (
+          <svg
+            className="w-4.5 h-4.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            width={18}
+            height={18}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+            />
+          </svg>
+        ),
+      },
+      {
+        page: "admin-members" as Page,
+        label: "Membres",
+        icon: (
+          <svg
+            className="w-4.5 h-4.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            width={18}
+            height={18}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+            />
+          </svg>
+        ),
+      },
+    ],
+  },
     {
       group: t.nav.partnerships,
       groupKey: "partnerships",
@@ -517,7 +596,7 @@ export default function AdminLayout({
       ],
     },
     {
-      group: "Configuration CMS",
+      group: "Contenu",
       groupKey: "cms",
       items: [
         {
@@ -605,8 +684,8 @@ export default function AdminLayout({
           ),
         },
         {
-          page: "admin-messages" as Page,
-          label: "Messages de contact",
+          page: "admin-resources" as Page,
+          label: "Ressources",
           icon: (
             <svg
               className="w-4.5 h-4.5"
@@ -620,32 +699,59 @@ export default function AdminLayout({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.75}
-                d="M7 8h10M7 12h6m-9 7V6a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H6.828a2 2 0 00-1.414.586L3 21z"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
           ),
         },
-        {
-          page: "admin-newsletter" as Page,
-          label: "Newsletter & Abonnés",
-          icon: (
-            <svg
-              className="w-4.5 h-4.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              width={18}
-              height={18}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.75}
-                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
-          ),
-        },
+    ],
+  },
+  {
+    group: "Communication",
+    groupKey: "communication",
+    items: [
+      {
+        page: "admin-messages" as Page,
+        label: "Messages de contact",
+        icon: (
+          <svg
+            className="w-4.5 h-4.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            width={18}
+            height={18}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M7 8h10M7 12h6m-9 7V6a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H6.828a2 2 0 00-1.414.586L3 21z"
+            />
+          </svg>
+        ),
+      },
+      {
+        page: "admin-newsletter" as Page,
+        label: "Newsletter & Abonnés",
+        icon: (
+          <svg
+            className="w-4.5 h-4.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            width={18}
+            height={18}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
+        ),
+      },
         {
           page: "admin-settings" as Page,
           label: "Paramètres & Médias",
@@ -677,6 +783,20 @@ export default function AdminLayout({
     },
   ]
 
+  const desktopNavRef = useRef<HTMLElement>(null)
+
+  // Restaurer le scroll de la sidebar à chaque changement de page
+  useEffect(() => {
+    const saved = sessionStorage.getItem("admin_sidebar_scroll")
+    if (saved && desktopNavRef.current) {
+      desktopNavRef.current.scrollTop = Number(saved)
+    }
+  }, [currentPage])
+
+  const handleNavScroll = (e: React.UIEvent<HTMLElement>) => {
+    sessionStorage.setItem("admin_sidebar_scroll", String(e.currentTarget.scrollTop))
+  }
+
   const Sidebar = () => (
     <div
       className="flex flex-col h-full"
@@ -686,27 +806,41 @@ export default function AdminLayout({
         width: 240,
       }}
     >
-      {/* Logo & Identity */}
+      {/* Logo & Identity — Symbole + APTIC-R + libellé BACK OFFICE */}
       <div className="flex items-center gap-3 px-5 py-5 border-b border-[#F0F3F6]">
-        <div className="w-9 h-9 rounded-lg bg-white border border-[#E2E8F0] shadow-xs flex items-center justify-center p-1 shrink-0 overflow-hidden">
+        <div className="w-10 h-10 shrink-0 flex items-center justify-center">
           <img
-            src="/logo-aptic.png"
+            src="/logo-aptic-emblem.png"
             alt="APTIC-R"
             className="w-full h-full object-contain"
           />
         </div>
-        <div className="min-w-0">
-          <div className="font-bold text-sm tracking-tight text-[#1A2B3C] truncate">
+        <div className="flex flex-col justify-center min-w-0">
+          <span
+            className="font-black text-[17px] tracking-tight leading-none"
+            style={{ color: "#003366" }}
+          >
             APTIC-R
-          </div>
-          <div className="text-[11px] font-semibold tracking-wider uppercase text-[#8898AA]">
-            {t.nav.backofficeTitle}
-          </div>
+          </span>
+          <span
+            className="font-semibold uppercase leading-none mt-1.5"
+            style={{
+              color: "#8898AA",
+              fontSize: "10.5px",
+              letterSpacing: "0.12em",
+            }}
+          >
+            Back Office
+          </span>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
+      <nav
+        ref={desktopNavRef}
+        onScroll={handleNavScroll}
+        className="flex-1 overflow-y-auto px-3 py-4"
+      >
         {NAV_ITEMS_I18N.map((group) => (
           <div key={group.groupKey} className="mb-5">
             <div
@@ -846,6 +980,8 @@ export default function AdminLayout({
         return [{ label: t.nav.partnerRequests }]
       case "admin-partners":
         return [{ label: t.nav.partnersList }]
+      case "admin-resources":
+        return [{ label: "Ressources" }]
       default:
         return [{ label: t.nav.overview }]
     }
