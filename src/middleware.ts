@@ -22,6 +22,8 @@ const LEGACY_REDIRECTS: Record<string, string> = {
   "about": "a-propos",
   "ueber-uns": "a-propos",
   "team": "equipe",
+  volunteering: "volontariat",
+  freiwilligendienst: "volontariat",
 }
 
 export async function middleware(request: NextRequest) {
@@ -104,6 +106,17 @@ export async function middleware(request: NextRequest) {
   // ── Legacy route redirects (301 permanent) ──────────────────────────────────
   // Redirect old route segments to new institutional routes
   for (const locale of locales) {
+    const legacyApplicationPaths: Record<string, string> = {
+      "/en/volunteering/apply": "/en/volontariat/postuler",
+      "/de/freiwilligendienst/bewerben": "/de/volontariat/postuler",
+    }
+    const legacyApplicationPath = legacyApplicationPaths[pathname]
+    if (legacyApplicationPath) {
+      return NextResponse.redirect(new URL(legacyApplicationPath, request.url), {
+        status: 301,
+      })
+    }
+
     for (const [oldSegment, newSegment] of Object.entries(LEGACY_REDIRECTS)) {
       const oldPath = `/${locale}/${oldSegment}`
       if (pathname === oldPath || pathname === `${oldPath}/`) {

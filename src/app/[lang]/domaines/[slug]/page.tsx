@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { lang, slug } = await params
   const upperLang = (lang?.toUpperCase() as Language) || "FR"
 
-  const domaine = await getDomaineBySlug(slug)
+  const domaine = await getDomaineBySlug(slug, upperLang)
   if (!domaine || !domaine.active) {
     return {
       title: "Domaine d'action | APTIC-R",
@@ -25,16 +25,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const title =
     upperLang === "EN"
-      ? domaine.nameEn || domaine.nameFr
+      ? domaine.nameEn ?? ""
       : upperLang === "DE"
-      ? domaine.nameDe || domaine.nameFr
+      ? domaine.nameDe ?? ""
       : domaine.nameFr
 
   const desc =
     upperLang === "EN"
-      ? domaine.descEn || domaine.descFr
+      ? domaine.descEn ?? ""
       : upperLang === "DE"
-      ? domaine.descDe || domaine.descFr
+      ? domaine.descDe ?? ""
       : domaine.descFr
 
   return {
@@ -55,13 +55,13 @@ export default async function DomainDetailPage({ params }: PageProps) {
   const { lang, slug } = await params
   const upperLang = (lang?.toUpperCase() as Language) || "FR"
 
-  const domaine = await getDomaineBySlug(slug)
+  const domaine = await getDomaineBySlug(slug, upperLang)
 
   if (!domaine || !domaine.active) {
     notFound()
   }
 
-  const allDomaines = await getDomaines({ activeOnly: true })
+  const allDomaines = await getDomaines({ activeOnly: true, lang: upperLang })
 
   return (
     <DomainDetailView

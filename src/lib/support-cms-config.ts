@@ -23,37 +23,37 @@ export interface SupportCmsSection {
 export const SUPPORT_SECTIONS: SupportCmsSection[] = [
   {
     id: "HERO",
-    title: "01. En-tête & Titre Principal (Hero)",
+    title: "En-tête & Titre Principal (Hero)",
     description: "Badge thématique, grand titre, descriptif d'introduction, bouton d'action et photo de droite.",
     iconName: "ShieldIcon",
   },
   {
     id: "AXES",
-    title: "02. Axes d'Accompagnement des Projets",
+    title: "Axes d'Accompagnement des Projets",
     description: "Surtitre, titre, sous-titre et les 4 cartes d'axes de soutien (Financement, Don matériel, Mécénat, Sponsoring).",
     iconName: "WheatIcon",
   },
   {
     id: "WHY",
-    title: "03. Pourquoi Votre Soutien Compte ?",
+    title: "Pourquoi Votre Soutien Compte ?",
     description: "Surtitre, grand titre d'impact territorial, texte d'Agbélouvé et 3 piliers de garantie.",
     iconName: "HeartPulseIcon",
   },
   {
     id: "TRANSPARENCY",
-    title: "04. Transparence & Redevabilité",
+    title: "Transparence & Redevabilité",
     description: "Surtitre, titre de gestion responsable, texte légal (récépissé) et encart reçu fiscal/attestation.",
     iconName: "FileTextIcon",
   },
   {
     id: "FUTURE",
-    title: "05. Évolution Future (Dons en Ligne)",
+    title: "Évolution Future (Dons en Ligne)",
     description: "Surtitre, titre et texte d'information sur la future intégration des paiements en ligne.",
     iconName: "MonitorIcon",
   },
   {
     id: "CTA",
-    title: "06. Appel au Contact & WhatsApp",
+    title: "Appel au Contact & WhatsApp",
     description: "Titre d'incitation (« Vous souhaitez soutenir un projet spécifique ? »), descriptif et boutons de contact.",
     iconName: "ArrowRightIcon",
   },

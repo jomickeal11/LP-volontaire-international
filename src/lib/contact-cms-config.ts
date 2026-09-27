@@ -33,19 +33,19 @@ export interface ContactCmsField {
 export const CONTACT_SECTIONS: ContactCmsSection[] = [
   {
     id: "CONTENT",
-    title: "01. Informations publiques",
+    title: "Informations publiques",
     description:
       "Indication d'accès et horaires d'ouverture affichés sur la page Contact. Champs multilingues (FR / EN / DE).",
   },
   {
     id: "MAP",
-    title: "02. Carte & localisation",
+    title: "Carte & localisation",
     description:
       "Coordonnées GPS et paramètres d'affichage de la carte OpenStreetMap intégrée.",
   },
   {
     id: "ROUTING",
-    title: "03. Réception des demandes",
+    title: "Réception des demandes",
     description:
       "Adresses email internes vers lesquelles les formulaires et demandes sont acheminés. Ces adresses ne sont PAS affichées publiquement.",
   },

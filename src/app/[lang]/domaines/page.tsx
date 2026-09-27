@@ -44,7 +44,7 @@ export default async function DomainsPage({ params }: PageProps) {
   const { lang } = await params
   const upperLang = (lang?.toUpperCase() as Language) || "FR"
 
-  const domaines = await getDomaines({ activeOnly: true })
+  const domaines = await getDomaines({ activeOnly: true, lang: upperLang })
 
   return <DomainsView lang={upperLang} initialDomaines={domaines} />
 }

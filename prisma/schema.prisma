@@ -488,7 +488,10 @@ model Article {
   contentEn      String?           @db.Text
   contentDe      String?           @db.Text
   featuredImage  String?
-  published      Boolean           @default(false)
+  published      Boolean           @default(false) // legacy aggregate flag, kept for compatibility
+  publishedFr    Boolean           @default(false)
+  publishedEn    Boolean           @default(false)
+  publishedDe    Boolean           @default(false)
   publishedAt    DateTime?
 
   categoryId     String?
@@ -509,6 +512,9 @@ model Article {
   updatedAt      DateTime          @updatedAt
 
   @@index([published])
+  @@index([publishedFr])
+  @@index([publishedEn])
+  @@index([publishedDe])
   @@index([isFeatured])
   @@index([slug])
   @@index([publishedAt])
@@ -685,12 +691,13 @@ model Media {
 // ─── 18. CMS : ÉQUIPE & GOUVERNANCE ───────────────────────────────────────────
 model MembreEquipe {
   id        String   @id @default(cuid())
-  name      String
+  firstName String
+  lastName  String
   roleFr    String
   roleEn    String?
   roleDe    String?
   category  String   @default("COORDINATION") // DIRECTION, COORDINATION, FORMATION, CONSEIL, VOLONTAIRE
-  bioFr     String?  @db.Text
+  bioFr     String   @db.Text
   bioEn     String?  @db.Text
   bioDe     String?  @db.Text
   photoUrl  String?
@@ -705,6 +712,7 @@ model MembreEquipe {
   updatedAt DateTime @updatedAt
 
   @@index([category])
+  @@index([lastName])
   @@index([order])
   @@index([active])
 }

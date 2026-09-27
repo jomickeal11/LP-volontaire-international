@@ -24,6 +24,9 @@ interface ArticleItem {
   contentDe?: string | null
   featuredImage?: string | null
   published: boolean
+  publishedFr: boolean
+  publishedEn: boolean
+  publishedDe: boolean
   isFeatured: boolean
   publishedAt?: Date | null
   authorName?: string | null
@@ -76,7 +79,9 @@ export default function AdminArticles() {
     categoryId: "",
     authorName: "Équipe APTIC-R",
     featuredImage: "",
-    published: false,
+    publishedFr: false,
+    publishedEn: false,
+    publishedDe: false,
   })
 
   const loadData = async () => {
@@ -151,7 +156,9 @@ export default function AdminArticles() {
         categoryId: article.categoryId || categories[0]?.id || "",
         authorName: article.authorName || "Équipe APTIC-R",
         featuredImage: article.featuredImage || "",
-        published: article.published || false,
+        publishedFr: article.publishedFr ?? article.published ?? false,
+        publishedEn: article.publishedEn ?? false,
+        publishedDe: article.publishedDe ?? false,
       })
     } else {
       setEditingId(null)
@@ -168,7 +175,9 @@ export default function AdminArticles() {
         categoryId: categories[0]?.id || "",
         authorName: "Équipe APTIC-R",
         featuredImage: "",
-        published: false,
+        publishedFr: false,
+    publishedEn: false,
+    publishedDe: false,
       })
     }
     setModalOpen(true)
@@ -278,7 +287,9 @@ export default function AdminArticles() {
         categoryId: formData.categoryId || undefined,
         authorName: formData.authorName,
         featuredImage: formData.featuredImage || undefined,
-        published: formData.published,
+        publishedFr: formData.publishedFr,
+        publishedEn: formData.publishedEn,
+        publishedDe: formData.publishedDe,
       }
 
       const res = editingId
@@ -302,7 +313,9 @@ export default function AdminArticles() {
           categoryId: categories[0]?.id || "",
           authorName: "Équipe APTIC-R",
           featuredImage: "",
-          published: false,
+          publishedFr: false,
+    publishedEn: false,
+    publishedDe: false,
         })
         await loadData()
       } else {
@@ -327,11 +340,11 @@ export default function AdminArticles() {
     }
   }
 
-  const handleTogglePublish = async (id: string, current: boolean) => {
+  const handleTogglePublish = async (id: string, lang: "FR" | "EN" | "DE", current: boolean) => {
     try {
-      await updateArticle(id, { published: !current })
+      await updateArticle(id, { [lang === "FR" ? "publishedFr" : lang === "EN" ? "publishedEn" : "publishedDe"]: !current })
       setArticles((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, published: !current } : a))
+        prev.map((a) => (a.id === id ? { ...a, [lang === "FR" ? "publishedFr" : lang === "EN" ? "publishedEn" : "publishedDe"]: !current } : a))
       )
     } catch (e) {
       console.error(e)
@@ -456,16 +469,22 @@ export default function AdminArticles() {
                       </button>
                     </td>
                     <td className="py-3.5 px-4">
-                      <button
-                        onClick={() => handleTogglePublish(art.id, art.published)}
-                        className={`px-2.5 py-1 rounded-full text-xs font-bold transition-colors cursor-pointer ${
-                          art.published
-                            ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
-                            : "bg-amber-100 text-amber-800 hover:bg-amber-200"
-                        }`}
-                      >
-                        {art.published ? "✓ Publié" : "Brouillon"}
-                      </button>
+                      <div className="flex items-center gap-1">
+                        {(["FR", "EN", "DE"] as const).map((lang) => {
+                          const statusKey = lang === "FR" ? "publishedFr" : lang === "EN" ? "publishedEn" : "publishedDe"
+                          const isPublished = art[statusKey]
+                          return (
+                            <button
+                              key={lang}
+                              onClick={() => handleTogglePublish(art.id, lang, isPublished)}
+                              title={`${lang} : ${isPublished ? "publié" : "brouillon"}`}
+                              className={`px-2 py-1 rounded-full text-[10px] font-bold transition-colors cursor-pointer ${isPublished ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}
+                            >
+                              {lang}
+                            </button>
+                          )
+                        })}
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 text-xs font-bold text-slate-700">
                       {art.viewsCount}
@@ -668,13 +687,17 @@ export default function AdminArticles() {
                           key={l}
                           type="button"
                           onClick={() => setArticleLangTab(l)}
-                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          className={`whitespace-nowrap px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                             articleLangTab === l
                               ? "bg-[#003366] text-white shadow-xs"
                               : "text-slate-600 hover:bg-slate-100"
                           }`}
                         >
-                          {l === "FR" ? "Français *" : l === "EN" ? `English ${formData.titleEn ? "✓" : ""}` : `Deutsch ${formData.titleDe ? "✓" : ""}`}
+                          {l === "FR"
+                            ? "Français\u00A0*"
+                            : l === "EN"
+                            ? `English${formData.titleEn ? "\u00A0✓" : ""}`
+                            : `Deutsch${formData.titleDe ? "\u00A0✓" : ""}`}
                         </button>
                       ))}
                     </div>
@@ -956,19 +979,18 @@ export default function AdminArticles() {
                 )}
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="pubCheck"
-                  checked={formData.published}
-                  onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
-                  className="w-4 h-4 rounded text-[#003366] focus:ring-[#003366]"
-                />
-                <label htmlFor="pubCheck" className="text-xs font-semibold text-slate-700 select-none">
-                  Publier immédiatement cet article sur le site
-                </label>
-              </div>
-
+              <fieldset className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <legend className="col-span-full text-xs font-bold text-slate-700">Publication par langue</legend>
+                {(["FR", "EN", "DE"] as const).map((lang) => {
+                  const key = lang === "FR" ? "publishedFr" : lang === "EN" ? "publishedEn" : "publishedDe"
+                  return (
+                    <label key={lang} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold">
+                      <input type="checkbox" checked={formData[key]} onChange={(e) => setFormData({ ...formData, [key]: e.target.checked })} />
+                      {lang === "FR" ? "Publié en français" : lang === "EN" ? "Publié en anglais" : "Veröffentlicht auf Deutsch"}
+                    </label>
+                  )
+                })}
+              </fieldset>
               <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                 <div className="text-xs text-slate-400">
                   * Champs obligatoires

@@ -101,20 +101,21 @@ function Hero({
   langLower: string
 }) {
   const h = t.hero
-  const line1 = settings[`volunteer_hero_line1_${langLower}`] || h.line1
-  const line2 = settings[`volunteer_hero_line2_${langLower}`] || h.line2
-  const line3 = settings[`volunteer_hero_line3_${langLower}`] || h.line3
-  const desc = settings[`volunteer_hero_desc_${langLower}`] || h.desc
-  const cta1 = settings[`volunteer_hero_cta_primary_${langLower}`] || h.cta1
-  const cta2 = settings[`volunteer_hero_cta_secondary_${langLower}`] || h.cta2
-  const heroImage = settings["volunteer_hero_image"] || "/hero-volunteer-collab.jpg"
+  const badge = settings[`volunteer_hero_badge_${langLower}`] ?? ""
+  const line1 = settings[`volunteer_hero_line1_${langLower}`] ?? ""
+  const line2 = settings[`volunteer_hero_line2_${langLower}`] ?? ""
+  const line3 = settings[`volunteer_hero_line3_${langLower}`] ?? ""
+  const desc = settings[`volunteer_hero_desc_${langLower}`] ?? ""
+  const cta1 = settings[`volunteer_hero_cta_primary_${langLower}`] ?? ""
+  const cta2 = settings[`volunteer_hero_cta_secondary_${langLower}`] ?? ""
+  const heroImage = settings["volunteer_hero_image"] ?? ""
 
-  const stat1Label = settings[`volunteer_hero_stat1_label_${langLower}`] || h.stat1Label
-  const stat1Sub = settings[`volunteer_hero_stat1_sub_${langLower}`] || h.stat1Sub
-  const stat2Label = settings[`volunteer_hero_stat2_label_${langLower}`] || h.stat2Label
-  const stat2Sub = settings[`volunteer_hero_stat2_sub_${langLower}`] || h.stat2Sub
-  const stat3Label = settings[`volunteer_hero_stat3_label_${langLower}`] || h.stat3Label
-  const stat3Sub = settings[`volunteer_hero_stat3_sub_${langLower}`] || h.stat3Sub
+  const stat1Label = settings[`volunteer_hero_stat1_label_${langLower}`] ?? ""
+  const stat1Sub = settings[`volunteer_hero_stat1_sub_${langLower}`] ?? ""
+  const stat2Label = settings[`volunteer_hero_stat2_label_${langLower}`] ?? ""
+  const stat2Sub = settings[`volunteer_hero_stat2_sub_${langLower}`] ?? ""
+  const stat3Label = settings[`volunteer_hero_stat3_label_${langLower}`] ?? ""
+  const stat3Sub = settings[`volunteer_hero_stat3_sub_${langLower}`] ?? ""
 
   return (
     <section className="relative z-10 min-h-[95vh] lg:min-h-screen flex flex-col">
@@ -159,6 +160,10 @@ function Hero({
           className="text-center mx-auto mb-10 sm:mb-16 lg:mb-20 w-full"
           style={{ maxWidth: "900px" }}
         >
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-[#003366]/45 px-4 py-2 text-xs sm:text-sm font-semibold text-white/90 mb-5">
+            <span className="h-2 w-2 shrink-0 rounded-full bg-[#28A745]" />
+            {badge}
+          </div>
           <h1
             className="leading-[1.05] sm:leading-[1.1] tracking-tight mb-6 sm:mb-8"
             style={{ textShadow: "0 2px 12px rgba(0,0,0,0.14)" }}
@@ -373,25 +378,25 @@ function WhyMission({
   langLower: string
 }) {
   const wm = t.whyMission
-  const tag = settings[`volunteer_why_tag_${langLower}`] || wm.tag
-  const title = settings[`volunteer_why_title_${langLower}`] || wm.title
+  const tag = settings[`volunteer_why_tag_${langLower}`] ?? ""
+  const title = settings[`volunteer_why_title_${langLower}`] ?? ""
 
   const cards = [
     {
-      title: settings[`volunteer_why_card1_title_${langLower}`] || wm.cards[0]?.title || "",
-      desc: settings[`volunteer_why_card1_desc_${langLower}`] || wm.cards[0]?.desc || "",
+      title: settings[`volunteer_why_card1_title_${langLower}`] ?? "",
+      desc: settings[`volunteer_why_card1_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`volunteer_why_card2_title_${langLower}`] || wm.cards[1]?.title || "",
-      desc: settings[`volunteer_why_card2_desc_${langLower}`] || wm.cards[1]?.desc || "",
+      title: settings[`volunteer_why_card2_title_${langLower}`] ?? "",
+      desc: settings[`volunteer_why_card2_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`volunteer_why_card3_title_${langLower}`] || wm.cards[2]?.title || "",
-      desc: settings[`volunteer_why_card3_desc_${langLower}`] || wm.cards[2]?.desc || "",
+      title: settings[`volunteer_why_card3_title_${langLower}`] ?? "",
+      desc: settings[`volunteer_why_card3_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`volunteer_why_card4_title_${langLower}`] || wm.cards[3]?.title || "",
-      desc: settings[`volunteer_why_card4_desc_${langLower}`] || wm.cards[3]?.desc || "",
+      title: settings[`volunteer_why_card4_title_${langLower}`] ?? "",
+      desc: settings[`volunteer_why_card4_desc_${langLower}`] ?? "",
     },
   ]
 
@@ -444,10 +449,18 @@ function TheChallenge({
   langLower: string
 }) {
   const c = t.challenge
-  const tag = settings[`volunteer_challenge_tag_${langLower}`] || c.tag
-  const title = settings[`volunteer_challenge_title_${langLower}`] || c.title
-  const p1 = settings[`volunteer_challenge_p1_${langLower}`] || c.p1
-  const p2 = settings[`volunteer_challenge_p2_${langLower}`] || c.p2
+  const tag = settings[`volunteer_challenge_tag_${langLower}`] ?? ""
+  const title = settings[`volunteer_challenge_title_${langLower}`] ?? ""
+  const p1 = settings[`volunteer_challenge_p1_${langLower}`] ?? ""
+  const p2 = settings[`volunteer_challenge_p2_${langLower}`] ?? ""
+  const steps = c.steps.map((step, index) => {
+    const key = `volunteer_challenge_step${index + 1}`
+    return {
+      tag: settings[`${key}_tag_${langLower}`] ?? "",
+      title: settings[`${key}_title_${langLower}`] ?? "",
+      text: settings[`${key}_text_${langLower}`] ?? "",
+    }
+  })
 
   return (
     <section id="about" className="py-20 sm:py-24 lg:py-32 bg-[#F7F8FA]">
@@ -471,7 +484,7 @@ function TheChallenge({
             {/* The strong vertical line */}
             <div className="absolute left-0 top-12 bottom-12 w-2 rounded-full bg-[#EAF0F4]" />
 
-            {c.steps.map((item, i) => {
+            {steps.map((item, i) => {
               return (
                 <div key={item.tag} className="relative group">
                   {/* Connecting dash to the dot */}
@@ -518,29 +531,29 @@ function YourMission({
   langLower: string
 }) {
   const m = t.mission
-  const tag = settings[`volunteer_mission_tag_${langLower}`] || m.tag
-  const title = settings[`volunteer_mission_title_${langLower}`] || m.title
+  const tag = settings[`volunteer_mission_tag_${langLower}`] ?? ""
+  const title = settings[`volunteer_mission_title_${langLower}`] ?? ""
 
   const steps = [
     {
-      title: settings[`volunteer_mission_step1_title_${langLower}`] || m.steps[0]?.title || "",
-      desc: settings[`volunteer_mission_step1_desc_${langLower}`] || m.steps[0]?.desc || "",
+      title: settings[`volunteer_mission_step1_title_${langLower}`] ?? "",
+      desc: settings[`volunteer_mission_step1_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`volunteer_mission_step2_title_${langLower}`] || m.steps[1]?.title || "",
-      desc: settings[`volunteer_mission_step2_desc_${langLower}`] || m.steps[1]?.desc || "",
+      title: settings[`volunteer_mission_step2_title_${langLower}`] ?? "",
+      desc: settings[`volunteer_mission_step2_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`volunteer_mission_step3_title_${langLower}`] || m.steps[2]?.title || "",
-      desc: settings[`volunteer_mission_step3_desc_${langLower}`] || m.steps[2]?.desc || "",
+      title: settings[`volunteer_mission_step3_title_${langLower}`] ?? "",
+      desc: settings[`volunteer_mission_step3_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`volunteer_mission_step4_title_${langLower}`] || m.steps[3]?.title || "",
-      desc: settings[`volunteer_mission_step4_desc_${langLower}`] || m.steps[3]?.desc || "",
+      title: settings[`volunteer_mission_step4_title_${langLower}`] ?? "",
+      desc: settings[`volunteer_mission_step4_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`volunteer_mission_step5_title_${langLower}`] || m.steps[4]?.title || "",
-      desc: settings[`volunteer_mission_step5_desc_${langLower}`] || m.steps[4]?.desc || "",
+      title: settings[`volunteer_mission_step5_title_${langLower}`] ?? "",
+      desc: settings[`volunteer_mission_step5_desc_${langLower}`] ?? "",
     },
   ]
 
@@ -591,13 +604,22 @@ function WhatCouldYouBuild({
   const b = t.build
   const [openCardIndex, setOpenCardIndex] = useState<number | null>(null)
 
-  const tag = settings[`volunteer_build_tag_${langLower}`] || b.tag
-  const title = settings[`volunteer_build_title_${langLower}`] || b.title
+  const tag = settings[`volunteer_build_tag_${langLower}`] ?? ""
+  const title = settings[`volunteer_build_title_${langLower}`] ?? ""
 
-  const featuredBadge = settings[`volunteer_build_featured_badge_${langLower}`] || b.featured.badge
-  const featuredTitle = settings[`volunteer_build_featured_title_${langLower}`] || b.featured.title
-  const featuredDesc = settings[`volunteer_build_featured_desc_${langLower}`] || b.featured.desc
-  const featuredImage = settings["volunteer_build_featured_image"] || "https://images.unsplash.com/photo-1589923188900-85dae523342b?w=1200&q=80"
+  const featuredBadge = settings[`volunteer_build_featured_badge_${langLower}`] ?? ""
+  const featuredTitle = settings[`volunteer_build_featured_title_${langLower}`] ?? ""
+  const featuredDesc = settings[`volunteer_build_featured_desc_${langLower}`] ?? ""
+  const featuredImage = settings["volunteer_build_featured_image"] ?? ""
+  const cards = b.cards.map((card, index) => {
+    const key = `volunteer_build_card${index + 1}`
+    return {
+      badge: settings[`${key}_badge_${langLower}`] ?? "",
+      title: settings[`${key}_title_${langLower}`] ?? "",
+      desc:
+        settings[`${key}_desc_${langLower}`] ?? "",
+    }
+  })
 
   return (
     <section id="activities" className="py-20 sm:py-24 lg:py-32 bg-[#F7F8FA]">
@@ -634,7 +656,7 @@ function WhatCouldYouBuild({
 
           {/* 4 Secondary Projects Grid / Mobile Accordion */}
           <div className="lg:col-span-12 xl:col-span-5 flex flex-col sm:grid sm:grid-cols-2 gap-0 sm:gap-6 w-full min-w-0">
-            {b.cards.map((p, i) => {
+            {cards.map((p, i) => {
               const icons = [
                 <SmartphoneIcon key="icon-0" size={24} color="#003366" />,
                 <CodeIcon key="icon-1" size={24} color="#003366" />,
@@ -711,9 +733,18 @@ function ProfilesSought({
   const p = t.profiles
   const [isEligibilityOpen, setEligibilityOpen] = useState(false)
 
-  const tag = settings[`volunteer_profiles_tag_${langLower}`] || p.tag
-  const title = settings[`volunteer_profiles_title_${langLower}`] || p.title
-  const subtitle = settings[`volunteer_profiles_subtitle_${langLower}`] || p.subtitle
+  const tag = settings[`volunteer_profiles_tag_${langLower}`] ?? ""
+  const title = settings[`volunteer_profiles_title_${langLower}`] ?? ""
+  const subtitle = settings[`volunteer_profiles_subtitle_${langLower}`] ?? ""
+  const categories = p.categories.map((category, index) => {
+    const key = `volunteer_profiles_category${index + 1}`
+    return {
+      title: settings[`${key}_title_${langLower}`] ?? "",
+      tags: settings[`${key}_tags_${langLower}`] ?? "",
+    }
+  })
+  const eligibilityCta =
+    settings[`volunteer_profiles_eligibility_cta_${langLower}`] ?? ""
 
   return (
     <section className="py-20 sm:py-24 lg:py-32 bg-[#FFFFFF] overflow-hidden">
@@ -729,7 +760,7 @@ function ProfilesSought({
         </div>
 
         <div className="grid grid-cols-2 gap-x-4 sm:gap-x-12 gap-y-8 sm:gap-y-16 max-w-6xl mx-auto mb-16 sm:mb-24">
-          {p.categories.map((cat, index) => {
+          {categories.map((cat, index) => {
             const icons = [
               <MonitorIcon key="icon-0" className="w-8 h-8 sm:w-12 sm:h-12" color="#003366" />,
               <WheatIcon key="icon-1" className="w-8 h-8 sm:w-12 sm:h-12" color="#28A745" />,
@@ -772,7 +803,7 @@ function ProfilesSought({
             style={{ color: "#003366" }}
           >
             <span style={{ borderBottom: "1px solid #003366", paddingBottom: "2px" }}>
-              {p.cta}
+              {eligibilityCta}
             </span>
             <ArrowRightIcon size={16} strokeWidth={2} />
           </button>
@@ -790,23 +821,41 @@ function ProfilesSought({
 }
 
 // ─── 8. Not an Expert ──────────────────────────────────────────────────────────
-function NotAnExpert({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) {
+function NotAnExpert({
+  t,
+  settings,
+  langLower,
+}: {
+  t: TKey
+  settings: Record<string, string>
+  langLower: string
+}) {
   const n = t.notExpert
+  const title =
+    settings[`volunteer_profiles_nonexpert_title_${langLower}`] ?? ""
+  const subtitle =
+    settings[`volunteer_profiles_nonexpert_subtitle_${langLower}`] ?? ""
+  const qualities = n.qualities.map(
+    (quality, index) =>
+      settings[
+        `volunteer_profiles_nonexpert_quality${index + 1}_${langLower}`
+      ] ?? "",
+  )
 
   return (
     <section className="py-16 sm:py-24 lg:py-32 relative overflow-hidden bg-[#003366]">
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="max-w-4xl mx-auto mb-10 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-7xl text-white mb-3 sm:mb-8 leading-tight tracking-tight">
-            {n.title}
+            {title}
           </h2>
           <p className="text-lg sm:text-xl lg:text-2xl leading-relaxed text-white/80">
-            {n.subtitle}
+            {subtitle}
           </p>
         </div>
 
         <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-0 sm:mb-20 max-w-4xl mx-auto">
-          {n.qualities.map((q) => (
+          {qualities.map((q) => (
             <div
               key={q}
               className="px-6 py-3 rounded-full border border-white/28 transition-transform hover:scale-105"
@@ -825,17 +874,34 @@ function NotAnExpert({ t, navigate }: { t: TKey; navigate: (p: Page) => void }) 
 }
 
 // ─── 9. A Week with APTIC-R ───────────────────────────────────────────────────
-function WeekWithAptic({ t }: { t: TKey }) {
+function WeekWithAptic({
+  t,
+  settings,
+  langLower,
+}: {
+  t: TKey
+  settings: Record<string, string>
+  langLower: string
+}) {
   const w = t.week
-  const dayLabels = w.dayLabels
+  const tag = settings[`volunteer_week_tag_${langLower}`] ?? ""
+  const title = settings[`volunteer_week_title_${langLower}`] ?? ""
+  const days = w.days.map((day, index) => {
+    const key = `volunteer_week_day${index + 1}`
+    return {
+      label: settings[`${key}_label_${langLower}`] ?? "",
+      activity: settings[`${key}_activity_${langLower}`] ?? "",
+      desc: settings[`${key}_desc_${langLower}`] ?? "",
+    }
+  })
 
   return (
     <section className="py-16 sm:py-24 lg:py-32 bg-[#F7F8FA]">
       <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center mb-16 sm:mb-24">
-          <Badge text={w.tag} centered />
+          <Badge text={tag} centered />
           <h2 className="text-3xl sm:text-4xl lg:text-6xl leading-tight text-[#003366] tracking-[-0.02em]">
-            {w.title.split("APTIC-R").map((part, idx, array) => (
+            {title.split("APTIC-R").map((part, idx, array) => (
               <span key={idx}>
                 {part}
                 {idx < array.length - 1 && <span className="whitespace-nowrap">APTIC-R</span>}
@@ -845,7 +911,7 @@ function WeekWithAptic({ t }: { t: TKey }) {
         </div>
 
         <div className="flex flex-col">
-          {w.days.map((d, i) => (
+          {days.map((d, i) => (
             <div
               key={d.activity}
               className="group flex flex-col md:flex-row border-b border-[#EAF0F4] last:border-b-0 py-5 md:py-8 lg:py-12 items-start md:items-center transition-colors md:hover:bg-white"
@@ -853,7 +919,7 @@ function WeekWithAptic({ t }: { t: TKey }) {
               {/* Day Label */}
               <div className="w-full md:w-1/4 mb-1 md:mb-0 md:pl-8">
                 <span className="text-base md:text-xl lg:text-2xl font-black text-[#003366] uppercase tracking-widest">
-                  {dayLabels[i]}
+                  {d.label}
                 </span>
               </div>
               
@@ -887,9 +953,16 @@ function LifeInTogo({
   langLower: string
 }) {
   const l = t.lifeInTogo
-  const tag = settings[`volunteer_togo_tag_${langLower}`] || l.tag
-  const title = settings[`volunteer_togo_title_${langLower}`] || l.title
-  const desc = settings[`volunteer_togo_desc_${langLower}`] || l.desc
+  const tag = settings[`volunteer_togo_tag_${langLower}`] ?? ""
+  const title = settings[`volunteer_togo_title_${langLower}`] ?? ""
+  const desc = settings[`volunteer_togo_desc_${langLower}`] ?? ""
+  const points = l.points.map((point, index) => {
+    const key = `volunteer_togo_point${index + 1}`
+    return {
+      title: settings[`${key}_title_${langLower}`] ?? "",
+      desc: settings[`${key}_desc_${langLower}`] ?? "",
+    }
+  })
 
   return (
     <section id="togo" className="py-20 sm:py-24 lg:py-28 bg-[#FFFFFF]">
@@ -933,7 +1006,7 @@ function LifeInTogo({
       {/* Points clés synthétiques */}
       <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 pb-10">
-          {l.points.map((pt, idx) => (
+          {points.map((pt, idx) => (
             <div key={idx} className="p-6 rounded-2xl bg-[#F7F8FA] border border-[#EAF0F4]">
               <div className="text-lg font-bold text-[#003366] mb-2">{pt.title}</div>
               <p className="text-sm text-[#5E6B76] leading-relaxed">
@@ -985,9 +1058,25 @@ function Conditions({
   langLower: string
 }) {
   const s = t.support
-  const tag = settings[`volunteer_conditions_tag_${langLower}`] || s.tag
-  const title = settings[`volunteer_conditions_title_${langLower}`] || s.title
-  const subtitle = settings[`volunteer_conditions_subtitle_${langLower}`] || s.subtitle
+  const tag = settings[`volunteer_conditions_tag_${langLower}`] ?? ""
+  const title = settings[`volunteer_conditions_title_${langLower}`] ?? ""
+  const subtitle = settings[`volunteer_conditions_subtitle_${langLower}`] ?? ""
+  const tableTitle =
+    settings[`volunteer_conditions_table_title_${langLower}`] ?? ""
+  const tableSummary =
+    settings[`volunteer_conditions_table_summary_${langLower}`] ?? ""
+  const statusConfirmed =
+    settings[`volunteer_conditions_status_confirmed_${langLower}`] ?? ""
+  const statusPending =
+    settings[`volunteer_conditions_status_pending_${langLower}`] ?? ""
+  const tableItems = s.tableItems.map(([label, detail, status], index) => {
+    const key = `volunteer_conditions_row${index + 1}`
+    return [
+      settings[`${key}_label_${langLower}`] ?? "",
+      settings[`${key}_detail_${langLower}`] ?? "",
+      settings[`${key}_status_${langLower}`] ?? "",
+    ] as const
+  })
 
   return (
     <section className="py-20 sm:py-24 bg-[#F7F8FA]">
@@ -1005,14 +1094,15 @@ function Conditions({
         {/* Tableau récapitulatif clair des conditions réelles */}
         <div className="bg-white rounded-[2rem] border border-[#EAF0F4] overflow-hidden shadow-sm">
           <div className="px-8 py-5 flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#EAF0F4] bg-[#FFFFFF]">
-            <h3 className="text-xl text-[#003366] font-bold">{s.tableTitle}</h3>
+            <h3 className="text-xl text-[#003366] font-bold">{tableTitle}</h3>
             <span className="text-xs font-bold uppercase tracking-widest text-[#28A745] mt-1 sm:mt-0">
-              {s.tableSummary}
+              {tableSummary}
             </span>
           </div>
           <div className="flex flex-col w-full divide-y divide-[#EAF0F4]">
-            {s.tableItems.map(([el, info, status]) => {
-              const isConfirmed = status === s.statusConfirmed
+            {tableItems.map(([el, info, status]) => {
+              const isConfirmed = status === statusConfirmed
+              const isPending = status === statusPending
               return (
                 <div
                   key={el}
@@ -1031,7 +1121,9 @@ function Conditions({
                       className={`inline-block text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg ${
                         isConfirmed
                           ? "bg-[#EAF5EA] text-[#28A745]"
-                          : "bg-slate-100 text-slate-600"
+                          : isPending
+                            ? "bg-amber-50 text-amber-700"
+                            : "bg-slate-100 text-slate-600"
                       }`}
                     >
                       {status}
@@ -1060,9 +1152,19 @@ function ApplicationProcess({
   langLower: string
 }) {
   const ap = t.appProcess
-  const tag = settings[`volunteer_process_tag_${langLower}`] || ap.tag
-  const title = settings[`volunteer_process_title_${langLower}`] || ap.title
-  const subtitle = settings[`volunteer_process_subtitle_${langLower}`] || ap.subtitle
+  const tag = settings[`volunteer_process_tag_${langLower}`] ?? ""
+  const title = settings[`volunteer_process_title_${langLower}`] ?? ""
+  const subtitle = settings[`volunteer_process_subtitle_${langLower}`] ?? ""
+  const stepLabel =
+    settings[`volunteer_process_step_label_${langLower}`] ?? ""
+  const steps = ap.steps.map((step, index) => {
+    const key = `volunteer_process_step${index + 1}`
+    return {
+      title: settings[`${key}_title_${langLower}`] ?? "",
+      desc: settings[`${key}_desc_${langLower}`] ?? "",
+    }
+  })
+  const cta = settings[`volunteer_process_cta_${langLower}`] ?? ""
 
   return (
     <section className="py-20 sm:py-24 lg:py-28 bg-[#FFFFFF]">
@@ -1078,12 +1180,12 @@ function ApplicationProcess({
         </div>
 
         <div className="relative border-l-4 border-[#28A745]/30 ml-4 sm:ml-8 lg:ml-12 py-4 flex flex-col gap-10 sm:gap-14">
-          {ap.steps.map((s, i) => (
+          {steps.map((s, i) => (
             <div key={s.title} className="relative group">
               <div className="absolute -left-[14px] top-1 w-6 h-6 rounded-full border-4 border-[#FFFFFF] bg-[#28A745] transition-transform duration-500 group-hover:scale-125 shadow-sm" />
               <div className="ml-8 sm:ml-12 lg:ml-16">
                 <span className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-[#28A745] mb-2 block">
-                  {ap.stepLabel} 0{i + 1}
+                  {stepLabel} 0{i + 1}
                 </span>
                 <h3 className="text-xl sm:text-2xl lg:text-3xl text-[#003366] mb-2 font-['DM_Serif_Display']">
                   {s.title}
@@ -1101,7 +1203,7 @@ function ApplicationProcess({
             onClick={() => navigate("apply")}
             className="inline-flex items-center gap-3 sm:gap-4 font-black text-sm sm:text-base px-8 py-4 sm:px-10 sm:py-5 rounded-xl text-white shadow-lg transition-all hover:scale-105 bg-[#28A745] hover:bg-[#218838] cursor-pointer"
           >
-            <span className="tracking-wide">{ap.cta}</span>
+            <span className="tracking-wide">{cta}</span>
             <ArrowRightIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" strokeWidth={2} />
           </button>
         </div>
@@ -1124,22 +1226,42 @@ function FAQ({
 }) {
   const f = t.faq
   const [open, setOpen] = useState<number | null>(null)
+  const tag = settings[`volunteer_faq_tag_${langLower}`] ?? ""
+  const title = settings[`volunteer_faq_title_${langLower}`] ?? ""
+  const subtitle =
+    settings[`volunteer_faq_subtitle_${langLower}`] ?? ""
+  const items = f.items.map((item: { q: string; a: string }, index: number) => {
+    const key = `volunteer_faq_item${index + 1}`
+    return {
+      q: settings[`${key}_question_${langLower}`] ?? "",
+      a: settings[`${key}_answer_${langLower}`] ?? "",
+    }
+  })
+  const contactTitle =
+    settings[`volunteer_faq_contact_title_${langLower}`] ?? ""
+  const contactSubtitle =
+    settings[`volunteer_faq_contact_subtitle_${langLower}`] ?? ""
+  const whatsappText =
+    settings[`volunteer_faq_whatsapp_text_${langLower}`] ?? ""
+  const contactEmail = settings.site_contact_email ?? ""
+  const whatsappNumber = settings.site_social_whatsapp ?? ""
+  const whatsappDigits = whatsappNumber.replace(/\D/g, "")
 
   return (
     <section id="faq" className="py-20 sm:py-24 bg-[#F7F8FA]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-12 sm:mb-16">
-          <Badge text={f.tag} centered />
+          <Badge text={tag} centered />
           <h2 className="text-3xl sm:text-4xl lg:text-5xl text-[#003366] tracking-[-0.02em]">
-            {f.title}
+            {title}
           </h2>
           <p className="text-sm sm:text-base text-[#5E6B76] mt-3">
-            {f.subtitle}
+            {subtitle}
           </p>
         </div>
 
         <div className="flex flex-col gap-3.5">
-          {f.items?.map((item: { q: string; a: string }, i: number) => {
+          {items.map((item, i) => {
             const isOpen = open === i
             return (
               <div
@@ -1179,15 +1301,15 @@ function FAQ({
         <div className="mt-8 sm:mt-10 p-5 sm:p-6 rounded-2xl bg-white border border-[#EAF0F4] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="min-w-0">
             <h3 className="text-base font-bold text-[#003366] mb-1">
-              {f.contactBoxTitle}
+              {contactTitle}
             </h3>
             <p className="text-xs sm:text-sm text-[#5E6B76]">
-              {f.contactBoxSubtitle}
+              {contactSubtitle}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             <a
-              href="mailto:aptic.rural19@gmail.com?subject=Question%20Volontariat"
+              href={contactEmail ? `mailto:${contactEmail}?subject=Question%20Volontariat` : undefined}
               onClick={() => {
                 trackEvent("contact_click", { source: "faq_email" })
               }}
@@ -1196,11 +1318,11 @@ function FAQ({
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              <span>aptic.rural19@gmail.com</span>
+              <span>{contactEmail}</span>
             </a>
 
             <a
-              href={`https://wa.me/22891201990?text=${encodeURIComponent(f.whatsappText)}`}
+              href={whatsappDigits ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(whatsappText)}` : undefined}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => {
@@ -1211,7 +1333,7 @@ function FAQ({
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                 <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
               </svg>
-              <span>WhatsApp : +228 91 20 19 90</span>
+              <span>WhatsApp : {whatsappNumber}</span>
             </a>
           </div>
         </div>
@@ -1233,11 +1355,11 @@ function FinalCTA({
   langLower: string
 }) {
   const fc = t.finalCta
-  const badge = settings[`volunteer_cta_badge_${langLower}`] || fc.badge
-  const title = settings[`volunteer_cta_title_${langLower}`] || fc.title
-  const desc = settings[`volunteer_cta_desc_${langLower}`] || fc.desc
-  const ctaVolunteer = settings[`volunteer_cta_btn_primary_${langLower}`] || fc.ctaVolunteer
-  const ctaPartner = settings[`volunteer_cta_btn_secondary_${langLower}`] || fc.ctaPartner
+  const badge = settings[`volunteer_cta_badge_${langLower}`] ?? ""
+  const title = settings[`volunteer_cta_title_${langLower}`] ?? ""
+  const desc = settings[`volunteer_cta_desc_${langLower}`] ?? ""
+  const ctaVolunteer = settings[`volunteer_cta_btn_primary_${langLower}`] ?? ""
+  const ctaPartner = settings[`volunteer_cta_btn_secondary_${langLower}`] ?? ""
 
   return (
     <section className="py-24 sm:py-32 lg:py-40 relative overflow-hidden flex items-center justify-center min-h-[60vh]">
@@ -1316,7 +1438,25 @@ export default function Home({ lang, navigate, initialSettings = {} }: HomeProps
       })
   }, [])
 
-  // La page s'affiche directement avec les valeurs du CMS ou les traductions par défaut
+  if (loading) return null
+
+  if (!isVolunteerPagePublished(settings, currentLang)) {
+    const unavailableNotice =
+      currentLang === "DE"
+        ? "Diese Seite ist derzeit nicht verfügbar."
+        : currentLang === "EN"
+          ? "This page is currently unavailable."
+          : "Cette page est indisponible pour le moment."
+
+    return (
+      <main className="flex min-h-[60vh] items-center justify-center px-5 text-center">
+        <p className="max-w-xl text-base leading-relaxed text-slate-600">
+          {unavailableNotice}
+        </p>
+      </main>
+    )
+  }
+  // Public copy comes only from saved settings.
   return (
     <main className="w-full overflow-x-hidden">
       {/* 1. HERO — Accroche immédiate & Appel à l'action */}
@@ -1338,10 +1478,10 @@ export default function Home({ lang, navigate, initialSettings = {} }: HomeProps
       <ProfilesSought t={t} navigate={navigate} settings={settings} langLower={langLower} />
 
       {/* 7. NOT AN EXPERT — Pas besoin d'être un expert */}
-      <NotAnExpert t={t} navigate={navigate} />
+      <NotAnExpert t={t} settings={settings} langLower={langLower} />
 
       {/* 8. UNE SEMAINE AVEC APTIC-R */}
-      <WeekWithAptic t={t} />
+      <WeekWithAptic t={t} settings={settings} langLower={langLower} />
 
       {/* 9. CE QUE VOUS VIVREZ — Immersion, terrain et vie associative */}
       <LifeInTogo t={t} navigate={navigate} settings={settings} langLower={langLower} />

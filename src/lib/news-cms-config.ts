@@ -16,17 +16,19 @@ export interface NewsFieldConfig {
   multilingual: boolean
   required?: boolean
   description?: string
+  /** Indication de mise en page : "half" = deux champs côte à côte sur desktop/tablette. */
+  layout?: "full" | "half"
 }
 
 export const NEWS_SECTIONS: NewsSectionConfig[] = [
   {
     id: "HERO",
-    title: "01. En-tête & Titre de la page",
+    title: "En-tête & Titre de la page",
     description: "Surtitre, titre principal et description d'introduction du Journal d'APTIC-R.",
   },
   {
     id: "CTA",
-    title: "02. Bandeau d'action de bas de page",
+    title: "Bandeau d'action de bas de page",
     description: "Titre, texte explicatif et libellés des boutons d'orientation vers les Projets et Partenariats.",
   },
 ]
@@ -87,6 +89,7 @@ export const NEWS_FIELDS: NewsFieldConfig[] = [
     type: "text",
     multilingual: true,
     required: true,
+    layout: "half",
     description: "Libellé du premier bouton d'action (ex: Consulter nos projets).",
   },
   {
@@ -96,6 +99,7 @@ export const NEWS_FIELDS: NewsFieldConfig[] = [
     type: "text",
     multilingual: true,
     required: true,
+    layout: "half",
     description: "Libellé du second bouton d'action (ex: Devenir partenaire).",
   },
 ]

@@ -251,45 +251,45 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
   // Localized texts
   const title =
     lang === "EN"
-      ? project.titleEn || project.titleFr
+      ? project.titleEn ?? ""
       : lang === "DE"
-      ? project.titleDe || project.titleFr
+      ? project.titleDe ?? ""
       : project.titleFr
 
   const summary =
     lang === "EN"
-      ? project.summaryEn || project.summaryFr
+      ? project.summaryEn ?? ""
       : lang === "DE"
-      ? project.summaryDe || project.summaryFr
+      ? project.summaryDe ?? ""
       : project.summaryFr
 
   const description =
     lang === "EN"
-      ? project.descriptionEn || project.descriptionFr
+      ? project.descriptionEn ?? ""
       : lang === "DE"
-      ? project.descriptionDe || project.descriptionFr
+      ? project.descriptionDe ?? ""
       : project.descriptionFr
 
   // Parse structured objectives, actions, results
   const rawObjectives =
     lang === "EN"
-      ? project.objectivesEn || project.objectivesFr
+      ? project.objectivesEn ?? ""
       : lang === "DE"
-      ? project.objectivesDe || project.objectivesFr
+      ? project.objectivesDe ?? ""
       : project.objectivesFr
 
   const rawActions =
     lang === "EN"
-      ? project.actionsEn || project.actionsFr
+      ? project.actionsEn ?? ""
       : lang === "DE"
-      ? project.actionsDe || project.actionsFr
+      ? project.actionsDe ?? ""
       : project.actionsFr
 
   const rawResults =
     lang === "EN"
-      ? project.resultsEn || project.resultsFr
+      ? project.resultsEn ?? ""
       : lang === "DE"
-      ? project.resultsDe || project.resultsFr
+      ? project.resultsDe ?? ""
       : project.resultsFr
 
   const objectives = parseList(rawObjectives)
@@ -300,17 +300,17 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
   const domaine = project.domaine
   const domaineName = domaine
     ? lang === "EN"
-      ? domaine.nameEn || domaine.nameFr
+      ? domaine.nameEn ?? ""
       : lang === "DE"
-      ? domaine.nameDe || domaine.nameFr
+      ? domaine.nameDe ?? ""
       : domaine.nameFr
     : null
 
   const domaineSubtitle = domaine
     ? lang === "EN"
-      ? domaine.subtitleEn || domaine.subtitleFr
+      ? domaine.subtitleEn ?? ""
       : lang === "DE"
-      ? domaine.subtitleDe || domaine.subtitleFr
+      ? domaine.subtitleDe ?? ""
       : domaine.subtitleFr
     : null
 
@@ -349,7 +349,7 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
   if (Array.isArray(project.medias) && project.medias.length > 0) {
     galleryItems = project.medias.map((m: any) => ({
       url: m.url,
-      caption: lang === "EN" ? m.captionEn || m.captionFr : lang === "DE" ? m.captionDe || m.captionFr : m.captionFr,
+      caption: lang === "EN" ? m.captionEn ?? "" : lang === "DE" ? m.captionDe ?? "" : m.captionFr,
     }))
   } else if (project.gallery) {
     try {
@@ -790,16 +790,16 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
                     {resources.map((res: any) => {
                       const resTitle =
                         lang === "EN"
-                          ? res.titleEn || res.titleFr
+                          ? res.titleEn ?? ""
                           : lang === "DE"
-                          ? res.titleDe || res.titleFr
+                          ? res.titleDe ?? ""
                           : res.titleFr
 
                       const resDesc =
                         lang === "EN"
-                          ? res.descriptionEn || res.descriptionFr
+                          ? res.descriptionEn ?? ""
                           : lang === "DE"
-                          ? res.descriptionDe || res.descriptionFr
+                          ? res.descriptionDe ?? ""
                           : res.descriptionFr
 
                       return (

@@ -186,19 +186,20 @@ export interface MediaDTO {
 
 export interface TeamMemberDTO {
   id: string
-  name: string
+  firstName: string
+  lastName: string
   roleFr: string
   roleEn?: string | null
   roleDe?: string | null
   category: TeamCategory
-  bioFr?: string | null
+  bioFr: string
   bioEn?: string | null
   bioDe?: string | null
   photoUrl?: string | null
   email?: string | null
   linkedin?: string | null
   twitter?: string | null
-  skills?: string[]
+  skills: string[]
   order: number
   active: boolean
 }

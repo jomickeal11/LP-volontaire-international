@@ -1,14 +1,27 @@
 "use server"
 
 import prisma from "./prisma"
-import { memberApplicationSchema, newsletterSubscriptionSchema, institutionalContactSchema } from "./cms-validations"
+import {
+  memberApplicationSchema,
+  newsletterSubscriptionSchema,
+  institutionalContactSchema,
+  teamMemberCreateSchema,
+  teamMemberUpdateSchema,
+  teamMemberReorderSchema,
+} from "./cms-validations"
+import { verifySession } from "./auth"
 import { randomBytes } from "crypto"
 import { revalidatePath } from "next/cache"
 import type { LanguageCode } from "@prisma/client"
+import type { TeamMemberDTO } from "./cms-types"
 
-function safeRevalidatePath(path: string) {
+function safeRevalidatePath(path: string, type?: "page" | "layout") {
   try {
-    revalidatePath(path)
+    if (type) {
+      revalidatePath(path, type)
+    } else {
+      revalidatePath(path)
+    }
   } catch {
     // Ignore outside Next.js request context
   }
@@ -308,34 +321,49 @@ export async function getProjectBySlug(slug: string, lang?: string) {
 export async function getArticles(options?: {
   categorySlug?: string
   publishedOnly?: boolean
+  lang?: string
   limit?: number
   skip?: number
 }) {
   try {
     const where: any = {}
+    const lang = options?.lang?.toUpperCase()
     if (options?.publishedOnly !== false) {
-      where.published = true
+      if (lang === "EN" || lang === "DE" || lang === "FR") {
+        where[`published${lang[0]}${lang.slice(1).toLowerCase()}`] = true
+      } else {
+        where.published = true
+      }
     }
     if (options?.categorySlug) {
       where.category = { slug: options.categorySlug }
     }
 
-    return await prisma.article.findMany({
+    const articles = await prisma.article.findMany({
       where,
       orderBy: { publishedAt: "desc" },
       take: options?.limit,
       skip: options?.skip,
-      include: {
-        category: true,
-      },
+      include: { category: true },
+    })
+
+    if (!options?.publishedOnly || !lang) return articles
+
+    return articles.filter((article: any) => {
+      const localizedFields =
+        lang === "EN"
+          ? [article.titleEn, article.excerptEn, article.contentEn]
+          : lang === "DE"
+            ? [article.titleDe, article.excerptDe, article.contentDe]
+            : [article.titleFr, article.excerptFr, article.contentFr]
+      return localizedFields.every((field) => Boolean(field?.trim()))
     })
   } catch (error) {
     console.error("Error fetching articles:", error)
     return []
   }
 }
-
-export async function getArticleBySlug(slug: string) {
+export async function getArticleBySlug(slug: string, lang: string) {
   try {
     const article = await prisma.article.findUnique({
       where: { slug },
@@ -347,6 +375,18 @@ export async function getArticleBySlug(slug: string) {
       },
     })
 
+    if (!article) return null
+
+    const language = lang.toUpperCase()
+    const localizedFields =
+      language === "EN"
+        ? [article.titleEn, article.excerptEn, article.contentEn]
+        : language === "DE"
+          ? [article.titleDe, article.excerptDe, article.contentDe]
+          : [article.titleFr, article.excerptFr, article.contentFr]
+    if (localizedFields.some((field) => !field?.trim())) return null
+    const publishedKey = `published${language[0]}${language.slice(1).toLowerCase()}`
+    if (!(article as any)[publishedKey]) return null
     if (article) {
       // Incrémentation asynchrone non-bloquante des vues
       prisma.article.update({
@@ -1406,6 +1446,9 @@ export async function createArticle(data: {
   authorName?: string
   featuredImage?: string
   published?: boolean
+  publishedFr?: boolean
+  publishedEn?: boolean
+  publishedDe?: boolean
   metaTitle?: string
   metaDescription?: string
 }) {
@@ -1433,8 +1476,11 @@ export async function createArticle(data: {
         categoryId: data.categoryId || null,
         authorName: data.authorName?.trim() || "Équipe APTIC-R",
         featuredImage: data.featuredImage || null,
-        published: Boolean(data.published),
-        publishedAt: data.published ? new Date() : null,
+        published: Boolean(data.publishedFr || data.publishedEn || data.publishedDe || data.published),
+        publishedFr: Boolean(data.publishedFr ?? data.published),
+        publishedEn: Boolean(data.publishedEn),
+        publishedDe: Boolean(data.publishedDe),
+        publishedAt: data.publishedFr || data.publishedEn || data.publishedDe || data.published ? new Date() : null,
         metaTitle: data.metaTitle?.trim() || null,
         metaDescription: data.metaDescription?.trim() || null,
       },
@@ -1465,6 +1511,9 @@ export async function updateArticle(
     authorName?: string
     featuredImage?: string
     published: boolean
+    publishedFr: boolean
+    publishedEn: boolean
+    publishedDe: boolean
     metaTitle?: string
     metaDescription?: string
   }>
@@ -1476,7 +1525,15 @@ export async function updateArticle(
     }
 
     const updateData: any = { ...data }
-    if (data.published && !existing.publishedAt) {
+    if (data.publishedFr !== undefined || data.publishedEn !== undefined || data.publishedDe !== undefined) {
+      const nextPublished = {
+        publishedFr: data.publishedFr ?? existing.publishedFr ?? existing.published,
+        publishedEn: data.publishedEn ?? existing.publishedEn ?? false,
+        publishedDe: data.publishedDe ?? existing.publishedDe ?? false,
+      }
+      updateData.published = Object.values(nextPublished).some(Boolean)
+      if (updateData.published && !existing.publishedAt) updateData.publishedAt = new Date()
+    } else if (data.published && !existing.publishedAt) {
       updateData.publishedAt = new Date()
     }
 
@@ -1876,41 +1933,14 @@ export async function getSiteSettings(group?: string) {
     if (group && group !== "ALL") {
       where.group = group
     }
+
     const settings = await (prisma as any).parametreSite.findMany({
       where,
       orderBy: { key: "asc" },
     })
-
-    if (group === "ABOUT" || group === "ALL") {
-      const hasTitle = settings.some((s: any) => s.key === "about_title_fr")
-      if (!hasTitle) {
-        await seedAboutPageSettings()
-      }
-    }
-
-    if (group === "SUPPORT" || group === "ALL") {
-      const hasSupportTitle = settings.some((s: any) => s.key === "support_hero_title_fr")
-      if (!hasSupportTitle) {
-        await seedSupportPageSettings()
-      }
-    }
-
-    if (group === "ABOUT" || group === "SUPPORT" || group === "ALL") {
-      // If we just seeded, re-fetch
-      const reloaded = await (prisma as any).parametreSite.findMany({
-        where,
-        orderBy: { key: "asc" },
-      })
-      const dict: Record<string, string> = {}
-      reloaded.forEach((s: any) => {
-        dict[s.key] = s.value
-      })
-      return { success: true, settings: reloaded, dict }
-    }
-
     const dict: Record<string, string> = {}
-    settings.forEach((s: any) => {
-      dict[s.key] = s.value
+    settings.forEach((setting: any) => {
+      dict[setting.key] = setting.value
     })
 
     return { success: true, settings, dict }
@@ -1919,7 +1949,6 @@ export async function getSiteSettings(group?: string) {
     return { success: false, settings: [], dict: {} }
   }
 }
-
 export async function getSiteSetting(key: string, defaultValue = ""): Promise<string> {
   try {
     const record = await (prisma as any).parametreSite.findUnique({
@@ -1933,10 +1962,46 @@ export async function getSiteSetting(key: string, defaultValue = ""): Promise<st
 }
 
 export async function updateSiteSettings(
-  entries: { key: string; value: string; group?: string; description?: string }[]
+  entries: { key: string; value: string; group?: string; description?: string }[],
+  groupHint: string[] = [],
 ) {
+  const startedAt = performance.now()
+  let transactionMs = 0
+  let revalidationMs = 0
+  let entriesSaved = 0
+  let groups: string[] = []
+
+  const logMetrics = (success: boolean) => {
+    if (process.env.NODE_ENV !== "development") return
+    console.info("[AdminSettings:save-server]", {
+      groups,
+      entriesSaved,
+      transactionMs: Number(transactionMs.toFixed(2)),
+      revalidationMs: Number(revalidationMs.toFixed(2)),
+      totalMs: Number((performance.now() - startedAt).toFixed(2)),
+      success,
+    })
+  }
+
   try {
-    const queries = entries.map((item) => 
+    const uniqueEntries = Array.from(
+      new Map(entries.map((entry) => [entry.key, entry])).values(),
+    )
+    entriesSaved = uniqueEntries.length
+    groups = uniqueEntries.length
+      ? ([...new Set(uniqueEntries.map((entry) => entry.group).filter(Boolean))] as string[])
+      : groupHint
+
+    if (uniqueEntries.length === 0) {
+      logMetrics(true)
+      return {
+        success: true,
+        message: "Aucune modification n'était nécessaire.",
+        savedCount: 0,
+      }
+    }
+
+    const queries = uniqueEntries.map((item) =>
       (prisma as any).parametreSite.upsert({
         where: { key: item.key },
         update: {
@@ -1952,11 +2017,73 @@ export async function updateSiteSettings(
         },
       })
     )
-    await (prisma as any).$transaction(queries)
 
-    revalidatePath("/", "layout")
-    return { success: true, message: "Paramètres enregistrés avec succès." }
+    const transactionStartedAt = performance.now()
+    try {
+      await (prisma as any).$transaction(queries)
+    } finally {
+      transactionMs = performance.now() - transactionStartedAt
+    }
+
+    const pageSegmentsByGroup: Record<string, Record<string, string>> = {
+      ABOUT: { fr: "a-propos", en: "a-propos", de: "a-propos" },
+      VOLUNTEER: { fr: "volontariat", en: "volontariat", de: "volontariat" },
+      PARTNER: { fr: "partenaires", en: "partners", de: "partenaires" },
+      MEMBERSHIP: {
+        fr: "devenir-membre",
+        en: "devenir-membre",
+        de: "devenir-membre",
+      },
+      SUPPORT: { fr: "soutenir", en: "support", de: "unterstuetzen" },
+      NEWS: { fr: "actualites", en: "actualites", de: "actualites" },
+      CONTACT: { fr: "contact", en: "contact", de: "contact" },
+    }
+    const changedLanguages = new Set<string>()
+    let hasNonLocalizedSetting = false
+
+    uniqueEntries.forEach((entry) => {
+      const language = entry.key.match(/_(fr|en|de)$/i)?.[1]?.toLowerCase()
+      if (language) changedLanguages.add(language)
+      else hasNonLocalizedSetting = true
+    })
+
+    const revalidationPaths = new Set<string>()
+    if (groups.includes("GENERAL")) {
+      revalidationPaths.add("/[lang]")
+    }
+
+    groups.forEach((group) => {
+      const routes = pageSegmentsByGroup[group]
+      if (!routes) return
+
+      const languages = hasNonLocalizedSetting
+        ? ["fr", "en", "de"]
+        : Array.from(changedLanguages)
+
+      languages.forEach((language) => {
+        const route = routes[language]
+        if (route) revalidationPaths.add(`/${language}/${route}`)
+      })
+    })
+
+    const revalidationStartedAt = performance.now()
+    try {
+      revalidationPaths.forEach((path) => {
+        if (path === "/[lang]") revalidatePath(path, "layout")
+        else revalidatePath(path)
+      })
+    } finally {
+      revalidationMs = performance.now() - revalidationStartedAt
+    }
+
+    logMetrics(true)
+    return {
+      success: true,
+      message: "Paramètres enregistrés avec succès.",
+      savedCount: entriesSaved,
+    }
   } catch (error: any) {
+    logMetrics(false)
     console.error("Error updating site settings:", error)
     return { success: false, error: error.message || "Erreur lors de l'enregistrement des paramètres." }
   }
@@ -1988,15 +2115,25 @@ export async function seedAboutPageSettings(force = false) {
 
 export async function seedSupportPageSettings(force = false) {
   try {
-    const existing = await (prisma as any).parametreSite.findUnique({
-      where: { key: "support_hero_title_fr" },
-    })
+    let settings = Object.entries(INITIAL_SUPPORT_SETTINGS)
 
-    if (existing && !force) {
+    if (!force) {
+      const existingSettings = await (prisma as any).parametreSite.findMany({
+        where: { key: { in: settings.map(([key]) => key) } },
+        select: { key: true, value: true },
+      })
+      const valuesByKey = new Map<string, string>()
+      existingSettings.forEach((setting: { key: string; value: string }) => {
+        valuesByKey.set(setting.key, setting.value)
+      })
+      settings = settings.filter(([key]) => !valuesByKey.get(key)?.trim())
+    }
+
+    if (settings.length === 0) {
       return { success: true, message: "Paramètres Soutien déjà initialisés." }
     }
 
-    const entries = Object.entries(INITIAL_SUPPORT_SETTINGS).map(([key, value]) => ({
+    const entries = settings.map(([key, value]) => ({
       key,
       value,
       group: "SUPPORT",
@@ -2014,7 +2151,8 @@ export async function seedSupportPageSettings(force = false) {
 
 const DEFAULT_TEAM_MEMBERS = [
   {
-    name: "Komal DAGNON",
+    firstName: "Komal",
+    lastName: "DAGNON",
     roleFr: "Directeur Exécutif & Co-fondateur",
     roleEn: "Executive Director & Co-Founder",
     roleDe: "Geschäftsführender Direktor & Mitgründer",
@@ -2032,7 +2170,8 @@ const DEFAULT_TEAM_MEMBERS = [
     active: true,
   },
   {
-    name: "Kokouvi Mensah",
+    firstName: "Kokouvi",
+    lastName: "Mensah",
     roleFr: "Président du Conseil d'Administration",
     roleEn: "President of the Board of Directors",
     roleDe: "Vorsitzender des Verwaltungsrats",
@@ -2050,7 +2189,8 @@ const DEFAULT_TEAM_MEMBERS = [
     active: true,
   },
   {
-    name: "Afiwa Lawson",
+    firstName: "Afiwa",
+    lastName: "Lawson",
     roleFr: "Coordinatrice des Programmes & Ingénierie Pédagogique",
     roleEn: "Programs & Pedagogical Engineering Coordinator",
     roleDe: "Programm- & Pädagogikkoordinatorin",
@@ -2068,7 +2208,8 @@ const DEFAULT_TEAM_MEMBERS = [
     active: true,
   },
   {
-    name: "Kodjo Agbodjan",
+    firstName: "Kodjo",
+    lastName: "Agbodjan",
     roleFr: "Responsable Technique & FabLab Rural",
     roleEn: "Technical Lead & Rural FabLab Manager",
     roleDe: "Technischer Leiter & Rural FabLab",
@@ -2086,7 +2227,8 @@ const DEFAULT_TEAM_MEMBERS = [
     active: true,
   },
   {
-    name: "Essivi Kpogo",
+    firstName: "Essivi",
+    lastName: "Kpogo",
     roleFr: "Chargée de Mobilisation Communautaire & Genre",
     roleEn: "Community Engagement & Gender Officer",
     roleDe: "Referentin für Gemeindeengagement & Gleichstellung",
@@ -2104,7 +2246,8 @@ const DEFAULT_TEAM_MEMBERS = [
     active: true,
   },
   {
-    name: "Dr. Yao Tete",
+    firstName: "Yao",
+    lastName: "Tete",
     roleFr: "Conseiller Scientifique, Climat & Agro-Écologie",
     roleEn: "Scientific Advisor, Climate & Agro-Ecology",
     roleDe: "Wissenschaftlicher Berater für Klima & Agrarökologie",
@@ -2122,7 +2265,8 @@ const DEFAULT_TEAM_MEMBERS = [
     active: true,
   },
   {
-    name: "Léa Dupont",
+    firstName: "Léa",
+    lastName: "Dupont",
     roleFr: "Volontaire Internationale — UI/UX & Documentation",
     roleEn: "International Volunteer — UI/UX & Digital Design",
     roleDe: "Internationale Freiwillige — UI/UX & Mediengestaltung",
@@ -2140,6 +2284,32 @@ const DEFAULT_TEAM_MEMBERS = [
     active: true,
   },
 ]
+
+function serializeTeamMembers(
+  members: Array<Omit<TeamMemberDTO, "skills"> & { skills: unknown }>
+): TeamMemberDTO[] {
+  return members.map((member) => ({
+    ...member,
+    skills: (() => {
+      if (Array.isArray(member.skills)) return member.skills
+      if (typeof member.skills !== "string") return []
+
+      const legacySkills = member.skills
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter(Boolean)
+
+      try {
+        const skills = JSON.parse(member.skills)
+        return Array.isArray(skills)
+          ? skills.filter((skill): skill is string => typeof skill === "string")
+          : legacySkills
+      } catch {
+        return legacySkills
+      }
+    })(),
+  }))
+}
 
 export async function getTeamMembers(options?: { category?: string; activeOnly?: boolean }) {
   const maxRetries = 3
@@ -2160,20 +2330,20 @@ export async function getTeamMembers(options?: { category?: string; activeOnly?:
         orderBy: [{ order: "asc" }, { createdAt: "asc" }],
       })
 
-      // Seed initial members if database is empty
       if (members.length === 0 && !options?.category) {
-        for (const m of DEFAULT_TEAM_MEMBERS) {
-          await (prisma as any).membreEquipe.create({
-            data: m,
+        const totalMembers = await (prisma as any).membreEquipe.count()
+        if (totalMembers === 0) {
+          for (const member of DEFAULT_TEAM_MEMBERS) {
+            await (prisma as any).membreEquipe.create({ data: member })
+          }
+          members = await (prisma as any).membreEquipe.findMany({
+            where,
+            orderBy: [{ order: "asc" }, { createdAt: "asc" }],
           })
         }
-        members = await (prisma as any).membreEquipe.findMany({
-          where,
-          orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-        })
       }
 
-      return { success: true, members }
+      return { success: true, members: serializeTeamMembers(members) }
     } catch (error: any) {
       lastError = error
       console.warn(`[getTeamMembers] Tentative ${attempt}/${maxRetries} échouée:`, error?.message || error)
@@ -2187,54 +2357,45 @@ export async function getTeamMembers(options?: { category?: string; activeOnly?:
   return { success: false, members: [], error: lastError?.message }
 }
 
-export async function createTeamMember(data: {
-  name: string
-  roleFr: string
-  roleEn?: string
-  roleDe?: string
-  category: string
-  bioFr?: string
-  bioEn?: string
-  bioDe?: string
-  photoUrl?: string
-  email?: string
-  skills?: string[] | string
-  order?: number
-  active?: boolean
-}) {
+export async function createTeamMember(data: unknown) {
   try {
-    if (!data.name || !data.roleFr || !data.category) {
-      return { success: false, error: "Nom, fonction et rôle/catégorie sont obligatoires." }
+    const session = await verifySession()
+    if (!session?.userId) {
+      return { success: false, error: "Vous devez être connecté pour ajouter un membre." }
     }
 
-    const skillsStr = Array.isArray(data.skills)
-      ? JSON.stringify(data.skills)
-      : typeof data.skills === "string"
-      ? data.skills
-      : "[]"
+    const parsed = teamMemberCreateSchema.safeParse(data)
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message || "Données invalides." }
+    }
 
+    const memberData = parsed.data
+    const maxOrder = memberData.order === undefined
+      ? await (prisma as any).membreEquipe.aggregate({ _max: { order: true } })
+      : null
     const member = await (prisma as any).membreEquipe.create({
       data: {
-        name: data.name.trim(),
-        roleFr: data.roleFr.trim(),
-        roleEn: data.roleEn?.trim() || null,
-        roleDe: data.roleDe?.trim() || null,
-        category: data.category,
-        bioFr: data.bioFr?.trim() || null,
-        bioEn: data.bioEn?.trim() || null,
-        bioDe: data.bioDe?.trim() || null,
-        photoUrl: data.photoUrl?.trim() || null,
-        email: data.email?.toLowerCase().trim() || null,
-        skills: skillsStr,
-        order: Number(data.order) || 0,
-        active: data.active !== undefined ? Boolean(data.active) : true,
+        firstName: memberData.firstName,
+        lastName: memberData.lastName,
+        roleFr: memberData.roleFr,
+        roleEn: memberData.roleEn || null,
+        roleDe: memberData.roleDe || null,
+        category: memberData.category,
+        bioFr: memberData.bioFr,
+        bioEn: memberData.bioEn || null,
+        bioDe: memberData.bioDe || null,
+        photoUrl: memberData.photoUrl,
+        email: memberData.email?.toLowerCase() || null,
+        skills: JSON.stringify(memberData.skills),
+        order: memberData.order ?? (maxOrder?._max.order || 0) + 1,
+        active: memberData.active ?? true,
       },
     })
 
-    revalidatePath("/backoffice/settings")
-    revalidatePath("/backoffice/team")
-    revalidatePath("/[lang]/equipe", "page")
-    revalidatePath("/[lang]/team", "page")
+    safeRevalidatePath("/backoffice/settings")
+    safeRevalidatePath("/backoffice/team")
+    safeRevalidatePath("/[lang]/equipe", "page")
+    safeRevalidatePath("/[lang]/team", "page")
     return { success: true, member, message: "Membre ajouté avec succès." }
   } catch (error: any) {
     console.error("Error creating team member:", error)
@@ -2242,56 +2403,45 @@ export async function createTeamMember(data: {
   }
 }
 
-export async function updateTeamMember(
-  id: string,
-  data: {
-    name?: string
-    roleFr?: string
-    roleEn?: string
-    roleDe?: string
-    category?: string
-    bioFr?: string
-    bioEn?: string
-    bioDe?: string
-    photoUrl?: string
-    email?: string
-    skills?: string[] | string
-    order?: number
-    active?: boolean
-  }
-) {
+export async function updateTeamMember(id: string, data: unknown) {
   try {
-    const updateData: any = {}
-    if (data.name !== undefined) updateData.name = data.name.trim()
-    if (data.roleFr !== undefined) updateData.roleFr = data.roleFr.trim()
-    if (data.roleEn !== undefined) updateData.roleEn = data.roleEn?.trim() || null
-    if (data.roleDe !== undefined) updateData.roleDe = data.roleDe?.trim() || null
-    if (data.category !== undefined) updateData.category = data.category
-    if (data.bioFr !== undefined) updateData.bioFr = data.bioFr?.trim() || null
-    if (data.bioEn !== undefined) updateData.bioEn = data.bioEn?.trim() || null
-    if (data.bioDe !== undefined) updateData.bioDe = data.bioDe?.trim() || null
-    if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl?.trim() || null
-    if (data.email !== undefined) updateData.email = data.email?.toLowerCase().trim() || null
-    if (data.skills !== undefined) {
-      updateData.skills = Array.isArray(data.skills)
-        ? JSON.stringify(data.skills)
-        : typeof data.skills === "string"
-        ? data.skills
-        : "[]"
+    const session = await verifySession()
+    if (!session?.userId) {
+      return { success: false, error: "Vous devez être connecté pour modifier un membre." }
     }
-    if (data.order !== undefined) updateData.order = Number(data.order)
-    if (data.active !== undefined) updateData.active = Boolean(data.active)
 
-    const updated = await (prisma as any).membreEquipe.update({
+    const parsed = teamMemberUpdateSchema.safeParse(data)
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message || "Données invalides." }
+    }
+
+    const memberData = parsed.data
+    const updateData: any = {}
+    if (memberData.firstName !== undefined) updateData.firstName = memberData.firstName
+    if (memberData.lastName !== undefined) updateData.lastName = memberData.lastName
+    if (memberData.roleFr !== undefined) updateData.roleFr = memberData.roleFr
+    if (memberData.roleEn !== undefined) updateData.roleEn = memberData.roleEn || null
+    if (memberData.roleDe !== undefined) updateData.roleDe = memberData.roleDe || null
+    if (memberData.category !== undefined) updateData.category = memberData.category
+    if (memberData.bioFr !== undefined) updateData.bioFr = memberData.bioFr
+    if (memberData.bioEn !== undefined) updateData.bioEn = memberData.bioEn || null
+    if (memberData.bioDe !== undefined) updateData.bioDe = memberData.bioDe || null
+    if (memberData.photoUrl !== undefined) updateData.photoUrl = memberData.photoUrl
+    if (memberData.email !== undefined) updateData.email = memberData.email.toLowerCase() || null
+    if (memberData.skills !== undefined) updateData.skills = JSON.stringify(memberData.skills)
+    if (memberData.order !== undefined) updateData.order = memberData.order
+    if (memberData.active !== undefined) updateData.active = memberData.active
+
+    const member = await (prisma as any).membreEquipe.update({
       where: { id },
       data: updateData,
     })
 
-    revalidatePath("/backoffice/settings")
-    revalidatePath("/backoffice/team")
-    revalidatePath("/[lang]/equipe", "page")
-    revalidatePath("/[lang]/team", "page")
-    return { success: true, member: updated, message: "Membre mis à jour avec succès." }
+    safeRevalidatePath("/backoffice/settings")
+    safeRevalidatePath("/backoffice/team")
+    safeRevalidatePath("/[lang]/equipe", "page")
+    safeRevalidatePath("/[lang]/team", "page")
+    return { success: true, member, message: "Membre mis à jour avec succès." }
   } catch (error: any) {
     console.error("Error updating team member:", error)
     return { success: false, error: error.message || "Erreur lors de la mise à jour." }
@@ -2300,14 +2450,16 @@ export async function updateTeamMember(
 
 export async function deleteTeamMember(id: string) {
   try {
-    await (prisma as any).membreEquipe.delete({
-      where: { id },
-    })
+    const session = await verifySession()
+    if (!session?.userId) {
+      return { success: false, error: "Vous devez être connecté pour supprimer un membre." }
+    }
 
-    revalidatePath("/backoffice/settings")
-    revalidatePath("/backoffice/team")
-    revalidatePath("/[lang]/equipe", "page")
-    revalidatePath("/[lang]/team", "page")
+    await (prisma as any).membreEquipe.delete({ where: { id } })
+    safeRevalidatePath("/backoffice/settings")
+    safeRevalidatePath("/backoffice/team")
+    safeRevalidatePath("/[lang]/equipe", "page")
+    safeRevalidatePath("/[lang]/team", "page")
     return { success: true, message: "Membre supprimé avec succès." }
   } catch (error: any) {
     console.error("Error deleting team member:", error)
@@ -2315,9 +2467,58 @@ export async function deleteTeamMember(id: string) {
   }
 }
 
+export async function reorderTeamMembersAction(orderedIds: string[]) {
+  try {
+    const session = await verifySession()
+    if (!session?.userId) {
+      return { success: false, error: "Vous devez être connecté pour réorganiser l'équipe." }
+    }
+
+    const parsed = teamMemberReorderSchema.safeParse({ orderedIds })
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message || "Ordre invalide." }
+    }
+
+    const activeMembers = await (prisma as any).membreEquipe.findMany({
+      where: { active: true },
+      select: { id: true },
+    })
+    const activeIds = new Set(activeMembers.map((member: { id: string }) => member.id))
+    const ids = parsed.data.orderedIds
+    if (ids.length !== activeIds.size || ids.some((id) => !activeIds.has(id))) {
+      return { success: false, error: "La liste doit contenir tous les membres actifs." }
+    }
+
+    await prisma.$transaction(
+      ids.map((id, index) =>
+        prisma.membreEquipe.update({
+          where: { id },
+          data: { order: index + 1 },
+        })
+      )
+    )
+
+    safeRevalidatePath("/backoffice/settings")
+    safeRevalidatePath("/backoffice/team")
+    safeRevalidatePath("/[lang]/equipe", "page")
+    safeRevalidatePath("/[lang]/team", "page")
+    return { success: true, message: "Ordre de l'équipe mis à jour." }
+  } catch (error: any) {
+    console.error("Error reordering team members:", error)
+    return { success: false, error: error.message || "Erreur lors de la réorganisation." }
+  }
+}
+
 // ─── 22. CMS : GESTION DES DOMAINES D'ACTION ─────────────────────────────────
 
-export async function getDomaines(options?: { activeOnly?: boolean }) {
+function hasDomaineContentInLanguage(domaine: any, lang: string): boolean {
+  const language = lang.toUpperCase()
+  const name = language === "EN" ? domaine.nameEn : language === "DE" ? domaine.nameDe : domaine.nameFr
+  const description = language === "EN" ? domaine.descEn : language === "DE" ? domaine.descDe : domaine.descFr
+  return Boolean(name?.trim() && description?.trim())
+}
+
+export async function getDomaines(options?: { activeOnly?: boolean; lang?: string }) {
   try {
     const where: any = {}
     if (options?.activeOnly) {
@@ -2345,14 +2546,14 @@ export async function getDomaines(options?: { activeOnly?: boolean }) {
         },
       },
     })
-    return domaines
+    return options?.lang ? domaines.filter((domaine: any) => hasDomaineContentInLanguage(domaine, options.lang!)) : domaines
   } catch (error) {
     console.error("Error fetching domaines:", error)
     return []
   }
 }
 
-export async function getDomaineBySlug(slugOrId: string) {
+export async function getDomaineBySlug(slugOrId: string, lang?: string) {
   const maxRetries = 2
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -2370,6 +2571,10 @@ export async function getDomaineBySlug(slugOrId: string) {
           },
         },
       })
+      if (domaine && lang) {
+        if (!hasDomaineContentInLanguage(domaine, lang)) return null
+        domaine.projets = (domaine.projets || []).filter((project: any) => isProjectPublishedForLang(project, lang))
+      }
       return domaine
     } catch (error: any) {
       console.warn(`[getDomaineBySlug] Tentative ${attempt}/${maxRetries} échouée:`, error?.message || error)
@@ -2836,4 +3041,5 @@ export async function deleteRessource(id: string) {
     return { success: false, error: error.message || "Erreur lors de la suppression." }
   }
 }
+
 

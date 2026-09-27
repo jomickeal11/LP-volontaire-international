@@ -7,6 +7,8 @@ import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { useRouter } from "next/navigation"
 import { ArrowRightIcon } from "@/components/Icons"
+import UnavailablePageNotice from "@/components/UnavailablePageNotice"
+import { isCmsPagePublished } from "@/lib/page-publication"
 
 interface SupportViewProps {
   lang: Language
@@ -273,36 +275,42 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
   const c = CONTENT[safeLang]
 
   const [settings, setSettings] = React.useState<Record<string, string>>(initialSettings)
+  const [settingsLoaded, setSettingsLoaded] = React.useState(Object.keys(initialSettings).length > 0)
 
   React.useEffect(() => {
     import("@/lib/cms-actions").then(({ getSiteSettings }) => {
-      getSiteSettings("SUPPORT").then((res) => {
-        if (res.success && res.dict) {
-          setSettings((prev) => ({ ...prev, ...res.dict }))
-        }
-      }).catch(console.error)
+      Promise.all([getSiteSettings("SUPPORT"), getSiteSettings("GENERAL")])
+        .then(([supportRes, generalRes]) => {
+          const merged = {
+            ...(supportRes.success ? supportRes.dict : {}),
+            ...(generalRes.success ? generalRes.dict : {}),
+          }
+          setSettings((prev) => ({ ...prev, ...merged }))
+        })
+        .catch(console.error)
+        .finally(() => setSettingsLoaded(true))
     })
   }, [])
 
   // ─── Dynamic CMS Bindings with Fallbacks ──────────────────────────────────
-  const heroBadge = settings[`support_hero_badge_${l}`] || c.hero.badge
-  const heroTitle = settings[`support_hero_title_${l}`] || c.hero.title
-  const heroDesc = settings[`support_hero_desc_${l}`] || c.hero.desc
-  const heroCta = settings[`support_hero_cta_${l}`] || c.hero.cta
-  const heroImage = settings["support_hero_image"] || "https://images.unsplash.com/photo-1609252509229-364936a1d1a2?w=1000&h=750&fit=crop&auto=format"
+  const heroBadge = settings[`support_hero_badge_${l}`] ?? ""
+  const heroTitle = settings[`support_hero_title_${l}`] ?? ""
+  const heroDesc = settings[`support_hero_desc_${l}`] ?? ""
+  const heroCta = settings[`support_hero_cta_${l}`] ?? ""
+  const heroImage = settings["support_hero_image"] ?? ""
 
-  const axesTag = settings[`support_axes_tag_${l}`] || c.axes.tag
-  const axesTitle = settings[`support_axes_title_${l}`] || c.axes.title
-  const axesSubtitle = settings[`support_axes_subtitle_${l}`] || c.axes.subtitle
+  const axesTag = settings[`support_axes_tag_${l}`] ?? ""
+  const axesTitle = settings[`support_axes_title_${l}`] ?? ""
+  const axesSubtitle = settings[`support_axes_subtitle_${l}`] ?? ""
 
   // Dynamic Axes (Pure DB source of truth — shows nothing if not seeded)
   const axesCount = Math.max(0, parseInt(settings["support_axes_count"] || "0", 10))
   const rawAxes: { title: string; desc: string; linkText: string; originalIndex: number }[] = []
 
   for (let idx = 1; idx <= axesCount; idx++) {
-    const title = settings[`support_axes_${idx}_title_${l}`] || ""
-    const desc = settings[`support_axes_${idx}_desc_${l}`] || ""
-    const linkText = settings[`support_axes_${idx}_link_${l}`] || ""
+    const title = settings[`support_axes_${idx}_title_${l}`] ?? ""
+    const desc = settings[`support_axes_${idx}_desc_${l}`] ?? ""
+    const linkText = settings[`support_axes_${idx}_link_${l}`] ?? ""
     if (title.trim() || desc.trim()) {
       rawAxes.push({ title, desc, linkText, originalIndex: idx })
     }
@@ -313,16 +321,16 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
     num: String(i + 1).padStart(2, "0"),
   }))
 
-  const whyTag = settings[`support_why_tag_${l}`] || c.why.tag
-  const whyTitle = settings[`support_why_title_${l}`] || c.why.title
-  const whyDesc = settings[`support_why_desc_${l}`] || c.why.desc
+  const whyTag = settings[`support_why_tag_${l}`] ?? ""
+  const whyTitle = settings[`support_why_title_${l}`] ?? ""
+  const whyDesc = settings[`support_why_desc_${l}`] ?? ""
 
   // Dynamic WHY Pillars (Pure DB source of truth — shows nothing if not seeded)
   const whyCount = Math.max(0, parseInt(settings["support_why_count"] || "0", 10))
   const rawWhyPoints: { title: string; desc: string }[] = []
   for (let idx = 1; idx <= whyCount; idx++) {
-    const title = settings[`support_why_${idx}_title_${l}`] || ""
-    const desc = settings[`support_why_${idx}_desc_${l}`] || ""
+    const title = settings[`support_why_${idx}_title_${l}`] ?? ""
+    const desc = settings[`support_why_${idx}_desc_${l}`] ?? ""
     if (title.trim() || desc.trim()) rawWhyPoints.push({ title, desc })
   }
 
@@ -331,24 +339,35 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
     num: String(i + 1).padStart(2, "0"),
   }))
 
-  const transparencyTag = settings[`support_transparency_tag_${l}`] || c.transparency.tag
-  const transparencyTitle = settings[`support_transparency_title_${l}`] || c.transparency.title
-  const transparencyDesc = settings[`support_transparency_desc_${l}`] || c.transparency.desc
-  const transparencyReceipt = settings[`support_transparency_receipt_${l}`] || c.transparency.receiptNotice
+  const transparencyTag = settings[`support_transparency_tag_${l}`] ?? ""
+  const transparencyTitle = settings[`support_transparency_title_${l}`] ?? ""
+  const transparencyDesc = settings[`support_transparency_desc_${l}`] ?? ""
+  const transparencyReceipt = settings[`support_transparency_receipt_${l}`] ?? ""
 
-  const futureTag = settings[`support_future_tag_${l}`] || c.future.tag
-  const futureTitle = settings[`support_future_title_${l}`] || c.future.title
-  const futureDesc = settings[`support_future_desc_${l}`] || c.future.desc
+  const futureTag = settings[`support_future_tag_${l}`] ?? ""
+  const futureTitle = settings[`support_future_title_${l}`] ?? ""
+  const futureDesc = settings[`support_future_desc_${l}`] ?? ""
 
-  const ctaTitle = settings[`support_cta_title_${l}`] || c.contactCta.title
-  const ctaDesc = settings[`support_cta_desc_${l}`] || c.contactCta.desc
-  const ctaBtnContact = settings[`support_cta_btn_contact_${l}`] || c.contactCta.btnContact
-  const ctaBtnWhatsApp = settings[`support_cta_btn_whatsapp_${l}`] || c.contactCta.btnWhatsApp
+  const ctaTitle = settings[`support_cta_title_${l}`] ?? ""
+  const ctaDesc = settings[`support_cta_desc_${l}`] ?? ""
+  const ctaBtnContact = settings[`support_cta_btn_contact_${l}`] ?? ""
+  const ctaBtnWhatsApp = settings[`support_cta_btn_whatsapp_${l}`] ?? ""
+  const whatsappDigits = (settings.site_social_whatsapp ?? "").replace(/\D/g, "")
 
   const navigate = (page: Page) => {
     router.push(getPageUrl(page, safeLang))
   }
 
+  if (!settingsLoaded) return null
+  if (!isCmsPagePublished(settings, "SUPPORT", safeLang)) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <Header lang={safeLang} currentPage="support" navigate={navigate} setLang={(newLang) => router.push(getPageUrl("support", newLang))} />
+        <main className="flex-1"><UnavailablePageNotice lang={safeLang} /></main>
+        <Footer lang={safeLang} navigate={navigate} />
+      </div>
+    )
+  }
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: BG_PAGE }}>
       <Header
@@ -569,8 +588,8 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
                 <ArrowRightIcon size={14} strokeWidth={2} />
               </button>
 
-              <a
-                href="https://wa.me/22891201990?text=Bonjour%20APTIC-R,%20je%20souhaite%20des%20informations%20pour%20soutenir%20vos%20actions."
+              {whatsappDigits && <a
+                href={`https://wa.me/${whatsappDigits}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider text-white bg-[#28A745] hover:bg-[#218838] transition-all shadow-sm hover:shadow-md cursor-pointer"
@@ -579,7 +598,7 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
                   <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
                 </svg>
                 <span>{ctaBtnWhatsApp}</span>
-              </a>
+              </a>}
             </div>
           </div>
         </section>

@@ -82,46 +82,46 @@ export default function DomainDetailView({ domaine, allDomaines = [], lang }: Do
   // Localized fields
   const title =
     lang === "EN"
-      ? domaine.nameEn || domaine.nameFr
+      ? domaine.nameEn ?? ""
       : lang === "DE"
-      ? domaine.nameDe || domaine.nameFr
+      ? domaine.nameDe ?? ""
       : domaine.nameFr
 
   const subtitle =
     lang === "EN"
-      ? domaine.subtitleEn || domaine.subtitleFr || ""
+      ? domaine.subtitleEn ?? ""
       : lang === "DE"
-      ? domaine.subtitleDe || domaine.subtitleFr || ""
+      ? domaine.subtitleDe ?? ""
       : domaine.subtitleFr || ""
 
   const desc =
     lang === "EN"
-      ? domaine.descEn || domaine.descFr
+      ? domaine.descEn ?? ""
       : lang === "DE"
-      ? domaine.descDe || domaine.descFr
+      ? domaine.descDe ?? ""
       : domaine.descFr
 
   const targetAudience =
     lang === "EN"
-      ? domaine.targetAudienceEn || domaine.targetAudienceFr
+      ? domaine.targetAudienceEn ?? ""
       : lang === "DE"
-      ? domaine.targetAudienceDe || domaine.targetAudienceFr
+      ? domaine.targetAudienceDe ?? ""
       : domaine.targetAudienceFr
 
   // Lists
   const rawObjectives =
     lang === "EN"
-      ? domaine.objectivesEn || domaine.objectivesFr
+      ? domaine.objectivesEn ?? ""
       : lang === "DE"
-      ? domaine.objectivesDe || domaine.objectivesFr
+      ? domaine.objectivesDe ?? ""
       : domaine.objectivesFr
   const objectives = parseList(rawObjectives)
 
   const rawActions =
     lang === "EN"
-      ? domaine.actionsEn || domaine.actionsFr
+      ? domaine.actionsEn ?? ""
       : lang === "DE"
-      ? domaine.actionsDe || domaine.actionsFr
+      ? domaine.actionsDe ?? ""
       : domaine.actionsFr
   const actions = parseList(rawActions)
 
@@ -137,9 +137,9 @@ export default function DomainDetailView({ domaine, allDomaines = [], lang }: Do
   const photoSrc = domaine.featuredImage || domaine.imageUrl || photoMeta.src
   const photoCaption =
     lang === "EN"
-      ? domaine.imageCaptionEn || domaine.imageCaptionFr || photoMeta.caption
+      ? domaine.imageCaptionEn ?? ""
       : lang === "DE"
-      ? domaine.imageCaptionDe || domaine.imageCaptionFr || photoMeta.caption
+      ? domaine.imageCaptionDe ?? ""
       : domaine.imageCaptionFr || photoMeta.caption
 
   // Domain number / order
@@ -548,8 +548,8 @@ export default function DomainDetailView({ domaine, allDomaines = [], lang }: Do
                   {projets.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {projets.map((p: any) => {
-                        const pTitle = lang === "EN" ? p.titleEn || p.titleFr : lang === "DE" ? p.titleDe || p.titleFr : p.titleFr
-                        const pSummary = lang === "EN" ? p.summaryEn || p.summaryFr : lang === "DE" ? p.summaryDe || p.summaryFr : p.summaryFr
+                        const pTitle = lang === "EN" ? p.titleEn ?? "" : lang === "DE" ? p.titleDe ?? "" : p.titleFr
+                        const pSummary = lang === "EN" ? p.summaryEn ?? "" : lang === "DE" ? p.summaryDe ?? "" : p.summaryFr
                         const pImage = p.featuredImage || photoSrc
 
                         return (
@@ -632,7 +632,7 @@ export default function DomainDetailView({ domaine, allDomaines = [], lang }: Do
                     </div>
                     <div className="space-y-2.5">
                       {domaine.ressources.map((r: any) => {
-                        const rTitle = lang === "EN" ? r.titleEn || r.titleFr : lang === "DE" ? r.titleDe || r.titleFr : r.titleFr
+                        const rTitle = lang === "EN" ? r.titleEn ?? "" : lang === "DE" ? r.titleDe ?? "" : r.titleFr
                         return (
                           <div
                             key={r.id}
@@ -817,15 +817,15 @@ export default function DomainDetailView({ domaine, allDomaines = [], lang }: Do
                 {otherDomains.map((other, idx) => {
                   const oTitle =
                     lang === "EN"
-                      ? other.nameEn || other.nameFr
+                      ? other.nameEn ?? ""
                       : lang === "DE"
-                      ? other.nameDe || other.nameFr
+                      ? other.nameDe ?? ""
                       : other.nameFr
                   const oSubtitle =
                     lang === "EN"
-                      ? other.subtitleEn || other.subtitleFr
+                      ? other.subtitleEn ?? ""
                       : lang === "DE"
-                      ? other.subtitleDe || other.subtitleFr
+                      ? other.subtitleDe ?? ""
                       : other.subtitleFr
                   const oNum = other.order ? (other.order < 10 ? `0${other.order}` : `${other.order}`) : `0${idx + 1}`
 

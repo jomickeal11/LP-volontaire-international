@@ -148,8 +148,8 @@ export const INITIAL_SUPPORT_SETTINGS: Record<string, string> = {
   support_future_desc_en: "A secure online donation solution may be integrated at a later stage, following formal validation of terms and payment gateways by APTIC-R leadership.",
 
   support_future_tag_de: "ZUKÜNFTIGE ENTWICKLUNG",
-  support_future_title_de: "Online-Spenden und Zahlungswege",
-  support_future_desc_de: "Eine gesicherte Online-Spendenlösung kann zu einem späteren Zeitpunkt integriert werden, sobald Richtlinien und Partner freigegeben sind.",
+  support_future_title_de: "Online-Spenden",
+  support_future_desc_de: "Eine sichere Online-Spendenfunktion kann zu einem späteren Zeitpunkt nach Prüfung und Freigabe durch APTIC-R integriert werden.",
 
   // ── 06. CTA ──
   support_cta_title_fr: "Vous souhaitez soutenir un projet spécifique ?",
@@ -162,8 +162,8 @@ export const INITIAL_SUPPORT_SETTINGS: Record<string, string> = {
   support_cta_btn_contact_en: "Contact Us",
   support_cta_btn_whatsapp_en: "Chat on WhatsApp",
 
-  support_cta_title_de: "Möchten Sie ein bestimmtes Vorhaben unterstützen?",
-  support_cta_desc_de: "Unser Koordinationsteam informiert Sie gerne über aktuelle Prioritäten vor Ort und bespricht Möglichkeiten der Zusammenarbeit.",
+  support_cta_title_de: "Möchten Sie ein konkretes Vorhaben unterstützen?",
+  support_cta_desc_de: "Unser Koordinationsteam steht Ihnen gerne zur Verfügung, um über aktuelle Bedarfe und Möglichkeiten zu sprechen.",
   support_cta_btn_contact_de: "Kontakt aufnehmen",
-  support_cta_btn_whatsapp_de: "Auf WhatsApp austauschen",
+  support_cta_btn_whatsapp_de: "Über WhatsApp schreiben",
 }

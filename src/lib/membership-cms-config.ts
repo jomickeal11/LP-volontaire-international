@@ -24,37 +24,37 @@ export interface MembershipCmsSection {
 export const MEMBERSHIP_SECTIONS: MembershipCmsSection[] = [
   {
     id: "HERO",
-    title: "01. En-tête & Titre Principal (Hero)",
+    title: "En-tête & Titre Principal (Hero)",
     description: "Badge thématique, grand titre, descriptif d'introduction et bouton vers le formulaire.",
     iconName: "ShieldIcon",
   },
   {
     id: "WHY",
-    title: "02. Pourquoi Devenir Membre ?",
+    title: "Pourquoi Devenir Membre ?",
     description: "Surtitre, titre de section, sous-titre et les cartes piliers d'impact (numérotées dynamiquement).",
     iconName: "HeartPulseIcon",
   },
   {
     id: "CONTRIBUTE",
-    title: "03. Modes d'Engagement & Contribution",
+    title: "Modes d'Engagement & Contribution",
     description: "Surtitre, titre de section, sous-titre et les cartes de formats de contribution.",
     iconName: "UsersIcon",
   },
   {
     id: "WHO",
-    title: "04. Qui Peut Rejoindre APTIC-R ?",
+    title: "Qui Peut Rejoindre APTIC-R ?",
     description: "Surtitre, titre, texte principal, texte de solidarité et badges de profils cibles.",
     iconName: "UserCheckIcon",
   },
   {
     id: "CTA",
-    title: "05. Bannière d'Appel à l'Action (CTA)",
+    title: "Bannière d'Appel à l'Action (CTA)",
     description: "Surtitre, titre d'incitation, texte d'encouragement et bouton d'action.",
     iconName: "ArrowRightIcon",
   },
   {
     id: "FORM",
-    title: "06. Formulaire d'Adhésion (Titres & Libellés)",
+    title: "Formulaire d'Adhésion (Titres & Libellés)",
     description: "Surtitre, titre du formulaire et sous-titre descriptif.",
     iconName: "FileTextIcon",
   },
@@ -65,7 +65,9 @@ export const MEMBERSHIP_FIELDS: MembershipCmsField[] = [
   { key: "membership_hero_badge", label: "Badge thématique Hero", type: "text", section: "HERO", multilingual: true },
   { key: "membership_hero_title", label: "Grand Titre Hero", type: "text", section: "HERO", multilingual: true },
   { key: "membership_hero_desc", label: "Description d'introduction Hero", type: "textarea", section: "HERO", multilingual: true },
-  { key: "membership_hero_cta", label: "Libellé du Bouton Hero", type: "text", section: "HERO", multilingual: true },
+  { key: "membership_hero_cta", label: "Libellé du Bouton Principal", type: "text", section: "HERO", multilingual: true },
+  { key: "membership_hero_cta2", label: "Libellé du Bouton Secondaire", type: "text", section: "HERO", multilingual: true },
+  { key: "membership_hero_cta2_link", label: "Lien du Bouton Secondaire (Optionnel)", type: "text", section: "HERO", multilingual: false },
 
   // ── 02. WHY (POURQUOI DEVENIR MEMBRE) ──
   { key: "membership_why_tag", label: "Surtitre / Tag Section", type: "text", section: "WHY", multilingual: true },
@@ -83,6 +85,12 @@ export const MEMBERSHIP_FIELDS: MembershipCmsField[] = [
 
   { key: "membership_why_card4_title", label: "Pilier 4 - Titre", type: "text", section: "WHY", multilingual: true },
   { key: "membership_why_card4_desc", label: "Pilier 4 - Description", type: "textarea", section: "WHY", multilingual: true },
+
+  { key: "membership_why_card5_title", label: "Pilier 5 - Titre", type: "text", section: "WHY", multilingual: true },
+  { key: "membership_why_card5_desc", label: "Pilier 5 - Description", type: "textarea", section: "WHY", multilingual: true },
+
+  { key: "membership_why_card6_title", label: "Pilier 6 - Titre", type: "text", section: "WHY", multilingual: true },
+  { key: "membership_why_card6_desc", label: "Pilier 6 - Description", type: "textarea", section: "WHY", multilingual: true },
 
   // ── 03. CONTRIBUTE (MODES D'ENGAGEMENT) ──
   { key: "membership_contribute_tag", label: "Surtitre / Tag Section", type: "text", section: "CONTRIBUTE", multilingual: true },
@@ -112,7 +120,8 @@ export const MEMBERSHIP_FIELDS: MembershipCmsField[] = [
   { key: "membership_who_title", label: "Titre de la Section", type: "text", section: "WHO", multilingual: true },
   { key: "membership_who_text", label: "Texte principal d'inclusion", type: "textarea", section: "WHO", multilingual: true },
   { key: "membership_who_subtext", label: "Texte secondaire / Valeurs", type: "textarea", section: "WHO", multilingual: true },
-  { key: "membership_who_badges", label: "Badges de profils (séparés par des virgules)", type: "text", section: "WHO", multilingual: true },
+  { key: "membership_who_message_title", label: "Titre du message important", type: "text", section: "WHO", multilingual: true },
+  { key: "membership_who_message_desc", label: "Description du message important", type: "textarea", section: "WHO", multilingual: true },
 
   // ── 05. CTA BANNER ──
   { key: "membership_cta_tag", label: "Surtitre / Tag CTA", type: "text", section: "CTA", multilingual: true },

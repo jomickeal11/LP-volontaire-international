@@ -25,16 +25,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const title =
     upperLang === "EN"
-      ? project.titleEn || project.titleFr
+      ? project.titleEn ?? ""
       : upperLang === "DE"
-      ? project.titleDe || project.titleFr
+      ? project.titleDe ?? ""
       : project.titleFr
 
   const desc =
     upperLang === "EN"
-      ? project.summaryEn || project.summaryFr
+      ? project.summaryEn ?? ""
       : upperLang === "DE"
-      ? project.summaryDe || project.summaryFr
+      ? project.summaryDe ?? ""
       : project.summaryFr
 
   return {

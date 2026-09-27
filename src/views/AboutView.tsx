@@ -8,6 +8,7 @@ import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { useRouter, usePathname } from "next/navigation"
 import { isAboutPagePublished } from "@/lib/about-cms-config"
+import UnavailablePageNotice from "@/components/UnavailablePageNotice"
 
 interface AboutViewProps {
   lang: Language
@@ -54,144 +55,83 @@ export default function AboutView({ lang, initialSettings = {} }: AboutViewProps
   const isPublished = isAboutPagePublished(settings, lang)
 
   // ── Écran d'attente institutionnel si la langue est en cours de finalisation (BROUILLON) ──
-  if (!loading && !isPublished) {
-    const isEn = lang === "EN"
-    const isDe = lang === "DE"
-
-    const heading = isDe
-      ? "Die deutsche Version wird derzeit finalisiert"
-      : isEn
-      ? "English version being finalized"
-      : "Version française en cours de révision éditoriale"
-
-    const description = isDe
-      ? "Unser Redaktionsteam prüft und vervollständigt derzeit die offizielle deutsche Dokumentation für diesen Bereich. Gemäß unseren redaktionellen Standards werden Inhalte erst nach vollständiger Prüfung freigeschaltet."
-      : isEn
-      ? "Our editorial team is currently reviewing and verifying the official English documentation for this section. In accordance with our publication standards, content is only published once fully verified."
-      : "Cette page institutionnelle est actuellement en cours de révision par l'équipe éditoriale."
-
-    const statusLabel = isDe
-      ? "Status : Entwurf / In Bearbeitung"
-      : isEn
-      ? "Status : Draft / In review"
-      : "Statut : Brouillon / En révision"
-
-    const btnFrench = isDe
-      ? "Geprüfte französische Version lesen"
-      : isEn
-      ? "Read verified French version"
-      : "Consulter la version française"
-
-    const btnHome = isDe ? "Zur Startseite" : isEn ? "Return to homepage" : "Retour à l'accueil"
-
+  if (loading) return null
+  if (!isPublished) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
         <Header lang={lang} setLang={handleSetLang} currentPage="about" navigate={navigate} />
-        <main className="flex-1 pt-24 pb-16 flex items-center justify-center px-4 bg-[#F7F8FA]">
-          <div className="max-w-xl w-full bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-xs text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold uppercase tracking-wider mb-6">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              <span>{statusLabel}</span>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#003366] tracking-tight mb-4">
-              {heading}
-            </h1>
-
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-8">
-              {description}
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link
-                href="/fr/a-propos"
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#003366] text-white font-bold text-xs uppercase tracking-wider hover:bg-[#002244] transition-all shadow-xs"
-              >
-                {btnFrench}
-              </Link>
-              <Link
-                href={`/${lang.toLowerCase()}`}
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-wider hover:bg-slate-200 transition-all border border-slate-200"
-              >
-                {btnHome}
-              </Link>
-            </div>
-          </div>
-        </main>
+        <main className="flex-1"><UnavailablePageNotice lang={lang} /></main>
         <Footer lang={lang} navigate={navigate} />
       </div>
     )
   }
+  const heroEyebrow = settings[`about_eyebrow_${langLower}`] ?? ""
+  const heroTitle = settings[`about_title_${langLower}`] ?? ""
+  const heroSubtitle = settings[`about_subtitle_${langLower}`] ?? ""
 
-  // ── Contenus 100% issus du CMS (Aucun fallback éditorial) ──
-  const heroEyebrow = settings[`about_eyebrow_${langLower}`] || ""
-  const heroTitle = settings[`about_title_${langLower}`] || ""
-  const heroSubtitle = settings[`about_subtitle_${langLower}`] || ""
+  const storyEyebrow = settings[`about_story_eyebrow_${langLower}`] ?? ""
+  const storyHeadline = settings[`about_story_headline_${langLower}`] ?? ""
+  const storyP1 = settings[`about_story_p1_${langLower}`] ?? ""
+  const storyP2 = settings[`about_story_p2_${langLower}`] ?? ""
+  const storyP3 = settings[`about_story_p3_${langLower}`] ?? ""
+  const storyImage = settings["about_story_image"] ?? ""
+  const storyImageAlt = settings[`about_story_image_alt_${langLower}`] ?? ""
+  const storyLocationTag = settings[`about_story_location_tag_${langLower}`] ?? ""
+  const storyLocationText = settings[`about_story_location_${langLower}`] ?? ""
 
-  const storyEyebrow = settings[`about_story_eyebrow_${langLower}`] || ""
-  const storyHeadline = settings[`about_story_headline_${langLower}`] || ""
-  const storyP1 = settings[`about_story_p1_${langLower}`] || ""
-  const storyP2 = settings[`about_story_p2_${langLower}`] || ""
-  const storyP3 = settings[`about_story_p3_${langLower}`] || ""
-  const storyImage = settings["about_story_image"] || "/photo-recit-documentaire.jpg"
-  const storyImageAlt = settings[`about_story_image_alt_${langLower}`] || "APTIC-R"
-  const storyLocationTag = settings[`about_story_location_tag_${langLower}`] || ""
-  const storyLocationText = settings[`about_story_location_${langLower}`] 
-    || (settings["site_location_city"] ? `${settings["site_location_city"]}, ${settings["site_location_region"] || "Région Maritime"}` : "")
+  const step1Year = settings["about_step1_year"] ?? ""
+  const step1Label = settings[`about_step1_label_${langLower}`] ?? ""
+  const step2Year = settings["about_step2_year"] ?? ""
+  const step2Label = settings[`about_step2_label_${langLower}`] ?? ""
+  const step3Year = settings[`about_step3_year_${langLower}`] ?? ""
+  const step3Label = settings[`about_step3_label_${langLower}`] ?? ""
 
-  const step1Year = settings["about_step1_year"] || "2018"
-  const step1Label = settings[`about_step1_label_${langLower}`] || ""
-  const step2Year = settings["about_step2_year"] || "2020"
-  const step2Label = settings[`about_step2_label_${langLower}`] || ""
-  const step3Year = settings[`about_step3_year_${langLower}`] || ""
-  const step3Label = settings[`about_step3_label_${langLower}`] || ""
-
-  const pillarsEyebrow = settings[`about_pillars_eyebrow_${langLower}`] || ""
-  const pillarsTitle = settings[`about_pillars_title_${langLower}`] || ""
-  const missionTitle = settings[`about_mission_title_${langLower}`] || ""
-  const missionDesc = settings[`about_mission_desc_${langLower}`] || ""
-  const visionTitle = settings[`about_vision_title_${langLower}`] || ""
-  const visionDesc = settings[`about_vision_desc_${langLower}`] || ""
-  const philosophyTitle = settings[`about_philosophy_title_${langLower}`] || ""
-  const philosophyDesc = settings[`about_philosophy_desc_${langLower}`] || ""
+  const pillarsEyebrow = settings[`about_pillars_eyebrow_${langLower}`] ?? ""
+  const pillarsTitle = settings[`about_pillars_title_${langLower}`] ?? ""
+  const missionTitle = settings[`about_mission_title_${langLower}`] ?? ""
+  const missionDesc = settings[`about_mission_desc_${langLower}`] ?? ""
+  const visionTitle = settings[`about_vision_title_${langLower}`] ?? ""
+  const visionDesc = settings[`about_vision_desc_${langLower}`] ?? ""
+  const philosophyTitle = settings[`about_philosophy_title_${langLower}`] ?? ""
+  const philosophyDesc = settings[`about_philosophy_desc_${langLower}`] ?? ""
 
   const statsList = [
-    { value: settings["about_stat1_val"] || "5+", label: settings[`about_stat1_lbl_${langLower}`] || "" },
-    { value: settings["about_stat2_val"] || "3 200+", label: settings[`about_stat2_lbl_${langLower}`] || "" },
-    { value: settings["about_stat3_val"] || "14", label: settings[`about_stat3_lbl_${langLower}`] || "" },
-    { value: settings["about_stat4_val"] || "100%", label: settings[`about_stat4_lbl_${langLower}`] || "" },
+    { value: settings["about_stat1_val"] ?? "", label: settings[`about_stat1_lbl_${langLower}`] ?? "" },
+    { value: settings["about_stat2_val"] ?? "", label: settings[`about_stat2_lbl_${langLower}`] ?? "" },
+    { value: settings["about_stat3_val"] ?? "", label: settings[`about_stat3_lbl_${langLower}`] ?? "" },
+    { value: settings["about_stat4_val"] ?? "", label: settings[`about_stat4_lbl_${langLower}`] ?? "" },
   ]
 
-  const valuesEyebrow = settings[`about_values_eyebrow_${langLower}`] || ""
-  const valuesTitle = settings[`about_values_title_${langLower}`] || ""
-  const valuesSubtitle = settings[`about_values_subtitle_${langLower}`] || ""
+  const valuesEyebrow = settings[`about_values_eyebrow_${langLower}`] ?? ""
+  const valuesTitle = settings[`about_values_title_${langLower}`] ?? ""
+  const valuesSubtitle = settings[`about_values_subtitle_${langLower}`] ?? ""
   const valuesList = [
-    { num: "01", title: settings[`about_val1_title_${langLower}`] || "", desc: settings[`about_val1_desc_${langLower}`] || "" },
-    { num: "02", title: settings[`about_val2_title_${langLower}`] || "", desc: settings[`about_val2_desc_${langLower}`] || "" },
-    { num: "03", title: settings[`about_val3_title_${langLower}`] || "", desc: settings[`about_val3_desc_${langLower}`] || "" },
-    { num: "04", title: settings[`about_val4_title_${langLower}`] || "", desc: settings[`about_val4_desc_${langLower}`] || "" },
-    { num: "05", title: settings[`about_val5_title_${langLower}`] || "", desc: settings[`about_val5_desc_${langLower}`] || "" },
+    { num: "01", title: settings[`about_val1_title_${langLower}`] ?? "", desc: settings[`about_val1_desc_${langLower}`] ?? "" },
+    { num: "02", title: settings[`about_val2_title_${langLower}`] ?? "", desc: settings[`about_val2_desc_${langLower}`] ?? "" },
+    { num: "03", title: settings[`about_val3_title_${langLower}`] ?? "", desc: settings[`about_val3_desc_${langLower}`] ?? "" },
+    { num: "04", title: settings[`about_val4_title_${langLower}`] ?? "", desc: settings[`about_val4_desc_${langLower}`] ?? "" },
+    { num: "05", title: settings[`about_val5_title_${langLower}`] ?? "", desc: settings[`about_val5_desc_${langLower}`] ?? "" },
   ]
 
-  const govEyebrow = settings[`about_gov_eyebrow_${langLower}`] || ""
-  const govTitle = settings[`about_gov_title_${langLower}`] || ""
-  const govSubtitle = settings[`about_gov_subtitle_${langLower}`] || ""
-  const gov1Role = settings[`about_gov1_role_${langLower}`] || ""
-  const gov1Title = settings[`about_gov1_title_${langLower}`] || ""
-  const gov1Desc = settings[`about_gov1_desc_${langLower}`] || ""
-  const gov2Role = settings[`about_gov2_role_${langLower}`] || ""
-  const gov2Title = settings[`about_gov2_title_${langLower}`] || ""
-  const gov2Desc = settings[`about_gov2_desc_${langLower}`] || ""
-  const gov3Role = settings[`about_gov3_role_${langLower}`] || ""
-  const gov3Title = settings[`about_gov3_title_${langLower}`] || ""
-  const gov3Desc = settings[`about_gov3_desc_${langLower}`] || ""
+  const govEyebrow = settings[`about_gov_eyebrow_${langLower}`] ?? ""
+  const govTitle = settings[`about_gov_title_${langLower}`] ?? ""
+  const govSubtitle = settings[`about_gov_subtitle_${langLower}`] ?? ""
+  const gov1Role = settings[`about_gov1_role_${langLower}`] ?? ""
+  const gov1Title = settings[`about_gov1_title_${langLower}`] ?? ""
+  const gov1Desc = settings[`about_gov1_desc_${langLower}`] ?? ""
+  const gov2Role = settings[`about_gov2_role_${langLower}`] ?? ""
+  const gov2Title = settings[`about_gov2_title_${langLower}`] ?? ""
+  const gov2Desc = settings[`about_gov2_desc_${langLower}`] ?? ""
+  const gov3Role = settings[`about_gov3_role_${langLower}`] ?? ""
+  const gov3Title = settings[`about_gov3_title_${langLower}`] ?? ""
+  const gov3Desc = settings[`about_gov3_desc_${langLower}`] ?? ""
 
-  const ctaEyebrow = settings[`about_cta_eyebrow_${langLower}`] || ""
-  const ctaTitle = settings[`about_cta_title_${langLower}`] || ""
-  const ctaSubtitle = settings[`about_cta_subtitle_${langLower}`] || ""
-  const ctaBtnMember = settings[`about_cta_btn_member_${langLower}`] || ""
-  const ctaBtnVolunteer = settings[`about_cta_btn_volunteer_${langLower}`] || ""
-  const ctaBtnPartner = settings[`about_cta_btn_partner_${langLower}`] || ""
+  const ctaEyebrow = settings[`about_cta_eyebrow_${langLower}`] ?? ""
+  const ctaTitle = settings[`about_cta_title_${langLower}`] ?? ""
+  const ctaSubtitle = settings[`about_cta_subtitle_${langLower}`] ?? ""
+  const ctaBtnMember = settings[`about_cta_btn_member_${langLower}`] ?? ""
+  const ctaBtnVolunteer = settings[`about_cta_btn_volunteer_${langLower}`] ?? ""
+  const ctaBtnPartner = settings[`about_cta_btn_partner_${langLower}`] ?? ""
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

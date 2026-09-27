@@ -456,35 +456,35 @@ export default function AdminEvents() {
                 <button
                   type="button"
                   onClick={() => setActiveLangTab("FR")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     activeLangTab === "FR"
                       ? "bg-[#003366] text-white shadow-sm"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
-                  Français *
+                  Français{"\u00A0"}*
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveLangTab("EN")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     activeLangTab === "EN"
                       ? "bg-[#003366] text-white shadow-sm"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
-                  English {formData.titleEn && "✓"}
+                  English{formData.titleEn && "\u00A0✓"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveLangTab("DE")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     activeLangTab === "DE"
                       ? "bg-[#003366] text-white shadow-sm"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
-                  Deutsch {formData.titleDe && "✓"}
+                  Deutsch{formData.titleDe && "\u00A0✓"}
                 </button>
               </div>
 

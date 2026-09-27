@@ -302,9 +302,9 @@ export default function ResourcesView({ lang }: ResourcesViewProps) {
                 {filteredResources.map((res) => {
                   const title =
                     lang === "EN"
-                      ? res.titleEn || res.titleFr
+                      ? res.titleEn ?? ""
                       : lang === "DE"
-                      ? res.titleDe || res.titleFr
+                      ? res.titleDe ?? ""
                       : res.titleFr
                   const desc =
                     lang === "EN"

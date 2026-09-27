@@ -105,6 +105,32 @@ const I18N = {
   },
 }
 
+function hasArticleLanguage(article: ArticleRecord, lang: "FR" | "EN" | "DE") {
+  const fields =
+    lang === "EN"
+      ? [article.titleEn, article.excerptEn, article.contentEn]
+      : lang === "DE"
+        ? [article.titleDe, article.excerptDe, article.contentDe]
+        : [article.titleFr, article.excerptFr, article.contentFr]
+  return fields.every((field) => Boolean(field?.trim()))
+}
+
+function articleTitle(article: ArticleRecord, lang: "FR" | "EN" | "DE") {
+  return lang === "EN" ? article.titleEn ?? "" : lang === "DE" ? article.titleDe ?? "" : article.titleFr
+}
+
+function articleExcerpt(article: ArticleRecord, lang: "FR" | "EN" | "DE") {
+  return lang === "EN" ? article.excerptEn ?? "" : lang === "DE" ? article.excerptDe ?? "" : article.excerptFr
+}
+
+function articleBody(article: ArticleRecord, lang: "FR" | "EN" | "DE") {
+  return lang === "EN" ? article.contentEn ?? "" : lang === "DE" ? article.contentDe ?? "" : article.contentFr ?? ""
+}
+
+function articleCategoryName(category: CategoryRecord | null | undefined, lang: "FR" | "EN" | "DE") {
+  if (!category) return ""
+  return lang === "EN" ? category.nameEn ?? "" : lang === "DE" ? category.nameDe ?? "" : category.nameFr
+}
 export default function NewsView({ lang, initialSettings = {} }: NewsViewProps & { initialSettings?: Record<string, string> }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -129,12 +155,12 @@ export default function NewsView({ lang, initialSettings = {} }: NewsViewProps &
 
   useEffect(() => {
     Promise.all([
-      getArticles({ publishedOnly: true }),
+      getArticles({ publishedOnly: true, lang: safeLang }),
       getArticleCategories(),
       import("@/lib/cms-actions").then(({ getSiteSettings }) => getSiteSettings("NEWS")),
     ])
       .then(([arts, cats, settingsRes]) => {
-        setArticles(arts as any)
+        setArticles((arts as ArticleRecord[]).filter((article) => hasArticleLanguage(article, safeLang)))
         setCategories(cats)
         if (settingsRes && settingsRes.success && settingsRes.dict) {
           setSettings((prev) => ({ ...prev, ...settingsRes.dict }))
@@ -142,17 +168,17 @@ export default function NewsView({ lang, initialSettings = {} }: NewsViewProps &
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [])
+  }, [safeLang])
 
   // ─── Dynamic CMS Bindings with Fallbacks ──────────────────────────────────
-  const heroBadge = settings[`news_hero_badge_${l}`] || t.badge
-  const heroTitle = settings[`news_hero_title_${l}`] || t.title
-  const heroSubtitle = settings[`news_hero_subtitle_${l}`] || t.subtitle
+  const heroBadge = settings[`news_hero_badge_${l}`] ?? ""
+  const heroTitle = settings[`news_hero_title_${l}`] ?? ""
+  const heroSubtitle = settings[`news_hero_subtitle_${l}`] ?? ""
 
-  const ctaTitle = settings[`news_cta_title_${l}`] || t.ctaTitle
-  const ctaDesc = settings[`news_cta_desc_${l}`] || t.ctaDesc
-  const ctaBtnProjects = settings[`news_cta_btn_projects_${l}`] || t.ctaProjects
-  const ctaBtnPartner = settings[`news_cta_btn_partner_${l}`] || t.ctaPartner
+  const ctaTitle = settings[`news_cta_title_${l}`] ?? ""
+  const ctaDesc = settings[`news_cta_desc_${l}`] ?? ""
+  const ctaBtnProjects = settings[`news_cta_btn_projects_${l}`] ?? ""
+  const ctaBtnPartner = settings[`news_cta_btn_partner_${l}`] ?? ""
 
   // 1. Filtrer d'abord les articles publiés selon la catégorie
   const filteredArticles =
@@ -300,28 +326,12 @@ export default function NewsView({ lang, initialSettings = {} }: NewsViewProps &
                   </div>
 
                   {(() => {
-                    const title =
-                      lang === "EN" && featuredArticle.titleEn
-                        ? featuredArticle.titleEn
-                        : lang === "DE" && featuredArticle.titleDe
-                        ? featuredArticle.titleDe
-                        : featuredArticle.titleFr
-                    const excerpt =
-                      lang === "EN" && featuredArticle.excerptEn
-                        ? featuredArticle.excerptEn
-                        : lang === "DE" && featuredArticle.excerptDe
-                        ? featuredArticle.excerptDe
-                        : featuredArticle.excerptFr
-                    const catName =
-                      lang === "EN" && featuredArticle.category?.nameEn
-                        ? featuredArticle.category.nameEn
-                        : lang === "DE" && featuredArticle.category?.nameDe
-                        ? featuredArticle.category.nameDe
-                        : featuredArticle.category?.nameFr || "ACTUALITÉ"
-
+                    const title = articleTitle(featuredArticle, safeLang)
+                    const excerpt = articleExcerpt(featuredArticle, safeLang)
+                    const catName = articleCategoryName(featuredArticle.category, safeLang)
                     const articleUrl = `/${lang.toLowerCase()}/actualites/${featuredArticle.slug}`
                     const imageSrc = featuredArticle.featuredImage || "/photo-ancrage-togo.png"
-                    const readMins = getReadTime(featuredArticle.contentFr?.length)
+                    const readMins = getReadTime(articleBody(featuredArticle, safeLang).length)
 
                     return (
                       <article className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow group">
@@ -388,28 +398,12 @@ export default function NewsView({ lang, initialSettings = {} }: NewsViewProps &
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {regularArticles.map((art) => {
-                      const title =
-                        lang === "EN" && art.titleEn
-                          ? art.titleEn
-                          : lang === "DE" && art.titleDe
-                          ? art.titleDe
-                          : art.titleFr
-                      const excerpt =
-                        lang === "EN" && art.excerptEn
-                          ? art.excerptEn
-                          : lang === "DE" && art.excerptDe
-                          ? art.excerptDe
-                          : art.excerptFr
-                      const catName =
-                        lang === "EN" && art.category?.nameEn
-                          ? art.category.nameEn
-                          : lang === "DE" && art.category?.nameDe
-                          ? art.category.nameDe
-                          : art.category?.nameFr || "ACTUALITÉ"
-
+                      const title = articleTitle(art, safeLang)
+                      const excerpt = articleExcerpt(art, safeLang)
+                      const catName = articleCategoryName(art.category, safeLang)
                       const articleUrl = `/${lang.toLowerCase()}/actualites/${art.slug}`
                       const imageSrc = art.featuredImage || "/photo-projet-phare.jpg"
-                      const readMins = getReadTime(art.contentFr?.length)
+                      const readMins = getReadTime(articleBody(art, safeLang).length)
 
                       return (
                         <article

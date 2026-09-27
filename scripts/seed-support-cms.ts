@@ -86,14 +86,14 @@ const SUPPORT_CONTENT = {
     support_transparency_desc: "APTIC-R is an officially registered non-profit organization in Togo (Receipt N° 0586/MATDCL-DAPL-DOCA). Every contribution is accounted for with complete transparency.",
     support_transparency_receipt: "An official donation receipt or certificate is systematically provided for every financial or material contribution.",
 
-    support_future_tag: "FUTURE DEVELOPMENT",
-    support_future_title: "Online Donations & Payments",
-    support_future_desc: "A secure online donation portal may be integrated at a later stage, following official review and approval of payment partners by APTIC-R.",
+    support_future_tag: "FUTURE EVOLUTION",
+    support_future_title: "Online payments and donations",
+    support_future_desc: "A secure online donation solution may be integrated at a later stage, following formal validation of terms and payment gateways by APTIC-R leadership.",
 
-    support_cta_title: "Looking to support a specific initiative?",
-    support_cta_desc: "Our coordination team is available to discuss current priorities and structure a collaboration tailored to your organization.",
+    support_cta_title: "Would you like to support a specific project?",
+    support_cta_desc: "Our coordination team is at your disposal to share current field priorities and structure your involvement.",
     support_cta_btn_contact: "Contact Us",
-    support_cta_btn_whatsapp: "Message on WhatsApp",
+    support_cta_btn_whatsapp: "Chat on WhatsApp",
   },
   DE: {
     support_hero_badge: "APTIC-R UNTERSTÜTZEN",
@@ -144,7 +144,21 @@ const SUPPORT_CONTENT = {
 }
 
 async function main() {
-  console.log("🌱 Seeding Support CMS content into ParametreSite...")
+  const backfillFutureAndCta = process.argv.includes(
+    "--backfill-missing-future-cta",
+  )
+  const restorePreviousFutureAndCta = process.argv.includes(
+    "--restore-previous-future-cta",
+  )
+  const targetFutureAndCta =
+    backfillFutureAndCta || restorePreviousFutureAndCta
+  console.log(
+    restorePreviousFutureAndCta
+      ? "Restoring previous Support sections 05 and 06..."
+      : backfillFutureAndCta
+        ? "Backfilling missing Support sections 05 and 06..."
+        : "🌱 Seeding Support CMS content into ParametreSite...",
+  )
 
   const commonSettings = [
     {
@@ -161,29 +175,53 @@ async function main() {
     },
   ]
 
-  for (const s of commonSettings) {
-    await prisma.parametreSite.upsert({
-      where: { key: s.key },
-      update: { value: s.value, group: s.group, description: s.description },
-      create: { key: s.key, value: s.value, group: s.group, description: s.description },
-    })
-    console.log(`  ✓ Common: ${s.key}`)
+  if (!targetFutureAndCta) {
+    for (const s of commonSettings) {
+      await prisma.parametreSite.upsert({
+        where: { key: s.key },
+        update: { value: s.value, group: s.group, description: s.description },
+        create: { key: s.key, value: s.value, group: s.group, description: s.description },
+      })
+      console.log(`  ✓ Common: ${s.key}`)
+    }
   }
 
+  let createdCount = 0
   for (const [lang, dict] of Object.entries(SUPPORT_CONTENT)) {
     const l = lang.toLowerCase()
     for (const [fieldKey, text] of Object.entries(dict)) {
+      if (
+        targetFutureAndCta &&
+        !fieldKey.startsWith("support_future_") &&
+        !fieldKey.startsWith("support_cta_")
+      ) {
+        continue
+      }
+
       const dbKey = `${fieldKey}_${l}`
+      if (backfillFutureAndCta && !restorePreviousFutureAndCta) {
+        const existing = await prisma.parametreSite.findUnique({
+          where: { key: dbKey },
+          select: { value: true },
+        })
+        if (existing?.value.trim()) continue
+      }
+
       await prisma.parametreSite.upsert({
         where: { key: dbKey },
         update: { value: text, group: "SUPPORT", description: `Support CMS (${lang})` },
         create: { key: dbKey, value: text, group: "SUPPORT", description: `Support CMS (${lang})` },
       })
       console.log(`  ✓ [${lang}] ${dbKey}`)
+      createdCount++
     }
   }
 
-  console.log("✅ Successfully seeded all Support CMS fields!")
+  console.log(
+    targetFutureAndCta
+      ? `Sections 05/06 complete: ${createdCount} setting(s) written.`
+      : "✅ Successfully seeded all Support CMS fields!",
+  )
 }
 
 main()

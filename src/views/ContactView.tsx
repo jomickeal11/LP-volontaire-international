@@ -607,23 +607,22 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
     const isDe = lang === "DE"
 
     const heading = isDe
-      ? "Die deutsche Version der Kontaktseite wird derzeit finalisiert"
+      ? "Diese Seite ist derzeit nicht verfügbar"
       : isEn
-      ? "English version of the Contact page is being finalized"
-      : "Version française en cours de révision éditoriale"
+        ? "This page is currently unavailable"
+        : "Cette page est indisponible pour le moment."
 
     const description = isDe
-      ? "Unser Redaktionsteam vervollständigt derzeit die offiziellen Angaben (Öffnungszeiten, Anfahrtswege) für diesen Bereich. Gemäß unseren Standards werden Inhalte erst nach vollständiger Validierung freigeschaltet."
+      ? "Wir bereiten diese Sprachversion derzeit vor. Bitte schauen Sie bald wieder vorbei."
       : isEn
-      ? "Our editorial team is currently verifying the official details (access instructions, opening hours) for this section. In accordance with our publication standards, content is only published once fully verified."
-      : "Cette page institutionnelle est actuellement en cours de révision par l'équipe éditoriale."
+        ? "We are preparing this language version. Please check back soon."
+        : "Nous préparons actuellement cette version linguistique. Merci de revenir prochainement."
 
     const statusLabel = isDe
-      ? "Status : In Bearbeitung"
+      ? "Nicht verfügbar"
       : isEn
-      ? "Status : Under review"
-      : "Statut : Révision éditoriale"
-
+        ? "Unavailable"
+        : "Indisponible"
     const btnFrench = isDe
       ? "Geprüfte französische Version lesen"
       : isEn
@@ -675,20 +674,23 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
   const langSuffix = lang.toLowerCase()
 
   // Adresse from GENERAL (global, not localized)
-  const addressText = settings["site_location_address"]
-    ? `${settings["site_location_address"]}\n${settings["site_location_region"] || ""}\n${settings["site_location_country"] || "Togo"}`
-    : t.headquartersAddress
-
+  const addressText = [
+    settings["site_location_address"],
+    settings["site_location_region"],
+    settings["site_location_country"],
+  ]
+    .filter((part) => Boolean(part?.trim()))
+    .join("\n")
   // CMS Contact content — strict multilingual (no I18N fallback)
-  const accessInfoText = settings[`contact_access_info_${langSuffix}`] || ""
-  const hoursWeek = settings[`contact_hours_week_${langSuffix}`] || ""
-  const hoursSat = settings[`contact_hours_sat_${langSuffix}`] || ""
-  const hoursSun = settings[`contact_hours_sun_${langSuffix}`] || ""
+  const accessInfoText = settings[`contact_access_info_${langSuffix}`] ?? ""
+  const hoursWeek = settings[`contact_hours_week_${langSuffix}`] ?? ""
+  const hoursSat = settings[`contact_hours_sat_${langSuffix}`] ?? ""
+  const hoursSun = settings[`contact_hours_sun_${langSuffix}`] ?? ""
 
   // GENERAL settings (global, not localized)
-  const phoneNum = settings["site_contact_phone"] || t.phoneNum
-  const emailMain = settings["site_contact_email"] || t.emailMain
-  const whatsappNum = (settings["site_social_whatsapp"] || "22891201990").replace(/\D/g, "")
+  const phoneNum = settings["site_contact_phone"] ?? ""
+  const emailMain = settings["site_contact_email"] ?? ""
+  const whatsappNum = (settings["site_social_whatsapp"] ?? "").replace(/\D/g, "")
 
   // GPS configuration from CMS (non-localized technical configuration, OPTIONNELLE)
   const hasValidGps = Boolean(
@@ -699,8 +701,9 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
   )
   const mapLat = settings["contact_map_lat"] || ""
   const mapLng = settings["contact_map_lng"] || ""
-  const mapZoom = settings["contact_map_zoom"] || "13"
-  const mapLabel = settings["contact_map_label"] || ""
+  const mapZoom = settings["contact_map_zoom"] ?? ""
+  const mapLabel = settings["contact_map_label"] ?? ""
+  const locationHeading = [settings["site_location_city"], settings["site_location_region"]].filter(Boolean).join(" · ")
 
   const [formData, setFormData] = useState({
     name: "",
@@ -871,7 +874,7 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
                 </div>
 
                 {/* 2. Téléphone & WhatsApp */}
-                <div className="space-y-2 pt-4 border-t border-slate-150">
+                {phoneNum && <div className="space-y-2 pt-4 border-t border-slate-150">
                   <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#003366]">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#003366]" />
                     <span>{t.phoneLabel}</span>
@@ -885,7 +888,7 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
                     </a>
                     <p className="text-xs text-[#5E6B76] mt-0.5">{t.phoneDesc}</p>
                   </div>
-                  <div className="pt-2">
+                  {whatsappNum && <div className="pt-2">
                     <a
                       href={`https://wa.me/${whatsappNum}?text=${whatsappPrefill}`}
                       target="_blank"
@@ -897,11 +900,11 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
                       </svg>
                       <span>{t.whatsappBtn}</span>
                     </a>
-                  </div>
-                </div>
+                  </div>}
+                </div>}
 
                 {/* 3. Email Principal */}
-                <div className="space-y-2 pt-4 border-t border-slate-150">
+                {emailMain && <div className="space-y-2 pt-4 border-t border-slate-150">
                   <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#003366]">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#003366]" />
                     <span>{t.emailLabel}</span>
@@ -914,7 +917,7 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
                       {emailMain}
                     </a>
                   </div>
-                </div>
+                </div>}
 
                 {/* 4. Horaires */}
                 <div id="acces-horaires" className="space-y-2 pt-4 border-t border-slate-150 scroll-mt-36">
@@ -1183,14 +1186,14 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
                   {t.mapTitle}
                 </span>
                 <h2 className="text-xl sm:text-2xl font-extrabold text-[#003366]">
-                  Agbélouvé · Préfecture du Zio
+                  {locationHeading}
                 </h2>
                 <p className="text-sm text-[#5E6B76] mt-1">
                   {t.mapSubtitle}
                 </p>
               </div>
 
-              {hasValidGps && (
+              {hasValidGps && mapZoom && (
                 <a
                   href={`https://www.openstreetmap.org/#map=${mapZoom}/${mapLat}/${mapLng}`}
                   target="_blank"
@@ -1224,9 +1227,9 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
                 <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-md px-4 py-3 rounded-xl border border-slate-200 shadow-sm text-xs space-y-0.5">
                   <div className="font-bold text-[#003366] flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#28A745]" />
-                    <span>{mapLabel || "Siège APTIC-R"}</span>
+                    <span>{mapLabel}</span>
                   </div>
-                  <div className="text-[#5E6B76]">{accessInfoText || mapLabel || ""}</div>
+                  <div className="text-[#5E6B76]">{accessInfoText}</div>
                 </div>
               </div>
             ) : (

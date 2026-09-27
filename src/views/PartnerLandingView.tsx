@@ -14,6 +14,8 @@ import {
 } from "../components/Icons"
 import { trackEvent } from "../lib/tracker"
 import { getSiteSettings } from "@/lib/cms-actions"
+import UnavailablePageNotice from "@/components/UnavailablePageNotice"
+import { isCmsPagePublished } from "@/lib/page-publication"
 
 interface PartnerLandingViewProps {
   lang: Language
@@ -547,106 +549,136 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   const [settings, setSettings] = useState<Record<string, string>>(initialSettings)
+  const [settingsLoaded, setSettingsLoaded] = useState(Object.keys(initialSettings).length > 0)
+  const contactEmail = settings.site_contact_email ?? ""
+  const contactWhatsapp = settings.site_social_whatsapp ?? ""
+  const contactWhatsappDigits = contactWhatsapp.replace(/\D/g, "")
 
   useEffect(() => {
-    Promise.all([getSiteSettings("PARTNER"), getSiteSettings("GENERAL")])
-      .then(([resPart, resGen]) => {
+    let active = true
+    const loadSettings = async () => {
+      try {
+        const [resPart, resGen] = await Promise.all([
+          getSiteSettings("PARTNER"),
+          getSiteSettings("GENERAL"),
+        ])
         const merged: Record<string, string> = {}
         if (resPart.success && resPart.dict) Object.assign(merged, resPart.dict)
         if (resGen.success && resGen.dict) Object.assign(merged, resGen.dict)
-        setSettings((prev) => ({ ...prev, ...merged }))
-      })
-      .catch((err) => {
+        if (active) setSettings((prev) => ({ ...prev, ...merged }))
+      } catch (err) {
         console.error("Error fetching partner settings:", err)
-      })
+      } finally {
+        if (active) setSettingsLoaded(true)
+      }
+    }
+
+    const handleSettingsUpdated = (event: StorageEvent) => {
+      if (event.key !== "aptic-cms-settings-updated" || !event.newValue) return
+      try {
+        const update = JSON.parse(event.newValue) as { groups?: string[] }
+        if (update.groups?.some((group) => ["PARTNER", "GENERAL"].includes(group))) {
+          void loadSettings()
+        }
+      } catch {
+        // Ignore malformed cross-tab notifications.
+      }
+    }
+
+    void loadSettings()
+    window.addEventListener("storage", handleSettingsUpdated)
+    return () => {
+      active = false
+      window.removeEventListener("storage", handleSettingsUpdated)
+    }
   }, [])
 
   // 1. Hero
-  const heroBadge = settings[`partner_hero_badge_${langLower}`] || c.hero.badge
-  const heroLine1 = settings[`partner_hero_line1_${langLower}`] || c.hero.line1
-  const heroLine2 = settings[`partner_hero_line2_${langLower}`] || c.hero.line2
-  const heroLine3 = settings[`partner_hero_line3_${langLower}`] || c.hero.line3
-  const heroDesc = settings[`partner_hero_desc_${langLower}`] || c.hero.desc
-  const heroCtaPrimary = settings[`partner_hero_cta_primary_${langLower}`] || c.hero.ctaPrimary
-  const heroCtaSecondary = settings[`partner_hero_cta_secondary_${langLower}`] || c.hero.ctaSecondary
-  const heroImage = settings["partner_hero_image"] || "/meeting-org.jpg"
-  const heroStat1Label = settings[`partner_hero_stat1_label_${langLower}`] || c.hero.stat1Label
-  const heroStat1Sub = settings[`partner_hero_stat1_sub_${langLower}`] || c.hero.stat1Sub
-  const heroStat2Label = settings[`partner_hero_stat2_label_${langLower}`] || c.hero.stat2Label
-  const heroStat2Sub = settings[`partner_hero_stat2_sub_${langLower}`] || c.hero.stat2Sub
-  const heroStat3Label = settings[`partner_hero_stat3_label_${langLower}`] || c.hero.stat3Label
-  const heroStat3Sub = settings[`partner_hero_stat3_sub_${langLower}`] || c.hero.stat3Sub
+  const heroBadge = settings[`partner_hero_badge_${langLower}`] ?? ""
+  const heroLine1 = settings[`partner_hero_line1_${langLower}`] ?? ""
+  const heroLine2 = settings[`partner_hero_line2_${langLower}`] ?? ""
+  const heroLine3 = settings[`partner_hero_line3_${langLower}`] ?? ""
+  const heroDesc = settings[`partner_hero_desc_${langLower}`] ?? ""
+  const heroCtaPrimary = settings[`partner_hero_cta_primary_${langLower}`] ?? ""
+  const heroCtaSecondary = settings[`partner_hero_cta_secondary_${langLower}`] ?? ""
+  const heroImage = settings["partner_hero_image"] ?? ""
+  const heroStat1Label = settings[`partner_hero_stat1_label_${langLower}`] ?? ""
+  const heroStat1Sub = settings[`partner_hero_stat1_sub_${langLower}`] ?? ""
+  const heroStat2Label = settings[`partner_hero_stat2_label_${langLower}`] ?? ""
+  const heroStat2Sub = settings[`partner_hero_stat2_sub_${langLower}`] ?? ""
+  const heroStat3Label = settings[`partner_hero_stat3_label_${langLower}`] ?? ""
+  const heroStat3Sub = settings[`partner_hero_stat3_sub_${langLower}`] ?? ""
 
   // 2. Why
-  const whyTag = settings[`partner_why_tag_${langLower}`] || c.why.tag
-  const whyTitle = settings[`partner_why_title_${langLower}`] || c.why.title
+  const whyTag = settings[`partner_why_tag_${langLower}`] ?? ""
+  const whyTitle = settings[`partner_why_title_${langLower}`] ?? ""
   const whyCards = [
     {
       num: "01",
-      title: settings[`partner_why_card1_title_${langLower}`] || c.why.cards[0]?.title || "",
-      desc: settings[`partner_why_card1_desc_${langLower}`] || c.why.cards[0]?.desc || "",
+      title: settings[`partner_why_card1_title_${langLower}`] ?? "",
+      desc: settings[`partner_why_card1_desc_${langLower}`] ?? "",
     },
     {
       num: "02",
-      title: settings[`partner_why_card2_title_${langLower}`] || c.why.cards[1]?.title || "",
-      desc: settings[`partner_why_card2_desc_${langLower}`] || c.why.cards[1]?.desc || "",
+      title: settings[`partner_why_card2_title_${langLower}`] ?? "",
+      desc: settings[`partner_why_card2_desc_${langLower}`] ?? "",
     },
     {
       num: "03",
-      title: settings[`partner_why_card3_title_${langLower}`] || c.why.cards[2]?.title || "",
-      desc: settings[`partner_why_card3_desc_${langLower}`] || c.why.cards[2]?.desc || "",
+      title: settings[`partner_why_card3_title_${langLower}`] ?? "",
+      desc: settings[`partner_why_card3_desc_${langLower}`] ?? "",
     },
     {
       num: "04",
-      title: settings[`partner_why_card4_title_${langLower}`] || c.why.cards[3]?.title || "",
-      desc: settings[`partner_why_card4_desc_${langLower}`] || c.why.cards[3]?.desc || "",
+      title: settings[`partner_why_card4_title_${langLower}`] ?? "",
+      desc: settings[`partner_why_card4_desc_${langLower}`] ?? "",
     },
   ]
 
   // 3. Frameworks
-  const frameworksTag = settings[`partner_frameworks_tag_${langLower}`] || c.frameworks.tag
-  const frameworksTitle = settings[`partner_frameworks_title_${langLower}`] || c.frameworks.title
-  const frameworksSubtitle = settings[`partner_frameworks_subtitle_${langLower}`] || c.frameworks.subtitle
+  const frameworksTag = settings[`partner_frameworks_tag_${langLower}`] ?? ""
+  const frameworksTitle = settings[`partner_frameworks_title_${langLower}`] ?? ""
+  const frameworksSubtitle = settings[`partner_frameworks_subtitle_${langLower}`] ?? ""
 
   // 4. Logistics
-  const logisticsTag = settings[`partner_logistics_tag_${langLower}`] || c.lifeAndSafety.tag
-  const logisticsTitle = settings[`partner_logistics_title_${langLower}`] || c.lifeAndSafety.title
-  const logisticsSubtitle = settings[`partner_logistics_subtitle_${langLower}`] || c.lifeAndSafety.subtitle
+  const logisticsTag = settings[`partner_logistics_tag_${langLower}`] ?? ""
+  const logisticsTitle = settings[`partner_logistics_title_${langLower}`] ?? ""
+  const logisticsSubtitle = settings[`partner_logistics_subtitle_${langLower}`] ?? ""
 
   // 5. Process
-  const processTag = settings[`partner_process_tag_${langLower}`] || c.process.tag
-  const processTitle = settings[`partner_process_title_${langLower}`] || c.process.title
-  const processSubtitle = settings[`partner_process_subtitle_${langLower}`] || c.process.subtitle
+  const processTag = settings[`partner_process_tag_${langLower}`] ?? ""
+  const processTitle = settings[`partner_process_title_${langLower}`] ?? ""
+  const processSubtitle = settings[`partner_process_subtitle_${langLower}`] ?? ""
   const processSteps = [
     {
-      title: settings[`partner_process_step1_title_${langLower}`] || c.process.steps[0]?.title || "",
-      desc: settings[`partner_process_step1_desc_${langLower}`] || c.process.steps[0]?.desc || "",
+      title: settings[`partner_process_step1_title_${langLower}`] ?? "",
+      desc: settings[`partner_process_step1_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`partner_process_step2_title_${langLower}`] || c.process.steps[1]?.title || "",
-      desc: settings[`partner_process_step2_desc_${langLower}`] || c.process.steps[1]?.desc || "",
+      title: settings[`partner_process_step2_title_${langLower}`] ?? "",
+      desc: settings[`partner_process_step2_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`partner_process_step3_title_${langLower}`] || c.process.steps[2]?.title || "",
-      desc: settings[`partner_process_step3_desc_${langLower}`] || c.process.steps[2]?.desc || "",
+      title: settings[`partner_process_step3_title_${langLower}`] ?? "",
+      desc: settings[`partner_process_step3_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`partner_process_step4_title_${langLower}`] || c.process.steps[3]?.title || "",
-      desc: settings[`partner_process_step4_desc_${langLower}`] || c.process.steps[3]?.desc || "",
+      title: settings[`partner_process_step4_title_${langLower}`] ?? "",
+      desc: settings[`partner_process_step4_desc_${langLower}`] ?? "",
     },
   ]
 
   // 6. FAQ
-  const faqTag = settings[`partner_faq_tag_${langLower}`] || c.faq.tag
-  const faqTitle = settings[`partner_faq_title_${langLower}`] || c.faq.title
-  const faqSubtitle = settings[`partner_faq_subtitle_${langLower}`] || c.faq.subtitle
+  const faqTag = settings[`partner_faq_tag_${langLower}`] ?? ""
+  const faqTitle = settings[`partner_faq_title_${langLower}`] ?? ""
+  const faqSubtitle = settings[`partner_faq_subtitle_${langLower}`] ?? ""
 
   // 7. CTA
-  const ctaBadge = settings[`partner_cta_badge_${langLower}`] || c.finalCta.badge
-  const ctaTitle = settings[`partner_cta_title_${langLower}`] || c.finalCta.title
-  const ctaDesc = settings[`partner_cta_desc_${langLower}`] || c.finalCta.desc
-  const ctaBtnPrimary = settings[`partner_cta_btn_primary_${langLower}`] || c.finalCta.btnPrimary
-  const ctaBtnSecondary = settings[`partner_cta_btn_secondary_${langLower}`] || c.finalCta.btnSecondary
+  const ctaBadge = settings[`partner_cta_badge_${langLower}`] ?? ""
+  const ctaTitle = settings[`partner_cta_title_${langLower}`] ?? ""
+  const ctaDesc = settings[`partner_cta_desc_${langLower}`] ?? ""
+  const ctaBtnPrimary = settings[`partner_cta_btn_primary_${langLower}`] ?? ""
+  const ctaBtnSecondary = settings[`partner_cta_btn_secondary_${langLower}`] ?? ""
 
   const subNavItems = [
     { id: "why", label: currentLang === "DE" ? "Warum APTIC-R" : currentLang === "EN" ? "Why Partner" : "Pourquoi devenir partenaire" },
@@ -657,6 +689,9 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
   ]
 
   const navBadgeTitle = currentLang === "DE" ? "PARTNERSCHAFT" : currentLang === "EN" ? "PARTNERSHIP" : "PARTENARIAT"
+
+  if (!settingsLoaded) return null
+  if (!isCmsPagePublished(settings, "PARTNER", currentLang)) return <UnavailablePageNotice lang={currentLang} />
 
   return (
     <div className="w-full flex flex-col">
@@ -707,6 +742,10 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
               className="text-center mx-auto mb-10 sm:mb-16 lg:mb-20 w-full"
               style={{ maxWidth: "900px" }}
             >
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-[#003366]/45 px-4 py-2 text-xs sm:text-sm font-semibold text-white/90 mb-5">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-[#28A745]" />
+                {heroBadge}
+              </div>
               <h1
                 className="leading-[1.05] sm:leading-[1.1] tracking-tight mb-6 sm:mb-8"
                 style={{ textShadow: "0 2px 12px rgba(0,0,0,0.14)" }}
@@ -1099,8 +1138,8 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-                <a
-                  href="mailto:aptic.rural19@gmail.com?subject=Demande%20Partenariat"
+                {contactEmail && <a
+                  href={`mailto:${contactEmail}?subject=${encodeURIComponent(c.faq.contactBoxTitle)}`}
                   onClick={() => {
                     trackEvent("contact_click", { source: "faq_email" })
                   }}
@@ -1109,11 +1148,11 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <span>aptic.rural19@gmail.com</span>
-                </a>
+                  <span>{contactEmail}</span>
+                </a>}
 
-                <a
-                  href={`https://wa.me/22891201990?text=${encodeURIComponent(c.faq.whatsappText)}`}
+                {contactWhatsappDigits && <a
+                  href={`https://wa.me/${contactWhatsappDigits}?text=${encodeURIComponent(c.faq.whatsappText)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => {
@@ -1124,8 +1163,8 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                     <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />
                   </svg>
-                  <span>WhatsApp : +228 91 20 19 90</span>
-                </a>
+                  <span>WhatsApp</span>
+                </a>}
               </div>
             </div>
           </div>

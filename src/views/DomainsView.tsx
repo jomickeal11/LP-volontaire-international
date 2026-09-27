@@ -467,7 +467,7 @@ export default function DomainsView({ lang, initialSettings = {}, initialDomaine
       return
     }
     import("@/lib/cms-actions").then(({ getDomaines }) => {
-      getDomaines({ activeOnly: true })
+      getDomaines({ activeOnly: true, lang })
         .then((res) => {
           if (res && res.length > 0) {
             setDbDomains(res)
@@ -476,7 +476,7 @@ export default function DomainsView({ lang, initialSettings = {}, initialDomaine
         .catch(console.error)
         .finally(() => setLoading(false))
     })
-  }, [initialDomaines])
+  }, [initialDomaines, lang])
 
   // Mapper les domaines DB vers le format attendu par la vue selon la langue
   const displayedDomains = React.useMemo(() => {
@@ -486,14 +486,14 @@ export default function DomainsView({ lang, initialSettings = {}, initialDomaine
         let actions: string[] = []
 
         try {
-          const rawObj = lang === "EN" ? d.objectivesEn || d.objectivesFr : lang === "DE" ? d.objectivesDe || d.objectivesFr : d.objectivesFr
+          const rawObj = lang === "EN" ? d.objectivesEn ?? "" : lang === "DE" ? d.objectivesDe ?? "" : d.objectivesFr
           objectives = rawObj ? JSON.parse(rawObj) : []
         } catch {
           objectives = []
         }
 
         try {
-          const rawAct = lang === "EN" ? d.actionsEn || d.actionsFr : lang === "DE" ? d.actionsDe || d.actionsFr : d.actionsFr
+          const rawAct = lang === "EN" ? d.actionsEn ?? "" : lang === "DE" ? d.actionsDe ?? "" : d.actionsFr
           actions = rawAct ? JSON.parse(rawAct) : []
         } catch {
           actions = []
@@ -501,38 +501,38 @@ export default function DomainsView({ lang, initialSettings = {}, initialDomaine
 
         const title =
           lang === "EN"
-            ? d.nameEn || d.nameFr
+            ? d.nameEn ?? ""
             : lang === "DE"
-            ? d.nameDe || d.nameFr
+            ? d.nameDe ?? ""
             : d.nameFr
 
         const subtitle =
           lang === "EN"
-            ? d.subtitleEn || d.subtitleFr || ""
+            ? d.subtitleEn ?? ""
             : lang === "DE"
-            ? d.subtitleDe || d.subtitleFr || ""
-            : d.subtitleFr || ""
+            ? d.subtitleDe ?? ""
+            : d.subtitleFr
 
         const desc =
           lang === "EN"
-            ? d.descEn || d.descFr
+            ? d.descEn ?? ""
             : lang === "DE"
-            ? d.descDe || d.descFr
+            ? d.descDe ?? ""
             : d.descFr
 
         const audience =
           lang === "EN"
-            ? d.targetAudienceEn || d.targetAudienceFr || ""
+            ? d.targetAudienceEn ?? ""
             : lang === "DE"
-            ? d.targetAudienceDe || d.targetAudienceFr || ""
+            ? d.targetAudienceDe ?? ""
             : d.targetAudienceFr || ""
 
         const caption =
           lang === "EN"
-            ? d.imageCaptionEn || d.imageCaptionFr || title
+            ? d.imageCaptionEn ?? ""
             : lang === "DE"
-            ? d.imageCaptionDe || d.imageCaptionFr || title
-            : d.imageCaptionFr || title
+            ? d.imageCaptionDe ?? ""
+            : d.imageCaptionFr
 
         return {
           id: d.slug,
@@ -553,17 +553,8 @@ export default function DomainsView({ lang, initialSettings = {}, initialDomaine
       })
     }
 
-    // Fallback aux données statiques si la DB n'est pas encore prête
-    return staticT.domains.map((d) => ({
-      ...d,
-      tagLabel: "Pôle Stratégique",
-      photoSrc: DOMAIN_PHOTOS[d.id]?.src || "/photo-ancrage-togo.png",
-      photoCaption: DOMAIN_PHOTOS[d.id]?.caption || d.officialTitle,
-      photoTag: "Ancrage Terrain",
-      order: 0,
-      projets: [],
-    }))
-  }, [dbDomains, lang, staticT.domains])
+    return []
+  }, [dbDomains, lang])
 
   const t = {
     ...staticT,

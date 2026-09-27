@@ -5,6 +5,8 @@ import Link from "next/link"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import RequiredAsterisk from "@/components/RequiredAsterisk"
+import UnavailablePageNotice from "@/components/UnavailablePageNotice"
+import { isCmsPagePublished } from "@/lib/page-publication"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { useRouter, usePathname } from "next/navigation"
@@ -17,6 +19,7 @@ import {
   WheatIcon,
   BarChartIcon,
   CpuIcon,
+  HeartPulseIcon,
 } from "@/components/Icons"
 
 interface MembershipViewProps {
@@ -437,6 +440,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
   const c = CONTENT[safeLang] || CONTENT.FR
 
   const [settings, setSettings] = useState<Record<string, string>>({})
+  const [settingsLoaded, setSettingsLoaded] = useState(false)
   const [dbDomains, setDbDomains] = useState<any[]>([])
 
   useEffect(() => {
@@ -450,37 +454,30 @@ export default function MembershipView({ lang }: MembershipViewProps) {
       .catch((err) => {
         console.error("Error fetching membership settings:", err)
       })
+      .finally(() => setSettingsLoaded(true))
   }, [])
 
   // 1. Hero
-  const heroBadge = settings[`membership_hero_badge_${langLower}`] || c.hero.badge
-  const heroTitle = settings[`membership_hero_title_${langLower}`] || c.hero.title
-  const heroDesc = settings[`membership_hero_desc_${langLower}`] || c.hero.desc
-  const heroCta = settings[`membership_hero_cta_${langLower}`] || c.hero.cta
+  const heroBadge = settings[`membership_hero_badge_${langLower}`] ?? ""
+  const heroTitle = settings[`membership_hero_title_${langLower}`] ?? ""
+  const heroDesc = settings[`membership_hero_desc_${langLower}`] ?? ""
+  const heroCta = settings[`membership_hero_cta_${langLower}`] ?? ""
+  const heroCta2 = settings[`membership_hero_cta2_${langLower}`] ?? ""
+  const heroCta2Link = settings[`membership_hero_cta2_link`] ?? ""
 
   // 2. Why (dynamique, responsive aux cartes réellement présentes)
-  const whyTag = settings[`membership_why_tag_${langLower}`] || c.why.tag
-  const whyTitle = settings[`membership_why_title_${langLower}`] || c.why.title
-  const whySubtitle = settings[`membership_why_subtitle_${langLower}`] || c.why.subtitle
+  const whyTag = settings[`membership_why_tag_${langLower}`] ?? ""
+  const whyTitle = settings[`membership_why_title_${langLower}`] ?? ""
+  const whySubtitle = settings[`membership_why_subtitle_${langLower}`] ?? ""
 
-  const rawWhyItems = [
-    {
-      title: settings[`membership_why_card1_title_${langLower}`] || c.why.items[0]?.title || "",
-      desc: settings[`membership_why_card1_desc_${langLower}`] || c.why.items[0]?.desc || "",
-    },
-    {
-      title: settings[`membership_why_card2_title_${langLower}`] || c.why.items[1]?.title || "",
-      desc: settings[`membership_why_card2_desc_${langLower}`] || c.why.items[1]?.desc || "",
-    },
-    {
-      title: settings[`membership_why_card3_title_${langLower}`] || c.why.items[2]?.title || "",
-      desc: settings[`membership_why_card3_desc_${langLower}`] || c.why.items[2]?.desc || "",
-    },
-    {
-      title: settings[`membership_why_card4_title_${langLower}`] || c.why.items[3]?.title || "",
-      desc: settings[`membership_why_card4_desc_${langLower}`] || c.why.items[3]?.desc || "",
-    },
-  ]
+  const whyCount = Math.max(0, parseInt(settings["membership_why_count"] || "6", 10))
+  const rawWhyItems = Array.from({ length: whyCount }, (_, i) => {
+    const idx = i + 1
+    return {
+      title: settings[`membership_why_card${idx}_title_${langLower}`] ?? "",
+      desc: settings[`membership_why_card${idx}_desc_${langLower}`] ?? "",
+    }
+  })
   const whyItems = rawWhyItems
     .filter((item) => item.title.trim().length > 0 || item.desc.trim().length > 0)
     .map((item, idx) => ({
@@ -489,34 +486,34 @@ export default function MembershipView({ lang }: MembershipViewProps) {
     }))
 
   // 3. Contribute (dynamique)
-  const contributeTag = settings[`membership_contribute_tag_${langLower}`] || c.contribute.tag
-  const contributeTitle = settings[`membership_contribute_title_${langLower}`] || c.contribute.title
-  const contributeSubtitle = settings[`membership_contribute_subtitle_${langLower}`] || c.contribute.subtitle
+  const contributeTag = settings[`membership_contribute_tag_${langLower}`] ?? ""
+  const contributeTitle = settings[`membership_contribute_title_${langLower}`] ?? ""
+  const contributeSubtitle = settings[`membership_contribute_subtitle_${langLower}`] ?? ""
 
   const rawContributeItems = [
     {
-      title: settings[`membership_contribute_item1_title_${langLower}`] || c.contribute.items[0]?.title || "",
-      desc: settings[`membership_contribute_item1_desc_${langLower}`] || c.contribute.items[0]?.desc || "",
+      title: settings[`membership_contribute_item1_title_${langLower}`] ?? "",
+      desc: settings[`membership_contribute_item1_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`membership_contribute_item2_title_${langLower}`] || c.contribute.items[1]?.title || "",
-      desc: settings[`membership_contribute_item2_desc_${langLower}`] || c.contribute.items[1]?.desc || "",
+      title: settings[`membership_contribute_item2_title_${langLower}`] ?? "",
+      desc: settings[`membership_contribute_item2_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`membership_contribute_item3_title_${langLower}`] || c.contribute.items[2]?.title || "",
-      desc: settings[`membership_contribute_item3_desc_${langLower}`] || c.contribute.items[2]?.desc || "",
+      title: settings[`membership_contribute_item3_title_${langLower}`] ?? "",
+      desc: settings[`membership_contribute_item3_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`membership_contribute_item4_title_${langLower}`] || c.contribute.items[3]?.title || "",
-      desc: settings[`membership_contribute_item4_desc_${langLower}`] || c.contribute.items[3]?.desc || "",
+      title: settings[`membership_contribute_item4_title_${langLower}`] ?? "",
+      desc: settings[`membership_contribute_item4_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`membership_contribute_item5_title_${langLower}`] || c.contribute.items[4]?.title || "",
-      desc: settings[`membership_contribute_item5_desc_${langLower}`] || c.contribute.items[4]?.desc || "",
+      title: settings[`membership_contribute_item5_title_${langLower}`] ?? "",
+      desc: settings[`membership_contribute_item5_desc_${langLower}`] ?? "",
     },
     {
-      title: settings[`membership_contribute_item6_title_${langLower}`] || c.contribute.items[5]?.title || "",
-      desc: settings[`membership_contribute_item6_desc_${langLower}`] || c.contribute.items[5]?.desc || "",
+      title: settings[`membership_contribute_item6_title_${langLower}`] ?? "",
+      desc: settings[`membership_contribute_item6_desc_${langLower}`] ?? "",
     },
   ]
   const contributeItems = rawContributeItems.filter(
@@ -524,29 +521,43 @@ export default function MembershipView({ lang }: MembershipViewProps) {
   )
 
   // 4. Who
-  const whoTag = settings[`membership_who_tag_${langLower}`] || c.who.tag
-  const whoTitle = settings[`membership_who_title_${langLower}`] || c.who.title
-  const whoText = settings[`membership_who_text_${langLower}`] || c.who.text
-  const whoSubtext = settings[`membership_who_subtext_${langLower}`] || c.who.subtext
-  const whoBadgesRaw = settings[`membership_who_badges_${langLower}`]
-  const whoBadges = whoBadgesRaw
-    ? whoBadgesRaw.split(",").map((b) => b.trim()).filter(Boolean)
-    : c.who.badges
+  const whoTag = settings[`membership_who_tag_${langLower}`] ?? ""
+  const whoTitle = settings[`membership_who_title_${langLower}`] ?? ""
+  const whoText = settings[`membership_who_text_${langLower}`] ?? ""
+  const whoSubtext = settings[`membership_who_subtext_${langLower}`] ?? ""
+  
+  const whoMessageTitle = settings[`membership_who_message_title_${langLower}`] ?? ""
+  const whoMessageDesc = settings[`membership_who_message_desc_${langLower}`] ?? ""
+
+  const profilesCount = parseInt(settings["membership_who_profiles_count"] || "0", 10)
+  let whoBadges: string[] = []
+  if (profilesCount > 0) {
+    for (let i = 1; i <= profilesCount; i++) {
+      const p = settings[`membership_who_profile_${i}_${langLower}`]
+      if (p && p.trim()) whoBadges.push(p.trim())
+    }
+  } else {
+    // Fallback if the dynamic profiles aren't initialized
+    const whoBadgesRaw = settings[`membership_who_badges_${langLower}`]
+    whoBadges = whoBadgesRaw
+      ? whoBadgesRaw.split(",").map((b) => b.trim()).filter(Boolean)
+      : [...c.who.badges]
+  }
 
   // 5. CTA
-  const ctaTag = settings[`membership_cta_tag_${langLower}`] || c.ctaBanner.tag
-  const ctaTitle = settings[`membership_cta_title_${langLower}`] || c.ctaBanner.title
-  const ctaDesc = settings[`membership_cta_desc_${langLower}`] || c.ctaBanner.desc
-  const ctaBtn = settings[`membership_cta_btn_${langLower}`] || c.ctaBanner.btn
+  const ctaTag = settings[`membership_cta_tag_${langLower}`] ?? ""
+  const ctaTitle = settings[`membership_cta_title_${langLower}`] ?? ""
+  const ctaDesc = settings[`membership_cta_desc_${langLower}`] ?? ""
+  const ctaBtn = settings[`membership_cta_btn_${langLower}`] ?? ""
 
   // 6. Form
-  const formTag = settings[`membership_form_tag_${langLower}`] || c.form.tag
-  const formTitle = settings[`membership_form_title_${langLower}`] || c.form.title
-  const formDesc = settings[`membership_form_desc_${langLower}`] || c.form.desc
+  const formTag = settings[`membership_form_tag_${langLower}`] ?? ""
+  const formTitle = settings[`membership_form_title_${langLower}`] ?? ""
+  const formDesc = settings[`membership_form_desc_${langLower}`] ?? ""
 
   useEffect(() => {
     import("@/lib/cms-actions").then(({ getDomaines }) => {
-      getDomaines({ activeOnly: true })
+      getDomaines({ activeOnly: true, lang: safeLang })
         .then((res) => {
           if (res && res.length > 0) {
             setDbDomains(res)
@@ -561,9 +572,9 @@ export default function MembershipView({ lang }: MembershipViewProps) {
       return dbDomains.map((d) => {
         const label =
           safeLang === "DE"
-            ? d.nameDe || d.nameFr
+            ? d.nameDe ?? ""
             : safeLang === "EN"
-            ? d.nameEn || d.nameFr
+            ? d.nameEn ?? ""
             : d.nameFr
 
         let IconComp = MonitorIcon
@@ -696,6 +707,16 @@ export default function MembershipView({ lang }: MembershipViewProps) {
     }
   }
 
+  if (!settingsLoaded) return null
+  if (!isCmsPagePublished(settings, "MEMBERSHIP", safeLang)) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <Header lang={lang} setLang={handleSetLang} currentPage="membership" navigate={navigate} />
+        <main className="flex-1"><UnavailablePageNotice lang={safeLang} /></main>
+        <Footer lang={lang} navigate={navigate} />
+      </div>
+    )
+  }
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: BG_PAGE }}>
       <Header lang={lang} setLang={handleSetLang} currentPage="membership" navigate={navigate} />
@@ -726,14 +747,23 @@ export default function MembershipView({ lang }: MembershipViewProps) {
             </p>
 
             {/* Main CTA */}
-            <div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={scrollToForm}
-                className="inline-flex items-center justify-center gap-2.5 font-bold text-xs sm:text-sm uppercase tracking-wider px-8 py-4 rounded-xl text-white transition-all shadow-lg hover:scale-105 cursor-pointer bg-[#007BFF] hover:bg-[#0069d9]"
+                className="inline-flex items-center justify-center gap-2.5 font-bold text-xs sm:text-sm uppercase tracking-wider px-8 py-4 rounded-xl text-white transition-all shadow-lg hover:scale-105 cursor-pointer bg-[#007BFF] hover:bg-[#0069d9] w-full sm:w-auto"
               >
                 <span>{heroCta}</span>
                 <ArrowRightIcon size={16} strokeWidth={2} />
               </button>
+              
+              {heroCta2 && (
+                <a
+                  href={heroCta2Link}
+                  className="inline-flex items-center justify-center gap-2.5 font-bold text-xs sm:text-sm uppercase tracking-wider px-8 py-4 rounded-xl text-white transition-all shadow-lg hover:scale-105 cursor-pointer bg-white/10 hover:bg-white/20 border border-white/20 w-full sm:w-auto"
+                >
+                  <span>{heroCta2}</span>
+                </a>
+              )}
             </div>
           </div>
         </section>
@@ -755,13 +785,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
               </div>
 
               <div
-                className={`grid grid-cols-1 sm:grid-cols-2 ${
-                  whyItems.length === 3
-                    ? "lg:grid-cols-3"
-                    : whyItems.length === 2
-                    ? "lg:grid-cols-2"
-                    : "lg:grid-cols-4"
-                } gap-6`}
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
               >
                 {whyItems.map((item) => (
                   <div
@@ -805,7 +829,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {contributeItems.map((item, idx) => (
                   <div
                     key={idx}
@@ -847,6 +871,20 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                 {whoSubtext}
               </p>
             </div>
+            
+            {whoMessageTitle.trim() && whoMessageDesc.trim() && (
+              <div className="p-6 sm:p-8 rounded-2xl bg-[#003366] text-white mb-10 text-center shadow-lg max-w-3xl mx-auto">
+                <div className="flex justify-center mb-3 text-[#28A745]">
+                  <HeartPulseIcon size={32} strokeWidth={2} />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold mb-3 font-['DM_Serif_Display']">
+                  {whoMessageTitle}
+                </h3>
+                <p className="text-white/80 text-sm sm:text-base leading-relaxed">
+                  {whoMessageDesc}
+                </p>
+              </div>
+            )}
 
             <div className="flex flex-wrap items-center justify-center gap-2.5">
               {whoBadges.map((b) => (

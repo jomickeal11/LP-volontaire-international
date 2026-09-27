@@ -33,10 +33,213 @@ export const VOLUNTEER_SECTIONS = [
   { id: "WEEK", label: "7. Une semaine avec APTIC-R" },
   { id: "TOGO", label: "8. Vie & Immersion au Togo" },
   { id: "CONDITIONS", label: "9. Conditions & Tableau transparent" },
-  { id: "PROCESS", label: "10. Comment postuler (5 étapes)" },
+  { id: "PROCESS", label: "10. Comment postuler" },
   { id: "FAQ", label: "11. FAQ Volontariat" },
   { id: "CTA", label: "12. Appel à l'action final (CTA)" },
 ] as const
+
+function makeVolunteerFields(
+  section: VolunteerFieldDefinition["section"],
+  fields: {
+    key: string
+    label: string
+    type?: VolunteerFieldDefinition["type"]
+    required?: boolean
+    description?: string
+  }[],
+): VolunteerFieldDefinition[] {
+  return fields.map((field) => ({
+    key: field.key,
+    label: field.label,
+    description: field.description || "",
+    type: field.type || "text",
+    section,
+    isTranslatable: true,
+    required: field.required ?? true,
+  }))
+}
+
+const ADDITIONAL_EDITORIAL_FIELDS: VolunteerFieldDefinition[] = [
+  ...makeVolunteerFields(
+    "CHALLENGE",
+    Array.from({ length: 3 }, (_, index) => {
+      const number = index + 1
+      const key = `volunteer_challenge_step${number}`
+      return [
+        { key: `${key}_tag`, label: `Étape ${number} - Repère` },
+        { key: `${key}_title`, label: `Étape ${number} - Titre` },
+        {
+          key: `${key}_text`,
+          label: `Étape ${number} - Description`,
+          type: "textarea" as const,
+        },
+      ]
+    }).flat(),
+  ),
+  ...makeVolunteerFields(
+    "BUILD",
+    Array.from({ length: 4 }, (_, index) => {
+      const number = index + 1
+      const key = `volunteer_build_card${number}`
+      return [
+        { key: `${key}_badge`, label: `Exemple ${number} - Surtitre` },
+        { key: `${key}_title`, label: `Exemple ${number} - Titre` },
+        {
+          key: `${key}_desc`,
+          label: `Exemple ${number} - Description`,
+          type: "textarea" as const,
+          required: false,
+        },
+      ]
+    }).flat(),
+  ),
+  ...makeVolunteerFields(
+    "PROFILES",
+    [
+      ...Array.from({ length: 4 }, (_, index) => {
+        const number = index + 1
+        const key = `volunteer_profiles_category${number}`
+        return [
+          { key: `${key}_title`, label: `Profil ${number} - Titre` },
+          { key: `${key}_tags`, label: `Profil ${number} - Compétences` },
+        ]
+      }).flat(),
+      {
+        key: "volunteer_profiles_eligibility_cta",
+        label: "Bouton Vérifier mon éligibilité",
+      },
+      {
+        key: "volunteer_profiles_nonexpert_title",
+        label: "Message non-experts - Titre",
+      },
+      {
+        key: "volunteer_profiles_nonexpert_subtitle",
+        label: "Message non-experts - Introduction",
+        type: "textarea",
+      },
+      ...Array.from({ length: 7 }, (_, index) => ({
+        key: `volunteer_profiles_nonexpert_quality${index + 1}`,
+        label: `Qualité non-expert ${index + 1}`,
+      })),
+    ],
+  ),
+  ...makeVolunteerFields("WEEK", [
+    { key: "volunteer_week_tag", label: "Surtitre de la semaine" },
+    { key: "volunteer_week_title", label: "Titre de la semaine" },
+    ...Array.from({ length: 7 }, (_, index) => {
+      const number = index + 1
+      const key = `volunteer_week_day${number}`
+      return [
+        { key: `${key}_label`, label: `Jour ${number} - Libellé` },
+        { key: `${key}_activity`, label: `Jour ${number} - Activité` },
+        {
+          key: `${key}_desc`,
+          label: `Jour ${number} - Description`,
+          type: "textarea" as const,
+        },
+      ]
+    }).flat(),
+  ]),
+  ...makeVolunteerFields(
+    "TOGO",
+    Array.from({ length: 3 }, (_, index) => {
+      const number = index + 1
+      const key = `volunteer_togo_point${number}`
+      return [
+        { key: `${key}_title`, label: `Vie au Togo - Point ${number}` },
+        {
+          key: `${key}_desc`,
+          label: `Vie au Togo - Description ${number}`,
+          type: "textarea" as const,
+        },
+      ]
+    }).flat(),
+  ),
+  ...makeVolunteerFields(
+    "CONDITIONS",
+    [
+      { key: "volunteer_conditions_table_title", label: "Tableau - Titre" },
+      { key: "volunteer_conditions_table_summary", label: "Tableau - Résumé" },
+      {
+        key: "volunteer_conditions_status_confirmed",
+        label: "Statut confirmé",
+      },
+      {
+        key: "volunteer_conditions_status_pending",
+        label: "Statut en attente",
+      },
+      ...Array.from({ length: 9 }, (_, index) => {
+        const number = index + 1
+        const key = `volunteer_conditions_row${number}`
+        return [
+          { key: `${key}_label`, label: `Condition ${number} - Sujet` },
+          {
+            key: `${key}_detail`,
+            label: `Condition ${number} - Détail`,
+            type: "textarea" as const,
+          },
+          { key: `${key}_status`, label: `Condition ${number} - Statut` },
+        ]
+      }).flat(),
+    ],
+  ),
+  ...makeVolunteerFields(
+    "PROCESS",
+    [
+      { key: "volunteer_process_step_label", label: "Libellé des étapes" },
+      ...Array.from({ length: 6 }, (_, index) => {
+        const number = index + 1
+        const key = `volunteer_process_step${number}`
+        return [
+          { key: `${key}_title`, label: `Étape ${number} - Titre` },
+          {
+            key: `${key}_desc`,
+            label: `Étape ${number} - Description`,
+            type: "textarea" as const,
+          },
+        ]
+      }).flat(),
+      { key: "volunteer_process_cta", label: "Bouton Postuler" },
+    ],
+  ),
+  ...makeVolunteerFields(
+    "FAQ",
+    [
+      { key: "volunteer_faq_tag", label: "Surtitre FAQ" },
+      { key: "volunteer_faq_title", label: "Titre FAQ" },
+      {
+        key: "volunteer_faq_subtitle",
+        label: "Introduction FAQ",
+        type: "textarea",
+      },
+      ...Array.from({ length: 8 }, (_, index) => {
+        const number = index + 1
+        const key = `volunteer_faq_item${number}`
+        return [
+          { key: `${key}_question`, label: `Question ${number}` },
+          {
+            key: `${key}_answer`,
+            label: `Réponse ${number}`,
+            type: "textarea" as const,
+          },
+        ]
+      }).flat(),
+      {
+        key: "volunteer_faq_contact_title",
+        label: "Bloc contact - Titre",
+      },
+      {
+        key: "volunteer_faq_contact_subtitle",
+        label: "Bloc contact - Description",
+        type: "textarea",
+      },
+      {
+        key: "volunteer_faq_whatsapp_text",
+        label: "Message WhatsApp prérempli",
+      },
+    ],
+  ),
+]
 
 export const VOLUNTEER_FIELDS: VolunteerFieldDefinition[] = [
   // ── 1. HERO ──
@@ -625,6 +828,7 @@ export const VOLUNTEER_FIELDS: VolunteerFieldDefinition[] = [
     isTranslatable: true,
     required: true,
   },
+  ...ADDITIONAL_EDITORIAL_FIELDS,
 ]
 
 /**

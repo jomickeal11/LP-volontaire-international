@@ -41,6 +41,8 @@ const MEMBERSHIP_CONTENT = {
     membership_who_title: "Qui peut rejoindre APTIC-R ?",
     membership_who_text: "Étudiants, professionnels, entrepreneurs, enseignants, bénévoles, acteurs communautaires et toute personne partageant les valeurs de l'APTIC-R peuvent s'impliquer selon les modalités définies par l'association.",
     membership_who_subtext: "Aucun prérequis technique n'est exigé : c'est avant tout l'adhésion aux valeurs de solidarité et de développement rural qui rassemble notre communauté.",
+    membership_who_message_title: "Vous n'avez pas besoin d'être informaticien pour contribuer.",
+    membership_who_message_desc: "Vos idées, votre temps ou votre réseau sont tout aussi précieux que des compétences techniques.",
     membership_who_badges: "Étudiants & Chercheurs, Professionnels & Experts, Makers & Bénévoles, Acteurs communautaires, Citoyens engagés",
 
     membership_cta_tag: "PASSEZ À L'ACTION",
@@ -90,6 +92,8 @@ const MEMBERSHIP_CONTENT = {
     membership_who_title: "Who can join APTIC-R?",
     membership_who_text: "Students, professionals, entrepreneurs, educators, volunteers, community actors, and anyone sharing the values of APTIC-R can get involved according to associative modalities.",
     membership_who_subtext: "No technical prerequisites required: what unites us is a shared commitment to rural empowerment.",
+    membership_who_message_title: "You don't need to be an IT specialist to contribute.",
+    membership_who_message_desc: "Your ideas, your time, or your network are just as valuable as technical skills.",
     membership_who_badges: "Students & Researchers, Professionals & Experts, Makers & Volunteers, Community Actors, Engaged Citizens",
 
     membership_cta_tag: "TAKE ACTION",
@@ -139,6 +143,8 @@ const MEMBERSHIP_CONTENT = {
     membership_who_title: "Wer kann bei APTIC-R mitmachen?",
     membership_who_text: "Studierende, Fachkräfte, Unternehmer, Lehrkräfte, Freiwillige, Gemeinschaftsakteure und alle, die die Werte von APTIC-R teilen, können sich engagieren.",
     membership_who_subtext: "Keine technischen Vorkenntnisse erforderlich: Entscheidend ist die Begeisterung für nachhaltige ländliche Entwicklung.",
+    membership_who_message_title: "Sie müssen kein IT-Fachmann sein, um einen Beitrag zu leisten.",
+    membership_who_message_desc: "Ihre Ideen, Ihre Zeit oder Ihr Netzwerk sind genauso wertvoll wie technische Kompetenzen.",
     membership_who_badges: "Studierende & Forschende, Fachkräfte & Experten, Macher & Freiwillige, Akteure vor Ort, Engagierte Bürger",
 
     membership_cta_tag: "JETZT MITMACHEN",
@@ -153,12 +159,25 @@ const MEMBERSHIP_CONTENT = {
 }
 
 async function main() {
-  console.log("Seeding Membership CMS settings...")
+  const inclusionMessageOnly = process.argv.includes("--inclusion-message-only")
+  console.log(
+    inclusionMessageOnly
+      ? "Seeding only Membership inclusion-message settings..."
+      : "Seeding Membership CMS settings...",
+  )
 
   // Multilingual fields
   for (const [lang, dict] of Object.entries(MEMBERSHIP_CONTENT)) {
     const langLower = lang.toLowerCase()
     for (const [baseKey, val] of Object.entries(dict)) {
+      if (
+        inclusionMessageOnly &&
+        baseKey !== "membership_who_message_title" &&
+        baseKey !== "membership_who_message_desc"
+      ) {
+        continue
+      }
+
       const key = `${baseKey}_${langLower}`
       await (prisma as any).parametreSite.upsert({
         where: { key },
@@ -173,7 +192,11 @@ async function main() {
     }
   }
 
-  console.log("Membership CMS settings seeded successfully!")
+  console.log(
+    inclusionMessageOnly
+      ? "Membership inclusion-message settings seeded successfully."
+      : "Membership CMS settings seeded successfully!",
+  )
 }
 
 main()

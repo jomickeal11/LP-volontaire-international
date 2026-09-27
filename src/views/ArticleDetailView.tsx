@@ -57,11 +57,11 @@ export default function ArticleDetailView({ lang, slug }: ArticleDetailViewProps
   }
 
   useEffect(() => {
-    getArticleBySlug(slug)
+    getArticleBySlug(slug, lang)
       .then((data) => setArticle(data as any))
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [slug])
+  }, [slug, lang])
 
   if (loading) {
     return (
@@ -97,34 +97,10 @@ export default function ArticleDetailView({ lang, slug }: ArticleDetailViewProps
     )
   }
 
-  const title =
-    lang === "EN" && article.titleEn
-      ? article.titleEn
-      : lang === "DE" && article.titleDe
-      ? article.titleDe
-      : article.titleFr
-
-  const excerpt =
-    lang === "EN" && article.excerptEn
-      ? article.excerptEn
-      : lang === "DE" && article.excerptDe
-      ? article.excerptDe
-      : article.excerptFr
-
-  const content =
-    lang === "EN" && article.contentEn
-      ? article.contentEn
-      : lang === "DE" && article.contentDe
-      ? article.contentDe
-      : article.contentFr
-
-  const catName =
-    lang === "EN" && article.category?.nameEn
-      ? article.category.nameEn
-      : lang === "DE" && article.category?.nameDe
-      ? article.category.nameDe
-      : article.category?.nameFr
-
+  const title = lang === "EN" ? article.titleEn ?? "" : lang === "DE" ? article.titleDe ?? "" : article.titleFr
+  const excerpt = lang === "EN" ? article.excerptEn ?? "" : lang === "DE" ? article.excerptDe ?? "" : article.excerptFr
+  const content = lang === "EN" ? article.contentEn ?? "" : lang === "DE" ? article.contentDe ?? "" : article.contentFr
+  const catName = lang === "EN" ? article.category?.nameEn ?? "" : lang === "DE" ? article.category?.nameDe ?? "" : article.category?.nameFr ?? ""
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: BG }}>
       <Header lang={lang} setLang={handleSetLang} currentPage="news" navigate={navigate} />

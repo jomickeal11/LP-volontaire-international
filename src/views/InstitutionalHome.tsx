@@ -534,6 +534,18 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
   const [dbDomains, setDbDomains] = useState<any[]>([])
   const [dbProjects, setDbProjects] = useState<any[]>([])
   const [dbTestimonials, setDbTestimonials] = useState<any[]>([])
+  const contactEmail = settings.site_contact_email ?? ""
+  const contactPhone = settings.site_contact_phone ?? ""
+  const contactWhatsapp = settings.site_social_whatsapp ?? ""
+  const contactWhatsappDigits = contactWhatsapp.replace(/\D/g, "")
+  const publicAddress = settings.site_location_address || settings.site_location_city || ""
+  const publicAddressDetail = [settings.site_location_region, settings.site_location_country].filter(Boolean).join(", ")
+  const mapLatitude = settings.contact_map_lat ?? ""
+  const mapLongitude = settings.contact_map_lng ?? ""
+  const mapZoom = settings.contact_map_zoom ?? ""
+  const mapLabel = settings.contact_map_label ?? ""
+  const mapConfigured = Boolean(mapLatitude.trim() && mapLongitude.trim() && mapZoom.trim())
+  const contactAccessInfo = settings[`contact_access_info_${safeLang.toLowerCase()}`] ?? ""
 
   React.useEffect(() => {
     import("@/lib/cms-actions").then(({ getSiteSettings, getDomaines, getProjects, getTestimonials }) => {
@@ -543,13 +555,13 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
         }
       }).catch(console.error)
 
-      getDomaines({ activeOnly: true }).then((res) => {
+      getDomaines({ activeOnly: true, lang: safeLang }).then((res) => {
         if (res && res.length > 0) {
           setDbDomains(res)
         }
       }).catch(console.error)
 
-      getProjects({ limit: 6 }).then((res) => {
+      getProjects({ limit: 6, lang: safeLang }).then((res) => {
         if (res && res.length > 0) {
           setDbProjects(res)
         }
@@ -595,100 +607,59 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
 
   /* Projects list computation - Règle stricte : zéro mélange de langues */
   const { flagshipProject, secondaryProjects } = React.useMemo(() => {
-    if (dbProjects.length > 0) {
-      // Filtrer les projets qui possèdent une version complète dans la langue active
-      const validProjects = dbProjects.filter((p) => {
-        if (safeLang === "DE") return !!(p.titleDe && (p.summaryDe || p.descriptionDe))
-        if (safeLang === "EN") return !!(p.titleEn && (p.summaryEn || p.descriptionEn))
-        return !!(p.titleFr && (p.summaryFr || p.descriptionFr))
-      })
+    const validProjects = dbProjects.filter((project) => {
+      if (safeLang === "DE") return Boolean(project.publishedDe && project.titleDe?.trim() && (project.summaryDe?.trim() || project.descriptionDe?.trim()))
+      if (safeLang === "EN") return Boolean(project.publishedEn && project.titleEn?.trim() && (project.summaryEn?.trim() || project.descriptionEn?.trim()))
+      return Boolean(project.publishedFr && project.titleFr?.trim() && (project.summaryFr?.trim() || project.descriptionFr?.trim()))
+    })
 
-      if (validProjects.length > 0) {
-        const featured = validProjects.find((p) => p.isFeatured) || validProjects[0]
-        const secondaries = validProjects.filter((p) => p.id !== featured.id).slice(0, 2)
-
-        const getTitle = (p: any) =>
-          safeLang === "DE" ? p.titleDe : safeLang === "EN" ? p.titleEn : p.titleFr
-        const getDesc = (p: any) =>
-          safeLang === "DE"
-            ? p.summaryDe || p.descriptionDe
-            : safeLang === "EN"
-            ? p.summaryEn || p.descriptionEn
-            : p.summaryFr || p.descriptionFr
-
-        const getDomaineName = (p: any) => {
-          if (!p.domaine) return c.projects.flagshipProgram
-          if (safeLang === "DE") return p.domaine.nameDe || c.projects.flagshipProgram
-          if (safeLang === "EN") return p.domaine.nameEn || c.projects.flagshipProgram
-          return p.domaine.nameFr || c.projects.flagshipProgram
-        }
-
-        const flagship = {
-          title: getTitle(featured),
-          desc: getDesc(featured),
-          loc: featured.location || (featured.country ? `${featured.country}` : c.projects.flagshipLoc),
-          program: getDomaineName(featured),
-          kpi: featured.beneficiaries || c.projects.flagshipKpi,
+    if (validProjects.length > 0) {
+      const featured = validProjects.find((project) => project.isFeatured) || validProjects[0]
+      const secondaries = validProjects.filter((project) => project.id !== featured.id).slice(0, 2)
+      const localizedTitle = (project: any) => safeLang === "DE" ? project.titleDe : safeLang === "EN" ? project.titleEn : project.titleFr
+      const localizedDescription = (project: any) => safeLang === "DE" ? project.summaryDe || project.descriptionDe : safeLang === "EN" ? project.summaryEn || project.descriptionEn : project.summaryFr || project.descriptionFr
+      const localizedDomain = (project: any) => safeLang === "DE" ? project.domaine?.nameDe ?? "" : safeLang === "EN" ? project.domaine?.nameEn ?? "" : project.domaine?.nameFr ?? ""
+      return {
+        flagshipProject: {
+          title: localizedTitle(featured),
+          desc: localizedDescription(featured),
+          loc: featured.location || featured.country || "",
+          program: localizedDomain(featured),
+          kpi: featured.beneficiaries ?? "",
           image: featured.featuredImage || "/photo-projet-phare.jpg",
           slug: featured.slug,
-        }
-
-        const secondariesMapped = secondaries.map((p: any, idx: number) => ({
-          num: String(idx + 2).padStart(2, "0"),
-          title: getTitle(p),
-          desc: getDesc(p),
-          loc: p.location || c.projects[`project${idx + 2}Loc` as keyof typeof c.projects] || "Togo",
-          slug: p.slug,
-        }))
-
-        return { flagshipProject: flagship, secondaryProjects: secondariesMapped }
+        },
+        secondaryProjects: secondaries.map((project: any, index: number) => ({
+          num: String(index + 2).padStart(2, "0"),
+          title: localizedTitle(project),
+          desc: localizedDescription(project),
+          loc: project.location || project.country || "",
+          slug: project.slug,
+        })),
       }
     }
 
     return {
-      flagshipProject: {
-        title: c.projects.flagshipTitle,
-        desc: c.projects.flagshipDesc,
-        loc: c.projects.flagshipLoc,
-        program: c.projects.flagshipProgram,
-        kpi: c.projects.flagshipKpi,
-        image: "/photo-projet-phare.jpg",
-        slug: "caravane-numerique-salles-solaires",
-      },
-      secondaryProjects: [
-        { loc: c.projects.project2Loc, title: c.projects.project2Title, desc: c.projects.project2Desc, num: "02", slug: "fablab-rural-prototypage" },
-        { loc: c.projects.project3Loc, title: c.projects.project3Title, desc: c.projects.project3Desc, num: "03", slug: "bourses-numeriques-femmes" },
-      ],
+      flagshipProject: { title: "", desc: "", loc: "", program: "", kpi: "", image: "", slug: "" },
+      secondaryProjects: [],
     }
-  }, [dbProjects, safeLang, c.projects])
+  }, [dbProjects, safeLang])
 
   /* Testimonials list computation - Règle stricte : zéro mélange de langues */
   const testimonialsList = React.useMemo(() => {
-    if (dbTestimonials.length > 0) {
-      // Filtrer les témoignages qui ont une citation dans la langue active
-      const validTestimonials = dbTestimonials.filter((t) => {
-        if (safeLang === "DE") return !!t.quoteDe
-        if (safeLang === "EN") return !!t.quoteEn
-        return !!t.quoteFr
+    return dbTestimonials
+      .filter((testimonial) => {
+        const quote = safeLang === "DE" ? testimonial.quoteDe : safeLang === "EN" ? testimonial.quoteEn : testimonial.quoteFr
+        return Boolean(quote?.trim())
       })
-
-      if (validTestimonials.length > 0) {
-        return validTestimonials.map((t, idx) => ({
-          num: String(idx + 1).padStart(2, "0"),
-          quote: safeLang === "DE" ? t.quoteDe : safeLang === "EN" ? t.quoteEn : t.quoteFr,
-          author: t.authorName,
-          role: t.authorRole,
-          village: t.authorOrg || "Agbélouvé · Togo",
-          photoUrl: t.photoUrl,
-        }))
-      }
-    }
-
-    return [
-      { quote: c.testimonials.t1Quote, author: c.testimonials.t1Author, role: c.testimonials.t1Role, village: c.testimonials.t1Village, num: "01", photoUrl: null },
-      { quote: c.testimonials.t2Quote, author: c.testimonials.t2Author, role: c.testimonials.t2Role, village: c.testimonials.t2Village, num: "02", photoUrl: null },
-    ]
-  }, [dbTestimonials, safeLang, c.testimonials])
+      .map((testimonial, idx) => ({
+        num: String(idx + 1).padStart(2, "0"),
+        quote: safeLang === "DE" ? testimonial.quoteDe : safeLang === "EN" ? testimonial.quoteEn : testimonial.quoteFr,
+        author: testimonial.authorName,
+        role: testimonial.authorRole,
+        village: testimonial.authorOrg ?? "",
+        photoUrl: testimonial.photoUrl,
+      }))  }, [dbTestimonials, safeLang, c.testimonials])
 
   /* Newsletter state */
   const [nlEmail, setNlEmail] = useState("")
@@ -941,7 +912,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                 <div className="relative w-full aspect-[16/10] overflow-hidden bg-black/5">
                   <picture>
                     <img
-                      src={settings["about_story_image"] || "/photo-ancrage-togo.png"}
+                      src={settings["about_story_image"] ?? ""}
                       alt={c.about.altPhoto}
                       className="w-full h-full object-cover object-[center_30%]"
                     />
@@ -950,10 +921,10 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                 <div className="p-6 sm:p-7 text-white" style={{ backgroundColor: BLUE_INST }}>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-bold uppercase tracking-widest text-white/80">
-                      {settings["about_story_tag"] || c.about.photoTag}
+                      {settings["about_story_tag"] ?? ""}
                     </span>
                     <span className="text-[11px] font-mono text-white/50">
-                      {settings["about_story_location"] || c.about.photoLoc}
+                      {settings["about_story_location"] ?? ""}
                     </span>
                   </div>
                   <p className="text-xs text-white/85 leading-relaxed">
@@ -1402,19 +1373,19 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
               “
             </span>
             <p className="text-lg sm:text-2xl lg:text-[28px] font-semibold leading-relaxed italic mb-10 relative z-10" style={{ color: BLUE_INST }}>
-              {"\u00AB"} {testimonialsList[activeTestimonial].quote} {"\u00BB"}
+              {"\u00AB"} {testimonialsList[activeTestimonial]?.quote ?? ""} {"\u00BB"}
             </p>
             <div className="pt-6 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-4" style={{ borderColor: BORDER }}>
               <div>
                 <div className="text-lg sm:text-xl font-black" style={{ color: BLUE_INST }}>
-                  {testimonialsList[activeTestimonial].author}
+                  {testimonialsList[activeTestimonial]?.author ?? ""}
                 </div>
                 <div className="text-sm mt-1" style={{ color: TEXT_MUTED }}>
-                  {testimonialsList[activeTestimonial].role}
+                  {testimonialsList[activeTestimonial]?.role ?? ""}
                 </div>
               </div>
               <span className="text-xs font-mono px-3 py-1.5 rounded-full border bg-white" style={{ borderColor: BORDER, color: TEXT_MUTED }}>
-                {"\uD83D\uDCCD"} {testimonialsList[activeTestimonial].village}
+                {"\uD83D\uDCCD"} {testimonialsList[activeTestimonial]?.village ?? ""}
               </span>
             </div>
           </div>
@@ -1506,46 +1477,46 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
               </div>
 
               <div className="border-t pt-8 space-y-6" style={{ borderColor: BORDER }}>
-                <div>
+                {contactEmail && <div>
                   <span className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: TEXT_MUTED }}>
                     {c.contact.emailLabel}
                   </span>
                   <a
-                    href="mailto:aptic.rural19@gmail.com"
+                    href={contactEmail ? `mailto:${contactEmail}` : undefined}
                     className="font-mono text-base sm:text-lg font-bold hover:underline"
                     style={{ color: BLUE_INST }}
                   >
-                    aptic.rural19@gmail.com
+                    {contactEmail}
                   </a>
-                </div>
+                </div>}
 
-                <div>
+                {contactPhone && <div>
                   <span className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: TEXT_MUTED }}>
                     {c.contact.phoneLabel}
                   </span>
                   <a
-                    href="https://wa.me/22891201990"
+                    href={contactWhatsappDigits ? `https://wa.me/${contactWhatsappDigits}` : undefined}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-mono text-base sm:text-lg font-bold hover:underline flex items-center gap-2"
                     style={{ color: BLUE_INST }}
                   >
-                    <span>+228 91 20 19 90</span>
+                    <span>{contactPhone}</span>
                     <span className="text-xs uppercase font-sans font-bold px-2 py-0.5 rounded border" style={{ backgroundColor: LIGHT_BG, borderColor: BORDER, color: TEXT_MUTED }}>
                       WhatsApp
                     </span>
                   </a>
-                </div>
+                </div>}
 
                 <div>
                   <span className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: TEXT_MUTED }}>
                     {c.contact.addressLabel}
                   </span>
                   <div className="text-sm sm:text-base font-bold" style={{ color: TEXT_MAIN }}>
-                    {c.contact.addressVal}
+                    {publicAddress}
                   </div>
                   <div className="text-xs mt-0.5" style={{ color: TEXT_MUTED }}>
-                    {c.contact.addressDetail}
+                    {publicAddressDetail}
                   </div>
                 </div>
               </div>
@@ -1558,8 +1529,8 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                 >
                   {c.contact.contactBtn}
                 </button>
-                <a
-                  href="https://wa.me/22891201990"
+                {contactWhatsappDigits && <a
+                  href={contactWhatsappDigits ? `https://wa.me/${contactWhatsappDigits}` : undefined}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-6 py-3.5 rounded-xl text-sm font-bold border transition-colors inline-flex items-center gap-2"
@@ -1567,7 +1538,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                 >
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: GREEN }} />
                   <span>{c.contact.whatsappBtn}</span>
-                </a>
+                </a>}
               </div>
             </div>
 
@@ -1584,24 +1555,24 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                     scrolling="no"
                     marginHeight={0}
                     marginWidth={0}
-                    src="https://www.openstreetmap.org/export/embed.html?bbox=1.1550%2C6.5500%2C1.2250%2C6.6100&amp;layer=mapnik&amp;marker=6.5786%2C1.1894"
-                    className="w-full h-full filter contrast-[1.02]"
+                    src={mapConfigured ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(mapLongitude) - 0.035}%2C${Number(mapLatitude) - 0.03}%2C${Number(mapLongitude) + 0.035}%2C${Number(mapLatitude) + 0.03}&layer=mapnik&marker=${mapLatitude}%2C${mapLongitude}` : undefined}
+                    className={`w-full h-full filter contrast-[1.02] ${mapConfigured ? "" : "hidden"}`}
                   />
                   
                   {/* Badge d'ancrage territorial superposé */}
                   <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl border shadow-xs text-xs space-y-0.5" style={{ borderColor: BORDER }}>
                     <div className="font-bold flex items-center gap-1.5" style={{ color: BLUE_INST }}>
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: GREEN }} />
-                      <span>Siège & FabLab APTIC-R</span>
+                      <span>{mapLabel}</span>
                     </div>
-                    <div style={{ color: TEXT_MUTED }}>Agbélouvé, RN1 (65 km nord Lomé)</div>
+                    <div style={{ color: TEXT_MUTED }}>{publicAddressDetail}</div>
                   </div>
 
                   <a
-                    href="https://www.openstreetmap.org/#map=13/6.5786/1.1894"
+                    href={mapConfigured ? `https://www.openstreetmap.org/#map=${mapZoom}/${mapLatitude}/${mapLongitude}` : undefined}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg border text-[11px] font-bold shadow-xs hover:bg-white transition-colors inline-flex items-center gap-1"
+                    className={`absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg border text-[11px] font-bold shadow-xs hover:bg-white transition-colors inline-flex items-center gap-1 ${mapConfigured ? "" : "hidden"}`}
                     style={{ color: BLUE_TECH, borderColor: BORDER }}
                   >
                     <span>OSM</span>
@@ -1616,10 +1587,10 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h3 className="text-lg font-black" style={{ color: BLUE_INST }}>
-                        Agbélouvé, Togo
+                        {publicAddress}
                       </h3>
                       <p className="text-xs font-mono mt-0.5" style={{ color: TEXT_MUTED }}>
-                        {c.contact.gpsLabel} · {c.contact.mapRegion}
+                        {[c.contact.gpsLabel, publicAddressDetail].filter(Boolean).join(" · ")}
                       </p>
                     </div>
 
@@ -1633,7 +1604,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                       {c.contact.accessBoxTitle}
                     </div>
                     <p className="text-xs leading-relaxed" style={{ color: TEXT_MUTED }}>
-                      {c.contact.mapNotice}
+                      {contactAccessInfo}
                     </p>
                   </div>
 

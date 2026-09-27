@@ -1021,17 +1021,17 @@ export default function AdminDomaines() {
                       key={lang}
                       type="button"
                       onClick={() => setActiveLangTab(lang)}
-                      className={`pb-2 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+                      className={`whitespace-nowrap pb-2 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${
                         activeLangTab === lang
                           ? "border-b-2 border-[#003366] text-[#003366]"
                           : "text-slate-400 hover:text-slate-600"
                       }`}
                     >
                       {lang === "FR"
-                        ? "Français (Défaut) *"
+                        ? "Français (Défaut)\u00A0*"
                         : lang === "EN"
-                        ? `English ${formData.nameEn ? "✓" : ""}`
-                        : `Deutsch ${formData.nameDe ? "✓" : ""}`}
+                        ? `English${formData.nameEn ? "\u00A0✓" : ""}`
+                        : `Deutsch${formData.nameDe ? "\u00A0✓" : ""}`}
                     </button>
                   ))}
                 </div>

@@ -7,8 +7,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Public institutional pages with their localized paths and priorities
   const pages = [
     { path: { fr: "", en: "", de: "" }, priority: 1.0, freq: "weekly" as const },
-    { path: { fr: "volontariat", en: "volunteering", de: "freiwilligendienst" }, priority: 0.95, freq: "weekly" as const },
-    { path: { fr: "volontariat/postuler", en: "volunteering/apply", de: "freiwilligendienst/bewerben" }, priority: 0.9, freq: "monthly" as const },
+    { path: { fr: "volontariat", en: "volontariat", de: "volontariat" }, priority: 0.95, freq: "weekly" as const },
+    { path: { fr: "volontariat/postuler", en: "volontariat/postuler", de: "volontariat/postuler" }, priority: 0.9, freq: "monthly" as const },
     { path: { fr: "partenaires", en: "partners", de: "partner" }, priority: 0.85, freq: "monthly" as const },
     { path: { fr: "a-propos", en: "about", de: "ueber-uns" }, priority: 0.8, freq: "monthly" as const },
     { path: { fr: "domaines", en: "domains", de: "bereiche" }, priority: 0.8, freq: "monthly" as const },

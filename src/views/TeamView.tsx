@@ -19,17 +19,18 @@ const BG = "#F7F8FA"
 
 interface Member {
   id: string
-  name: string
+  firstName: string
+  lastName: string
   roleFr: string
   roleEn?: string | null
   roleDe?: string | null
   category: string
-  bioFr?: string | null
+  bioFr: string
   bioEn?: string | null
   bioDe?: string | null
   email?: string | null
   photoUrl?: string | null
-  skills?: string | null
+  skills: string[]
   order: number
 }
 
@@ -122,16 +123,6 @@ function getInitials(name: string): string {
     .slice(0, 2)
     .join("")
     .toUpperCase()
-}
-
-function parseSkills(skillsStr?: string | null): string[] {
-  if (!skillsStr) return []
-  try {
-    const parsed = JSON.parse(skillsStr)
-    return Array.isArray(parsed) ? parsed : [skillsStr]
-  } catch {
-    return skillsStr.split(",").map((s) => s.trim()).filter(Boolean)
-  }
 }
 
 function MemberAvatar({
@@ -230,14 +221,16 @@ export default function TeamView({ lang, initialMembers }: TeamViewProps) {
   const getRole = (m: Member) => {
     if (lang === "EN" && m.roleEn?.trim()) return m.roleEn
     if (lang === "DE" && m.roleDe?.trim()) return m.roleDe
-    return m.roleFr
+    return m.roleFr?.trim() || ""
   }
 
   const getBio = (m: Member) => {
     if (lang === "EN" && m.bioEn?.trim()) return m.bioEn
     if (lang === "DE" && m.bioDe?.trim()) return m.bioDe
-    return m.bioFr || ""
+    return m.bioFr?.trim() || ""
   }
+
+  const getMemberName = (m: Member) => `${m.firstName} ${m.lastName}`
 
   const leadershipList = members.filter((m) => m.category === "DIRECTION")
   const coordinationList = members.filter((m) => m.category === "COORDINATION" || m.category === "FORMATION")
@@ -346,7 +339,7 @@ export default function TeamView({ lang, initialMembers }: TeamViewProps) {
 
               <div className="space-y-6">
                 {leadershipList.map((m) => {
-                  const skills = parseSkills(m.skills)
+                  const skills = m.skills
                   const bio = getBio(m)
                   return (
                     <div
@@ -354,16 +347,16 @@ export default function TeamView({ lang, initialMembers }: TeamViewProps) {
                       className="bg-white rounded-2xl p-6 sm:p-8 lg:p-10 border border-slate-200/90 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-6 lg:gap-8"
                     >
                       <MemberAvatar
-                        initials={getInitials(m.name)}
+                        initials={getInitials(getMemberName(m))}
                         photoUrl={m.photoUrl}
-                        name={m.name}
+                        name={getMemberName(m)}
                         size="large"
                       />
 
                       <div className="flex-1 min-w-0">
                         <div className="mb-3">
                           <h3 className="text-2xl sm:text-3xl font-extrabold text-[#142332] tracking-tight">
-                            {m.name}
+                            {getMemberName(m)}
                           </h3>
                           <p className="text-sm sm:text-base font-semibold text-[#007BFF] mt-0.5">
                             {getRole(m)}
@@ -425,7 +418,7 @@ export default function TeamView({ lang, initialMembers }: TeamViewProps) {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                 {coordinationList.map((m) => {
-                  const skills = parseSkills(m.skills)
+                  const skills = m.skills
                   const bio = getBio(m)
                   return (
                     <div
@@ -435,14 +428,14 @@ export default function TeamView({ lang, initialMembers }: TeamViewProps) {
                       <div>
                         <div className="flex items-start gap-4 sm:gap-5 mb-5">
                           <MemberAvatar
-                            initials={getInitials(m.name)}
+                            initials={getInitials(getMemberName(m))}
                             photoUrl={m.photoUrl}
-                            name={m.name}
+                            name={getMemberName(m)}
                             size="normal"
                           />
                           <div className="min-w-0 pt-1">
                             <h3 className="text-lg sm:text-xl font-bold text-[#142332] leading-snug">
-                              {m.name}
+                              {getMemberName(m)}
                             </h3>
                             <p className="text-xs sm:text-sm font-semibold text-[#007BFF] mt-1">
                               {getRole(m)}
@@ -509,7 +502,7 @@ export default function TeamView({ lang, initialMembers }: TeamViewProps) {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                 {advisoryList.map((m) => {
-                  const skills = parseSkills(m.skills)
+                  const skills = m.skills
                   const bio = getBio(m)
                   return (
                     <div
@@ -519,14 +512,14 @@ export default function TeamView({ lang, initialMembers }: TeamViewProps) {
                       <div>
                         <div className="flex items-start gap-4 sm:gap-5 mb-5">
                           <MemberAvatar
-                            initials={getInitials(m.name)}
+                            initials={getInitials(getMemberName(m))}
                             photoUrl={m.photoUrl}
-                            name={m.name}
+                            name={getMemberName(m)}
                             size="normal"
                           />
                           <div className="min-w-0 pt-1">
                             <h3 className="text-lg sm:text-xl font-bold text-[#142332] leading-snug">
-                              {m.name}
+                              {getMemberName(m)}
                             </h3>
                             <p className="text-xs sm:text-sm font-semibold text-[#007BFF] mt-1">
                               {getRole(m)}

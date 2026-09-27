@@ -184,7 +184,8 @@ async function main() {
   // 4. Membres de l'équipe
   const equipe = [
     {
-      name: "Komal DAGNON",
+      firstName: "Komal",
+      lastName: "DAGNON",
       roleFr: "Directeur Exécutif & Co-fondateur",
       roleEn: "Executive Director & Co-Founder",
       roleDe: "Geschäftsführender Direktor & Mitgründer",
@@ -199,7 +200,8 @@ async function main() {
       active: true,
     },
     {
-      name: "Kokouvi Mensah",
+      firstName: "Kokouvi",
+      lastName: "Mensah",
       roleFr: "Président du Conseil d'Administration",
       roleEn: "President of the Board of Directors",
       roleDe: "Vorsitzender des Verwaltungsrats",
@@ -214,7 +216,8 @@ async function main() {
       active: true,
     },
     {
-      name: "Afiwa Lawson",
+      firstName: "Afiwa",
+      lastName: "Lawson",
       roleFr: "Coordinatrice des Programmes & Ingénierie Pédagogique",
       roleEn: "Programs & Pedagogical Engineering Coordinator",
       roleDe: "Programm- & Pädagogikkoordinatorin",
@@ -229,7 +232,8 @@ async function main() {
       active: true,
     },
     {
-      name: "Kodjo Agbodjan",
+      firstName: "Kodjo",
+      lastName: "Agbodjan",
       roleFr: "Responsable Technique & FabLab Rural",
       roleEn: "Technical Lead & Rural FabLab Manager",
       roleDe: "Technischer Leiter & Rural FabLab",
@@ -244,7 +248,8 @@ async function main() {
       active: true,
     },
     {
-      name: "Essivi Kpogo",
+      firstName: "Essivi",
+      lastName: "Kpogo",
       roleFr: "Chargée de Mobilisation Communautaire & Genre",
       roleEn: "Community Engagement & Gender Officer",
       roleDe: "Referentin für Gemeindeengagement & Gleichstellung",
@@ -259,7 +264,8 @@ async function main() {
       active: true,
     },
     {
-      name: "Dr. Yao Tete",
+      firstName: "Yao",
+      lastName: "Tete",
       roleFr: "Conseiller Scientifique, Climat & Agro-Écologie",
       roleEn: "Scientific Advisor, Climate & Agro-Ecology",
       roleDe: "Wissenschaftlicher Berater für Klima & Agrarökologie",
@@ -274,7 +280,8 @@ async function main() {
       active: true,
     },
     {
-      name: "Léa Dupont",
+      firstName: "Léa",
+      lastName: "Dupont",
       roleFr: "Volontaire Internationale — UI/UX & Documentation",
       roleEn: "International Volunteer — UI/UX & Digital Design",
       roleDe: "Internationale Freiwillige — UI/UX & Mediengestaltung",
@@ -291,7 +298,9 @@ async function main() {
   ]
 
   for (const m of equipe) {
-    const existing = await prisma.membreEquipe.findFirst({ where: { name: m.name } })
+    const existing = await prisma.membreEquipe.findFirst({
+      where: { firstName: m.firstName, lastName: m.lastName },
+    })
     if (existing) {
       await prisma.membreEquipe.update({ where: { id: existing.id }, data: m })
     } else {

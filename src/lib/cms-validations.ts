@@ -38,3 +38,57 @@ export const institutionalContactSchema = z.object({
 })
 
 export type InstitutionalContactInput = z.infer<typeof institutionalContactSchema>
+
+const teamCategorySchema = z.enum(["DIRECTION", "COORDINATION", "FORMATION", "CONSEIL", "VOLONTAIRE"])
+const teamEmailSchema = z
+  .string()
+  .trim()
+  .max(254, "L'email professionnel est trop long")
+  .refine((value) => value === "" || z.string().email().safeParse(value).success, "Adresse email invalide")
+const teamSkillSchema = z.string().trim().min(1, "Une compétence ne peut pas être vide").max(80, "Une compétence ne peut pas dépasser 80 caractères")
+const teamSkillsSchema = z.array(teamSkillSchema).max(12, "Douze compétences maximum")
+
+export const teamMemberCreateSchema = z.object({
+  firstName: z.string().trim().min(1, "Le prénom est obligatoire").max(80, "Le prénom est trop long"),
+  lastName: z.string().trim().min(1, "Le nom est obligatoire").max(80, "Le nom est trop long"),
+  roleFr: z.string().trim().min(1, "La fonction en français est obligatoire").max(200, "La fonction est trop longue"),
+  roleEn: z.string().trim().max(200, "La fonction anglaise est trop longue").optional(),
+  roleDe: z.string().trim().max(200, "La fonction allemande est trop longue").optional(),
+  category: teamCategorySchema,
+  bioFr: z.string().trim().min(1, "La biographie en français est obligatoire").max(1500, "La biographie ne peut pas dépasser 1 500 caractères"),
+  bioEn: z.string().trim().max(1500, "La biographie anglaise ne peut pas dépasser 1 500 caractères").optional(),
+  bioDe: z.string().trim().max(1500, "La biographie allemande ne peut pas dépasser 1 500 caractères").optional(),
+  photoUrl: z.string().trim().min(1, "La photo de profil est obligatoire").max(2048, "L'adresse de la photo est trop longue"),
+  email: teamEmailSchema.optional(),
+  skills: teamSkillsSchema.default([]),
+  order: z.number().int().min(1).optional(),
+  active: z.boolean().optional(),
+})
+
+export const teamMemberUpdateSchema = z
+  .object({
+    firstName: z.string().trim().min(1, "Le prénom est obligatoire").max(80, "Le prénom est trop long"),
+    lastName: z.string().trim().min(1, "Le nom est obligatoire").max(80, "Le nom est trop long"),
+    roleFr: z.string().trim().min(1, "La fonction en français est obligatoire").max(200, "La fonction est trop longue"),
+    roleEn: z.string().trim().max(200, "La fonction anglaise est trop longue").optional(),
+    roleDe: z.string().trim().max(200, "La fonction allemande est trop longue").optional(),
+    category: teamCategorySchema,
+    bioFr: z.string().trim().min(1, "La biographie en français est obligatoire").max(1500, "La biographie ne peut pas dépasser 1 500 caractères"),
+    bioEn: z.string().trim().max(1500, "La biographie anglaise ne peut pas dépasser 1 500 caractères").optional(),
+    bioDe: z.string().trim().max(1500, "La biographie allemande ne peut pas dépasser 1 500 caractères").optional(),
+    photoUrl: z.string().trim().min(1, "La photo de profil est obligatoire").max(2048, "L'adresse de la photo est trop longue"),
+    email: teamEmailSchema.optional(),
+    skills: teamSkillsSchema.optional(),
+    order: z.number().int().min(1).optional(),
+    active: z.boolean().optional(),
+  })
+  .partial()
+  .refine((data) => Object.values(data).some((value) => value !== undefined), "Aucune modification fournie")
+
+export const teamMemberReorderSchema = z.object({
+  orderedIds: z
+    .array(z.string().min(1))
+    .min(1, "La liste de réorganisation est vide")
+    .max(1000, "La liste de réorganisation est trop longue")
+    .refine((ids) => new Set(ids).size === ids.length, "La liste de réorganisation contient des doublons"),
+})
