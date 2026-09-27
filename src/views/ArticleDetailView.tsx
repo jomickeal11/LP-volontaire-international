@@ -1,17 +1,16 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React from "react"
 import Link from "next/link"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { useRouter, usePathname } from "next/navigation"
-import { getArticleBySlug } from "@/lib/cms-actions"
 
 interface ArticleDetailViewProps {
   lang: Language
-  slug: string
+  article: ArticleDetail | null
 }
 
 interface ArticleDetail {
@@ -40,12 +39,9 @@ interface ArticleDetail {
 
 const BG = "#F7F8FA"
 
-export default function ArticleDetailView({ lang, slug }: ArticleDetailViewProps) {
+export default function ArticleDetailView({ lang, article }: ArticleDetailViewProps) {
   const router = useRouter()
   const pathname = usePathname()
-
-  const [article, setArticle] = useState<ArticleDetail | null>(null)
-  const [loading, setLoading] = useState(true)
 
   const navigate = (page: Page) => {
     router.push(getPageUrl(page, lang))
@@ -54,21 +50,6 @@ export default function ArticleDetailView({ lang, slug }: ArticleDetailViewProps
   const handleSetLang = (newLang: Language) => {
     const newPath = pathname.replace(`/${lang.toLowerCase()}`, `/${newLang.toLowerCase()}`)
     router.push(newPath || `/${newLang.toLowerCase()}`)
-  }
-
-  useEffect(() => {
-    getArticleBySlug(slug, lang)
-      .then((data) => setArticle(data as any))
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [slug, lang])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA]">
-        <div className="text-slate-400 text-sm">Chargement de l&apos;article...</div>
-      </div>
-    )
   }
 
   if (!article) {

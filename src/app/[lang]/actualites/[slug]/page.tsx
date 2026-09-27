@@ -1,14 +1,20 @@
-"use client"
-
-import React from "react"
-import { useParams } from "next/navigation"
+import { notFound } from "next/navigation"
 import ArticleDetailView from "@/views/ArticleDetailView"
+import { getArticleBySlug } from "@/lib/cms-actions"
 import type { Language } from "@/types"
 
-export default function ArticleDetailPage() {
-  const params = useParams()
-  const lang = (params?.lang as Language) || "FR"
-  const slug = (params?.slug as string) || ""
+interface PageProps {
+  params: Promise<{ lang: string; slug: string }>
+}
 
-  return <ArticleDetailView lang={lang} slug={slug} />
+export const revalidate = 60
+
+export default async function ArticleDetailPage({ params }: PageProps) {
+  const { lang, slug } = await params
+  const language = lang.toUpperCase() as Language
+  const article = await getArticleBySlug(slug, language)
+
+  if (!article) notFound()
+
+  return <ArticleDetailView lang={language} article={article} />
 }
