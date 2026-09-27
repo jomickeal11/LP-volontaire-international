@@ -49,8 +49,8 @@ export async function generateMetadata({
       canonical: `/${currentLang}/volontariat/postuler`,
       languages: {
         fr: "/fr/volontariat/postuler",
-        en: "/en/volunteering/apply",
-        de: "/de/freiwilligendienst/bewerben",
+        en: "/en/volontariat/postuler",
+        de: "/de/volontariat/postuler",
         "x-default": "/fr/volontariat/postuler",
       },
     },

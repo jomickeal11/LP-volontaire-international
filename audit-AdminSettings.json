@@ -1,0 +1,156 @@
+[
+  {
+    "file": "AdminSettings.tsx",
+    "line": 2980,
+    "pattern": "field.required ? (<span>Requis</span>) : (<span>Optionnel</span>)",
+    "context": "Badge 'Requis' / 'Optionnel' à côté du label du champ dans l'éditeur About (CMS)",
+    "onglet_parent": "ABOUT"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 2990,
+    "pattern": "field.isTranslatable ? (\"Multilingue\") : (\"Commun\")",
+    "context": "Badge 'Multilingue' / 'Commun' à côté du label du champ dans l'éditeur About (CMS)",
+    "onglet_parent": "ABOUT"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 3454,
+    "pattern": "field.required ? (<span>Requis</span>) : (<span>Optionnel</span>)",
+    "context": "Badge 'Requis' / 'Optionnel' à côté du label du champ dans l'éditeur Volontariat (CMS)",
+    "onglet_parent": "VOLUNTEER"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 3464,
+    "pattern": "field.isTranslatable ? (\"Multilingue\") : (\"Commun (Toutes langues)\")",
+    "context": "Badge 'Multilingue' / 'Commun' à côté du label du champ dans l'éditeur Volontariat (CMS)",
+    "onglet_parent": "VOLUNTEER"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 3755,
+    "pattern": "field.required ? (<span>Requis</span>) : (<span>Optionnel</span>)",
+    "context": "Badge 'Requis' / 'Optionnel' à côté du label du champ dans l'éditeur Partenaires (CMS)",
+    "onglet_parent": "PARTNER"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 3764,
+    "pattern": "field.isTranslatable ? (\"Multilingue\") : (\"Commun (Toutes langues)\")",
+    "context": "Badge 'Multilingue' / 'Commun' à côté du label du champ dans l'éditeur Partenaires (CMS)",
+    "onglet_parent": "PARTNER"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 4033,
+    "pattern": "<label>{field.label}{field.multilingual && (<span className=\"...\"> {membershipLangTab} )</span>}",
+    "context": "Badge de langue (FR/EN/DE) affiché à côté du label dans chaque champ Membership multilingue",
+    "onglet_parent": "MEMBERSHIP"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 5919,
+    "pattern": "label className=\"...\" >Fonction / Rôle (Français) *<",
+    "context": "Label avec suffixe de langue '(Français)' inhérent à côté du champ dans la modale Équipe",
+    "onglet_parent": "TEAM"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 5939,
+    "pattern": "label className=\"...\" >Biographie (Français) *<",
+    "context": "Label avec suffixe de langue '(Français)' inhérent à côté du champ dans la modale Équipe",
+    "onglet_parent": "TEAM"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 5969,
+    "pattern": "label className=\"...\" >Title / Role (English)<",
+    "context": "Label avec suffixe de langue '(English)' inhérent à côté du champ dans la modale Équipe",
+    "onglet_parent": "TEAM"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 5989,
+    "pattern": "label className=\"...\" >Biography (English)<",
+    "context": "Label avec suffixe de langue '(English)' inhérent à côté du champ dans la modale Équipe",
+    "onglet_parent": "TEAM"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 6017,
+    "pattern": "label className=\"...\" >Funktion / Rolle (Deutsch)<",
+    "context": "Label avec suffixe de langue '(Deutsch)' inhérent à côté du champ dans la modale Équipe",
+    "onglet_parent": "TEAM"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 6037,
+    "pattern": "label className=\"...\" >Biografie (Deutsch)<",
+    "context": "Label avec suffixe de langue '(Deutsch)' inhérent à côté du champ dans la modale Équipe",
+    "onglet_parent": "TEAM"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 3014,
+    "pattern": "<span>Référence source (Français) :</span>",
+    "context": "Texte 'Référence source (Français)' répété comme label d'aide dans ABOUT editor",
+    "onglet_parent": "ABOUT"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 3488,
+    "pattern": "<span>Référence source (Français) :</span>",
+    "context": "Texte 'Référence source (Français)' répété comme label d'aide dans VOLUNTEER editor",
+    "onglet_parent": "VOLUNTEER"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 3789,
+    "pattern": "<span>Référence source (Français) :</span>",
+    "context": "Texte 'Référence source (Français)' répété comme label d'aide dans PARTNER editor",
+    "onglet_parent": "PARTNER"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 4048,
+    "pattern": "<span className=\"font-bold text-slate-700 block mb-0.5\">Version Française de référence :</span>",
+    "context": "Label 'Version Française de référence' répété dans chaque champ Membership multilingue",
+    "onglet_parent": "MEMBERSHIP"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 5506,
+    "pattern": "<span className=\"font-bold text-slate-700 block mb-0.5\">Version Française de référence :</span>",
+    "context": "Label 'Version Française de référence' répété dans chaque champ Contact multilingue",
+    "onglet_parent": "CONTACT"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 2721,
+    "pattern": "{(\"FR\" | \"EN\" | \"DE\" as const).map((lang) => <span>{lang}</span>)}",
+    "context": "Pattern badge de langue répété (FR/EN/DE) dans la carte de complétude About",
+    "onglet_parent": "ABOUT"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 3186,
+    "pattern": "{(\"FR\" | \"EN\" | \"DE\" as const).map((lang) => <span>{lang}</span>)}",
+    "context": "Pattern badge de langue répété (FR/EN/DE) dans la carte de complétude Volontariat",
+    "onglet_parent": "VOLUNTEER"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 4984,
+    "pattern": "{(\"FR\" | \"EN\" | \"DE\" as const).map((lang) => <button>...</button>)}",
+    "context": "Sélecteur de langue répété (FR/EN/DE) dans l'éditeur News",
+    "onglet_parent": "NEWS"
+  },
+  {
+    "file": "AdminSettings.tsx",
+    "line": 5895,
+    "pattern": "{(\"FR\" | \"EN\" | \"DE\" as const).map((lang) => <button>...</button>)}",
+    "context": "Sélecteur de langue répété (FR/EN/DE) dans la modale Équipe",
+    "onglet_parent": "TEAM"
+  }
+]

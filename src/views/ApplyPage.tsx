@@ -730,6 +730,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showMobileSummary, setShowMobileSummary] = useState(false)
   const [showMobileHelp, setShowMobileHelp] = useState(false)
+  const skipDraftPersistenceRef = useRef(true)
 
   useEffect(() => {
     setMaxStepReached((prev) => Math.max(prev, step))
@@ -768,31 +769,37 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
     },
   }
 
-  // Form state initialized from localStorage if available
-  const [form, setForm] = useState(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("apticFormDraft")
-        if (saved) {
-          const parsed = JSON.parse(saved)
-          return {
-            ...defaultFormState,
-            ...parsed,
-            communicationLanguage: parsed.communicationLanguage || (["FR", "EN", "DE"].includes(currentLang) ? currentLang : "FR"),
-            cvFile: null,
-            motivationFile: null,
-            portfolioFile: null,
-          }
-        }
-      } catch (e) {
-        console.error("Failed to load form draft", e)
+  const [form, setForm] = useState(defaultFormState)
+
+  useEffect(() => {
+    skipDraftPersistenceRef.current = true
+    try {
+      const saved = localStorage.getItem("apticFormDraft")
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        setForm({
+          ...defaultFormState,
+          ...parsed,
+          communicationLanguage:
+            parsed.communicationLanguage ||
+            (["FR", "EN", "DE"].includes(currentLang) ? currentLang : "FR"),
+          cvFile: null,
+          motivationFile: null,
+          portfolioFile: null,
+        })
       }
+    } catch (e) {
+      console.error("Failed to load form draft", e)
     }
-    return defaultFormState
-  })
+  }, [currentLang])
 
   // Save to localStorage on change
   useEffect(() => {
+    if (skipDraftPersistenceRef.current) {
+      skipDraftPersistenceRef.current = false
+      return
+    }
+
     const formToSave = { ...form }
     // Remove files before saving to avoid serialization errors and size limits
     delete (formToSave as any).cvFile
