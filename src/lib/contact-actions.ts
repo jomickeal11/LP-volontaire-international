@@ -22,90 +22,21 @@ const contactMessageSchema = z.object({
 
 export type ContactFormSubmissionInput = z.infer<typeof contactMessageSchema>
 
-/**
- * Résout dynamiquement l'adresse de réception interne en fonction du motif choisi et du CMS Contact.
- *
- * Règles de routage spécialisé :
- *   - VOLONTARIAT → contact_email_volunteer
- *   - PARTENARIAT → contact_email_partnership
- *   - DIRECTION   → contact_email_direction
- *   - GENERAL     → contact_email_general
- *
- * Sécurisation du routage interne (Fallback interne strict) :
- *   Si l'adresse spécialisée est renseignée dans le CMS :
- *     → Envoi direct vers cette adresse spécialisée
- *   Si l'adresse spécialisée est ABSENTE ou non configurée :
- *     → Repli interne automatique et sécurisé vers contact_form_recipient (ou site_contact_email)
- *   (Ce repli interne évite toute perte de message sans jamais exposer de fallback linguistique au visiteur).
- */
-export async function getContactRoutingRecipient(subject: string): Promise<string> {
+/** Resolves the single recipient configured for the contact form. */
+export async function getContactFormRecipient(): Promise<string | null> {
   try {
     const settings = await prisma.parametreSite.findMany({
       where: {
-        key: {
-          in: [
-            "contact_form_recipient",
-            "contact_email_general",
-            "contact_email_volunteer",
-            "contact_email_partnership",
-            "contact_email_direction",
-            "site_contact_email",
-          ],
-        },
+        key: "contact_form_recipient",
       },
       select: { key: true, value: true },
     })
 
-    const dict: Record<string, string> = {}
-    settings.forEach((s) => {
-      if (s.value && s.value.trim().length > 0) {
-        dict[s.key] = s.value.trim()
-      }
-    })
-
-    const subjectUpper = (subject || "").toUpperCase()
-    let specializedKey: string | undefined
-
-    if (subjectUpper === "VOLONTARIAT" || subjectUpper.includes("VOLONTAIRE")) {
-      specializedKey = "contact_email_volunteer"
-    } else if (subjectUpper === "PARTENARIAT" || subjectUpper.includes("PARTENAIRE")) {
-      specializedKey = "contact_email_partnership"
-    } else if (subjectUpper === "DIRECTION") {
-      specializedKey = "contact_email_direction"
-    } else if (subjectUpper === "GENERAL") {
-      specializedKey = "contact_email_general"
-    }
-
-    // 1. Cas où l'adresse spécialisée est configurée dans le CMS
-    if (specializedKey && dict[specializedKey]) {
-      const specializedEmail = dict[specializedKey]
-      console.log(
-        `🎯 [Contact Routing] Motif "${subject}" routé vers l'adresse spécialisée "${specializedKey}": ${specializedEmail}`
-      )
-      return specializedEmail
-    }
-
-    // 2. Fallback de routage interne sécurisé (adresse spécialisée absente ou motif non spécifié)
-    const fallbackEmail =
-      dict["contact_form_recipient"] ||
-      dict["site_contact_email"] ||
-      process.env.MAIL_ADMIN ||
-      "aptic.rural19@gmail.com"
-
-    if (specializedKey) {
-      console.log(
-        `ℹ️ [Contact Routing] Adresse spécialisée "${specializedKey}" non renseignée pour le motif "${subject}". Repli de routage interne sécurisé vers: ${fallbackEmail}`
-      )
-    } else {
-      console.log(
-        `ℹ️ [Contact Routing] Motif standard "${subject}". Routage interne vers: ${fallbackEmail}`
-      )
-    }
-
-    return fallbackEmail
+    const recipientEmail = settings[0]?.value?.trim()
+    return recipientEmail || null
   } catch (error) {
     console.error("Erreur lors de la résolution de l'adresse de routage Contact :", error)
-    return "aptic.rural19@gmail.com"
+    return null
   }
 }
 
@@ -120,7 +51,13 @@ export async function submitContactMessageAction(rawInput: ContactFormSubmission
 }> {
   try {
     const validated = contactMessageSchema.parse(rawInput)
-    const recipientEmail = await getContactRoutingRecipient(validated.subject)
+    const recipientEmail = await getContactFormRecipient()
+    if (!recipientEmail) {
+      return {
+        success: false,
+        error: "L’adresse de réception du formulaire de contact n’est pas configurée.",
+      }
+    }
 
     console.log(
       `📬 [Contact Form] Nouveau message de "${validated.name}" (${validated.email}) - Motif: "${validated.subject}" → Acheminement vers: "${recipientEmail}"`
@@ -319,4 +256,3 @@ export async function getContactMessagesStatsAction(): Promise<{
     return { success: false, total: 0, unread: 0, replied: 0, archived: 0 }
   }
 }
-

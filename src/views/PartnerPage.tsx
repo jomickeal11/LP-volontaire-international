@@ -15,6 +15,7 @@ import {
 } from "../components/Icons"
 import { FREQUENT_COUNTRIES, ALL_COUNTRY_CODES } from "../data/countryPhoneCodes"
 import { trackEvent } from "../lib/tracker"
+import { getSiteSettings } from "@/lib/cms-actions"
 
 interface PartnerPageProps {
   lang: Language
@@ -697,6 +698,28 @@ function FileUpload({
 export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProps) {
   const currentLang = (lang || "FR").toUpperCase() as keyof typeof translations
   const t = translations[currentLang] || translations.FR
+  const [generalContact, setGeneralContact] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    let active = true
+    getSiteSettings("GENERAL")
+      .then((result) => {
+        if (active && result.success && result.dict) setGeneralContact(result.dict)
+      })
+      .catch((error) => console.error("Erreur de chargement des coordonnées publiques:", error))
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const publicEmail = generalContact.site_contact_email ?? ""
+  const publicPhone = generalContact.site_contact_phone ?? ""
+  const publicPhoneHref = publicPhone.replace(/[^\d+]/g, "")
+  const publicLocation = [
+    generalContact.site_location_city,
+    generalContact.site_location_region,
+    generalContact.site_location_country,
+  ].filter((part) => Boolean(part?.trim())).join(", ")
 
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
@@ -1076,7 +1099,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                   {currentLang === "DE" ? "6 bis 12 Monate" : currentLang === "EN" ? "6 to 12 month missions" : "Missions de 6 à 12 mois"}
                 </span>
                 <span className="px-3 py-1.5 rounded-xl bg-white border border-[#D8E2E9] shadow-2xs">
-                  Agbélouvé, Région Maritime, Togo
+                  {publicLocation}
                 </span>
                 <span className="px-3 py-1.5 rounded-xl bg-white border border-[#D8E2E9] shadow-2xs">
                   {currentLang === "DE" ? "Nachhaltige institutionelle Partnerschaft" : currentLang === "EN" ? "Sustainable institutional partnership" : "Partenariat institutionnel durable"}
@@ -1739,7 +1762,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <a
-                          href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(currentLang === "DE" ? "APTIC-R Partnerschaftsanfrage" : currentLang === "EN" ? "APTIC-R Partnership Request" : "Demande Partenariat APTIC-R")}`}
+                          href={publicEmail ? `mailto:${publicEmail}?subject=${encodeURIComponent(currentLang === "DE" ? "APTIC-R Partnerschaftsanfrage" : currentLang === "EN" ? "APTIC-R Partnership Request" : "Demande Partenariat APTIC-R")}` : undefined}
                           className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#003366] bg-white border border-[#D8E2E9] px-3.5 py-2.5 rounded-xl hover:border-[#003366] hover:bg-[#F0F5FA] transition-all shadow-2xs cursor-pointer text-center"
                         >
                           <svg className="w-3.5 h-3.5 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1748,13 +1771,13 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                           <span>Email</span>
                         </a>
                         <a
-                          href="tel:+22891201990"
+                          href={publicPhoneHref ? `tel:${publicPhoneHref}` : undefined}
                           className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 hover:text-[#003366] transition-all cursor-pointer text-center"
                         >
                           <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                           </svg>
-                          <span>+228 91 20 19 90</span>
+                          <span>{publicPhone}</span>
                         </a>
                       </div>
                     </div>
@@ -1869,17 +1892,17 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                 </p>
                 <div className="space-y-2">
                   <a
-                    href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(currentLang === "DE" ? "APTIC-R Partnerschaftsanfrage" : currentLang === "EN" ? "APTIC-R Partnership Request" : "Demande Partenariat APTIC-R")}`}
+                    href={publicEmail ? `mailto:${publicEmail}?subject=${encodeURIComponent(currentLang === "DE" ? "APTIC-R Partnerschaftsanfrage" : currentLang === "EN" ? "APTIC-R Partnership Request" : "Demande Partenariat APTIC-R")}` : undefined}
                     className="font-bold text-[#003366] hover:underline flex items-center gap-1.5"
                   >
-                    <span>aptic.rural19@gmail.com</span>
+                    <span>{publicEmail}</span>
                     <span>→</span>
                   </a>
                   <a
-                    href="tel:+22891201990"
+                    href={publicPhoneHref ? `tel:${publicPhoneHref}` : undefined}
                     className="font-semibold text-slate-600 hover:text-[#003366] flex items-center gap-1.5"
                   >
-                    <span>{currentLang === "DE" ? "Tel." : currentLang === "EN" ? "Phone" : "Tél."} : +228 91 20 19 90</span>
+                    <span>{publicPhone ? `${currentLang === "DE" ? "Tel." : currentLang === "EN" ? "Phone" : "Tél."} : ${publicPhone}` : ""}</span>
                     <span>→</span>
                   </a>
                 </div>

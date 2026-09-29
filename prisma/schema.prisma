@@ -504,6 +504,7 @@ model Article {
   metaTitle      String?
   metaDescription String?
   tags           String?           // JSON string array
+  readingTime    Int               @default(3)
   viewsCount     Int               @default(0)
 
   isFeatured     Boolean           @default(false)

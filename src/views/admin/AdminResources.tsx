@@ -219,7 +219,7 @@ export default function AdminResources() {
           published: formData.published,
         })
         if (res.success) {
-          setFeedbackMessage("Ressource modifiée avec succès.")
+          setFeedbackMessage("Ressource modifiée.")
           handleCloseModal()
           await loadData()
         } else {
@@ -239,7 +239,7 @@ export default function AdminResources() {
           published: formData.published,
         })
         if (res.success) {
-          setFeedbackMessage("Ressource ajoutée avec succès.")
+          setFeedbackMessage("Ressource ajoutée.")
           handleCloseModal()
           await loadData()
         } else {
@@ -325,9 +325,9 @@ export default function AdminResources() {
       </div>
 
       {feedbackMessage && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between">
+        <div className="inline-flex w-fit max-w-full p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold items-center justify-between gap-3">
           <span>✓ {feedbackMessage}</span>
-          <button onClick={() => setFeedbackMessage(null)} className="text-emerald-600 hover:text-emerald-900">✕</button>
+          <button type="button" onClick={() => setFeedbackMessage(null)} aria-label="Fermer le message" className="text-emerald-600 hover:text-emerald-900">×</button>
         </div>
       )}
 

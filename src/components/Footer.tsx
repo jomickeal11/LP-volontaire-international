@@ -30,6 +30,23 @@ export default function Footer({ lang, navigate }: FooterProps) {
   const safeLang = translations[currentLang] ? currentLang : "FR"
   const t = translations[safeLang].footer
   const n = translations[safeLang].nav
+  const locationParts = [
+    settings.site_location_address,
+    settings.site_location_city,
+    settings.site_location_region,
+    settings.site_location_country,
+  ]
+    .map((part) => part?.trim())
+    .filter((part): part is string => Boolean(part))
+    .filter((part, index, parts) =>
+      !parts.some(
+        (other, otherIndex) =>
+          otherIndex < index &&
+          other.toLocaleLowerCase().includes(part.toLocaleLowerCase()),
+      ),
+    )
+  const publicLocation = locationParts.join(", ")
+  const whatsappDigits = (settings.site_social_whatsapp ?? "").replace(/\D/g, "")
 
   /* ── Footer navigation groups ──────────────────────────────────── */
   const ORG_NAV = [
@@ -82,25 +99,25 @@ export default function Footer({ lang, navigate }: FooterProps) {
               {[
                 {
                   label: "Facebook",
-                  href: "https://www.facebook.com/ApticRural",
+                  href: settings.site_social_facebook,
                   icon: "M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z",
                 },
                 {
                   label: "LinkedIn",
-                  href: "https://www.linkedin.com/company/le-tic-rural/",
+                  href: settings.site_social_linkedin,
                   icon: "M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z M4 6a2 2 0 100-4 2 2 0 000 4z",
                 },
                 {
                   label: "Instagram",
-                  href: "https://www.instagram.com/apticr/",
+                  href: settings.site_social_instagram,
                   icon: "M8 2.1A5.9 5.9 0 002.1 8v8A5.9 5.9 0 008 21.9h8A5.9 5.9 0 0021.9 16V8A5.9 5.9 0 0016 2.1H8zm0 2h8A3.9 3.9 0 0119.9 8v8A3.9 3.9 0 0116 19.9H8A3.9 3.9 0 014.1 16V8A3.9 3.9 0 018 4.1zM12 7a5 5 0 100 10A5 5 0 0012 7zm0 2a3 3 0 110 6 3 3 0 010-6zm5.2-2.5a1.3 1.3 0 100 2.6 1.3 1.3 0 000-2.6z",
                 },
                 {
                   label: "WhatsApp",
-                  href: "https://wa.me/22891201990",
+                  href: whatsappDigits ? `https://wa.me/${whatsappDigits}` : "",
                   icon: "M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z",
                 },
-              ].map((s) => (
+              ].filter((s) => Boolean(s.href)).map((s) => (
                 <a
                   key={s.label}
                   href={s.href}
@@ -184,19 +201,17 @@ export default function Footer({ lang, navigate }: FooterProps) {
                 <span className="block text-[10px] uppercase font-bold text-gray-500 mb-0.5">
                   {safeLang === "FR" ? "Siège & Territoire" : safeLang === "DE" ? "Sitz & Region" : "Headquarters & Region"}
                 </span>
-                <span className="text-gray-300">{settings["site_location_address"] ?? ""}</span>
+                <span className="text-gray-300">{publicLocation}</span>
               </li>
               <li>
                 <span className="block text-[10px] uppercase font-bold text-gray-500 mb-0.5">
                   {safeLang === "FR" ? "Tél. & WhatsApp" : safeLang === "DE" ? "Tel. & WhatsApp" : "Phone & WhatsApp"}
                 </span>
                 <a
-                  href={(settings["site_social_whatsapp"] || settings["site_contact_phone"]) ? `https://wa.me/${(settings["site_social_whatsapp"] || settings["site_contact_phone"]).replace(/\D/g, "")}` : undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={settings.site_contact_phone ? `tel:${settings.site_contact_phone.replace(/[^\d+]/g, "")}` : undefined}
                   className="font-mono text-white hover:text-[#28A745] transition-colors"
                 >
-                  {settings["site_contact_phone"] ?? ""}
+                  {settings.site_contact_phone ?? ""}
                 </a>
               </li>
               <li>

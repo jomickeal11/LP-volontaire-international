@@ -190,7 +190,7 @@ export default function AdminMemberApplications({}: AdminMemberApplicationsProps
         setIsEditing(false)
         setFeedbackMessage({
           type: "success",
-          text: "Données du dossier mises à jour avec succès.",
+          text: "Dossier mis à jour.",
         })
         const freshList = await loadData()
         const refreshed = freshList.find((a) => a.id === selectedApp.id)
@@ -237,7 +237,7 @@ export default function AdminMemberApplications({}: AdminMemberApplicationsProps
       if (res.success) {
         setFeedbackMessage({
           type: "success",
-          text: res.message || "Opération effectuée avec succès.",
+          text: "Opération effectuée.",
         })
         setActionModal(null)
         setModalReason("")
@@ -349,7 +349,7 @@ export default function AdminMemberApplications({}: AdminMemberApplicationsProps
       {/* ── Feedback Banner ── */}
       {feedbackMessage && (
         <div
-          className={`p-3.5 rounded-xl border flex items-center justify-between text-xs sm:text-sm font-medium ${
+          className={`inline-flex w-fit max-w-full p-2.5 rounded-xl border items-center justify-between gap-3 text-xs font-medium ${
             feedbackMessage.type === "success"
               ? "bg-emerald-50 border-emerald-200 text-emerald-800"
               : "bg-rose-50 border-rose-200 text-rose-800"

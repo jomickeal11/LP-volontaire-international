@@ -30,6 +30,7 @@ interface ArticleRecord {
   publishedAt?: Date | null
   authorName?: string | null
   viewsCount: number
+  readingTime?: number | null
   isFeatured?: boolean
   category?: {
     id: string
@@ -205,8 +206,9 @@ export default function NewsView({ lang, initialSettings = {} }: NewsViewProps &
     }
   }
 
-  // Helper for reading time estimation
-  const getReadTime = (contentLength?: number) => {
+  // Helper for reading time — uses stored value if available, else estimate
+  const getReadTime = (article: ArticleRecord, contentLength?: number) => {
+    if (article.readingTime && article.readingTime > 0) return article.readingTime
     if (!contentLength || contentLength < 500) return 3
     return Math.min(8, Math.max(3, Math.ceil(contentLength / 800)))
   }
@@ -331,7 +333,7 @@ export default function NewsView({ lang, initialSettings = {} }: NewsViewProps &
                     const catName = articleCategoryName(featuredArticle.category, safeLang)
                     const articleUrl = `/${lang.toLowerCase()}/actualites/${featuredArticle.slug}`
                     const imageSrc = featuredArticle.featuredImage || "/photo-ancrage-togo.png"
-                    const readMins = getReadTime(articleBody(featuredArticle, safeLang).length)
+                    const readMins = getReadTime(featuredArticle, articleBody(featuredArticle, safeLang).length)
 
                     return (
                       <article className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow group">
@@ -346,18 +348,18 @@ export default function NewsView({ lang, initialSettings = {} }: NewsViewProps &
                         <div className="lg:col-span-5 p-6 sm:p-8 lg:p-10 flex flex-col justify-between">
                           <div>
                             {/* Metadata */}
-                            <div className="flex items-center gap-2.5 text-xs font-bold tracking-wider text-[#003366] uppercase mb-3">
+                            <div className="flex flex-wrap items-center gap-2.5 text-xs font-bold tracking-wider text-[#003366] uppercase mb-3 whitespace-nowrap overflow-hidden">
                               <span>{catName}</span>
                               {featuredArticle.publishedAt && (
                                 <>
                                   <span className="text-slate-300">·</span>
-                                  <span className="text-[#5E6B76] font-medium">
+                                  <span className="text-[#5E6B76] font-medium whitespace-nowrap">
                                     {formatDate(featuredArticle.publishedAt)}
                                   </span>
                                 </>
                               )}
                               <span className="text-slate-300">·</span>
-                              <span className="text-[#5E6B76] font-medium">
+                              <span className="text-[#5E6B76] font-medium whitespace-nowrap">
                                 {readMins} {t.readTime}
                               </span>
                             </div>
@@ -403,7 +405,7 @@ export default function NewsView({ lang, initialSettings = {} }: NewsViewProps &
                       const catName = articleCategoryName(art.category, safeLang)
                       const articleUrl = `/${lang.toLowerCase()}/actualites/${art.slug}`
                       const imageSrc = art.featuredImage || "/photo-projet-phare.jpg"
-                      const readMins = getReadTime(articleBody(art, safeLang).length)
+                      const readMins = getReadTime(art, articleBody(art, safeLang).length)
 
                       return (
                         <article
@@ -423,18 +425,18 @@ export default function NewsView({ lang, initialSettings = {} }: NewsViewProps &
                           <div className="p-6 flex-1 flex flex-col justify-between">
                             <div>
                               {/* Metadata */}
-                              <div className="flex items-center gap-2 text-xs font-bold tracking-wider text-[#003366] uppercase mb-2.5">
+                              <div className="flex items-center gap-2 text-xs font-bold tracking-wider text-[#003366] uppercase mb-2.5 whitespace-nowrap overflow-hidden">
                                 <span>{catName}</span>
                                 {art.publishedAt && (
                                   <>
                                     <span className="text-slate-300">·</span>
-                                    <span className="text-[#5E6B76] font-medium">
+                                    <span className="text-[#5E6B76] font-medium whitespace-nowrap">
                                       {formatDate(art.publishedAt)}
                                     </span>
                                   </>
                                 )}
                                 <span className="text-slate-300">·</span>
-                                <span className="text-[#5E6B76] font-medium">
+                                <span className="text-[#5E6B76] font-medium whitespace-nowrap">
                                   {readMins} {t.readTime}
                                 </span>
                               </div>

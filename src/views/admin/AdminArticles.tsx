@@ -8,6 +8,7 @@ import {
   deleteArticle,
   updateArticle,
   toggleArticleFeatured,
+  createArticleCategory,
 } from "@/lib/cms-actions"
 
 interface ArticleItem {
@@ -30,6 +31,7 @@ interface ArticleItem {
   isFeatured: boolean
   publishedAt?: Date | null
   authorName?: string | null
+  readingTime: number
   viewsCount: number
   categoryId?: string | null
   category?: {
@@ -77,7 +79,9 @@ export default function AdminArticles() {
     contentEn: "",
     contentDe: "",
     categoryId: "",
+    customCategoryName: "",
     authorName: "Équipe APTIC-R",
+    readingTime: 3,
     featuredImage: "",
     publishedFr: false,
     publishedEn: false,
@@ -154,7 +158,9 @@ export default function AdminArticles() {
         contentEn: article.contentEn || "",
         contentDe: article.contentDe || "",
         categoryId: article.categoryId || categories[0]?.id || "",
+        customCategoryName: "",
         authorName: article.authorName || "Équipe APTIC-R",
+        readingTime: article.readingTime ?? 3,
         featuredImage: article.featuredImage || "",
         publishedFr: article.publishedFr ?? article.published ?? false,
         publishedEn: article.publishedEn ?? false,
@@ -173,7 +179,9 @@ export default function AdminArticles() {
         contentEn: "",
         contentDe: "",
         categoryId: categories[0]?.id || "",
+        customCategoryName: "",
         authorName: "Équipe APTIC-R",
+        readingTime: 3,
         featuredImage: "",
         publishedFr: false,
     publishedEn: false,
@@ -215,7 +223,7 @@ export default function AdminArticles() {
           contentDe: res.translations.DE.content || prev.contentDe,
         }))
         const providerName = res.providerUsed === "deepl" ? "DeepL API" : "Traducteur automatique"
-        setTranslationNotice(`Article traduit avec succès via ${providerName}. Consultez les onglets English et Deutsch.`)
+        setTranslationNotice(`Traduction terminée (${providerName}).`)
       } else {
         setError(res.error || "Erreur lors de la traduction automatique.")
       }
@@ -274,6 +282,27 @@ export default function AdminArticles() {
     setError("")
 
     try {
+      let finalCategoryId = formData.categoryId
+      if (formData.categoryId === "__custom__") {
+        const customName = formData.customCategoryName.trim()
+        if (!customName) {
+          setError("Veuillez saisir le nom de la nouvelle catégorie.")
+          setSubmitting(false)
+          return
+        }
+        const catRes = await createArticleCategory(customName)
+        if (!catRes.success || !catRes.category) {
+          setError(catRes.error || "Impossible de créer la nouvelle catégorie.")
+          setSubmitting(false)
+          return
+        }
+        finalCategoryId = catRes.category.id
+        setCategories((prev) => {
+          if (prev.some((c) => c.id === catRes.category!.id)) return prev
+          return [...prev, catRes.category as any]
+        })
+      }
+
       const payload = {
         titleFr: formData.titleFr,
         titleEn: formData.titleEn || undefined,
@@ -284,8 +313,9 @@ export default function AdminArticles() {
         contentFr: formData.contentFr,
         contentEn: formData.contentEn || undefined,
         contentDe: formData.contentDe || undefined,
-        categoryId: formData.categoryId || undefined,
+        categoryId: finalCategoryId || undefined,
         authorName: formData.authorName,
+        readingTime: formData.readingTime,
         featuredImage: formData.featuredImage || undefined,
         publishedFr: formData.publishedFr,
         publishedEn: formData.publishedEn,
@@ -311,7 +341,9 @@ export default function AdminArticles() {
           contentEn: "",
           contentDe: "",
           categoryId: categories[0]?.id || "",
+          customCategoryName: "",
           authorName: "Équipe APTIC-R",
+          readingTime: 3,
           featuredImage: "",
           publishedFr: false,
     publishedEn: false,
@@ -381,9 +413,10 @@ export default function AdminArticles() {
     <div className="space-y-6 font-sans">
       {/* ── Feedback Notification ── */}
       {feedbackMessage && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold flex items-center gap-2 shadow-sm animate-fade-in">
+        <div className="inline-flex w-fit max-w-full p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold items-center gap-2 shadow-sm animate-fade-in">
           <span className="text-[#28A745]">✓</span>
           <span>{feedbackMessage}</span>
+          <button type="button" onClick={() => setFeedbackMessage(null)} aria-label="Fermer le message" className="ml-1 text-current opacity-60 hover:opacity-100">×</button>
         </div>
       )}
 
@@ -581,7 +614,7 @@ export default function AdminArticles() {
 
             {/* Translation notice banner */}
             {translationNotice && (
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between">
+              <div className="inline-flex w-fit max-w-full p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold items-center justify-between gap-3">
                 <span>{translationNotice}</span>
                 <button
                   type="button"
@@ -614,7 +647,29 @@ export default function AdminArticles() {
                         </option>
                       ))
                     )}
+                    <option value="__custom__" className="font-semibold text-[#003366] bg-blue-50">
+                      + Autre (saisir une catégorie)...
+                    </option>
                   </select>
+
+                  {formData.categoryId === "__custom__" && (
+                    <div className="mt-2.5 p-3 rounded-xl bg-blue-50/70 border border-blue-200/80">
+                      <label className="block text-xs font-bold text-[#003366] uppercase mb-1">
+                        Nom de la nouvelle catégorie *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Transition Écologique, Solidarité Rurale..."
+                        value={formData.customCategoryName}
+                        onChange={(e) => setFormData({ ...formData, customCategoryName: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-lg border border-blue-300 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none bg-white text-sm text-slate-800"
+                        autoFocus
+                      />
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Cette catégorie sera créée et réutilisable dans tous vos articles.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -628,6 +683,33 @@ export default function AdminArticles() {
                     className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm"
                   />
                 </div>
+              </div>
+
+              {/* Temps de lecture */}
+              <div className="flex items-center gap-4">
+                <label className="text-xs font-bold text-slate-700 uppercase whitespace-nowrap">
+                  Temps de lecture (min)
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData((p) => ({ ...p, readingTime: Math.max(1, p.readingTime - 1) }))}
+                    className="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-bold text-sm flex items-center justify-center cursor-pointer transition-colors"
+                  >
+                    −
+                  </button>
+                  <span className="w-14 text-center text-sm font-bold text-[#003366] tabular-nums">
+                    {formData.readingTime} min
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFormData((p) => ({ ...p, readingTime: Math.min(60, p.readingTime + 1) }))}
+                    className="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-bold text-sm flex items-center justify-center cursor-pointer transition-colors"
+                  >
+                    +
+                  </button>
+                </div>
+                <span className="text-xs text-slate-400">Affiché sur la carte de l&apos;article</span>
               </div>
 
               {/* Image à la une avec sélection de fichier */}

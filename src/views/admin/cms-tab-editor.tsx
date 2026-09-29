@@ -351,12 +351,16 @@ export function CmsLangSwitcher({
 export function CmsCompletenessBar({
   completeness,
   lang,
+  summaryLabel,
+  alwaysShowProgress = false,
   onTranslate,
   translating,
   sectionTranslating,
 }: {
   completeness: CmsCompleteness
   lang: CmsLang
+  summaryLabel?: string
+  alwaysShowProgress?: boolean
   onTranslate?: () => void
   translating: boolean
   sectionTranslating: string | null
@@ -372,13 +376,22 @@ export function CmsCompletenessBar({
     <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-5 py-2 border-t border-slate-100 bg-slate-50/30">
       <div className="flex items-center gap-2 min-w-0">
         <span className="text-[10px] font-medium text-slate-500">
-          Contenu {cmsLangLabel(lang)} · {completeness.filledCount}/
-          {completeness.totalCount} champs ·{" "}
-          <span className={isComplete ? "text-[#28A745] font-semibold" : "text-amber-500 font-semibold"}>
-            {isComplete ? "Complet" : "Incomplet"}
-          </span>
+          {summaryLabel ? (
+            <>
+              {summaryLabel} · {completeness.filledCount}/
+              {completeness.totalCount} champs renseignés
+            </>
+          ) : (
+            <>
+              Contenu {cmsLangLabel(lang)} · {completeness.filledCount}/
+              {completeness.totalCount} champs ·{" "}
+              <span className={isComplete ? "text-[#28A745] font-semibold" : "text-amber-500 font-semibold"}>
+                {isComplete ? "Complet" : "Incomplet"}
+              </span>
+            </>
+          )}
         </span>
-        <span className="hidden sm:block w-12 h-1 rounded-full bg-slate-200 overflow-hidden">
+        <span className={`${alwaysShowProgress ? "block" : "hidden sm:block"} w-12 h-1 rounded-full bg-slate-200 overflow-hidden`}>
           <span
             className={`block h-full ${statusColor}`}
             style={{ width: `${completeness.percentage}%` }}
@@ -443,7 +456,7 @@ export function CmsNoticeBanner({
   if (!notice) return null
   return (
     <div
-      className={`flex items-center justify-between gap-4 px-4 py-3 rounded-xl text-xs font-medium border ${
+      className={`inline-flex w-fit max-w-full items-center justify-between gap-3 px-3 py-2 rounded-xl text-xs font-medium border ${
         notice.type === "success"
           ? "bg-emerald-50 border-emerald-200 text-emerald-800"
           : notice.type === "info"
@@ -456,9 +469,10 @@ export function CmsNoticeBanner({
         <button
           type="button"
           onClick={onClose}
-          className="shrink-0 text-xs font-bold underline opacity-70 hover:opacity-100 cursor-pointer"
+          aria-label="Fermer le message"
+          className="shrink-0 text-xs font-bold opacity-60 hover:opacity-100 cursor-pointer"
         >
-          Fermer
+          ×
         </button>
       )}
     </div>

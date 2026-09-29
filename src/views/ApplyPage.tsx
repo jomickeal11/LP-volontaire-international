@@ -27,6 +27,7 @@ import {
 } from "../components/Icons"
 import { FREQUENT_COUNTRIES, ALL_COUNTRY_CODES } from "../data/countryPhoneCodes"
 import { trackEvent } from "../lib/tracker"
+import { getSiteSettings } from "@/lib/cms-actions"
 
 interface ApplyPageProps {
   lang: Language
@@ -721,6 +722,32 @@ function FileUpload({
 export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
   const currentLang = (lang || "FR").toUpperCase() as keyof typeof translations
   const t: any = translations[currentLang] || translations.FR
+  const [generalContact, setGeneralContact] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    let active = true
+    getSiteSettings("GENERAL")
+      .then((result) => {
+        if (active && result.success && result.dict) setGeneralContact(result.dict)
+      })
+      .catch((error) => console.error("Erreur de chargement des coordonnées publiques:", error))
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const publicEmail = generalContact.site_contact_email ?? ""
+  const publicPhone = generalContact.site_contact_phone ?? ""
+  const publicPhoneHref = publicPhone.replace(/[^\d+]/g, "")
+  const publicLocation = [
+    generalContact.site_location_city,
+    generalContact.site_location_country,
+  ].filter((part) => Boolean(part?.trim())).join(", ")
+  const applicationContext = [
+    currentLang === "DE" ? "6–12 Monate" : currentLang === "EN" ? "6–12 months" : "6–12 mois",
+    publicLocation,
+    currentLang === "DE" ? "Vertrauliche Bewerbung" : currentLang === "EN" ? "Confidential application" : "Candidature confidentielle",
+  ].filter(Boolean).join(" · ")
 
   const [step, setStep] = useState(1)
   const [maxStepReached, setMaxStepReached] = useState(1)
@@ -1390,7 +1417,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
 
               <div>
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#003366] bg-white border border-[#D8E2E9] shadow-2xs">
-                  <span>{t.apply.header?.context || "6–12 mois · Agbélouvé, Togo · Candidature confidentielle"}</span>
+                  <span>{applicationContext}</span>
                 </div>
               </div>
             </div>
@@ -2339,7 +2366,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <a
-                          href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(currentLang === "DE" ? "Frage zur Freiwilligenbewerbung" : currentLang === "EN" ? "Volunteer Application Question" : "Question Candidature Volontaire")}`}
+                          href={publicEmail ? `mailto:${publicEmail}?subject=${encodeURIComponent(currentLang === "DE" ? "Frage zur Freiwilligenbewerbung" : currentLang === "EN" ? "Volunteer Application Question" : "Question Candidature Volontaire")}` : undefined}
                           className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#003366] bg-white border border-[#D8E2E9] px-3.5 py-2.5 rounded-xl hover:border-[#003366] hover:bg-[#F0F5FA] transition-all shadow-2xs cursor-pointer text-center"
                         >
                           <svg className="w-3.5 h-3.5 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2348,13 +2375,13 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                           <span>{(t.apply as any).sidebar?.help?.contactBtn || (currentLang === "DE" ? "Per E-Mail kontaktieren" : currentLang === "EN" ? "Contact by email" : "Email")}</span>
                         </a>
                         <a
-                          href="tel:+22891201990"
+                          href={publicPhoneHref ? `tel:${publicPhoneHref}` : undefined}
                           className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 hover:text-[#003366] transition-all cursor-pointer text-center"
                         >
                           <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                           </svg>
-                          <span>+228 91 20 19 90</span>
+                          <span>{publicPhone}</span>
                         </a>
                       </div>
                     </div>
@@ -2494,7 +2521,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                 </p>
                 <div className="space-y-2">
                   <a
-                    href={`mailto:aptic.rural19@gmail.com?subject=${encodeURIComponent(currentLang === "DE" ? "Frage zur Freiwilligenbewerbung" : currentLang === "EN" ? "Volunteer Application Question" : "Question Candidature Volontaire")}`}
+                    href={publicEmail ? `mailto:${publicEmail}?subject=${encodeURIComponent(currentLang === "DE" ? "Frage zur Freiwilligenbewerbung" : currentLang === "EN" ? "Volunteer Application Question" : "Question Candidature Volontaire")}` : undefined}
                     className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#003366] bg-white border border-[#D8E2E9] px-4 py-2.5 rounded-xl hover:border-[#003366] hover:bg-[#F0F5FA] transition-all shadow-2xs w-full cursor-pointer"
                   >
                     <svg className="w-4 h-4 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2503,13 +2530,13 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                     <span>{(t.apply as any).sidebar?.help?.contactBtn || (currentLang === "DE" ? "Per E-Mail kontaktieren" : currentLang === "EN" ? "Contact by email" : "Contacter par email")}</span>
                   </a>
                   <a
-                    href="tel:+22891201990"
+                    href={publicPhoneHref ? `tel:${publicPhoneHref}` : undefined}
                     className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-100 hover:text-[#003366] transition-all w-full cursor-pointer"
                   >
                     <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    <span>+228 91 20 19 90</span>
+                    <span>{publicPhone}</span>
                   </a>
                 </div>
               </div>

@@ -201,7 +201,7 @@ export default function AdminProjects() {
           resultsDe: res.translations.DE.results || prev.resultsDe,
         }))
         const providerName = res.providerUsed === "deepl" ? "DeepL API" : "Traducteur automatique"
-        setTranslationNotice(`Champs traduits avec succès via ${providerName}. Les versions EN et DE ont été pré-remplies et cochées en publication.`)
+        setTranslationNotice(`Traduction terminée (${providerName}).`)
       } else {
         setError(res.error || "Erreur lors de la traduction automatique.")
       }
@@ -739,7 +739,7 @@ export default function AdminProjects() {
 
             {/* Translation notice banner */}
             {translationNotice && (
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between">
+              <div className="inline-flex w-fit max-w-full p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold items-center justify-between gap-3">
                 <span>{translationNotice}</span>
                 <button
                   type="button"

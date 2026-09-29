@@ -224,16 +224,9 @@ const CONTENT = {
       title: "Prenez Contact avec l\u2019APTIC-R",
       subtitle: "Vous souhaitez collaborer, devenir membre, proposer un projet de développement rural ou en savoir plus sur nos actions au Togo ?",
       addressLabel: "Siège de l\u2019association",
-      addressVal: "Agbélouvé, Préfecture du Zio, Région Maritime, Togo",
-      addressDetail: "Route Nationale 1 (Axe Lomé - Tsévié - Atakpamé, 60 km au nord de la capitale).",
       phoneLabel: "Téléphone & WhatsApp direct",
-      phoneVal: "+228 91 20 19 90",
       emailLabel: "Courriel officiel",
-      emailVal: "aptic.rural19@gmail.com",
       accessBoxTitle: "Accès & Déplacements",
-      mapNotice: "Accès routier : Nationale 1 (Axe Lomé - Tsévié - Atakpamé), arrêt central Agbélouvé.",
-      mapRegion: "Préfecture du Zio · Région Maritime",
-      gpsLabel: "Coordonnées GPS : 6.6833° N, 1.1667° E",
       legalRegStatus: "Association loi 1901 N° 0586/MATDCL",
       fieldPresenceBadge: "Présence terrain continue",
       whatsappBtn: "Écrire directement sur WhatsApp",
@@ -371,14 +364,10 @@ const CONTENT = {
     contact: {
       tag: "CONTACT & TERRITORY", title: "Connect with APTIC-R",
       subtitle: "Interested in collaborating, joining as a member, proposing a rural development project, or learning more about our work in Togo?",
-      addressLabel: "Headquarters", addressVal: "Agbélouvé, Zio Prefecture, Maritime Region, Togo",
-      addressDetail: "National Road 1 (Lomé - Tsévié - Atakpamé corridor, 60 km north of Lomé).",
-      phoneLabel: "Phone & WhatsApp", phoneVal: "+228 91 20 19 90",
-      emailLabel: "Official Email", emailVal: "aptic.rural19@gmail.com",
+      addressLabel: "Headquarters",
+      phoneLabel: "Phone & WhatsApp",
+      emailLabel: "Official Email",
       accessBoxTitle: "Access & Directions",
-      mapNotice: "Road access: National Road 1 (Lomé - Tsévié - Atakpamé corridor), Agbélouvé central stop.",
-      mapRegion: "Zio Prefecture · Maritime Region",
-      gpsLabel: "GPS Coordinates: 6.6833° N, 1.1667° E",
       legalRegStatus: "Non-profit organization N° 0586/MATDCL",
       fieldPresenceBadge: "Continuous field presence",
       whatsappBtn: "Chat on WhatsApp", contactBtn: "Contact Form & Details",
@@ -502,14 +491,10 @@ const CONTENT = {
     contact: {
       tag: "KONTAKT & STANDORT", title: "Kontakt zu APTIC-R",
       subtitle: "Möchten Sie kooperieren, Mitglied werden, ein Entwicklungsprojekt vorschlagen oder mehr über unsere Arbeit in Togo erfahren?",
-      addressLabel: "Vereinssitz", addressVal: "Agbélouvé, Präfektur Zio, Region Maritime, Togo",
-      addressDetail: "Nationalstraße 1 (Achse Lomé - Tsévié - Atakpamé, 60 km nördlich der Hauptstadt).",
-      phoneLabel: "Telefon & WhatsApp", phoneVal: "+228 91 20 19 90",
-      emailLabel: "Offizielle E-Mail", emailVal: "aptic.rural19@gmail.com",
+      addressLabel: "Vereinssitz",
+      phoneLabel: "Telefon & WhatsApp",
+      emailLabel: "Offizielle E-Mail",
       accessBoxTitle: "Anfahrt & Erreichbarkeit",
-      mapNotice: "Anfahrt: Nationalstraße 1 (Achse Lomé - Tsévié - Atakpamé), Haltestelle Agbélouvé Zentrum.",
-      mapRegion: "Präfektur Zio · Region Maritime",
-      gpsLabel: "GPS-Koordinaten: 6.6833° N, 1.1667° E",
       legalRegStatus: "Eingetragener Verein N° 0586/MATDCL",
       fieldPresenceBadge: "Kontinuierliche Präsenz vor Ort",
       whatsappBtn: "Über WhatsApp schreiben", contactBtn: "Kontaktformular & Details",
@@ -538,8 +523,25 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
   const contactPhone = settings.site_contact_phone ?? ""
   const contactWhatsapp = settings.site_social_whatsapp ?? ""
   const contactWhatsappDigits = contactWhatsapp.replace(/\D/g, "")
-  const publicAddress = settings.site_location_address || settings.site_location_city || ""
-  const publicAddressDetail = [settings.site_location_region, settings.site_location_country].filter(Boolean).join(", ")
+  const publicAddress = [
+    settings.site_location_address,
+    settings.site_location_city,
+  ]
+    .map((part) => part?.trim())
+    .filter((part): part is string => Boolean(part))
+    .filter((part, index, parts) =>
+      !parts.some(
+        (other, otherIndex) =>
+          otherIndex < index &&
+          other.toLocaleLowerCase().includes(part.toLocaleLowerCase()),
+      ),
+    )
+    .join(", ")
+  const publicAddressDetail = [settings.site_location_region, settings.site_location_country]
+    .map((part) => part?.trim())
+    .filter((part): part is string => Boolean(part))
+    .filter((part) => !settings.site_location_address?.toLocaleLowerCase().includes(part.toLocaleLowerCase()))
+    .join(", ")
   const mapLatitude = settings.contact_map_lat ?? ""
   const mapLongitude = settings.contact_map_lng ?? ""
   const mapZoom = settings.contact_map_zoom ?? ""
@@ -1495,16 +1497,11 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                     {c.contact.phoneLabel}
                   </span>
                   <a
-                    href={contactWhatsappDigits ? `https://wa.me/${contactWhatsappDigits}` : undefined}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={contactPhone ? `tel:${contactPhone.replace(/[^\d+]/g, "")}` : undefined}
                     className="font-mono text-base sm:text-lg font-bold hover:underline flex items-center gap-2"
                     style={{ color: BLUE_INST }}
                   >
                     <span>{contactPhone}</span>
-                    <span className="text-xs uppercase font-sans font-bold px-2 py-0.5 rounded border" style={{ backgroundColor: LIGHT_BG, borderColor: BORDER, color: TEXT_MUTED }}>
-                      WhatsApp
-                    </span>
                   </a>
                 </div>}
 
@@ -1590,7 +1587,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                         {publicAddress}
                       </h3>
                       <p className="text-xs font-mono mt-0.5" style={{ color: TEXT_MUTED }}>
-                        {[c.contact.gpsLabel, publicAddressDetail].filter(Boolean).join(" · ")}
+                        {publicAddressDetail}
                       </p>
                     </div>
 

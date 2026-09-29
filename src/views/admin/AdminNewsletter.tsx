@@ -71,7 +71,7 @@ export default function AdminNewsletter() {
         )
         setNotification({
           type: "success",
-          text: `Statut modifié avec succès pour ${res.subscriber.email}`,
+          text: "Statut mis à jour.",
         })
       } else {
         setNotification({ type: "error", text: res.error || "Erreur lors du changement de statut" })
@@ -94,7 +94,7 @@ export default function AdminNewsletter() {
       const res = await deleteNewsletterSubscriber(id)
       if (res.success) {
         setSubscribers((prev) => prev.filter((s) => s.id !== id))
-        setNotification({ type: "success", text: `Abonné ${email} supprimé.` })
+        setNotification({ type: "success", text: "Abonné supprimé." })
       } else {
         setNotification({ type: "error", text: res.error || "Erreur lors de la suppression" })
       }
@@ -127,7 +127,7 @@ export default function AdminNewsletter() {
         setNewEmail("")
         setNewFirstName("")
         setNewLang("FR")
-        setNotification({ type: "success", text: res.message || "Abonné ajouté avec succès." })
+        setNotification({ type: "success", text: "Abonné ajouté." })
         await loadData()
       } else {
         setModalError(res.error || "Erreur lors de l'ajout.")
@@ -182,7 +182,7 @@ export default function AdminNewsletter() {
       {/* Toast Notification */}
       {notification && (
         <div
-          className={`p-4 rounded-xl text-sm font-medium flex items-center justify-between shadow-md transition-all ${
+          className={`inline-flex w-fit max-w-full px-3 py-2 rounded-xl text-xs font-medium items-center justify-between gap-3 shadow-sm transition-all ${
             notification.type === "success"
               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
               : "bg-red-50 text-red-800 border border-red-200"
@@ -191,9 +191,11 @@ export default function AdminNewsletter() {
           <span>{notification.text}</span>
           <button
             onClick={() => setNotification(null)}
-            className="text-xs uppercase font-bold opacity-60 hover:opacity-100 ml-4"
+            type="button"
+            aria-label="Fermer le message"
+            className="text-current opacity-60 hover:opacity-100 shrink-0"
           >
-            Fermer
+            ×
           </button>
         </div>
       )}

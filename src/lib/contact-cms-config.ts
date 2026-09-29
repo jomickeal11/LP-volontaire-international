@@ -3,7 +3,7 @@
  *
  * Séparation stricte :
  *   CONTENU  → données publiques, traduisibles (accès, horaires, label carte)
- *   CONFIG   → paramètres internes, NON traduisibles (GPS, zoom, emails de routage)
+ *   CONFIG   → paramètres globaux, NON traduisibles (GPS, zoom, destinataire du formulaire)
  *
  * Les coordonnées globales (téléphone, email public, WhatsApp, adresse)
  * sont gérées dans l'onglet GENERAL et NE SONT PAS dupliquées ici.
@@ -47,7 +47,7 @@ export const CONTACT_SECTIONS: ContactCmsSection[] = [
     id: "ROUTING",
     title: "Réception des demandes",
     description:
-      "Adresses email internes vers lesquelles les formulaires et demandes sont acheminés. Ces adresses ne sont PAS affichées publiquement.",
+      "Adresse utilisée pour recevoir les messages envoyés depuis le formulaire de contact.",
   },
 ]
 
@@ -152,46 +152,6 @@ export const CONTACT_FIELDS: ContactCmsField[] = [
     description:
       "Adresse email qui reçoit les messages envoyés depuis le formulaire de contact.",
     placeholder: "aptic.rural19@gmail.com",
-  },
-  {
-    key: "contact_email_general",
-    label: "Email : Informations générales",
-    section: "ROUTING",
-    type: "text",
-    multilingual: false,
-    required: false,
-    description:
-      "Adresse de routage pour les demandes de type « Information générale ». Laisser vide = email formulaire par défaut.",
-  },
-  {
-    key: "contact_email_volunteer",
-    label: "Email : Volontariat & Missions",
-    section: "ROUTING",
-    type: "text",
-    multilingual: false,
-    required: false,
-    description:
-      "Adresse de routage pour les candidatures et demandes de volontariat.",
-  },
-  {
-    key: "contact_email_partnership",
-    label: "Email : Partenariats & Projets",
-    section: "ROUTING",
-    type: "text",
-    multilingual: false,
-    required: false,
-    description:
-      "Adresse de routage pour les propositions de partenariats et la coopération institutionnelle.",
-  },
-  {
-    key: "contact_email_direction",
-    label: "Email : Direction exécutive",
-    section: "ROUTING",
-    type: "text",
-    multilingual: false,
-    required: false,
-    description:
-      "Adresse de routage pour les questions de gouvernance et relations stratégiques.",
   },
 ]
 

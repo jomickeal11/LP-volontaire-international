@@ -7,10 +7,7 @@ const prisma = new PrismaClient()
  *
  * Politique de peuplement :
  *   - Seules les données validées par APTIC-R sont insérées.
- *   - Les emails de routage spécialisés ne sont PAS peuplés
- *     (doivent être configurés manuellement dans le back-office
- *      après validation APTIC-R).
- *   - Le contact validé est : aptic.rural19@gmail.com / +228 91 20 19 90
+ *   - L'adresse de réception validée est conservée : aptic.rural19@gmail.com.
  */
 
 // ── Contenu public multilingue (traduisible) ─────────────────────────────
@@ -41,9 +38,7 @@ const CONTACT_CONTENT = {
 
 // ── Configuration (non traduisible) ──────────────────────────────────────
 //    GPS et zoom laissés vides : doivent être validés par APTIC-R.
-//    Emails de routage spécialisés laissés vides : doivent être configurés
-//    dans le back-office après validation.
-//    Seul le contact_form_recipient est initialisé (email validé).
+//    Seul le destinataire principal du formulaire est administrable ici.
 
 const CONTACT_CONFIG: Record<string, string> = {
   contact_form_recipient: "aptic.rural19@gmail.com",
@@ -51,10 +46,6 @@ const CONTACT_CONFIG: Record<string, string> = {
   // contact_map_lng: "",          // à compléter dans le back-office
   // contact_map_zoom: "",         // défaut géré dans le code (13)
   // contact_map_label: "",        // à compléter dans le back-office
-  // contact_email_general: "",    // à valider par APTIC-R
-  // contact_email_volunteer: "",  // à valider par APTIC-R
-  // contact_email_partnership: "",// à valider par APTIC-R
-  // contact_email_direction: "",  // à valider par APTIC-R
 }
 
 async function main() {

@@ -86,6 +86,7 @@
 /* Reference FR */ /* ── Barre d'action fixe en bas de fenêtre ── */ /* Confirmation avant remplacement de contenus existants (SUPPORT) */ /* ─── ONGLET PAGE ACTUALITÉS (CMS COMPLET 2 SECTIONS) ─── */ /* ── En-tête : titre, sous-titre, sélecteur de langue, complétude, action IA globale ── */ /* Sélecteur de langue = contexte d'édition (aucune traduction déclenchée) */ /* Complétude compacte + traduction globale IA */ /* ── Sections en accordéon ── */ /* En-tête de section compact */ /* ── Barre d'action fixe en bas de fenêtre ── */ /* ── Confirmation avant remplacement de contenus existants ── */ /* ─── ONGLET PAGE CONTACT (CMS) ─── */ /* Header & Sub-Tabs Langues */ /* Sélecteur de langue = contexte d'édition (aucune traduction déclenchée) */ /* Complétude compacte + traduction globale IA */ /* Formulaire par Sections Accordéon */ /* Section Header */ /* Section Fields */ /* Reference FR */ /* ── Barre d'action fixe en bas de fenêtre ── */ /* Confirmation avant remplacement de contenus existants (CONTACT) */ /* ─── ONGLET SETTINGS GÉNÉRAUX & MÉDIAS ─── */ /* ─── MODAL D'AJOUT / ÉDITION D'UN MEMBRE DE L'ÉQUIPE ─── */ /* Photo Portrait OBLIGATOIRE avec sélection réelle de fichier */ /* Informations générales (Nom & Catégorie) */
 
 import React, { useState, useEffect, useRef } from "react"
+import ContactMapLocationPicker from "./ContactMapLocationPicker"
 
 import {
   getSiteSettings,
@@ -247,6 +248,7 @@ const TABS = [
   { id: "CONTACT", label: "Page Contact" },
   { id: "GENERAL", label: "Coordonnées & Réseaux" },
 ] as const
+const ACTIVE_SETTINGS_TAB_KEY = "aptic-admin-settings-active-tab"
 
 function cmsFieldWidthClass(type: string, key = "") {
   if (type === "textarea") return "w-full max-w-4xl lg:col-span-2"
@@ -409,13 +411,23 @@ const SETTINGS_CONFIG: Record<string, {
       type: "text",
     },
 
-    {
+{
       key: "site_social_facebook",
 
       label: "Lien page Facebook",
 
       description:
         "URL complète vers la page Facebook officielle de l'association.",
+
+      type: "text",
+    },
+    {
+      key: "site_social_instagram",
+
+      label: "Lien page Instagram",
+
+      description:
+        "URL complète vers la page Instagram officielle de l'association.",
 
       type: "text",
     },
@@ -440,6 +452,20 @@ const SECTION_NUMBERS: Record<string, string> = {
 
 export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState<string>("TEAM")
+  const [tabPreferenceReady, setTabPreferenceReady] = useState(false)
+
+  useEffect(() => {
+    try {
+      const savedTab = localStorage.getItem(ACTIVE_SETTINGS_TAB_KEY)
+      if (savedTab && TABS.some((tab) => tab.id === savedTab)) {
+        setActiveTab(savedTab)
+      }
+    } catch {
+      // The default tab remains available when browser storage is disabled.
+    } finally {
+      setTabPreferenceReady(true)
+    }
+  }, [])
 
   const [values, setValues] = useState<Record<string, string>>({})
 
@@ -557,6 +583,8 @@ export default function AdminSettings() {
     }
   }
   const [teamMembers, setTeamMembers] = useState<TeamMemberItem[]>([])
+  const [teamLoading, setTeamLoading] = useState(true)
+  const [teamLoadError, setTeamLoadError] = useState("")
 
   const [teamModalOpen, setTeamModalOpen] = useState(false)
 
@@ -785,7 +813,7 @@ export default function AdminSettings() {
         setVolunteerNotice({
           type: "success",
 
-          text: `La version ${lang} est maintenant PUBLIÉE et accessible en ligne.`,
+          text: `Version ${lang} publiée.`,
         })
       } catch (err: any) {
         setVolunteerNotice({
@@ -864,7 +892,7 @@ export default function AdminSettings() {
         setVolunteerNotice({
           type: "success",
 
-          text: "Tous les contenus de la page Volontariat ont été enregistrés avec succès !",
+          text: "Modifications enregistrées.",
         })
       } else {
         setVolunteerNotice({
@@ -976,7 +1004,7 @@ export default function AdminSettings() {
         setPartnerNotice({
           type: "success",
 
-          text: "Tous les contenus de la page Partenaires ont été enregistrés avec succès !",
+          text: "Modifications enregistrées.",
         })
       } else {
         setPartnerNotice({
@@ -1090,7 +1118,7 @@ export default function AdminSettings() {
         setMembershipNotice({
           type: "success",
 
-          text: "Tous les contenus de la page Adhésion ont été enregistrés avec succès !",
+          text: "Modifications enregistrées.",
         })
       } else {
         setMembershipNotice({
@@ -1403,7 +1431,7 @@ export default function AdminSettings() {
         setSupportNotice({
           type: "success",
 
-          text: "Tous les contenus de la page Soutien ont été enregistrés avec succès !",
+          text: "Modifications enregistrées.",
         })
       } else {
         setSupportNotice({
@@ -1693,7 +1721,7 @@ export default function AdminSettings() {
         setNewsNotice({
           type: "success",
 
-          text: "Tous les contenus de la page Actualités ont été enregistrés avec succès !",
+          text: "Modifications enregistrées.",
         })
       } else {
         setNewsNotice({
@@ -1721,6 +1749,7 @@ export default function AdminSettings() {
 
       ROUTING: true,
     })
+  const [contactMapPickerOpen, setContactMapPickerOpen] = useState(false)
 
   const toggleContactSection = (sectionId: string) => {
     setContactExpandedSections((prev) => ({
@@ -1801,7 +1830,7 @@ export default function AdminSettings() {
         setContactNotice({
           type: "success",
 
-          text: "Tous les paramètres de la page Contact ont été enregistrés avec succès !",
+          text: "Modifications enregistrées.",
         })
       } else {
         setContactNotice({
@@ -1903,7 +1932,7 @@ export default function AdminSettings() {
         setAboutNotice({
           type: "success",
 
-          text: `La version ${lang} est maintenant PUBLIÉE et accessible en ligne.`,
+          text: `Version ${lang} publiée.`,
         })
       } catch (err: any) {
         setAboutNotice({
@@ -1982,7 +2011,7 @@ export default function AdminSettings() {
         setAboutNotice({
           type: "success",
 
-          text: "Tous les contenus de la page À Propos ont été enregistrés avec succès !",
+          text: "Modifications enregistrées.",
         })
       } else {
         setAboutNotice({
@@ -2041,14 +2070,18 @@ export default function AdminSettings() {
   }
 
   const loadTeamData = async () => {
+    setTeamLoading(true)
+    setTeamLoadError("")
     try {
       const res = await getTeamMembers({ activeOnly: false })
 
-      if (res.success && res.members) {
-        setTeamMembers(res.members)
-      }
+      if (!res.success) throw new Error(res.error || "Impossible de charger l’équipe.")
+      setTeamMembers(res.members || [])
     } catch (err) {
       console.error("Erreur de chargement des membres:", err)
+      setTeamLoadError("Impossible de charger l’équipe. Réessayez.")
+    } finally {
+      setTeamLoading(false)
     }
   }
 
@@ -2083,7 +2116,7 @@ export default function AdminSettings() {
           type: "success",
 
           text: changedEntries.length
-            ? "Modifications enregistrées avec succès."
+            ? "Modifications enregistrées."
             : "Aucune modification à enregistrer.",
         })
       } else {
@@ -2524,6 +2557,14 @@ export default function AdminSettings() {
 
   const activeTeamMembers = teamMembers.filter((member) => member.active)
 
+  if (!tabPreferenceReady) {
+    return (
+      <div className="flex min-h-48 items-center justify-center text-sm text-slate-500" role="status">
+        Chargement des paramètres…
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 font-sans">
       {}
@@ -2550,6 +2591,11 @@ export default function AdminSettings() {
               onClick={() => {
                 setActiveTab(tab.id)
                 setStatusMessage(null)
+                try {
+                  localStorage.setItem(ACTIVE_SETTINGS_TAB_KEY, tab.id)
+                } catch {
+                  // The selected tab still changes for this visit.
+                }
               }}
               className={`px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 cursor-pointer ${
                 isActive
@@ -2611,7 +2657,22 @@ export default function AdminSettings() {
                 </p>
               )}
               <div className="divide-y divide-slate-100">
-                {teamMembers.length === 0 ? (
+                {teamLoading ? (
+                  <div className="py-12 text-center text-sm text-slate-400" role="status" aria-live="polite">
+                    Chargement de l’équipe…
+                  </div>
+                ) : teamLoadError ? (
+                  <div className="py-12 flex flex-col items-center gap-3 text-center text-sm text-rose-600" role="alert">
+                    <span>{teamLoadError}</span>
+                    <button
+                      type="button"
+                      onClick={() => void loadTeamData()}
+                      className="font-semibold text-[#003366] hover:underline"
+                    >
+                      Réessayer
+                    </button>
+                  </div>
+                ) : teamMembers.length === 0 ? (
                   <div className="py-12 text-center text-sm text-slate-400">
                     Aucun membre enregistré pour le moment.
                   </div>
@@ -3238,6 +3299,7 @@ export default function AdminSettings() {
               }}
             />
           </form>
+
         </div>
       )}
 
@@ -3722,12 +3784,101 @@ export default function AdminSettings() {
               </div>
 
               {}
-              <CmsPagePublicationControls group="PARTNER" values={values} onToggle={handleToggleCmsPagePublication} />
+            <CmsPagePublicationControls group="PARTNER" values={values} onToggle={handleToggleCmsPagePublication} />
 
               <CmsLangSwitcher
                 value={partnerLangTab}
                 onChange={partnerEditor.switchLang}
               />
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              {(["FR", "EN", "DE"] as const).map((lang) => {
+                const completeness = calculatePartnerCompleteness(values, lang)
+                const langTitle =
+                  lang === "FR"
+                    ? "Français (Source)"
+                    : lang === "EN"
+                      ? "English (Anglais)"
+                      : "Deutsch (Allemand)"
+
+                return (
+                  <div
+                    key={lang}
+                    className={`p-5 rounded-2xl border transition-all ${
+                      partnerLangTab === lang
+                        ? "bg-white border-[#003366] shadow-sm ring-2 ring-[#003366]/10"
+                        : "bg-slate-50/70 border-slate-200 hover:bg-white"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-2.5">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[#003366] text-[11px] font-bold font-mono tracking-wider">
+                          {lang}
+                        </span>
+                        <span className="text-sm font-bold text-slate-800">
+                          {langTitle}
+                        </span>
+                      </div>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          completeness.isComplete
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                            : "bg-amber-100 text-amber-800 border border-amber-200"
+                        }`}
+                      >
+                        {completeness.isComplete ? "Complet" : "Incomplet"}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 mb-4">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500 font-medium">
+                          Complétude :
+                        </span>
+                        <span
+                          className={`font-bold ${
+                            completeness.isComplete
+                              ? "text-emerald-700"
+                              : "text-amber-700"
+                          }`}
+                        >
+                          {completeness.percentage}%
+                        </span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            completeness.isComplete
+                              ? "bg-emerald-500"
+                              : "bg-amber-500"
+                          }`}
+                          style={{ width: `${completeness.percentage}%` }}
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        {completeness.filledCount} / {completeness.totalCount} champs requis
+                        {!completeness.isComplete &&
+                          ` (${completeness.missingFields.length} manquant${completeness.missingFields.length > 1 ? "s" : ""})`}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => partnerEditor.switchLang(lang)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                          partnerLangTab === lang
+                            ? "bg-[#003366] text-white shadow-xs"
+                            : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                        }`}
+                      >
+                        Éditer {lang}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
 
             {}
@@ -3812,7 +3963,10 @@ export default function AdminSettings() {
                       {}
                       <button
                         type="button"
-                        onClick={() => togglePartnerSection(section.id)}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          togglePartnerSection(section.id)
+                        }}
                         className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-slate-600 px-2 py-1.5 rounded-lg cursor-pointer"
                       >
                         <span>{isExpanded ? "Masquer" : "Déplier"}</span>
@@ -4036,7 +4190,10 @@ export default function AdminSettings() {
 
             {membershipNotice && (
               <div className="mt-4">
-                <CmsNoticeBanner notice={membershipNotice} />
+                <CmsNoticeBanner
+                  notice={membershipNotice}
+                  onClose={() => setMembershipNotice(null)}
+                />
               </div>
             )}
           </div>
@@ -4477,7 +4634,10 @@ export default function AdminSettings() {
 
             {supportNotice && (
               <div className="mt-4">
-                <CmsNoticeBanner notice={supportNotice} />
+                <CmsNoticeBanner
+                  notice={supportNotice}
+                  onClose={() => setSupportNotice(null)}
+                />
               </div>
             )}
           </div>
@@ -5107,7 +5267,7 @@ export default function AdminSettings() {
 
           {newsNotice && (
             <div
-              className={`px-4 py-3 rounded-xl text-xs font-medium border ${
+              className={`inline-flex w-fit max-w-full items-center justify-between gap-3 px-3 py-2 rounded-xl text-xs font-medium border ${
                 newsNotice.type === "success"
                   ? "bg-emerald-50 border-emerald-200 text-emerald-800"
                   : newsNotice.type === "info"
@@ -5115,7 +5275,15 @@ export default function AdminSettings() {
                     : "bg-rose-50 border-rose-200 text-rose-800"
               }`}
             >
-              {newsNotice.text}
+              <span>{newsNotice.text}</span>
+              <button
+                type="button"
+                onClick={() => setNewsNotice(null)}
+                aria-label="Fermer le message"
+                className="shrink-0 text-current opacity-60 hover:opacity-100"
+              >
+                ×
+              </button>
             </div>
           )}
 
@@ -5392,8 +5560,9 @@ export default function AdminSettings() {
                   Gestionnaire de contenus : Page Contact
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                  Horaires, indication d&apos;accès, coordonnées GPS et
-                  configuration des emails de réception.
+                  Le sélecteur de langue concerne les textes affichés. La carte
+                  et les emails de réception, communs aux trois langues, sont
+                  configurés dans l&apos;onglet FR.
                 </p>
               </div>
 
@@ -5412,6 +5581,14 @@ export default function AdminSettings() {
                 contactLangTab,
               )}
               lang={contactLangTab}
+              summaryLabel={
+                contactLangTab === "FR"
+                  ? "Configuration française"
+                  : contactLangTab === "EN"
+                    ? "Configuration anglaise"
+                    : "Configuration allemande"
+              }
+              alwaysShowProgress
               translating={contactEditor.translating}
               sectionTranslating={contactEditor.sectionTranslating}
               onTranslate={() =>
@@ -5422,22 +5599,78 @@ export default function AdminSettings() {
                 )
               }
             />
+            {(() => {
+              const completeness = calculateContactCompleteness(
+                values,
+                contactLangTab,
+              )
+              const optionalEmptyCount = CONTACT_FIELDS.filter(
+                (field) =>
+                  !field.required &&
+                  !values[
+                    getContactFieldDbKey(field, contactLangTab)
+                  ]?.trim(),
+              ).length
+
+              return (
+                <div className="flex flex-wrap gap-x-4 gap-y-1 px-4 sm:px-5 pb-2 text-[10px]">
+                  <span className={completeness.missingFields.length > 0 ? "text-rose-600" : "text-emerald-700"}>
+                    {completeness.missingFields.length > 0
+                      ? `${completeness.missingFields.length} champ(s) obligatoire(s) manquant(s)`
+                      : "Champs obligatoires renseignés"}
+                  </span>
+                  {optionalEmptyCount > 0 && (
+                    <span className="text-slate-400">
+                      {optionalEmptyCount} champ(s) facultatif(s) non renseigné(s)
+                    </span>
+                  )}
+                </div>
+              )
+            })()}
 
             {contactNotice && (
               <div className="mt-4">
-                <CmsNoticeBanner notice={contactNotice} />
+                <CmsNoticeBanner
+                  notice={contactNotice}
+                  onClose={() => setContactNotice(null)}
+                />
               </div>
             )}
           </div>
 
           {}
           <form onSubmit={handleSaveContactTab} className="space-y-6">
-            {CONTACT_SECTIONS.map((section, sIdx) => {
+            {CONTACT_SECTIONS.filter(
+              (section) => section.id === "CONTENT" || contactLangTab === "FR",
+            ).map((section, sIdx) => {
               const fields = CONTACT_FIELDS.filter(
                 (f) => f.section === section.id,
               )
+              const mapZoomField =
+                section.id === "MAP"
+                  ? fields.find((field) => field.key === "contact_map_zoom")
+                  : undefined
+              const visibleFields =
+                section.id === "MAP"
+                  ? fields.filter(
+                      (field) => field.key === "contact_map_label",
+                    )
+                  : fields
 
               const isExpanded = contactExpandedSections[section.id] !== false
+
+              const savedMapLatitude = values.contact_map_lat?.trim() || ""
+              const savedMapLongitude = values.contact_map_lng?.trim() || ""
+              const parsedMapLatitude = Number(savedMapLatitude)
+              const parsedMapLongitude = Number(savedMapLongitude)
+              const hasSavedMapPosition =
+                savedMapLatitude !== "" &&
+                savedMapLongitude !== "" &&
+                Number.isFinite(parsedMapLatitude) &&
+                Number.isFinite(parsedMapLongitude) &&
+                Math.abs(parsedMapLatitude) <= 90 &&
+                Math.abs(parsedMapLongitude) <= 180
+              const savedMapLabel = values.contact_map_label?.trim() || ""
 
               const sectionNum = String(sIdx + 1).padStart(2, "0")
 
@@ -5458,8 +5691,15 @@ export default function AdminSettings() {
                         {sectionNum}
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-slate-800">
-                          {section.title}
+                        <h3 className="flex flex-wrap items-center gap-2 text-sm font-bold text-slate-800">
+                          <span>{section.title}</span>
+                          {section.id !== "ROUTING" && (
+                            <span className="rounded-full bg-white border border-slate-200 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-500">
+                              {section.id === "CONTENT"
+                                ? "FR / EN / DE"
+                                : "Commun aux 3 langues"}
+                            </span>
+                          )}
                         </h3>
                         <p className="text-xs text-slate-500">
                           {section.description}
@@ -5496,8 +5736,14 @@ export default function AdminSettings() {
 
                   {}
                   {isExpanded && (
-                    <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-6 bg-white">
-                      {fields.map((field) => {
+                    <div
+                      className={`grid grid-cols-1 bg-white ${
+                        section.id === "MAP"
+                          ? "p-4 sm:p-5 sm:grid-cols-2 gap-4"
+                          : "p-6 lg:grid-cols-2 gap-x-10 gap-y-6"
+                      }`}
+                    >
+                      {visibleFields.map((field) => {
                         const dbKey = getContactFieldDbKey(
                           field,
 
@@ -5509,6 +5755,9 @@ export default function AdminSettings() {
                         const frReferenceKey = `${field.key}_fr`
 
                         const frReferenceValue = values[frReferenceKey]
+                        const isEmpty = !currentValue.trim()
+                        const isRequiredMissing = Boolean(field.required && isEmpty)
+                        const isOptionalEmpty = !field.required && isEmpty
 
                         return (
                           <div
@@ -5520,11 +5769,24 @@ export default function AdminSettings() {
                           >
                             <div className="flex items-center justify-between gap-2">
                               <label className="block text-sm font-semibold text-slate-800">
-                                {field.label}
+                                {field.key === "contact_map_label"
+                                  ? "Lieu"
+                                  : field.key === "contact_access_info"
+                                    ? "Adresse / indication d'accès"
+                                    : field.label}
                                 {"required" in field && field.required && (
                                   <span className="ml-1 text-red-500" aria-label="Champ obligatoire">*</span>
                                 )}
                               </label>
+                              {isRequiredMissing ? (
+                                <span className="text-[10px] font-medium text-rose-600">
+                                  À renseigner
+                                </span>
+                              ) : isOptionalEmpty ? (
+                                <span className="text-[10px] font-medium text-slate-400">
+                                  Facultatif
+                                </span>
+                              ) : null}
                             </div>
 
                             {field.description && (
@@ -5553,7 +5815,7 @@ export default function AdminSettings() {
                                   handleInputChange(dbKey, e.target.value)
                                 }
                                 placeholder={field.placeholder || ""}
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
+                                className={`w-full px-4 py-2.5 rounded-xl border ${isRequiredMissing ? "border-rose-300 bg-rose-50/30" : "border-slate-200"} focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800`}
                               />
                             ) : (
                               <input
@@ -5562,13 +5824,86 @@ export default function AdminSettings() {
                                 onChange={(e) =>
                                   handleInputChange(dbKey, e.target.value)
                                 }
-                                placeholder={field.placeholder || ""}
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
+                                placeholder={
+                                  field.section === "ROUTING" ||
+                                  field.key === "contact_map_label"
+                                    ? ""
+                                    : field.placeholder || ""
+                                }
+                                className={`w-full px-4 py-2.5 rounded-xl border ${isRequiredMissing ? "border-rose-300 bg-rose-50/30" : "border-slate-200"} focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white`}
                               />
                             )}
                           </div>
                         )
                       })}
+
+                      {section.id === "MAP" && (
+                        <div className="space-y-2 self-end">
+                          <span className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                            {hasSavedMapPosition && (
+                              <span aria-hidden="true">📍</span>
+                            )}
+                            {hasSavedMapPosition
+                              ? savedMapLabel || "Position enregistrée"
+                              : "Position sur la carte"}
+                          </span>
+                          {hasSavedMapPosition ? (
+                            <p className="text-[11px] text-emerald-700" role="status">
+                                {savedMapLabel
+                                  ? "Position enregistrée"
+                                  : "Position définie sur la carte"}
+                            </p>
+                          ) : (
+                            <p className="text-[11px] text-slate-500" role="status">
+                              Aucune position n&apos;est encore définie.
+                            </p>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setContactMapPickerOpen(true)}
+                            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[#003366]/20 bg-[#003366]/5 px-4 py-2.5 text-sm font-semibold text-[#003366] transition-colors hover:bg-[#003366]/10"
+                          >
+                            {!hasSavedMapPosition && (
+                              <span aria-hidden="true">📍</span>
+                            )}
+                            {hasSavedMapPosition
+                              ? "Modifier la position"
+                              : "Positionner sur la carte"}
+                          </button>
+                        </div>
+                      )}
+
+                      {section.id === "MAP" && mapZoomField && (
+                        <details className="col-span-full rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3">
+                          <summary className="cursor-pointer text-xs font-semibold text-slate-600">
+                            Réglages techniques
+                          </summary>
+                          <div className="mt-3 max-w-sm space-y-2">
+                            <label
+                              htmlFor={mapZoomField.key}
+                              className="block text-xs font-semibold text-slate-700"
+                            >
+                              {mapZoomField.label}
+                            </label>
+                            <p className="text-[11px] text-slate-400">
+                              {mapZoomField.description}
+                            </p>
+                            <input
+                              id={mapZoomField.key}
+                              type="text"
+                              value={values[mapZoomField.key] || ""}
+                              onChange={(event) =>
+                                handleInputChange(
+                                  mapZoomField.key,
+                                  event.target.value,
+                                )
+                              }
+                              placeholder={mapZoomField.placeholder || ""}
+                              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10"
+                            />
+                          </div>
+                        </details>
+                      )}
                     </div>
                   )}
                 </div>
@@ -5589,6 +5924,23 @@ export default function AdminSettings() {
               }}
             />
           </form>
+
+          {contactMapPickerOpen && (
+            <ContactMapLocationPicker
+              latitude={values.contact_map_lat || ""}
+              longitude={values.contact_map_lng || ""}
+              zoom={values.contact_map_zoom || ""}
+              onClose={() => setContactMapPickerOpen(false)}
+              onConfirm={(point, locationName) => {
+                handleInputChange("contact_map_lat", point.lat.toFixed(6))
+                handleInputChange("contact_map_lng", point.lng.toFixed(6))
+                if (locationName !== undefined) {
+                  handleInputChange("contact_map_label", locationName)
+                }
+                setContactMapPickerOpen(false)
+              }}
+            />
+          )}
         </div>
       )}
 
@@ -5617,16 +5969,73 @@ export default function AdminSettings() {
               <form onSubmit={handleSaveTab} className="space-y-8">
                 {statusMessage && (
                   <div
-                    className={`p-4 rounded-xl text-sm font-medium ${
+                    className={`inline-flex w-fit max-w-full items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium ${
                       statusMessage.type === "success"
                         ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
                         : "bg-rose-50 border border-rose-200 text-rose-800"
                     }`}
                   >
-                    {statusMessage.text}
+                    <span>{statusMessage.text}</span>
+                    <button
+                      type="button"
+                      onClick={() => setStatusMessage(null)}
+                      aria-label="Fermer le message"
+                      className="shrink-0 text-current opacity-60 hover:opacity-100"
+                    >
+                      ×
+                    </button>
                   </div>
                 )}
 
+                {activeTab === "GENERAL" ? (
+                  <div className="space-y-5">
+                    {[
+                      {
+                        number: "01",
+                        title: "Coordonnées institutionnelles",
+                        keys: ["site_location_city", "site_location_region", "site_location_address", "site_location_country"],
+                      },
+                      {
+                        number: "02",
+                        title: "Contacts officiels",
+                        keys: ["site_contact_email", "site_contact_phone", "site_social_whatsapp"],
+                      },
+{
+                        number: "03",
+                        title: "Réseaux sociaux",
+                        keys: ["site_social_linkedin", "site_social_facebook", "site_social_instagram"],
+                      },
+                    ].map((section) => (
+                      <section key={section.number} className="border-b border-slate-100 pb-6 last:border-0 last:pb-0">
+                        <div className="mb-4 flex items-center gap-3">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#003366]/5 text-xs font-bold text-[#003366]">
+                            {section.number}
+                          </span>
+                          <h2 className="text-base font-bold text-slate-800">{section.title}</h2>
+                        </div>
+                        <div className="grid grid-cols-1 gap-x-8 gap-y-5 md:grid-cols-2">
+                          {section.keys.map((key) => {
+                            const field = SETTINGS_CONFIG.GENERAL.find((item) => item.key === key)
+                            if (!field) return null
+
+                            return (
+                              <div key={field.key} className="space-y-2">
+                                <label className="block text-sm font-bold text-slate-800">{field.label}</label>
+                                <p className="text-xs text-slate-500 leading-relaxed">{field.description}</p>
+                                <input
+                                  type="text"
+                                  value={values[field.key] || ""}
+                                  onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800"
+                                />
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </section>
+                    ))}
+                  </div>
+                ) : (
                 <div className="space-y-6">
                   {(SETTINGS_CONFIG[activeTab] || []).map((field) => (
                     <div key={field.key} className="space-y-2">
@@ -5710,6 +6119,7 @@ export default function AdminSettings() {
                     </div>
                   ))}
                 </div>
+                )}
 
                 <div className="pt-4 border-t border-slate-100 flex justify-end">
                   <button

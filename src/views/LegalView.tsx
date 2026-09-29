@@ -15,7 +15,66 @@ interface LegalViewProps {
 export default function LegalView({ doc, lang, navigate }: LegalViewProps) {
   const [activeSection, setActiveSection] = useState<string>("")
   const [mobileTocOpen, setMobileTocOpen] = useState<boolean>(false)
+  const [generalSettings, setGeneralSettings] = useState<Record<string, string>>({})
   const langKey = lang.toLowerCase() as "fr" | "en" | "de"
+
+  useEffect(() => {
+    let active = true
+    import("@/lib/cms-actions")
+      .then(({ getSiteSettings }) => getSiteSettings("GENERAL"))
+      .then((result) => {
+        if (active && result.success && result.dict) setGeneralSettings(result.dict)
+      })
+      .catch((error) => console.error("Erreur de chargement des coordonnées légales:", error))
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const publicEmail = generalSettings.site_contact_email?.trim() ?? ""
+  const publicPhone = generalSettings.site_contact_phone?.trim() ?? ""
+  const publicCity = generalSettings.site_location_city?.trim() ?? ""
+  const publicAddress = [
+    generalSettings.site_location_address,
+    generalSettings.site_location_city,
+    generalSettings.site_location_region,
+    generalSettings.site_location_country,
+  ]
+    .map((part) => part?.trim())
+    .filter((part): part is string => Boolean(part))
+    .filter((part, index, parts) =>
+      !parts.some(
+        (other, otherIndex) =>
+          otherIndex < index &&
+          other.toLocaleLowerCase().includes(part.toLocaleLowerCase()),
+      ),
+    )
+    .join(", ")
+  const addressVariants = [
+    "Association APTIC-R, Agbélouvé, Région Maritime, République Togolaise",
+    "Association APTIC-R, Agbélouvé, Maritime Region, Republic of Togo",
+    "Association APTIC-R, Agbélouvé, Region Maritime, Republik Togo",
+  ]
+  const replaceLegalContacts = (paragraph: string) => {
+    if (paragraph.includes("aptic.rural19@gmail.com") && !publicEmail) return null
+    if (paragraph.includes("+228 91 20 19 90") && !publicPhone) return null
+    if (addressVariants.some((address) => paragraph.includes(address)) && !publicAddress) return null
+
+    let result = paragraph
+    if (publicEmail) result = result.replaceAll("aptic.rural19@gmail.com", publicEmail)
+    if (publicPhone) result = result.replaceAll("+228 91 20 19 90", publicPhone)
+    if (publicAddress) {
+      addressVariants.forEach((address) => {
+        result = result.replace(address, publicAddress)
+      })
+    }
+    return result
+  }
+  const contactDescription = doc.contactBox.desc.includes("Agbélouvé")
+    ? publicCity
+      ? doc.contactBox.desc.replaceAll("Agbélouvé", publicCity)
+      : ""
+    : doc.contactBox.desc
 
   const homeLabel = lang === "DE" ? "Startseite" : lang === "EN" ? "Home" : "Accueil"
   const legalHubLabel = lang === "DE" ? "Mentions légales" : lang === "EN" ? "Legal" : "Mentions légales"
@@ -256,13 +315,15 @@ export default function LegalView({ doc, lang, navigate }: LegalViewProps) {
                   </h2>
                   <div className="space-y-3 text-sm sm:text-base text-[#1A2B3C] leading-relaxed">
                     {section.content.map((paragraph, pIdx) => {
-                      const isBullet = paragraph.startsWith("•")
+                      const publicParagraph = replaceLegalContacts(paragraph)
+                      if (!publicParagraph) return null
+                      const isBullet = publicParagraph.startsWith("•")
                       return (
                         <p
                           key={pIdx}
                           className={isBullet ? "pl-4 text-[#1A2B3C]" : ""}
                         >
-                          {paragraph}
+                          {publicParagraph}
                         </p>
                       )
                     })}
@@ -276,20 +337,29 @@ export default function LegalView({ doc, lang, navigate }: LegalViewProps) {
               <h3 className="text-sm font-semibold text-[#003366] mb-2">
                 {doc.contactBox.title}
               </h3>
-              <p className="text-xs sm:text-sm text-[#4A5A6A] mb-4">
-                {doc.contactBox.desc}
-              </p>
+              {contactDescription && (
+                <p className="text-xs sm:text-sm text-[#4A5A6A] mb-4">
+                  {contactDescription}
+                </p>
+              )}
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-[#1A2B3C]">
-                <a
-                  href={`mailto:${doc.contactBox.email}`}
-                  className="text-[#003366] hover:underline font-medium"
-                >
-                  {doc.contactBox.email}
-                </a>
-                {doc.contactBox.phone && (
-                  <span className="text-[#4A5A6A]">{doc.contactBox.phone}</span>
+                {publicEmail && (
+                  <a
+                    href={`mailto:${publicEmail}`}
+                    className="text-[#003366] hover:underline font-medium"
+                  >
+                    {publicEmail}
+                  </a>
                 )}
-                <span className="text-[#4A5A6A]">{doc.contactBox.address}</span>
+                {publicPhone && (
+                  <a
+                    href={`tel:${publicPhone.replace(/[^\d+]/g, "")}`}
+                    className="text-[#4A5A6A] hover:text-[#003366]"
+                  >
+                    {publicPhone}
+                  </a>
+                )}
+                {publicAddress && <span className="text-[#4A5A6A]">{publicAddress}</span>}
               </div>
             </footer>
           </article>
@@ -329,5 +399,3 @@ export default function LegalView({ doc, lang, navigate }: LegalViewProps) {
     </div>
   )
 }
-
-

@@ -456,6 +456,55 @@ export async function getArticleCategories() {
   }
 }
 
+export async function createArticleCategory(nameFr: string, nameEn?: string, nameDe?: string) {
+  try {
+    const trimmed = nameFr.trim()
+    if (!trimmed) {
+      return { success: false, error: "Le nom de la catégorie est obligatoire." }
+    }
+    const slug = trimmed
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "cat-" + Date.now()
+
+    let existing = await prisma.categorieArticle.findFirst({
+      where: {
+        OR: [
+          { slug },
+          { nameFr: { equals: trimmed, mode: "insensitive" } },
+        ],
+      },
+    })
+
+    if (existing) {
+      return { success: true, category: existing }
+    }
+
+    const maxOrderCat = await prisma.categorieArticle.findFirst({
+      orderBy: { order: "desc" },
+      select: { order: true },
+    })
+    const nextOrder = (maxOrderCat?.order ?? 0) + 1
+
+    const newCat = await prisma.categorieArticle.create({
+      data: {
+        slug,
+        nameFr: trimmed,
+        nameEn: nameEn?.trim() || trimmed,
+        nameDe: nameDe?.trim() || trimmed,
+        order: nextOrder,
+      },
+    })
+
+    return { success: true, category: newCat }
+  } catch (error: any) {
+    console.error("Error creating article category:", error)
+    return { success: false, error: error.message || "Erreur lors de la création de la catégorie" }
+  }
+}
+
 // ─── 6. ÉVÉNEMENTS ────────────────────────────────────────────────────────────
 
 export async function getEvents(options?: {
@@ -1444,6 +1493,7 @@ export async function createArticle(data: {
   contentDe?: string
   categoryId?: string
   authorName?: string
+  readingTime?: number
   featuredImage?: string
   published?: boolean
   publishedFr?: boolean
@@ -1462,7 +1512,8 @@ export async function createArticle(data: {
     }
 
     const article = await prisma.article.create({
-      data: {
+      data: ({
+
         slug,
         titleFr: data.titleFr.trim(),
         titleEn: data.titleEn?.trim() || null,
@@ -1475,6 +1526,7 @@ export async function createArticle(data: {
         contentDe: data.contentDe?.trim() || null,
         categoryId: data.categoryId || null,
         authorName: data.authorName?.trim() || "Équipe APTIC-R",
+        readingTime: data.readingTime ?? 3,
         featuredImage: data.featuredImage || null,
         published: Boolean(data.publishedFr || data.publishedEn || data.publishedDe || data.published),
         publishedFr: Boolean(data.publishedFr ?? data.published),
@@ -1483,7 +1535,7 @@ export async function createArticle(data: {
         publishedAt: data.publishedFr || data.publishedEn || data.publishedDe || data.published ? new Date() : null,
         metaTitle: data.metaTitle?.trim() || null,
         metaDescription: data.metaDescription?.trim() || null,
-      },
+      }) as any,
     })
 
     revalidatePath("/backoffice/articles")
@@ -1509,6 +1561,7 @@ export async function updateArticle(
     contentDe?: string
     categoryId?: string
     authorName?: string
+    readingTime?: number
     featuredImage?: string
     published: boolean
     publishedFr: boolean

@@ -117,7 +117,7 @@ export default function AdminDomaines() {
           imageCaptionDe: res.translations.DE.imageCaption || prev.imageCaptionDe,
         }))
         const providerName = res.providerUsed === "deepl" ? "DeepL API" : "Traducteur automatique"
-        setTranslationNotice(`Pôle stratégique traduit avec succès via ${providerName}. Consultez les onglets English et Deutsch.`)
+        setTranslationNotice(`Traduction terminée (${providerName}).`)
       } else {
         setError(res.error || "Erreur lors de la traduction automatique.")
       }
@@ -1001,7 +1001,7 @@ export default function AdminDomaines() {
 
               {/* Translation notice banner */}
               {translationNotice && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-between">
+                <div className="inline-flex w-fit max-w-full p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold items-center justify-between gap-3">
                   <span>{translationNotice}</span>
                   <button
                     type="button"

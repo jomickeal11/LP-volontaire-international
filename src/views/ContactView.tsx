@@ -299,13 +299,10 @@ const I18N = {
       "Une question, un projet, une candidature ou une proposition de partenariat ? Notre équipe est à votre écoute.",
     infoTitle: "INFORMATIONS & ACCÈS",
     headquartersLabel: "SIÈGE SOCIAL & FABLAB",
-    headquartersAddress: "Agbélouvé, Centre communautaire\nPréfecture du Zio, Région Maritime\nTogo (Afrique de l'Ouest)",
     accessInfo: "À 65 km au nord de Lomé sur la route nationale RN1 (axe Lomé-Tsévié-Atakpamé).",
     phoneLabel: "TÉLÉPHONE & WHATSAPP",
-    phoneNum: "+228 91 20 19 90",
     phoneDesc: "Lundi – Vendredi, 08h00 – 18h00 GMT",
     emailLabel: "EMAIL GÉNÉRAL",
-    emailMain: "aptic.rural19@gmail.com",
     hoursLabel: "HORAIRES D'OUVERTURE",
     hoursFablab: "Lundi – Vendredi : 08h00 – 18h00 GMT",
     hoursSat: "Samedi : 09h00 – 14h00 (Ateliers jeunes)",
@@ -360,13 +357,10 @@ const I18N = {
       "A question, a project, an application, or a partnership proposal? We are at your service.",
     infoTitle: "INFORMATION & ACCESS",
     headquartersLabel: "HEADQUARTERS & FABLAB",
-    headquartersAddress: "Agbélouvé Community Hub\nZio Prefecture, Maritime Region\nTogo (West Africa)",
     accessInfo: "Located 65 km north of Lomé along National Highway RN1.",
     phoneLabel: "PHONE & WHATSAPP",
-    phoneNum: "+228 91 20 19 90",
     phoneDesc: "Monday – Friday, 08:00 – 18:00 GMT",
     emailLabel: "GENERAL EMAIL",
-    emailMain: "aptic.rural19@gmail.com",
     hoursLabel: "WORKING HOURS",
     hoursFablab: "Monday – Friday: 08:00 – 18:00 GMT",
     hoursSat: "Saturday: 09:00 – 14:00 (Youth workshops)",
@@ -421,13 +415,10 @@ const I18N = {
       "Eine Frage, ein Projekt, eine Bewerbung oder ein Partnerschaftsvorschlag? Wir sind für Sie da.",
     infoTitle: "INFORMATION & ANFAHRT",
     headquartersLabel: "HAUPTSITZ & FABLAB",
-    headquartersAddress: "Agbélouvé Gemeindezentrum\nPräfektur Zio, Maritime Region\nTogo (Westafrika)",
     accessInfo: "65 km nördlich von Lomé an der Nationalstraße RN1.",
     phoneLabel: "TELEFON & WHATSAPP",
-    phoneNum: "+228 91 20 19 90",
     phoneDesc: "Montag – Freitag, 08:00 – 18:00 Uhr GMT",
     emailLabel: "HAUPT-E-MAIL",
-    emailMain: "aptic.rural19@gmail.com",
     hoursLabel: "ÖFFNUNGSZEITEN",
     hoursFablab: "Montag – Freitag: 08:00 – 18:00 Uhr GMT",
     hoursSat: "Samstag: 09:00 – 14:00 Uhr (Jugendworkshops)",
@@ -676,10 +667,13 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
   // Adresse from GENERAL (global, not localized)
   const addressText = [
     settings["site_location_address"],
+    settings["site_location_city"],
     settings["site_location_region"],
     settings["site_location_country"],
-  ]
-    .filter((part) => Boolean(part?.trim()))
+  ].map((part) => part?.trim()).filter((part): part is string => Boolean(part))
+    .filter((part, index, parts) => !parts.some((other, otherIndex) =>
+      otherIndex < index && other.toLocaleLowerCase().includes(part.toLocaleLowerCase()),
+    ))
     .join("\n")
   // CMS Contact content — strict multilingual (no I18N fallback)
   const accessInfoText = settings[`contact_access_info_${langSuffix}`] ?? ""
@@ -704,6 +698,9 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
   const mapZoom = settings["contact_map_zoom"] ?? ""
   const mapLabel = settings["contact_map_label"] ?? ""
   const locationHeading = [settings["site_location_city"], settings["site_location_region"]].filter(Boolean).join(" · ")
+  const itineraryMessage = encodeURIComponent(
+    `Bonjour APTIC-R, je souhaite des indications pour me rendre au siège${settings.site_location_city ? ` à ${settings.site_location_city}` : ""}.`,
+  )
 
   const [formData, setFormData] = useState({
     name: "",
@@ -1212,7 +1209,7 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
             {hasValidGps ? (
               <div className="rounded-2xl overflow-hidden border border-[#E5EAF0] shadow-xs aspect-[16/9] sm:aspect-[21/9] bg-slate-100 relative">
                 <iframe
-                  title="Carte Agbélouvé APTIC-R"
+                  title={locationHeading || "Carte"}
                   width="100%"
                   height="100%"
                   frameBorder="0"
@@ -1240,25 +1237,25 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
                     <span>Localisation & Itinéraire</span>
                   </div>
                   <h3 className="text-lg sm:text-xl font-bold text-[#003366]">
-                    Centre Communautaire & FabLab d&apos;Agbélouvé
+                    {locationHeading || "Localisation"}
                   </h3>
                   <p className="text-sm text-[#5E6B76] leading-relaxed">
-                    {accessInfoText || "À 65 km au nord de Lomé sur la route nationale RN1 (axe Lomé–Tsévié–Atakpamé)."}
+                    {accessInfoText}
                   </p>
                   <p className="text-xs text-slate-400">
                     Les coordonnées GPS précises peuvent être renseignées dans le panneau d&apos;administration dès leur validation officielle.
                   </p>
                 </div>
-                <div className="shrink-0">
+                {whatsappNum && <div className="shrink-0">
                   <a
-                    href={`https://wa.me/${whatsappNum}?text=Bonjour%20APTIC-R,%20je%20souhaite%20des%20indications%20pour%20me%20rendre%20au%20si%C3%A8ge%20%C3%A0%20Agb%C3%A9louv%C3%A9.`}
+                    href={`https://wa.me/${whatsappNum}?text=${itineraryMessage}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-[#28A745] text-white hover:bg-[#218838] transition-colors shadow-xs"
                   >
                     Demander l&apos;itinéraire sur WhatsApp
                   </a>
-                </div>
+                </div>}
               </div>
             )}
           </div>
