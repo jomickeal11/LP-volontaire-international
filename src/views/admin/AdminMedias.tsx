@@ -435,6 +435,9 @@ export default function AdminMedias() {
                       <option key={a as string} value={a as string} />
                     ))}
                   </datalist>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Collection de médias liée à un événement ou une mission (ex : « Formation Arduino 2026 »). Plusieurs médias peuvent appartenir au même album.
+                  </p>
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -446,6 +449,9 @@ export default function AdminMedias() {
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
                     className={inputClass}
                   />
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Thématique générale visible comme filtre dans la galerie (ex : TERRAIN, FORMATION, COMMUNAUTÉ).
+                  </p>
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -457,6 +463,9 @@ export default function AdminMedias() {
                     onChange={(e) => setForm({ ...form, order: e.target.value })}
                     className={inputClass}
                   />
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Position d'affichage dans la galerie (0 = premier). Laissez vide pour un ordre automatique par date.
+                  </p>
                 </div>
               </div>
 
@@ -558,6 +567,9 @@ export default function AdminMedias() {
                     onChange={(e) => setForm({ ...form, thumbnailUrl: e.target.value })}
                     className={inputClass}
                   />
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Image de prévisualisation dans la grille. Pour YouTube, coller l’URL de la vignette (ex : <code className="font-mono">https://img.youtube.com/vi/ID/maxresdefault.jpg</code>).
+                  </p>
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -569,11 +581,14 @@ export default function AdminMedias() {
                     onChange={(e) => setForm({ ...form, projetId: e.target.value })}
                     className={inputClass}
                   />
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Relier ce média à un projet institutionnel spécifique. Sans effet sur la galerie publique.
+                  </p>
                 </div>
               </div>
 
               <div className="space-y-1.5 pb-2">
-                <label className="flex items-center gap-2 text-sm text-slate-700">
+                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={form.featured}
@@ -581,6 +596,9 @@ export default function AdminMedias() {
                   />
                   Mettre en avant
                 </label>
+                <p className="text-[11px] text-slate-400 leading-relaxed ml-5">
+                  Affiche ce média en taille agrandie dans la section « À la une » en haut de la galerie.
+                </p>
               </div>
 
               {error && <p className="text-xs font-medium text-red-600">✗ {error}</p>}
