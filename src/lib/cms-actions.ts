@@ -286,6 +286,19 @@ export async function getProjects(options?: {
   }
 }
 
+/** Version allégée pour les menus déroulants Admin (id + titre FR uniquement). */
+export async function getProjectsForSelect(): Promise<{ id: string; titleFr: string; slug: string }[]> {
+  try {
+    const projects = await prisma.projet.findMany({
+      select: { id: true, titleFr: true, slug: true },
+      orderBy: { titleFr: "asc" },
+    })
+    return projects
+  } catch {
+    return []
+  }
+}
+
 export async function getProjectBySlug(slug: string, lang?: string) {
   try {
     const project = await prisma.projet.findUnique({

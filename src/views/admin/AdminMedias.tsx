@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef, useMemo } from "react"
-import { getAllMedias, createMedia, updateMedia, deleteMedia } from "@/lib/cms-actions"
+import { getAllMedias, createMedia, updateMedia, deleteMedia, getProjectsForSelect } from "@/lib/cms-actions"
 import { useConfirm } from "@/components/admin/ConfirmProvider"
 
 interface MediaItem {
@@ -60,6 +60,7 @@ export default function AdminMedias() {
   const [error, setError] = useState("")
   const [feedback, setFeedback] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [projects, setProjects] = useState<{ id: string; titleFr: string; slug: string }[]>([])
 
   const existingAlbums = useMemo(() => {
     return Array.from(new Set(items.map((i) => i.album).filter(Boolean))).sort() as string[]
@@ -71,6 +72,8 @@ export default function AdminMedias() {
     if (res.success && res.items) {
       setItems(res.items as unknown as MediaItem[])
     }
+    const proj = await getProjectsForSelect()
+    setProjects(proj)
     setLoading(false)
   }
 
@@ -573,14 +576,18 @@ export default function AdminMedias() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                    Identifiant projet lié (facultatif)
+                    Projet lié (facultatif)
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={form.projetId}
                     onChange={(e) => setForm({ ...form, projetId: e.target.value })}
                     className={inputClass}
-                  />
+                  >
+                    <option value="">— Aucun projet —</option>
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>{p.titleFr}</option>
+                    ))}
+                  </select>
                   <p className="text-[11px] text-slate-400 leading-relaxed">
                     Relier ce média à un projet institutionnel spécifique. Sans effet sur la galerie publique.
                   </p>
