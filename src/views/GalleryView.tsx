@@ -461,7 +461,7 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
       <main className="flex-1">
         {/* ── 1. Hero + Toggle intégré ── */}
         <section className="bg-white border-b border-slate-200/80">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-18 text-center">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-14 sm:pt-40 sm:pb-16 text-center">
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-5"
               style={{ color: BLUE }}
