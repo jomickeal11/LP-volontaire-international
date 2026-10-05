@@ -513,7 +513,7 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
                     <button
                       key={album.name}
                       onClick={() => { setSelectedAlbum(album.name); setViewMode("ALBUMS"); }}
-                      className="group relative aspect-[3/2] overflow-hidden rounded-2xl bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003366]"
+                      className="group relative aspect-[3/2] overflow-hidden bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003366]"
                     >
                       {/* Cover image */}
                       {(album.cover.thumbnailUrl || album.cover.url) ? (
