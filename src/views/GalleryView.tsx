@@ -64,6 +64,10 @@ const I18N = {
     videoUnavailable: "Vidéo non disponible",
     prev: "Média précédent",
     next: "Média suivant",
+    albumsTab: "Albums",
+    generalGallery: "Galerie générale",
+    backToAlbums: "Retour aux albums",
+    mediaCount: "médias",
   },
   EN: {
     title: "Gallery",
@@ -84,6 +88,10 @@ const I18N = {
     videoUnavailable: "Video unavailable",
     prev: "Previous media",
     next: "Next media",
+    albumsTab: "Albums",
+    generalGallery: "General Gallery",
+    backToAlbums: "Back to albums",
+    mediaCount: "media",
   },
   DE: {
     title: "Galerie",
@@ -104,6 +112,10 @@ const I18N = {
     videoUnavailable: "Video nicht verfügbar",
     prev: "Vorheriges Medium",
     next: "Nächstes Medium",
+    albumsTab: "Alben",
+    generalGallery: "Allgemeine Galerie",
+    backToAlbums: "Zurück zu den Alben",
+    mediaCount: "Medien",
   },
 }
 
@@ -138,7 +150,7 @@ function getThumbnail(media: ProcessedGalleryMedia) {
 }
 
 function getCategory(media: ProcessedGalleryMedia) {
-  return (media.category && media.category.trim()) || (media.album && media.album.trim()) || ""
+  return (media.category && media.category.trim()) || ""
 }
 
 function getYear(media: ProcessedGalleryMedia) {
@@ -214,6 +226,8 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
   const pathname = usePathname()
   const t = I18N[lang] || I18N.FR
 
+  const [viewMode, setViewMode] = useState<"GALLERY" | "ALBUMS">("GALLERY")
+  const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null)
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("ALL")
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -246,6 +260,26 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
 
   const featured = useMemo(() => sortMedias(medias.filter((m) => m.featured === true)), [medias])
 
+  const albumsList = useMemo(() => {
+    const map = new Map<string, ProcessedGalleryMedia[]>()
+    for (const media of medias) {
+      const album = media.album?.trim()
+      if (!album) continue
+      if (!map.has(album)) map.set(album, [])
+      map.get(album)!.push(media)
+    }
+    return Array.from(map.entries())
+      .map(([name, items]) => {
+        const sorted = sortMedias(items)
+        return {
+          name,
+          items: sorted,
+          cover: sorted.find((m) => m.thumbnailUrl || m.url) || sorted[0],
+        }
+      })
+      .sort((a, b) => a.name.localeCompare(b.name))
+  }, [medias])
+
   const categories = useMemo(() => {
     const counts = new Map<string, number>()
     for (const media of medias) {
@@ -262,14 +296,18 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
   const hasActiveFilter = typeFilter !== "ALL" || categoryFilter !== null
 
   const filtered = useMemo(() => {
-    return medias.filter((media) => {
+    let source = medias
+    if (selectedAlbum) {
+      source = medias.filter(m => m.album?.trim() === selectedAlbum)
+    }
+    return source.filter((media) => {
       if (typeFilter !== "ALL" && normalizeType(media) !== typeFilter) return false
       if (categoryFilter !== null && getCategory(media) !== categoryFilter) return false
       return true
     })
-  }, [medias, typeFilter, categoryFilter])
+  }, [medias, typeFilter, categoryFilter, selectedAlbum])
 
-  const showFeatured = featured.length > 0 && !hasActiveFilter
+  const showFeatured = featured.length > 0 && !hasActiveFilter && !selectedAlbum && viewMode === "GALLERY"
   const gridItems = showFeatured ? filtered.filter((m) => m.featured !== true) : filtered
 
   const activeMedia = lightboxIndex !== null ? filtered[lightboxIndex] : null
@@ -436,6 +474,96 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
           </div>
         </section>
 
+
+        {/* ── TOGGLE GALERIE / ALBUMS ── */}
+        <section className="bg-white border-b border-slate-200">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center gap-4">
+            <button
+              onClick={() => { setViewMode("GALLERY"); setSelectedAlbum(null); }}
+              className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${
+                viewMode === "GALLERY" && !selectedAlbum
+                  ? "bg-[#003366] text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              {t.generalGallery || "Galerie générale"}
+            </button>
+            <button
+              onClick={() => { setViewMode("ALBUMS"); setSelectedAlbum(null); }}
+              className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${
+                viewMode === "ALBUMS" || selectedAlbum
+                  ? "bg-[#003366] text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              {t.albumsTab || "Albums"}
+            </button>
+          </div>
+        </section>
+
+        {viewMode === "ALBUMS" && !selectedAlbum ? (
+          <section className="bg-slate-50 py-12 lg:py-16">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              {albumsList.length === 0 ? (
+                <div className="text-center text-slate-500 py-12">Aucun album disponible.</div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {albumsList.map(album => (
+                    <button
+                      key={album.name}
+                      onClick={() => { setSelectedAlbum(album.name); setViewMode("ALBUMS"); }}
+                      className="group flex flex-col text-left bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition-all"
+                    >
+                      <div className="relative w-full aspect-[4/3] bg-slate-100 overflow-hidden">
+                        <img
+                          src={(album.cover.thumbnailUrl || album.cover.url) as string}
+                          alt={album.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <div className="absolute bottom-4 left-4 right-4 text-white">
+                          <span className="inline-block px-2.5 py-1 bg-black/40 backdrop-blur-md rounded-md text-[11px] font-semibold tracking-wider uppercase mb-2">
+                            {album.items.length} {t.mediaCount || "médias"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-5 flex-1 flex flex-col justify-between w-full">
+                        <h3 className="font-bold text-lg text-[#142332] group-hover:text-[#007BFF] transition-colors line-clamp-2">
+                          {album.name}
+                        </h3>
+                        <div className="mt-4 flex items-center text-[#007BFF] text-sm font-semibold">
+                          Voir l'album
+                          <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        ) : (
+          <>
+            {selectedAlbum && (
+              <div className="bg-slate-50 pt-12 pb-4">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <button
+                    onClick={() => setSelectedAlbum(null)}
+                    className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-[#007BFF] transition-colors mb-6"
+                  >
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    {t.backToAlbums || "Retour aux albums"}
+                  </button>
+                  <h2 className="text-3xl font-bold text-[#142332] mb-2">{selectedAlbum}</h2>
+                  <p className="text-slate-500">{filtered.length} {t.mediaCount || "médias"}</p>
+                </div>
+              </div>
+            )}
+
         {/* ── 2. Filtres ── */}
         {medias.length > 0 ? (
           <section className="bg-white border-b border-slate-200/80">
@@ -550,6 +678,8 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
             </div>
           )}
         </section>
+          </>
+        )}
       </main>
 
       {/* ── 5. Lightbox ── */}

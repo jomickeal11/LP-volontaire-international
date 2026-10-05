@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { adminCreateCandidate, getSkills } from "@/lib/cms-actions"
+import PhoneInputField from "@/components/PhoneInputField"
 import type { Page } from "../../types"
 import { statusColors, type CandidateStatus } from "./AdminApplications"
 
@@ -46,16 +47,33 @@ export default function AdminCandidates({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
-  const [dbSkills, setDbSkills] = useState<{id: string, slug: string, nameFr: string}[]>([])
+  const [formValues, setFormValues] = useState({ firstName: "", lastName: "", email: "", country: "", dateOfBirth: "" })
 
-  useEffect(() => {
-    if (isAddModalOpen && dbSkills.length === 0) {
-      getSkills().then(res => {
-        if (res.success) setDbSkills(res.skills as any)
-      })
-    }
-  }, [isAddModalOpen])
+  const canSubmitCandidate = !!(
+    formValues.firstName.trim() &&
+    formValues.lastName.trim() &&
+    formValues.email.trim() &&
+    formValues.country.trim() &&
+    formValues.dateOfBirth.trim()
+  )
+
+  const [success, setSuccess] = useState("")
+  const [phone, setPhone] = useState("")
+    const SKILLS_CATALOGUE = [
+    { slug: "computer-science", title: "Informatique" },
+    { slug: "data", title: "Données" },
+    { slug: "web-development", title: "Développement web" },
+    { slug: "mobile-development", title: "Développement mobile" },
+    { slug: "project-management", title: "Gestion de projet" },
+    { slug: "marketing", title: "Marketing & Communication" },
+    { slug: "design", title: "Design & Création" },
+    { slug: "administration", title: "Administration & RH" },
+    { slug: "finance", title: "Finance & Comptabilité" },
+    { slug: "agriculture", title: "Agriculture & Environnement" },
+    { slug: "education", title: "Éducation & Formation" },
+    { slug: "health", title: "Santé & Social" },
+    { slug: "other", title: "Autre" }
+  ];
 
   const handleAddSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -67,7 +85,7 @@ export default function AdminCandidates({
       firstName: formData.get("firstName") as string,
       lastName: formData.get("lastName") as string,
       email: formData.get("email") as string,
-      phone: formData.get("phone") ? `${formData.get("phoneCode")} ${formData.get("phone")}` : "",
+      phone: formData.get("phone") as string,
       country: formData.get("country") as string,
       city: formData.get("city") as string,
       dateOfBirth: formData.get("dateOfBirth") as string,
@@ -534,37 +552,12 @@ export default function AdminCandidates({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* IDENTITÉ */}
                 <div className="md:col-span-2"><h3 className="font-bold text-slate-700 border-b pb-1">Identité</h3></div>
-                <div><label className="block text-xs font-semibold mb-1">Prénom *</label><input required name="firstName" className="w-full border rounded p-2 text-sm" /></div>
-                <div><label className="block text-xs font-semibold mb-1">Nom *</label><input required name="lastName" className="w-full border rounded p-2 text-sm" /></div>
-                <div><label className="block text-xs font-semibold mb-1">Email *</label><input required type="email" name="email" className="w-full border rounded p-2 text-sm" /></div>
-                <div>
-                  <label className="block text-xs font-semibold mb-1">Téléphone</label>
-                  <div className="flex gap-2">
-                    <select name="phoneCode" className="w-1/3 border rounded p-2 text-sm bg-slate-50">
-                      <option value="+33">+33 (FR)</option>
-                      <option value="+237">+237 (CM)</option>
-                      <option value="+225">+225 (CI)</option>
-                      <option value="+221">+221 (SN)</option>
-                      <option value="+212">+212 (MA)</option>
-                      <option value="+213">+213 (DZ)</option>
-                      <option value="+216">+216 (TN)</option>
-                      <option value="+241">+241 (GA)</option>
-                      <option value="+243">+243 (CD)</option>
-                      <option value="+228">+228 (TG)</option>
-                      <option value="+229">+229 (BJ)</option>
-                      <option value="+226">+226 (BF)</option>
-                      <option value="+223">+223 (ML)</option>
-                      <option value="+242">+242 (CG)</option>
-                      <option value="+32">+32 (BE)</option>
-                      <option value="+41">+41 (CH)</option>
-                      <option value="+1">+1 (US/CA)</option>
-                      <option value="+44">+44 (UK)</option>
-                    </select>
-                    <input name="phone" type="tel" className="w-2/3 border rounded p-2 text-sm" placeholder="Numéro..." />
-                  </div>
-                </div>
-                <div><label className="block text-xs font-semibold mb-1">Date de naissance *</label><input required type="date" name="dateOfBirth" className="w-full border rounded p-2 text-sm" /></div>
-                <div><label className="block text-xs font-semibold mb-1">Pays *</label><input required name="country" className="w-full border rounded p-2 text-sm" /></div>
+                <div><label className="block text-xs font-semibold mb-1">Prénom *</label><input required name="firstName" className="w-full border rounded p-2 text-sm" value={formValues.firstName} onChange={e => setFormValues(v => ({...v, firstName: e.target.value}))} /></div>
+                <div><label className="block text-xs font-semibold mb-1">Nom *</label><input required name="lastName" className="w-full border rounded p-2 text-sm" value={formValues.lastName} onChange={e => setFormValues(v => ({...v, lastName: e.target.value}))} /></div>
+                <div><label className="block text-xs font-semibold mb-1">Email *</label><input required type="email" name="email" className="w-full border rounded p-2 text-sm" value={formValues.email} onChange={e => setFormValues(v => ({...v, email: e.target.value}))} /></div>
+                <PhoneInputField label="Téléphone" name="phone" value={phone} onChange={setPhone} size="sm" />
+                <div><label className="block text-xs font-semibold mb-1">Date de naissance *</label><input required type="date" name="dateOfBirth" className="w-full border rounded p-2 text-sm" value={formValues.dateOfBirth} onChange={e => setFormValues(v => ({...v, dateOfBirth: e.target.value}))} /></div>
+                <div><label className="block text-xs font-semibold mb-1">Pays *</label><input required name="country" className="w-full border rounded p-2 text-sm" value={formValues.country} onChange={e => setFormValues(v => ({...v, country: e.target.value}))} /></div>
                 <div><label className="block text-xs font-semibold mb-1">Ville</label><input name="city" className="w-full border rounded p-2 text-sm" /></div>
 
                 {/* PROFIL */}
@@ -592,12 +585,12 @@ export default function AdminCandidates({
                 <div className="md:col-span-2">
                   <label className="block text-xs font-semibold mb-1">Compétences (Domaines)</label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {dbSkills.map(skill => (
-                      <label key={skill.id} className="flex items-center gap-2 text-xs">
-                        <input type="checkbox" name="skills" value={skill.slug} className="accent-[#174F7A]" />
-                        {skill.nameFr}
-                      </label>
-                    ))}
+                    {SKILLS_CATALOGUE.map(skill => (
+                        <label key={skill.slug} className="flex items-center gap-2 text-xs">
+                          <input type="checkbox" name="skills" value={skill.slug} className="accent-[#174F7A]" />
+                          {skill.title}
+                        </label>
+                      ))}
                   </div>
                 </div>
 
@@ -623,12 +616,18 @@ export default function AdminCandidates({
                 <div>
                   <label className="block text-xs font-semibold mb-1">Statut initial</label>
                   <select name="status" className="w-full border rounded p-2 text-sm">
-                    <option value="NEW">NEW</option>
-                    <option value="REVIEW">REVIEW</option>
-                    <option value="SELECTED">SELECTED</option>
-                    <option value="INTERVIEW">INTERVIEW</option>
-                    <option value="CHOSEN">CHOSEN</option>
-                  </select>
+                      <option value="NEW">Nouvelle</option>
+                      <option value="REVIEW">En revue</option>
+                      <option value="SELECTED">Pré-sélectionnée</option>
+                      <option value="INTERVIEW">Entretien</option>
+                      <option value="CHOSEN">Retenue</option>
+                      <option value="PARTNER_VALIDATION">Validation partenaire</option>
+                      <option value="PREPARATION">Préparation</option>
+                      <option value="ARRIVED">Sur le terrain</option>
+                      <option value="COMPLETED">Terminée</option>
+                      <option value="REJECTED">Refusée</option>
+                      <option value="ARCHIVED">Archivée</option>
+                    </select>
                 </div>
                 <div className="md:col-span-2"><label className="block text-xs font-semibold mb-1">Notes internes (visibles uniquement par l'équipe)</label><textarea name="notes" rows={2} className="w-full border rounded p-2 text-sm"></textarea></div>
               </div>

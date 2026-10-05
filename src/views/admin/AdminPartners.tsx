@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { adminCreatePartner } from "@/lib/cms-actions"
+import PhoneInputField from "@/components/PhoneInputField"
 import type { Page } from "../../types"
 
 export interface PartnerUI {
@@ -33,8 +34,18 @@ export default function AdminPartners({ partners, navigate, onSelectPartner }: P
   const [page, setPage] = useState(1)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [partnerFormValues, setPartnerFormValues] = useState({ orgName: "", orgType: "CORPORATE", country: "", contactPerson: "", email: "", message: "" })
+
+  const canSubmitPartner = !!(
+    partnerFormValues.orgName.trim() &&
+    partnerFormValues.country.trim() &&
+    partnerFormValues.contactPerson.trim() &&
+    partnerFormValues.email.trim() &&
+    partnerFormValues.message.trim()
+  )
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [phone, setPhone] = useState("")
   const [orgType, setOrgType] = useState("NGO")
 
   const handleAddSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -50,7 +61,7 @@ export default function AdminPartners({ partners, navigate, onSelectPartner }: P
       orgType: (formData.get("orgType") === "OTHER" ? formData.get("orgTypeOther") : formData.get("orgType")) as string,
       contactPerson: formData.get("contactPerson") as string,
       email: formData.get("email") as string,
-      phone: formData.get("phone") ? `${formData.get("phoneCode")} ${formData.get("phone")}` : "",
+      phone: formData.get("phone") as string,
       volunteerCount: formData.get("volunteerCount") as string,
       targetCountries: formData.get("targetCountries") as string,
       programme: formData.get("programme") as string,
@@ -446,32 +457,7 @@ export default function AdminPartners({ partners, navigate, onSelectPartner }: P
                 <div className="md:col-span-2 mt-4"><h3 className="font-bold text-slate-700 border-b pb-1">Contact</h3></div>
                 <div><label className="block text-xs font-semibold mb-1">Personne de contact *</label><input required name="contactPerson" className="w-full border rounded p-2 text-sm" /></div>
                 <div><label className="block text-xs font-semibold mb-1">Email *</label><input required type="email" name="email" className="w-full border rounded p-2 text-sm" /></div>
-                <div>
-                  <label className="block text-xs font-semibold mb-1">Téléphone</label>
-                  <div className="flex gap-2">
-                    <select name="phoneCode" className="w-1/3 border rounded p-2 text-sm bg-slate-50">
-                      <option value="+33">+33 (FR)</option>
-                      <option value="+237">+237 (CM)</option>
-                      <option value="+225">+225 (CI)</option>
-                      <option value="+221">+221 (SN)</option>
-                      <option value="+212">+212 (MA)</option>
-                      <option value="+213">+213 (DZ)</option>
-                      <option value="+216">+216 (TN)</option>
-                      <option value="+241">+241 (GA)</option>
-                      <option value="+243">+243 (CD)</option>
-                      <option value="+228">+228 (TG)</option>
-                      <option value="+229">+229 (BJ)</option>
-                      <option value="+226">+226 (BF)</option>
-                      <option value="+223">+223 (ML)</option>
-                      <option value="+242">+242 (CG)</option>
-                      <option value="+32">+32 (BE)</option>
-                      <option value="+41">+41 (CH)</option>
-                      <option value="+1">+1 (US/CA)</option>
-                      <option value="+44">+44 (UK)</option>
-                    </select>
-                    <input name="phone" type="tel" className="w-2/3 border rounded p-2 text-sm" placeholder="Numéro..." />
-                  </div>
-                </div>
+                <PhoneInputField label="Téléphone" name="phone" value={phone} onChange={setPhone} size="sm" />
                 
                 {/* PARTENARIAT */}
                 <div className="md:col-span-2 mt-4"><h3 className="font-bold text-slate-700 border-b pb-1">Partenariat</h3></div>
@@ -484,8 +470,8 @@ export default function AdminPartners({ partners, navigate, onSelectPartner }: P
               
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">Annuler</button>
-                <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-sm font-semibold text-white bg-[#174F7A] hover:bg-[#123E60] rounded-lg disabled:opacity-50">
-                  {isSubmitting ? "Création..." : "Créer le partenaire"}
+                <button type="submit" disabled={isSubmitting || !canSubmitPartner} className="px-4 py-2 text-sm font-semibold text-white bg-[#174F7A] hover:bg-[#123E60] rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                   {isSubmitting ? "Création..." : "Créer le partenaire"}
                 </button>
               </div>
             </form>

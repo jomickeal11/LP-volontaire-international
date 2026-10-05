@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef, useMemo } from "react"
 import { getAllMedias, createMedia, updateMedia, deleteMedia } from "@/lib/cms-actions"
 import { useConfirm } from "@/components/admin/ConfirmProvider"
 
@@ -60,6 +60,10 @@ export default function AdminMedias() {
   const [error, setError] = useState("")
   const [feedback, setFeedback] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  const existingAlbums = useMemo(() => {
+    return Array.from(new Set(items.map((i) => i.album).filter(Boolean))).sort() as string[]
+  }, [items])
 
   const loadData = async () => {
     setLoading(true)
@@ -420,10 +424,17 @@ export default function AdminMedias() {
                   </label>
                   <input
                     type="text"
+                    list="album-suggestions"
                     value={form.album}
                     onChange={(e) => setForm({ ...form, album: e.target.value })}
                     className={inputClass}
+                    placeholder="Sélectionner ou créer..."
                   />
+                  <datalist id="album-suggestions">
+                    {existingAlbums.map((a) => (
+                      <option key={a as string} value={a as string} />
+                    ))}
+                  </datalist>
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -451,38 +462,89 @@ export default function AdminMedias() {
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                  Fichier *
+                  {form.type === "VIDEO" ? "Vidéo *" : "Fichier *"}
                 </label>
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    disabled={uploading}
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-4 py-2 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-600 hover:border-[#003366] hover:text-[#003366] transition-colors disabled:opacity-50"
-                  >
-                    {uploading ? "Téléversement…" : "Téléverser une image"}
-                  </button>
-                  {form.url && (
-                    <span className="text-[11px] font-mono text-slate-400 truncate max-w-[280px]">
-                      {form.url}
-                    </span>
-                  )}
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/avif,video/mp4,video/webm"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
-                <input
-                  type="text"
-                  required
-                  value={form.url}
-                  onChange={(e) => setForm({ ...form, url: e.target.value })}
-                  placeholder="/uploads/team/…"
-                  className={inputClass}
-                />
+                {form.type === "VIDEO" ? (
+                  /* ── Vidéo : fichier MP4/WebM OU URL externe ──────────── */
+                  <div className="space-y-3">
+                    {/* Option 1 : téléverser un fichier vidéo */}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        disabled={uploading}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-4 py-2 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-600 hover:border-[#003366] hover:text-[#003366] transition-colors disabled:opacity-50"
+                      >
+                        {uploading ? "Téléversement…" : "Téléverser un fichier vidéo (.mp4 / .webm)"}
+                      </button>
+                      {form.url && form.url.startsWith("/") && (
+                        <span className="text-[11px] font-mono text-slate-400 truncate max-w-[280px]">
+                          {form.url}
+                        </span>
+                      )}
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="video/mp4,video/webm,video/ogg"
+                      className="hidden"
+                      onChange={handleFileUpload}
+                    />
+                    {/* Séparateur OU */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-px bg-slate-200" />
+                      <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">ou</span>
+                      <div className="flex-1 h-px bg-slate-200" />
+                    </div>
+                    {/* Option 2 : URL externe (YouTube / Vimeo / directe) */}
+                    <input
+                      type="text"
+                      required={!form.url || !form.url.startsWith("/")}
+                      value={form.url}
+                      onChange={(e) => setForm({ ...form, url: e.target.value })}
+                      placeholder="https://www.youtube.com/watch?v=… ou https://vimeo.com/…"
+                      className={inputClass}
+                    />
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Coller un lien YouTube, Vimeo ou une URL directe (.mp4 / .webm).
+                      Ajoutez une miniature ci-dessous pour l&apos;aperçu dans la galerie.
+                    </p>
+                  </div>
+                ) : (
+                  /* ── Photo : téléversement de fichier ───────────────────── */
+                  <>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        disabled={uploading}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-4 py-2 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-600 hover:border-[#003366] hover:text-[#003366] transition-colors disabled:opacity-50"
+                      >
+                        {uploading ? "Téléversement…" : "Téléverser une image"}
+                      </button>
+                      {form.url && (
+                        <span className="text-[11px] font-mono text-slate-400 truncate max-w-[280px]">
+                          {form.url}
+                        </span>
+                      )}
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/avif"
+                      className="hidden"
+                      onChange={handleFileUpload}
+                    />
+                    <input
+                      type="text"
+                      required
+                      value={form.url}
+                      onChange={(e) => setForm({ ...form, url: e.target.value })}
+                      placeholder="/uploads/team/…"
+                      className={inputClass}
+                    />
+                  </>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -536,8 +598,8 @@ export default function AdminMedias() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={submitting}
-                className="px-5 py-2 rounded-lg text-sm font-semibold bg-[#003366] text-white hover:bg-[#002244] transition-colors disabled:opacity-40"
+                disabled={submitting || !form.titleFr.trim() || !form.url.trim()}
+                className="px-5 py-2 rounded-lg text-sm font-semibold bg-[#003366] text-white hover:bg-[#002244] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {submitting ? "Enregistrement…" : editingId ? "Enregistrer" : "Créer"}
               </button>

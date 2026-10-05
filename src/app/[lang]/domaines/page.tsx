@@ -12,9 +12,9 @@ interface PageProps {
 export const revalidate = 60
 
 const TITLES: Record<string, string> = {
-  FR: "Nos Domaines d'Action — Pôles d'intervention | APTIC-R",
-  EN: "Our Action Domains — Intervention Programs | APTIC-R",
-  DE: "Unsere Handlungsfelder — Schwerpunkte | APTIC-R",
+  FR: "Nos Domaines d'Action | Pôles d'intervention | APTIC-R",
+  EN: "Our Action Domains | Intervention Programs | APTIC-R",
+  DE: "Unsere Handlungsfelder | Schwerpunkte | APTIC-R",
 }
 
 const DESCRIPTIONS: Record<string, string> = {
