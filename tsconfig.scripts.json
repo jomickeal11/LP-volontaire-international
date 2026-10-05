@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "outDir": ".tmp-test-build",
+    "rootDir": ".",
+    "incremental": false,
+    "isolatedModules": false,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "scripts/test-event-participation.ts",
+    "src/lib/prisma.ts",
+    "src/lib/event-participation.ts",
+    "src/lib/event-participation-service.ts"
+  ],
+  "exclude": ["node_modules", ".tmp-test-build"]
+}

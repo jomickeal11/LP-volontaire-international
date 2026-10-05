@@ -7,7 +7,8 @@ import type { Language } from "@/types"
 
 export default function ProjectsPage() {
   const params = useParams()
-  const lang = (params?.lang as Language) || "FR"
+  const rawLang = ((params?.lang as string) || "FR").toUpperCase()
+  const lang = (["FR", "EN", "DE"].includes(rawLang) ? rawLang : "FR") as Language
 
   return <ProjectsView lang={lang} />
 }

@@ -121,6 +121,7 @@ export async function getGA4Data(days: number): Promise<GA4Data> {
               "application_started",
               "partner_request_click",
               "partner_request_started",
+              "partner_request",
             ],
           },
         },
@@ -132,6 +133,7 @@ export async function getGA4Data(days: number): Promise<GA4Data> {
       application_started: 0,
       partner_request_click: 0,
       partner_request_started: 0,
+      partner_request: 0,
     }
 
     if (eventsResponse.rows) {

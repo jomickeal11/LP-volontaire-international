@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { getHeaderMode, ROUTES } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { useRouter, usePathname } from "next/navigation"
 import { getRessources } from "@/lib/cms-actions"
+import { trackEvent } from "@/lib/tracker"
 
 interface ResourcesViewProps {
   lang: Language
@@ -148,6 +150,23 @@ export default function ResourcesView({ lang }: ResourcesViewProps) {
     return matchesType && matchesDocLang
   })
 
+  // Un téléchargement de guide émet volontairement DEUX événements distincts :
+  // `resource_download` (générique) et `volunteer_guide_download` (métrique
+  // dédiée). Le dashboard les compte séparément : ne jamais les additionner
+  // dans un même KPI générique.
+  const handleResourceDownload = (res: any) => {
+    const metadata = {
+      resourceId: res.id,
+      resourceType: res.type,
+      fileName: res.fileName,
+      docLang: res.lang,
+    }
+    trackEvent("resource_download", { lang, source: "resources_page", metadata })
+    if (res.type === "GUIDE") {
+      trackEvent("volunteer_guide_download", { lang, source: "resources_page", metadata })
+    }
+  }
+
   // Helper pour afficher le drapeau et libellé de la langue du document
   const getDocLangInfo = (docLang?: string) => {
     const code = (docLang || "FR").toUpperCase()
@@ -165,7 +184,7 @@ export default function ResourcesView({ lang }: ResourcesViewProps) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: BG }}>
-      <Header lang={lang} setLang={handleSetLang} currentPage="resources" navigate={navigate} />
+      <PageHeader mode={getHeaderMode(ROUTES.resources)} lang={lang} setLang={handleSetLang} currentPage="resources" navigate={navigate} />
 
       <main className="flex-1">
         {/* ── 1. Hero ── */}
@@ -361,6 +380,7 @@ export default function ResourcesView({ lang }: ResourcesViewProps) {
                           download={res.fileName || "document.pdf"}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() => handleResourceDownload(res)}
                           className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-bold bg-[#003366] text-white hover:bg-[#002244] transition-colors text-xs shadow-sm cursor-pointer"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

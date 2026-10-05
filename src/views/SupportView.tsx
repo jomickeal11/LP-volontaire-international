@@ -1,7 +1,8 @@
 "use client"
 
 import React from "react"
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { getHeaderMode, ROUTES } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
@@ -362,7 +363,7 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
   if (!isCmsPagePublished(settings, "SUPPORT", safeLang)) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
-        <Header lang={safeLang} currentPage="support" navigate={navigate} setLang={(newLang) => router.push(getPageUrl("support", newLang))} />
+        <PageHeader mode={getHeaderMode(ROUTES.support)} lang={safeLang} currentPage="support" navigate={navigate} setLang={(newLang) => router.push(getPageUrl("support", newLang))} />
         <main className="flex-1"><UnavailablePageNotice lang={safeLang} /></main>
         <Footer lang={safeLang} navigate={navigate} />
       </div>
@@ -370,7 +371,7 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
   }
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: BG_PAGE }}>
-      <Header
+      <PageHeader mode={getHeaderMode(ROUTES.support)}
         lang={safeLang}
         currentPage="support"
         navigate={navigate}
@@ -407,11 +408,14 @@ export default function SupportView({ lang, initialSettings = {} }: SupportViewP
               {/* Colonne de droite : Photo de terrain sobre */}
               <div className="lg:col-span-5">
                 <div className="rounded-3xl overflow-hidden shadow-sm border border-[#E5EAF0] aspect-[4/3] bg-white">
-                  <img
-                    src={heroImage}
-                    alt="Community collaboration in Togo"
-                    className="w-full h-full object-cover"
-                  />
+                  {heroImage ? (
+                    <img
+                      src={heroImage}
+                      alt="Community collaboration in Togo"
+                      className="w-full h-full object-cover"
+                      fetchPriority="high"
+                    />
+                  ) : null}
                 </div>
               </div>
             </div>

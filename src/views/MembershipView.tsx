@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { getHeaderMode, ROUTES } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import RequiredAsterisk from "@/components/RequiredAsterisk"
+import PhoneInputField from "@/components/PhoneInputField"
 import UnavailablePageNotice from "@/components/UnavailablePageNotice"
 import { isCmsPagePublished } from "@/lib/page-publication"
 import type { Language, Page } from "@/types"
@@ -639,6 +641,8 @@ export default function MembershipView({ lang }: MembershipViewProps) {
   const [status, setStatus] = useState<"IDLE" | "SUBMITTING" | "SUCCESS" | "ERROR">("IDLE")
   const [errorMessage, setErrorMessage] = useState("")
   const [referenceNumber, setReferenceNumber] = useState("")
+  /** Indicatif sélectionné : aucun numéro n'est stocké sans son indicatif. */
+  const [phoneDial, setPhoneDial] = useState("+228")
 
   const toggleDomain = (id: string) => {
     setFormData((prev) => {
@@ -676,7 +680,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
-        phone: formData.phone || null,
+        phone: formData.phone.trim() ? `${phoneDial} ${formData.phone.trim()}`.trim() : null,
         profession: formData.profession || null,
         organization: formData.organization || null,
         country: formData.country,
@@ -711,7 +715,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
   if (!isCmsPagePublished(settings, "MEMBERSHIP", safeLang)) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
-        <Header lang={lang} setLang={handleSetLang} currentPage="membership" navigate={navigate} />
+        <PageHeader mode={getHeaderMode(ROUTES.membership)} lang={lang} setLang={handleSetLang} currentPage="membership" navigate={navigate} />
         <main className="flex-1"><UnavailablePageNotice lang={safeLang} /></main>
         <Footer lang={lang} navigate={navigate} />
       </div>
@@ -719,7 +723,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
   }
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: BG_PAGE }}>
-      <Header lang={lang} setLang={handleSetLang} currentPage="membership" navigate={navigate} />
+      <PageHeader mode={getHeaderMode(ROUTES.membership)} lang={lang} setLang={handleSetLang} currentPage="membership" navigate={navigate} />
 
       <main className="flex-1">
         {/* ═════════════════════════════════════════════════════════════════════════
@@ -1036,15 +1040,13 @@ export default function MembershipView({ lang }: MembershipViewProps) {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-[#003366] mb-1.5">
-                          {c.form.phone}
-                        </label>
-                        <input
-                          type="tel"
+                        <PhoneInputField
+                          label={c.form.phone}
                           value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          placeholder="+228 90 00 00 00"
-                          className="w-full px-4 py-3 rounded-xl border border-[#EAF0F4] bg-[#F7F8FA] focus:bg-white focus:border-[#007BFF] focus:ring-2 focus:ring-[#007BFF]/15 outline-none text-sm text-[#142332] transition-all"
+                          onChange={(v) => setFormData({ ...formData, phone: v })}
+                          onCountryChange={(dial) => setPhoneDial(dial)}
+                          defaultDial={phoneDial}
+                          lang={safeLang}
                         />
                       </div>
                     </div>

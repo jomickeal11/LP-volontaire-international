@@ -10,11 +10,11 @@ const defaultLocale = "fr"
  * Format: { oldSegment: newSegment }
  */
 const LEGACY_REDIRECTS: Record<string, string> = {
-  // Old apply → new postuler (under volontariat)
+  // Ancien formulaire de candidature → nouvelle route canonique
   "apply": "volontariat/postuler",
-  // Old partners → new partenaires
+  // Anciens slugs localisés → routes canoniques réellement servies
   "partners": "partenaires",
-  // Multilingual route aliases to canonical routes
+  "partner": "partenaires",
   "domains": "domaines",
   "bereiche": "domaines",
   "projects": "projets",
@@ -22,8 +22,40 @@ const LEGACY_REDIRECTS: Record<string, string> = {
   "about": "a-propos",
   "ueber-uns": "a-propos",
   "team": "equipe",
-  volunteering: "volontariat",
-  freiwilligendienst: "volontariat",
+  "news": "actualites",
+  "aktuelles": "actualites",
+  "resources": "ressources",
+  "ressourcen": "ressources",
+  "gallery": "galerie",
+  "become-member": "devenir-membre",
+  "mitglied-werden": "devenir-membre",
+  "kontakt": "contact",
+  "volunteering": "volontariat",
+  "freiwilligendienst": "volontariat",
+}
+
+/**
+ * Anciennes routes à plusieurs segments → routes canoniques.
+ */
+const LEGACY_MULTI_REDIRECTS: Record<string, string> = {
+  "/fr/partners/apply": "/fr/partenaires/demande",
+  "/en/partners/apply": "/en/partenaires/demande",
+  "/de/partners/apply": "/de/partenaires/demande",
+  "/fr/partner/anfrage": "/fr/partenaires/demande",
+  "/en/partner/anfrage": "/en/partenaires/demande",
+  "/de/partner/anfrage": "/de/partenaires/demande",
+  "/en/volunteering/apply": "/en/volontariat/postuler",
+  "/de/freiwilligendienst/bewerben": "/de/volontariat/postuler",
+}
+
+/**
+ * Alias localisés du même contenu : une seule URL canonique par langue.
+ * `/fr/support` → `/fr/soutenir`, `/en/soutenir` → `/en/support`, etc.
+ */
+const LOCALIZED_ALIASES: Record<string, Record<string, string>> = {
+  fr: { support: "soutenir", unterstuetzen: "soutenir" },
+  en: { soutenir: "support", unterstuetzen: "support" },
+  de: { soutenir: "unterstuetzen", support: "unterstuetzen" },
 }
 
 export async function middleware(request: NextRequest) {
@@ -105,16 +137,25 @@ export async function middleware(request: NextRequest) {
 
   // ── Legacy route redirects (301 permanent) ──────────────────────────────────
   // Redirect old route segments to new institutional routes
+  // Alias multi-segments (ex. /en/partners/apply → /en/partenaires/demande)
+  const multiSegmentTarget = LEGACY_MULTI_REDIRECTS[pathname]
+  if (multiSegmentTarget) {
+    return NextResponse.redirect(new URL(multiSegmentTarget, request.url), {
+      status: 301,
+    })
+  }
+
   for (const locale of locales) {
-    const legacyApplicationPaths: Record<string, string> = {
-      "/en/volunteering/apply": "/en/volontariat/postuler",
-      "/de/freiwilligendienst/bewerben": "/de/volontariat/postuler",
-    }
-    const legacyApplicationPath = legacyApplicationPaths[pathname]
-    if (legacyApplicationPath) {
-      return NextResponse.redirect(new URL(legacyApplicationPath, request.url), {
-        status: 301,
-      })
+    // Alias localisés : une seule URL canonique par contenu dans chaque langue.
+    const aliases = LOCALIZED_ALIASES[locale]
+    if (aliases) {
+      for (const [alias, target] of Object.entries(aliases)) {
+        if (pathname === `/${locale}/${alias}` || pathname === `/${locale}/${alias}/`) {
+          return NextResponse.redirect(new URL(`/${locale}/${target}`, request.url), {
+            status: 301,
+          })
+        }
+      }
     }
 
     for (const [oldSegment, newSegment] of Object.entries(LEGACY_REDIRECTS)) {

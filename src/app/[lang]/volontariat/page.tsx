@@ -1,6 +1,7 @@
 "use client"
 
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { getHeaderMode, ROUTES } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import Home from "@/views/Home"
 import type { Language, Page } from "@/types"
@@ -36,7 +37,7 @@ export default function VolontariatPage({
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header
+      <PageHeader mode={getHeaderMode(ROUTES.volunteering)}
         lang={language}
         setLang={handleSetLang}
         currentPage="volunteering"

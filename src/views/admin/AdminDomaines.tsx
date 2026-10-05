@@ -11,6 +11,7 @@ import {
   duplicateDomaineAction,
 } from "@/lib/cms-actions"
 import { DomainCharterIcon } from "@/components/DomainIcons"
+import { useConfirm } from "@/components/admin/ConfirmProvider"
 
 interface DomaineItem {
   id: string
@@ -58,6 +59,7 @@ const AVAILABLE_ICONS = [
 import { translateCmsFieldsAction } from "@/lib/translator"
 
 export default function AdminDomaines() {
+  const confirm = useConfirm()
   const [domaines, setDomaines] = useState<DomaineItem[]>([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
@@ -422,9 +424,12 @@ export default function AdminDomaines() {
       alert(`Impossible de supprimer "${dom.nameFr}" : ${dom.projets.length} projet(s) y sont rattachés.`)
       return
     }
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer définitivement le domaine "${dom.nameFr}" ?`)) {
-      return
-    }
+    const ok = await confirm({
+      title: "Supprimer le domaine ?",
+      message: `Êtes-vous sûr de vouloir supprimer définitivement le domaine "${dom.nameFr}" ?`,
+      confirmLabel: "Supprimer"
+    })
+    if (!ok) return
     try {
       const res = await deleteDomaine(dom.id)
       if (res.success) {

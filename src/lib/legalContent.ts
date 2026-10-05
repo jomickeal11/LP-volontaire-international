@@ -29,8 +29,28 @@ export function getDocTypeFromSlug(slug: string): LegalDocType | null {
   return null
 }
 
+export function normalizeLegalLang(lang: string): "fr" | "en" | "de" {
+  const value = lang?.toLowerCase()
+  return value === "en" || value === "de" ? value : "fr"
+}
+
+/**
+ * Résout un slug légal en tenant compte de la langue demandée.
+ *
+ * Un même document possède un slug différent par langue. Servir par exemple
+ * `/fr/privacy-policy` créerait une seconde URL indexable pour le même contenu
+ * que `/fr/politique-de-confidentialite`. On refuse donc tout slug qui n'est pas
+ * celui de la langue courante afin de garantir une URL unique par document.
+ */
+export function getLegalDocTypeForLang(slug: string, lang: string): LegalDocType | null {
+  const docType = getDocTypeFromSlug(slug)
+  if (!docType) return null
+  if (LEGAL_SLUGS[docType][normalizeLegalLang(lang)] !== slug.toLowerCase()) return null
+  return docType
+}
+
 export function getCanonicalLegalPath(docType: LegalDocType, lang: string): string {
-  const safeLang = ["fr", "en", "de"].includes(lang.toLowerCase()) ? lang.toLowerCase() : "fr"
+  const safeLang = normalizeLegalLang(lang)
   const slug = LEGAL_SLUGS[docType][safeLang]
   return `/${safeLang}/${slug}`
 }

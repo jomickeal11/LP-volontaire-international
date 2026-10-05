@@ -2,7 +2,8 @@
 
 import React from "react"
 import Link from "next/link"
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { getHeaderMode, ROUTES } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
@@ -55,7 +56,7 @@ export default function ArticleDetailView({ lang, article }: ArticleDetailViewPr
   if (!article) {
     return (
       <div className="min-h-screen flex flex-col justify-between bg-[#F7F8FA]">
-        <Header lang={lang} setLang={handleSetLang} currentPage="news" navigate={navigate} />
+        <PageHeader mode={getHeaderMode(ROUTES.newsDetail)} lang={lang} setLang={handleSetLang} currentPage="news" navigate={navigate} />
         <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-4">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,11 +85,14 @@ export default function ArticleDetailView({ lang, article }: ArticleDetailViewPr
   const catName = lang === "EN" ? article.category?.nameEn ?? "" : lang === "DE" ? article.category?.nameDe ?? "" : article.category?.nameFr ?? ""
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: BG }}>
-      <Header lang={lang} setLang={handleSetLang} currentPage="news" navigate={navigate} />
+      <PageHeader mode={getHeaderMode(ROUTES.newsDetail)} lang={lang} setLang={handleSetLang} currentPage="news" navigate={navigate} />
 
-      <main className="flex-1 pt-24 lg:pt-32 pb-24">
+      {/* Page de détail immersive : aucun header global (cf. convention
+          ROUTES.newsDetail → noHeader). Le lien de retour ci-dessous et le
+          Footer global suffisent. */}
+      <main className="flex-1 pt-10 sm:pt-14 pb-20 lg:pb-24">
         <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* ── Breadcrumb & Back Link ── */}
+          {/* ── Retour à la listing ── */}
           <div className="mb-8">
             <Link
               href={getPageUrl("news", lang)}

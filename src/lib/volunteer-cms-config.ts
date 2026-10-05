@@ -158,29 +158,24 @@ const ADDITIONAL_EDITORIAL_FIELDS: VolunteerFieldDefinition[] = [
   ...makeVolunteerFields(
     "CONDITIONS",
     [
-      { key: "volunteer_conditions_table_title", label: "Tableau - Titre" },
-      { key: "volunteer_conditions_table_summary", label: "Tableau - Résumé" },
-      {
-        key: "volunteer_conditions_status_confirmed",
-        label: "Statut confirmé",
-      },
-      {
-        key: "volunteer_conditions_status_pending",
-        label: "Statut en attente",
-      },
-      ...Array.from({ length: 9 }, (_, index) => {
-        const number = index + 1
-        const key = `volunteer_conditions_row${number}`
-        return [
-          { key: `${key}_label`, label: `Condition ${number} - Sujet` },
-          {
-            key: `${key}_detail`,
-            label: `Condition ${number} - Détail`,
-            type: "textarea" as const,
-          },
-          { key: `${key}_status`, label: `Condition ${number} - Statut` },
-        ]
-      }).flat(),
+      // Conditions du volontariat
+      { key: "volunteer_practical_age_min", label: "Conditions - Âge minimum requis" },
+      { key: "volunteer_practical_duration", label: "Conditions - Durée du volontariat" },
+      { key: "volunteer_practical_response_time", label: "Conditions - Délai de réponse" },
+      { key: "volunteer_practical_processing_time", label: "Conditions - Délai de traitement des candidatures" },
+      // Accueil et vie sur place
+      { key: "volunteer_practical_accommodation", label: "Accueil - Hébergement" },
+      { key: "volunteer_practical_meals", label: "Accueil - Repas" },
+      { key: "volunteer_practical_local_transport", label: "Accueil - Transport local" },
+      { key: "volunteer_practical_accompaniment", label: "Accueil - Accompagnement" },
+      { key: "volunteer_practical_mentor", label: "Accueil - Mentor / référent" },
+      { key: "volunteer_practical_sim_card", label: "Accueil - Carte SIM" },
+      { key: "volunteer_practical_internet", label: "Accueil - Connexion Internet" },
+      { key: "volunteer_practical_health_info", label: "Accueil - Informations santé", type: "textarea" as const },
+      // Formalités et conditions
+      { key: "volunteer_practical_insurance", label: "Formalités - Assurance" },
+      { key: "volunteer_practical_visa", label: "Formalités - Visa" },
+      { key: "volunteer_practical_allowance", label: "Formalités - Indemnités" },
     ],
   ),
   ...makeVolunteerFields(

@@ -9,6 +9,7 @@ import {
   toggleRessourcePublished,
   getDomaines,
 } from "@/lib/cms-actions"
+import { useConfirm } from "@/components/admin/ConfirmProvider"
 
 interface DomaineItem {
   id: string
@@ -48,6 +49,7 @@ const RESOURCE_TYPES: Record<string, { label: string; badgeBg: string }> = {
 }
 
 export default function AdminResources() {
+  const confirm = useConfirm()
   const [resources, setResources] = useState<RessourceItem[]>([])
   const [domaines, setDomaines] = useState<DomaineItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -268,18 +270,22 @@ export default function AdminResources() {
   }
 
   const handleDelete = async (id: string, title: string) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer la ressource « ${title} » ?`)) {
-      try {
-        const res = await deleteRessource(id)
-        if (res.success) {
-          setResources((prev) => prev.filter((r) => r.id !== id))
-          setFeedbackMessage("Ressource supprimée.")
-        } else {
-          alert(res.error)
-        }
-      } catch (e) {
-        console.error(e)
+    const ok = await confirm({
+      title: "Supprimer la ressource ?",
+      message: `Voulez-vous vraiment supprimer la ressource « ${title} » ? Cette action est irréversible.`,
+      confirmLabel: "Supprimer",
+    })
+    if (!ok) return
+    try {
+      const res = await deleteRessource(id)
+      if (res.success) {
+        setResources((prev) => prev.filter((r) => r.id !== id))
+        setFeedbackMessage("Ressource supprimée.")
+      } else {
+        alert(res.error)
       }
+    } catch (e) {
+      console.error(e)
     }
   }
 

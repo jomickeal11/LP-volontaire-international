@@ -18,6 +18,13 @@ const contactMessageSchema = z.object({
     .transform((val) => ((val || "FR").toUpperCase() as "FR" | "EN" | "DE"))
     .refine((val) => ["FR", "EN", "DE"].includes(val), "Langue invalide")
     .default("FR"),
+
+  // Attribution UTM first-touch (facultative, non bloquante)
+  utmSource: z.string().max(200).optional(),
+  utmMedium: z.string().max(200).optional(),
+  utmCampaign: z.string().max(200).optional(),
+  utmContent: z.string().max(200).optional(),
+  utmTerm: z.string().max(200).optional(),
 })
 
 export type ContactFormSubmissionInput = z.infer<typeof contactMessageSchema>
@@ -76,6 +83,11 @@ export async function submitContactMessageAction(rawInput: ContactFormSubmission
           routedTo: recipientEmail,
           lang: (validated.lang || "FR") as any,
           status: "UNREAD",
+          utmSource: validated.utmSource || null,
+          utmMedium: validated.utmMedium || null,
+          utmCampaign: validated.utmCampaign || null,
+          utmContent: validated.utmContent || null,
+          utmTerm: validated.utmTerm || null,
         },
       })
     } catch (dbErr) {

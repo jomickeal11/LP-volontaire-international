@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { getHeaderMode, ROUTES } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
@@ -238,7 +239,7 @@ export default function TeamView({ lang, initialMembers }: TeamViewProps) {
 
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{ backgroundColor: BG }}>
-      <Header lang={lang} setLang={handleSetLang} currentPage="team" navigate={navigate} />
+      <PageHeader mode={getHeaderMode(ROUTES.team)} lang={lang} setLang={handleSetLang} currentPage="team" navigate={navigate} />
 
       <main className="flex-1">
         {/* ── 1. Hero Header ── */}

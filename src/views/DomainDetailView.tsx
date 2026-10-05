@@ -562,6 +562,8 @@ export default function DomainDetailView({ domaine, allDomaines = [], lang }: Do
                                 src={pImage}
                                 alt={pTitle}
                                 className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                                loading="lazy"
+                                decoding="async"
                               />
                               <div className="absolute top-3 left-3">
                                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#003366]/90 text-white backdrop-blur-xs">
@@ -677,6 +679,8 @@ export default function DomainDetailView({ domaine, allDomaines = [], lang }: Do
                       src={photoSrc}
                       alt={title}
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#003366]/90 via-[#003366]/20 to-transparent flex flex-col justify-end p-5">
                       <span className="text-[11px] uppercase font-bold tracking-widest text-[#28A745] mb-1">

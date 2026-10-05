@@ -7,6 +7,9 @@ interface ApticLogoProps {
   size?: number
   theme?: "color" | "white"
   lang?: string
+  /** Masque le slogan sous le wordmark sur les très petits écrans (logo compact).
+   *  Par défaut `false` : le header normal reste strictement inchangé. */
+  hideTaglineOnMobile?: boolean
 }
 
 const TAGLINES: Record<string, string> = {
@@ -58,6 +61,7 @@ export default function ApticLogo({
   variant = "header",
   theme = "color",
   lang = "FR",
+  hideTaglineOnMobile = false,
 }: ApticLogoProps) {
   const currentLang = (lang || "FR").toUpperCase()
   const tagline = TAGLINES[currentLang] || TAGLINES.FR
@@ -198,7 +202,7 @@ export default function ApticLogo({
         >
           APTIC-R
         </span>
-        <div className="flex items-center gap-1.5 mt-1">
+        <div className={`${hideTaglineOnMobile ? "hidden sm:flex" : "flex"} items-center gap-1.5 mt-1`}>
           <span className="w-4 sm:w-5 h-[2.5px] rounded-full bg-[#28A745] shrink-0" />
           <span
             className="text-[11px] sm:text-xs font-semibold tracking-normal text-[#003366] leading-none whitespace-nowrap font-sans"

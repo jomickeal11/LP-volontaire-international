@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { getHeaderMode, ROUTES } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { useRouter, usePathname } from "next/navigation"
 import { DomainCharterIcon } from "@/components/DomainIcons"
+import OptimizedPhoto from "@/components/OptimizedPhoto"
 
 interface DomainsViewProps {
   lang: Language
@@ -548,7 +550,7 @@ export default function DomainsView({ lang, initialSettings = {}, initialDomaine
           photoCaption: caption,
           photoTag: d.imageTag || "Ancrage Terrain",
           order: d.order,
-          projets: d.projets || [],
+          projets: Array.from({ length: d._count?.projets || 0 }),
         }
       })
     }
@@ -596,7 +598,7 @@ export default function DomainsView({ lang, initialSettings = {}, initialDomaine
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header lang={lang} setLang={handleSetLang} currentPage="domains" navigate={navigate} />
+      <PageHeader mode={getHeaderMode(ROUTES.domainsList)} lang={lang} setLang={handleSetLang} currentPage="domains" navigate={navigate} />
 
       <main className="flex-1">
         {/* ── 1. Hero (#F7F8FA) - Le fond gris monte jusqu'en haut derrière le header ── */}
@@ -679,10 +681,12 @@ export default function DomainsView({ lang, initialSettings = {}, initialDomaine
                         href={`/${lang.toLowerCase()}/domaines/${dom.id}`}
                         className="block relative rounded-2xl overflow-hidden shadow-md border border-slate-200/90 aspect-[4/3] sm:aspect-[16/11] bg-slate-100 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#007BFF]"
                       >
-                        <img
+                        <OptimizedPhoto
                           src={dom.photoSrc}
                           alt={dom.officialTitle}
                           className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700"
+                          loading="lazy"
+                          decoding="async"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#003366]/90 via-[#003366]/20 to-transparent flex flex-col justify-end p-6">
                           <span className="text-[11px] uppercase font-bold tracking-widest text-[#28A745] mb-1">

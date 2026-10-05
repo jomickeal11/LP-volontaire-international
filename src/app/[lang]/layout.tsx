@@ -1,8 +1,32 @@
 import type { Metadata, Viewport } from "next"
 import Script from "next/script"
+import { JetBrains_Mono, Montserrat } from "next/font/google"
 import "../globals.css"
+import { getSiteUrl } from "@/lib/seo"
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://apticr.org"
+// Polices auto-hébergées : supprime la requête CSS bloquante vers fonts.googleapis.com
+// (économie Lighthouse mesurée : 1 000–2 320 ms en mobile, 530–700 ms en desktop).
+// Les fichiers variables couvrent toutes les graisses utilisées par le site
+// (Montserrat 400–900 via font-normal/middle/semibold/bold/extrabold/black,
+//  JetBrains Mono 400–600) avec une seule requête par famille, comme auparavant.
+// Sous-ensemble `latin` : couvre intégralement les jeux FR / EN / DE. Ajouter
+// `latin-ext` doublerait le volume de polices préchargées sans aucun caractère
+// supplémentaire nécessaire sur ce site.
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  display: "swap",
+  preload: true,
+  variable: "--font-aptic-montserrat",
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  preload: true,
+  variable: "--font-aptic-jetbrains-mono",
+})
+
+const baseUrl = getSiteUrl()
 
 interface LocalizedMeta {
   title: string
@@ -75,6 +99,14 @@ export async function generateMetadata({
   const currentLang = (lang?.toLowerCase() in metaByLang) ? lang.toLowerCase() : "fr"
   const meta = metaByLang[currentLang]
 
+  // La variable d'environnement doit contenir UNIQUEMENT le jeton Search Console.
+  // Un éventuel préfixe `google-site-verification=` ou `google-site-verification-`
+  // est toléré puis retiré, pour ne jamais produire une balise invalide.
+  const rawVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim()
+  const googleVerification = rawVerification
+    ? rawVerification.replace(/^google-site-verification[=\-]/i, "").trim()
+    : undefined
+
   return {
     metadataBase: new URL(baseUrl),
     title: meta.title,
@@ -127,9 +159,7 @@ export async function generateMetadata({
       ],
       shortcut: "/logo-aptic-icon-32.png",
     },
-    verification: {
-      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "google-site-verification-apticr-code",
-    },
+    ...(googleVerification ? { verification: { google: googleVerification } } : {}),
     robots: {
       index: true,
       follow: true,
@@ -152,6 +182,7 @@ export const viewport: Viewport = {
 
 import GoogleAnalyticsLoader from "@/components/GoogleAnalyticsLoader"
 import CookieConsentBanner from "@/components/CookieConsentBanner"
+import AttributionCapture from "@/components/AttributionCapture"
 
 export default async function RootLayout({
   children,
@@ -165,9 +196,13 @@ export default async function RootLayout({
   const gaId = rawGaId && /^G-[A-Za-z0-9]+$/.test(rawGaId.trim()) ? rawGaId.trim() : null
 
   return (
-    <html lang={lang || "fr"} className="scroll-smooth">
+    <html
+      lang={lang || "fr"}
+      className={`scroll-smooth ${montserrat.variable} ${jetbrainsMono.variable}`}
+    >
       <head />
       <body className="antialiased min-h-screen flex flex-col font-sans selection:bg-[#007BFF]/20 selection:text-[#003366]">
+        <AttributionCapture />
         <GoogleAnalyticsLoader gaId={gaId} />
         {children}
         <CookieConsentBanner lang={lang || "fr"} />

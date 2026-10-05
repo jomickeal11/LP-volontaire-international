@@ -6,6 +6,7 @@ export type Page =
   | "projects"                    // Nos projets
   | "team"                        // Équipe
   | "news"                        // Actualités
+  | "events"                      // Événements & Formations
   | "contact"                     // Contact
   | "resources"                   // Ressources
   | "gallery"                     // Galerie
@@ -35,29 +36,35 @@ export type Page =
   | "admin-resources"
   | "admin-newsletter"
   | "admin-messages"
+  | "admin-temoignages"
+  | "admin-medias"
   | "admin-settings"
 
 export type Language = "FR" | "EN" | "DE"
 
 /**
- * Route mapping for institutional pages.
- * Maps Page type to URL path segments per language.
+ * IMPORTANT — une seule URL canonique par contenu.
+ * Les segments ci-dessous correspondent aux dossiers réellement présents sous
+ * `src/app/[lang]/` et réellement servis par Next.js. Les anciens slugs localisés
+ * (`about`, `news`, `projects`, `become-member`…) ne sont plus émis : le
+ * middleware les redirige en 301 vers ces routes canoniques.
  */
 export const PAGE_ROUTES: Record<string, Record<string, string>> = {
   home:          { fr: "",                 en: "",                 de: ""                   },
-  about:         { fr: "a-propos",         en: "about",            de: "ueber-uns"          },
-  domains:       { fr: "domaines",         en: "domains",          de: "bereiche"           },
-  projects:      { fr: "projets",          en: "projects",         de: "projekte"           },
-  team:          { fr: "equipe",           en: "team",             de: "team"               },
-  news:          { fr: "actualites",       en: "news",             de: "aktuelles"          },
-  contact:       { fr: "contact",          en: "contact",          de: "kontakt"            },
-  resources:     { fr: "ressources",       en: "resources",        de: "ressourcen"         },
-  gallery:       { fr: "galerie",          en: "gallery",          de: "galerie"            },
-  volunteering:  { fr: "volontariat",      en: "volontariat",      de: "volontariat"       },
+  about:         { fr: "a-propos",         en: "a-propos",         de: "a-propos"           },
+  domains:       { fr: "domaines",         en: "domaines",         de: "domaines"           },
+  projects:      { fr: "projets",          en: "projets",          de: "projets"            },
+  team:          { fr: "equipe",           en: "equipe",           de: "equipe"             },
+  news:          { fr: "actualites",       en: "actualites",       de: "actualites"         },
+  events:        { fr: "evenements",       en: "evenements",       de: "evenements"         },
+  contact:       { fr: "contact",          en: "contact",          de: "contact"            },
+  resources:     { fr: "ressources",       en: "ressources",       de: "ressources"         },
+  gallery:       { fr: "galerie",          en: "galerie",          de: "galerie"            },
+  volunteering:  { fr: "volontariat",      en: "volontariat",      de: "volontariat"        },
   apply:         { fr: "volontariat/postuler", en: "volontariat/postuler", de: "volontariat/postuler" },
-  partner:       { fr: "partenaires",      en: "partners",         de: "partner"            },
-  "partner-apply": { fr: "partenaires/demande", en: "partners/apply", de: "partner/anfrage" },
-  membership:    { fr: "devenir-membre",   en: "become-member",    de: "mitglied-werden"    },
+  partner:       { fr: "partenaires",      en: "partenaires",      de: "partenaires"        },
+  "partner-apply": { fr: "partenaires/demande", en: "partenaires/demande", de: "partenaires/demande" },
+  membership:    { fr: "devenir-membre",   en: "devenir-membre",   de: "devenir-membre"     },
   support:       { fr: "soutenir",         en: "support",          de: "unterstuetzen"      },
 }
 

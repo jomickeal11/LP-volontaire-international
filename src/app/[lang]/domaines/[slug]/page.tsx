@@ -2,7 +2,8 @@ import React from "react"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import DomainDetailView from "@/views/DomainDetailView"
-import { getDomaineBySlug, getDomaines } from "@/lib/cms-actions"
+import { getDomaineBySlug, getDomaines, getDomaineAvailableLanguages } from "@/lib/cms-actions"
+import { getSiteUrl, localeCode, DEFAULT_OG_IMAGE } from "@/lib/seo"
 import type { Language } from "@/types"
 
 interface PageProps {
@@ -37,16 +38,44 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ? domaine.descDe ?? ""
       : domaine.descFr
 
+  const domaineSlug = domaine.slug || slug
+  const l = upperLang.toLowerCase()
+
+  // hreflang strict : uniquement les langues où le domaine est réellement servi.
+  const available = await getDomaineAvailableLanguages(domaineSlug)
+  const languages: Record<string, string> = {}
+  for (const availableLang of available) {
+    languages[availableLang.toLowerCase()] = `/${availableLang.toLowerCase()}/domaines/${domaineSlug}`
+  }
+  const defaultLang = available.includes("FR") ? "fr" : available[0]?.toLowerCase() ?? l
+  languages["x-default"] = `/${defaultLang}/domaines/${domaineSlug}`
+
+  const description = desc ? desc.slice(0, 160) : undefined
+  const canonical = `/${l}/domaines/${domaineSlug}`
+
   return {
     title: `${title} | APTIC-R`,
-    description: desc ? desc.slice(0, 160) : `Découvrez le pôle ${title} de l'APTIC-R.`,
+    description: description ?? `Découvrez le pôle ${title} de l'APTIC-R.`,
     alternates: {
-      canonical: `/${upperLang.toLowerCase()}/domaines/${domaine.slug || slug}`,
-      languages: {
-        fr: `/fr/domaines/${domaine.slug || slug}`,
-        en: `/en/domaines/${domaine.slug || slug}`,
-        de: `/de/domaines/${domaine.slug || slug}`,
-      },
+      canonical,
+      languages,
+    },
+    openGraph: {
+      title: `${title} — APTIC-R`,
+      description,
+      url: `${getSiteUrl()}${canonical}`,
+      siteName: "APTIC-R",
+      locale: localeCode(upperLang),
+      type: "website",
+      // Le modèle Domaine ne dispose d'aucun champ image : on réutilise
+      // l'image de repli globale du site plutôt que d'en fabriquer une.
+      images: [{ url: DEFAULT_OG_IMAGE }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} — APTIC-R`,
+      description,
+      images: [DEFAULT_OG_IMAGE],
     },
   }
 }

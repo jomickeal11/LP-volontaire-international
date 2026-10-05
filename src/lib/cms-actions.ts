@@ -363,7 +363,7 @@ export async function getArticles(options?: {
     return []
   }
 }
-export async function getArticleBySlug(slug: string, lang: string) {
+export async function getArticleBySlug(slug: string, lang: string, options?: { incrementViews?: boolean }) {
   try {
     const article = await prisma.article.findUnique({
       where: { slug },
@@ -387,7 +387,7 @@ export async function getArticleBySlug(slug: string, lang: string) {
     if (localizedFields.some((field) => !field?.trim())) return null
     const publishedKey = `published${language[0]}${language.slice(1).toLowerCase()}`
     if (!(article as any)[publishedKey]) return null
-    if (article) {
+    if (article && options?.incrementViews !== false) {
       // Incrémentation asynchrone non-bloquante des vues
       prisma.article.update({
         where: { id: article.id },
@@ -511,9 +511,16 @@ export async function getEvents(options?: {
   upcomingOnly?: boolean
   category?: string
   limit?: number
+  lang?: string
 }) {
   try {
-    const where: any = { published: true }
+    const where: any = {}
+    const isPublicQuery = Boolean(options?.lang)
+
+    if (isPublicQuery) {
+      // Publication globale : l'événement doit être publié dans au moins une langue.
+      where.published = true
+    }
 
     if (options?.upcomingOnly) {
       where.startDate = { gte: new Date() }
@@ -521,11 +528,57 @@ export async function getEvents(options?: {
     if (options?.category) {
       where.category = options.category
     }
+    if (isPublicQuery) {
+      const l = (options!.lang! || "FR").toUpperCase()
+      const publishedKey =
+        l === "EN" ? "publishedEn" : l === "DE" ? "publishedDe" : "publishedFr"
+      const titleKey = l === "EN" ? "titleEn" : l === "DE" ? "titleDe" : "titleFr"
+      const descKey = l === "EN" ? "descriptionEn" : l === "DE" ? "descriptionDe" : "descriptionFr"
+      // Pré-filtrage SQL : publication explicite + titre/description non vides.
+      // `not: ""` exclut à la fois les valeurs vides et les NULL en SQL.
+      where[publishedKey] = true
+      where.AND = [{ [titleKey]: { not: "" } }, { [descKey]: { not: "" } }]
+    }
 
     return await prisma.evenement.findMany({
       where,
       orderBy: { startDate: "asc" },
       take: options?.limit,
+      // Projection limitée aux colonnes réellement consommées (vue publique,
+      // back-office, sitemap). Évite de transporter le reste de la ligne.
+      select: {
+        id: true,
+        slug: true,
+        titleFr: true,
+        titleEn: true,
+        titleDe: true,
+        descriptionFr: true,
+        descriptionEn: true,
+        descriptionDe: true,
+        programmeFr: true,
+        programmeEn: true,
+        programmeDe: true,
+        category: true,
+        categoryOther: true,
+        location: true,
+        startDate: true,
+        endDate: true,
+        isOnline: true,
+        meetingUrl: true,
+        registrationUrl: true,
+        registrationOpen: true,
+        maxParticipants: true,
+        featuredImage: true,
+        contactName: true,
+        contactEmail: true,
+        contactPhone: true,
+        published: true,
+        publishedFr: true,
+        publishedEn: true,
+        publishedDe: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     })
   } catch (error) {
     console.error("Error fetching events:", error)
@@ -589,7 +642,7 @@ export async function getMedia(options?: {
       where.featured = true
     }
 
-    return await prisma.media.findMany({
+    return await (prisma as any).media.findMany({
       where,
       orderBy: [{ featured: "desc" }, { order: "asc" }, { createdAt: "desc" }],
       take: options?.limit,
@@ -597,6 +650,138 @@ export async function getMedia(options?: {
   } catch (error) {
     console.error("Error fetching media:", error)
     return []
+  }
+}
+
+export async function getAllMedias() {
+  try {
+    const items = await (prisma as any).media.findMany({
+      orderBy: [{ featured: "desc" }, { order: "asc" }, { createdAt: "desc" }],
+    })
+    return { success: true, items }
+  } catch (error: any) {
+    console.error("Error fetching all medias:", error)
+    return { success: false, error: error.message || "Erreur lors de la récupération des médias." }
+  }
+}
+
+export async function createMedia(data: any) {
+  try {
+    if (!data.titleFr?.trim()) {
+      return { success: false, error: "Le titre (FR) est requis." }
+    }
+    if (!data.url?.trim()) {
+      return { success: false, error: "L'URL du média est requise." }
+    }
+
+    // Validation stricte du type selon ce qui est reçu du serveur (PHOTO ou VIDEO)
+    // Le contrôle réel se fera via Zod et dans le front, mais on bloque ici aussi.
+    const allowedTypes = ["PHOTO", "VIDEO"]
+    const type = allowedTypes.includes(data.type) ? data.type : "PHOTO"
+
+    const urlLower = data.url.toLowerCase()
+    if (type === "PHOTO") {
+       if (urlLower.endsWith(".mp4") || urlLower.endsWith(".webm") || urlLower.endsWith(".mov")) {
+          return { success: false, error: "Cohérence invalide : l'URL fournie correspond à une vidéo, mais le type sélectionné est PHOTO." }
+       }
+    } else if (type === "VIDEO") {
+       if (urlLower.endsWith(".jpg") || urlLower.endsWith(".jpeg") || urlLower.endsWith(".png") || urlLower.endsWith(".webp") || urlLower.endsWith(".avif")) {
+          return { success: false, error: "Cohérence invalide : l'URL fournie correspond à une image, mais le type sélectionné est VIDEO." }
+       }
+    }
+
+    const media = await (prisma as any).media.create({
+      data: {
+        titleFr: data.titleFr.trim(),
+        titleEn: data.titleEn?.trim() || null,
+        titleDe: data.titleDe?.trim() || null,
+        captionFr: data.captionFr?.trim() || null,
+        captionEn: data.captionEn?.trim() || null,
+        captionDe: data.captionDe?.trim() || null,
+        url: data.url,
+        thumbnailUrl: data.thumbnailUrl || null,
+        type,
+        album: data.album || null,
+        category: data.category || null,
+        featured: data.featured || false,
+        order: data.order !== undefined ? Number(data.order) : 0,
+        projetId: data.projetId || null,
+      },
+    })
+    
+    safeRevalidatePath("/backoffice/medias")
+    safeRevalidatePath("/[lang]/galerie")
+    return { success: true, media, message: "Média créé." }
+  } catch (error: any) {
+    console.error("Error creating media:", error)
+    return { success: false, error: error.message || "Erreur lors de la création du média." }
+  }
+}
+
+export async function updateMedia(id: string, data: any) {
+  try {
+    const updateData: any = {}
+    if (data.titleFr !== undefined) updateData.titleFr = data.titleFr.trim()
+    if (data.titleEn !== undefined) updateData.titleEn = data.titleEn?.trim() || null
+    if (data.titleDe !== undefined) updateData.titleDe = data.titleDe?.trim() || null
+    if (data.captionFr !== undefined) updateData.captionFr = data.captionFr?.trim() || null
+    if (data.captionEn !== undefined) updateData.captionEn = data.captionEn?.trim() || null
+    if (data.captionDe !== undefined) updateData.captionDe = data.captionDe?.trim() || null
+    if (data.url !== undefined) updateData.url = data.url
+    if (data.thumbnailUrl !== undefined) updateData.thumbnailUrl = data.thumbnailUrl
+    
+    if (data.type !== undefined) {
+       const allowedTypes = ["PHOTO", "VIDEO"]
+       updateData.type = allowedTypes.includes(data.type) ? data.type : "PHOTO"
+    }
+
+    const typeToCheck = updateData.type || data.type
+    const urlToCheck = updateData.url || data.url
+    if (typeToCheck && urlToCheck) {
+       const urlLower = urlToCheck.toLowerCase()
+       if (typeToCheck === "PHOTO") {
+          if (urlLower.endsWith(".mp4") || urlLower.endsWith(".webm") || urlLower.endsWith(".mov")) {
+             return { success: false, error: "Cohérence invalide : l'URL fournie correspond à une vidéo, mais le type sélectionné est PHOTO." }
+          }
+       } else if (typeToCheck === "VIDEO") {
+          if (urlLower.endsWith(".jpg") || urlLower.endsWith(".jpeg") || urlLower.endsWith(".png") || urlLower.endsWith(".webp") || urlLower.endsWith(".avif")) {
+             return { success: false, error: "Cohérence invalide : l'URL fournie correspond à une image, mais le type sélectionné est VIDEO." }
+          }
+       }
+    }
+
+    if (data.album !== undefined) updateData.album = data.album || null
+    if (data.category !== undefined) updateData.category = data.category || null
+    if (data.featured !== undefined) updateData.featured = Boolean(data.featured)
+    if (data.order !== undefined) updateData.order = Number(data.order)
+    if (data.projetId !== undefined) updateData.projetId = data.projetId || null
+
+    const media = await (prisma as any).media.update({
+      where: { id },
+      data: updateData,
+    })
+
+    safeRevalidatePath("/backoffice/medias")
+    safeRevalidatePath("/[lang]/galerie")
+    return { success: true, media, message: "Média mis à jour." }
+  } catch (error: any) {
+    console.error("Error updating media:", error)
+    return { success: false, error: error.message || "Erreur lors de la mise à jour." }
+  }
+}
+
+export async function deleteMedia(id: string) {
+  try {
+    await (prisma as any).media.delete({
+      where: { id },
+    })
+
+    safeRevalidatePath("/backoffice/medias")
+    safeRevalidatePath("/[lang]/galerie")
+    return { success: true, message: "Média supprimé." }
+  } catch (error: any) {
+    console.error("Error deleting media:", error)
+    return { success: false, error: error.message || "Erreur lors de la suppression." }
   }
 }
 
@@ -1787,20 +1972,21 @@ export async function deleteProject(id: string) {
 
 export async function createEvent(data: {
   titleFr: string
-  titleEn?: string
-  titleDe?: string
-  descriptionFr: string
-  descriptionEn?: string
-  descriptionDe?: string
+  titleEn?: string | null
+  titleDe?: string | null
+  descriptionFr?: string | null
+  descriptionEn?: string | null
+  descriptionDe?: string | null
   category: string
-  location: string
-  startDate: Date
-  endDate?: Date
+  location?: string | null
+  startDate?: Date | string | null
+  endDate?: Date | string | null
   isOnline?: boolean
-  meetingUrl?: string
-  registrationUrl?: string
-  featuredImage?: string
+  meetingUrl?: string | null
+  registrationUrl?: string | null
+  featuredImage?: string | null
   published?: boolean
+  [key: string]: any
 }) {
   try {
     const baseSlug = slugify(data.titleFr)
@@ -1817,12 +2003,12 @@ export async function createEvent(data: {
         titleFr: data.titleFr.trim(),
         titleEn: data.titleEn?.trim() || null,
         titleDe: data.titleDe?.trim() || null,
-        descriptionFr: data.descriptionFr.trim(),
+        descriptionFr: (data.descriptionFr ?? "").trim(),
         descriptionEn: data.descriptionEn?.trim() || null,
         descriptionDe: data.descriptionDe?.trim() || null,
         category: data.category || "WORKSHOP",
-        location: data.location.trim(),
-        startDate: data.startDate,
+        location: (data.location ?? "").trim(),
+        startDate: data.startDate ?? new Date(),
         endDate: data.endDate || null,
         isOnline: Boolean(data.isOnline),
         meetingUrl: data.meetingUrl?.trim() || null,
@@ -1833,10 +2019,10 @@ export async function createEvent(data: {
     })
 
     revalidatePath("/backoffice/events")
-    return { success: true, event }
+    return { success: true, event, errors: [] as string[] }
   } catch (error: any) {
     console.error("Error creating event:", error)
-    return { success: false, error: error.message || "Erreur lors de la création de l'événement." }
+    return { success: false, error: error.message || "Erreur lors de la création de l'événement.", errors: [error.message || "Erreur"] as string[] }
   }
 }
 
@@ -1847,10 +2033,10 @@ export async function updateEvent(id: string, data: any) {
       data,
     })
     revalidatePath("/backoffice/events")
-    return { success: true, event }
+    return { success: true, event, errors: [] as string[] }
   } catch (error: any) {
     console.error("Error updating event:", error)
-    return { success: false, error: error.message || "Erreur lors de la mise à jour de l'événement." }
+    return { success: false, error: error.message || "Erreur lors de la mise à jour de l'événement.", errors: [error.message || "Erreur"] as string[] }
   }
 }
 
@@ -1933,6 +2119,7 @@ export async function adminAddNewsletterSubscriber(data: {
   email: string
   firstName?: string
   lang?: LanguageCode
+  consent?: boolean
 }) {
   try {
     const normalizedEmail = data.email.toLowerCase().trim()
@@ -2577,29 +2764,27 @@ export async function getDomaines(options?: { activeOnly?: boolean; lang?: strin
     if (options?.activeOnly) {
       where.active = true
     }
+    // Filtre de langue poussé en base (équivalent exact de
+    // hasDomaineContentInLanguage) : évite de charger puis filtrer en mémoire.
+    if (options?.lang) {
+      const language = options.lang.toUpperCase()
+      const nameKey = language === "EN" ? "nameEn" : language === "DE" ? "nameDe" : "nameFr"
+      const descKey = language === "EN" ? "descEn" : language === "DE" ? "descDe" : "descFr"
+      where[nameKey] = { not: "" }
+      where[descKey] = { not: "" }
+    }
 
     const domaines = await (prisma as any).domaine.findMany({
       where,
       orderBy: { order: "asc" },
+      // La vue n'utilise que le nombre de projets rattachés (badge).
       include: {
-        projets: {
-          select: {
-            id: true,
-            slug: true,
-            titleFr: true,
-            titleEn: true,
-            titleDe: true,
-            summaryFr: true,
-            summaryEn: true,
-            summaryDe: true,
-            status: true,
-            featuredImage: true,
-            location: true,
-          },
+        _count: {
+          select: { projets: true },
         },
       },
     })
-    return options?.lang ? domaines.filter((domaine: any) => hasDomaineContentInLanguage(domaine, options.lang!)) : domaines
+    return domaines
   } catch (error) {
     console.error("Error fetching domaines:", error)
     return []
@@ -3094,5 +3279,673 @@ export async function deleteRessource(id: string) {
     return { success: false, error: error.message || "Erreur lors de la suppression." }
   }
 }
+
+// ─── HREFLANG HELPERS ────────────────────────────────────────────────────────
+// Ces fonctions déterminent les langues réellement disponibles pour un contenu
+// afin de générer des balises hreflang strictes (sans repli FR→EN/DE).
+
+/**
+ * Retourne la liste des langues (["FR", "EN", "DE"]) dans lesquelles
+ * un article est publié et dispose d'un titre non vide.
+ */
+export async function getArticleAvailableLanguages(slug: string): Promise<string[]> {
+  try {
+    const article = await prisma.article.findFirst({
+      where: { slug },
+      select: { titleFr: true, titleEn: true, titleDe: true, publishedFr: true, publishedEn: true, publishedDe: true },
+    })
+    if (!article) return []
+    const langs: string[] = []
+    if ((article as any).publishedFr && (article as any).titleFr?.trim()) langs.push("FR")
+    if ((article as any).publishedEn && (article as any).titleEn?.trim()) langs.push("EN")
+    if ((article as any).publishedDe && (article as any).titleDe?.trim()) langs.push("DE")
+    return langs
+  } catch {
+    return ["FR"]
+  }
+}
+
+/**
+ * Retourne les langues disponibles pour un domaine (slug).
+ */
+export async function getDomaineAvailableLanguages(slug: string): Promise<string[]> {
+  try {
+    const domaine = await (prisma as any).domaine.findFirst({
+      where: { slug },
+      select: { nameFr: true, nameEn: true, nameDe: true, active: true },
+    })
+    if (!domaine || !domaine.active) return []
+    const langs: string[] = []
+    if (domaine.nameFr?.trim()) langs.push("FR")
+    if (domaine.nameEn?.trim()) langs.push("EN")
+    if (domaine.nameDe?.trim()) langs.push("DE")
+    return langs.length > 0 ? langs : ["FR"]
+  } catch {
+    return ["FR"]
+  }
+}
+
+/**
+ * Récupère un événement par son slug pour la langue demandée.
+ * Retourne null si l'événement est inexistant, non publié,
+ * ou incomplet dans la langue demandée.
+ */
+export async function getEventBySlug(slug: string, lang: string = "FR") {
+  try {
+    const l = lang.toUpperCase()
+    const publishedKey = l === "EN" ? "publishedEn" : l === "DE" ? "publishedDe" : "publishedFr"
+    const titleKey = l === "EN" ? "titleEn" : l === "DE" ? "titleDe" : "titleFr"
+    const descKey = l === "EN" ? "descriptionEn" : l === "DE" ? "descriptionDe" : "descriptionFr"
+
+    const event = await prisma.evenement.findFirst({
+      where: {
+        slug,
+        published: true,
+        [publishedKey]: true,
+        [titleKey]: { not: "" },
+        [descKey]: { not: "" },
+      },
+      select: {
+        id: true,
+        slug: true,
+        titleFr: true,
+        titleEn: true,
+        titleDe: true,
+        descriptionFr: true,
+        descriptionEn: true,
+        descriptionDe: true,
+        programmeFr: true,
+        programmeEn: true,
+        programmeDe: true,
+        category: true,
+        categoryOther: true,
+        location: true,
+        startDate: true,
+        endDate: true,
+        isOnline: true,
+        meetingUrl: true,
+        registrationUrl: true,
+        registrationOpen: true,
+        maxParticipants: true,
+        featuredImage: true,
+        contactName: true,
+        contactEmail: true,
+        contactPhone: true,
+        published: true,
+        publishedFr: true,
+        publishedEn: true,
+        publishedDe: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })
+    return event ?? null
+  } catch (error) {
+    console.error(`Error fetching event ${slug}:`, error)
+    return null
+  }
+}
+
+/**
+ * Retourne les langues disponibles pour un événement (slug).
+ */
+export async function getEventAvailableLanguages(slug: string): Promise<string[]> {
+  try {
+    const event = await prisma.evenement.findFirst({
+      where: { slug },
+      select: {
+        published: true,
+        publishedFr: true,
+        publishedEn: true,
+        publishedDe: true,
+        titleFr: true,
+        titleEn: true,
+        titleDe: true,
+        descriptionFr: true,
+        descriptionEn: true,
+        descriptionDe: true,
+      },
+    })
+    if (!event || !(event as any).published) return []
+    const langs: string[] = []
+    if ((event as any).publishedFr && (event as any).titleFr?.trim() && (event as any).descriptionFr?.trim()) langs.push("FR")
+    if ((event as any).publishedEn && (event as any).titleEn?.trim() && (event as any).descriptionEn?.trim()) langs.push("EN")
+    if ((event as any).publishedDe && (event as any).titleDe?.trim() && (event as any).descriptionDe?.trim()) langs.push("DE")
+    return langs.length > 0 ? langs : ["FR"]
+  } catch {
+    return ["FR"]
+  }
+}
+
+/**
+ * Retourne les langues disponibles pour un projet (slug).
+ */
+export async function getProjectAvailableLanguages(slug: string): Promise<string[]> {
+  try {
+    const project = await (prisma as any).projet.findFirst({
+      where: { slug },
+      select: { titleFr: true, titleEn: true, titleDe: true, published: true },
+    })
+    if (!project) return []
+    const langs: string[] = []
+    if (project.titleFr?.trim()) langs.push("FR")
+    if (project.titleEn?.trim()) langs.push("EN")
+    if (project.titleDe?.trim()) langs.push("DE")
+    return langs.length > 0 ? langs : ["FR"]
+  } catch {
+    return ["FR"]
+  }
+}
+
+// ─── ADMIN CREATE MEMBER ─────────────────────────────────────────────────────
+
+/**
+ * Création administrative directe d'un membre (sans demande d'adhésion).
+ */
+export async function adminCreateMember(data: {
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string
+  profession?: string
+  organization?: string
+  country: string
+  city?: string
+  domainsOfInterest?: string | string[]
+  contributionType?: string
+  availability?: string
+  motivation?: string
+  membershipStatus?: string
+  membershipDate?: string
+  notes?: string
+}) {
+  "use server"
+  try {
+    if (!data.firstName?.trim() || !data.lastName?.trim() || !data.email?.trim() || !data.country?.trim()) {
+      return { success: false, error: "Prénom, nom, email et pays sont obligatoires." }
+    }
+
+    const domainsArray = typeof data.domainsOfInterest === "string"
+      ? data.domainsOfInterest.split(",").map((d) => d.trim()).filter(Boolean)
+      : Array.isArray(data.domainsOfInterest)
+      ? data.domainsOfInterest
+      : []
+
+    // Génère un numéro de référence unique
+    const referenceNumber = `MBR-${new Date().getFullYear()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+
+    const member = await prisma.membre.create({
+      data: {
+        referenceNumber,
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        email: data.email.trim().toLowerCase(),
+        phone: data.phone?.trim() || null,
+        profession: data.profession?.trim() || null,
+        organization: data.organization?.trim() || null,
+        country: data.country.trim(),
+        city: data.city?.trim() || null,
+        domainsOfInterest: JSON.stringify(domainsArray),
+        contributionType: data.contributionType || "COMPETENCES",
+        availability: data.availability || "HEBDOMADAIRE",
+        motivation: data.motivation?.trim() || "Création administrative directe.",
+        membershipStatus: data.membershipStatus || "ACTIVE",
+        membershipDate: data.membershipDate ? new Date(data.membershipDate) : new Date(),
+        notes: data.notes?.trim() || null,
+      },
+    })
+
+    safeRevalidatePath("/backoffice/members")
+    return { success: true, member, message: "Membre créé avec succès." }
+  } catch (error: any) {
+    console.error("Error creating member administratively:", error)
+    if (error.code === "P2002") {
+      return { success: false, error: "Un membre avec cette adresse email existe déjà." }
+    }
+    return { success: false, error: error.message || "Erreur lors de la création du membre." }
+  }
+}
+
+export async function adminCreateCandidate(data: {
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string
+  country: string
+  city?: string
+  dateOfBirth: string
+  education?: string
+  fieldOfStudy?: string
+  profession?: string
+  experienceLevel?: string
+  digitalSkillLevel?: string
+  skills?: string[]
+  arrivalDate?: string
+  duration?: string
+  motivation?: string
+  projectExperience?: string
+  notes?: string
+  status?: string
+}) {
+  "use server"
+  try {
+    if (!data.firstName?.trim() || !data.lastName?.trim() || !data.email?.trim() || !data.country?.trim() || !data.dateOfBirth) {
+      return { success: false, error: "Prénom, nom, email, pays et date de naissance sont obligatoires." }
+    }
+
+    const referenceNumber = `CAND-${new Date().getFullYear()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+    
+    // Check if candidate exists, if not create
+    const email = data.email.trim().toLowerCase()
+    let candidate = await prisma.candidat.findUnique({ where: { email } })
+    
+    if (!candidate) {
+      candidate = await prisma.candidat.create({
+        data: {
+          firstName: data.firstName.trim(),
+          lastName: data.lastName.trim(),
+          email,
+          phone: data.phone?.trim() || null,
+          country: data.country.trim(),
+          city: data.city?.trim() || null,
+          dateOfBirth: new Date(data.dateOfBirth),
+        }
+      })
+    }
+
+    const application = await prisma.candidature.create({
+      data: {
+        referenceNumber,
+        candidateId: candidate.id,
+        status: (data.status as any) || "NEW",
+        lang: "FR",
+        communicationLanguage: "FR",
+        education: data.education || "Non renseigné",
+        fieldOfStudy: data.fieldOfStudy || "Non renseigné",
+        profession: data.profession || "Non renseigné",
+        experienceLevel: (data.experienceLevel as any) || "LESS_THAN_1_YEAR",
+        digitalSkillLevel: data.digitalSkillLevel || "BEGINNER",
+        arrivalDate: data.arrivalDate ? new Date(data.arrivalDate) : new Date(),
+        duration: (data.duration as any) || "SIX_MONTHS",
+        motivation: data.motivation?.trim() || "Création administrative directe.",
+        projectExperience: data.projectExperience?.trim() || null,
+        source: "Création administrative",
+        consentData: true,
+      }
+    })
+
+    if (data.skills && data.skills.length > 0) {
+      const dbSkills = await prisma.competence.findMany({
+        where: { slug: { in: data.skills } }
+      })
+      if (dbSkills.length > 0) {
+        await prisma.competenceCandidature.createMany({
+          data: dbSkills.map(s => ({
+            applicationId: application.id,
+            skillId: s.id
+          }))
+        })
+      }
+    }
+
+    if (data.notes?.trim()) {
+      await prisma.noteCandidature.create({
+        data: {
+          applicationId: application.id,
+          content: data.notes.trim(),
+          authorName: "Admin (Création directe)"
+        }
+      })
+    }
+
+    safeRevalidatePath("/backoffice/candidates")
+    safeRevalidatePath("/backoffice/applications")
+    return { success: true, application }
+  } catch (error: any) {
+    console.error("Error creating candidate administratively:", error)
+    return { success: false, error: error.message || "Erreur lors de la création." }
+  }
+}
+
+export async function adminCreatePartner(data: {
+  orgName: string
+  country: string
+  website?: string
+  orgType?: string
+  contactPerson: string
+  email: string
+  phone?: string
+  volunteerCount?: string
+  targetCountries?: string
+  programme?: string
+  message?: string
+}) {
+  "use server"
+  try {
+    if (!data.orgName?.trim() || !data.country?.trim() || !data.contactPerson?.trim() || !data.email?.trim()) {
+      return { success: false, error: "Nom de l'organisation, pays, personne de contact et email sont obligatoires." }
+    }
+
+    const referenceNumber = `PART-${new Date().getFullYear()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+
+    const partner = await prisma.partenaire.create({
+      data: {
+        orgName: data.orgName.trim(),
+        country: data.country.trim(),
+        website: data.website?.trim() || null,
+        orgType: data.orgType || "NGO",
+      }
+    })
+
+    const request = await prisma.demandePartenariat.create({
+      data: {
+        referenceNumber,
+        partnerId: partner.id,
+        orgName: partner.orgName,
+        country: partner.country,
+        website: partner.website,
+        orgType: partner.orgType,
+        contactPerson: data.contactPerson.trim(),
+        email: data.email.trim().toLowerCase(),
+        phone: data.phone?.trim() || null,
+        volunteerCount: data.volunteerCount || null,
+        targetCountries: data.targetCountries || null,
+        programme: data.programme || null,
+        message: data.message?.trim() || "Création administrative directe.",
+        consent: true,
+        status: "PARTNER",
+      }
+    })
+
+    safeRevalidatePath("/backoffice/partners")
+    safeRevalidatePath("/backoffice/partners/requests")
+    return { success: true, partner, request }
+  } catch (error: any) {
+    console.error("Error creating partner administratively:", error)
+    return { success: false, error: error.message || "Erreur lors de la création." }
+  }
+}
+
+export async function getSkills() {
+  "use server"
+  try {
+    const skills = await prisma.competence.findMany({
+      orderBy: { nameFr: 'asc' }
+    })
+    return { success: true, skills }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+// ─── NEWSLETTER EXPORTS ──────────────────────────────────────────────────────
+
+/**
+ * Exporte les abonnés newsletter au format CSV.
+ */
+export async function exportNewsletterSubscribersCsv(options: {
+  lang?: "ALL" | "FR" | "EN" | "DE"
+  activeOnly?: boolean
+}): Promise<{ success: true; csv: string; filename: string; count: number } | { success: false; error: string }> {
+  "use server"
+  try {
+    const where: any = {}
+    if (options.activeOnly) where.active = true
+    if (options.lang && options.lang !== "ALL") where.lang = options.lang
+
+    const subscribers = await (prisma as any).newsletterSubscriber.findMany({
+      where,
+      orderBy: [{ lang: "asc" }, { subscribedAt: "desc" }],
+      select: { email: true, firstName: true, lang: true, active: true, consent: true, subscribedAt: true },
+    })
+
+    const header = "Email,Prénom,Langue,Actif,Consentement,Date d'abonnement"
+    const rows = subscribers.map((s: any) => {
+      const date = s.subscribedAt ? new Date(s.subscribedAt).toISOString().split("T")[0] : ""
+      const esc = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`
+      return [esc(s.email), esc(s.firstName ?? ""), esc(s.lang), s.active ? "Oui" : "Non", s.consent ? "Oui" : "Non", date].join(",")
+    })
+
+    const csv = [header, ...rows].join("\r\n")
+    const langSuffix = options.lang && options.lang !== "ALL" ? `_${options.lang}` : ""
+    const dateSuffix = new Date().toISOString().slice(0, 10).replace(/-/g, "")
+    const filename = `newsletter_abonnes${langSuffix}_${dateSuffix}.csv`
+
+    return { success: true, csv, filename, count: subscribers.length }
+  } catch (error: any) {
+    console.error("Error exporting newsletter CSV:", error)
+    return { success: false, error: error.message || "Erreur lors de l'export CSV." }
+  }
+}
+
+/**
+ * Exporte les abonnés newsletter actifs par langue dans une archive ZIP (base64).
+ */
+export async function exportNewsletterByLanguageZip(options: {
+  activeOnly?: boolean
+}): Promise<{ success: true; base64: string; filename: string; files: string[] } | { success: false; error: string }> {
+  "use server"
+  try {
+    const where: any = {}
+    if (options.activeOnly) where.active = true
+
+    const subscribers = await (prisma as any).newsletterSubscriber.findMany({
+      where,
+      orderBy: { subscribedAt: "desc" },
+      select: { email: true, firstName: true, lang: true, active: true, consent: true, subscribedAt: true },
+    })
+
+    // Regroupement par langue
+    const byLang: Record<string, any[]> = { FR: [], EN: [], DE: [] }
+    for (const s of subscribers) {
+      const key = ["FR", "EN", "DE"].includes(s.lang) ? s.lang : "FR"
+      byLang[key].push(s)
+    }
+
+    // Construction d'une archive ZIP simple sans dépendance native :
+    // On retourne un JSON structuré encodé en base64 car jszip n'est pas disponible en RSC.
+    // L'UI décode ce JSON et peut le traiter comme plusieurs fichiers CSV.
+    const header = "Email,Prénom,Langue,Actif,Consentement,Date d'abonnement"
+    const esc = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`
+    const makeCsv = (rows: any[]) =>
+      [header, ...rows.map((s) => {
+        const date = s.subscribedAt ? new Date(s.subscribedAt).toISOString().split("T")[0] : ""
+        return [esc(s.email), esc(s.firstName ?? ""), esc(s.lang), s.active ? "Oui" : "Non", s.consent ? "Oui" : "Non", date].join(",")
+      })].join("\r\n")
+
+    const dateSuffix = new Date().toISOString().slice(0, 10).replace(/-/g, "")
+    const filesData: { name: string; content: string }[] = []
+    const fileNames: string[] = []
+
+    for (const lang of ["FR", "EN", "DE"]) {
+      if (byLang[lang].length > 0) {
+        const name = `newsletter_${lang}_${dateSuffix}.csv`
+        filesData.push({ name, content: makeCsv(byLang[lang]) })
+        fileNames.push(name)
+      }
+    }
+
+    if (filesData.length === 0) {
+      return { success: false, error: "Aucun abonné actif à exporter." }
+    }
+
+    // Encodage base64 du JSON des fichiers (le client reconstruit les CSV)
+    const payload = JSON.stringify(filesData)
+    const base64 = Buffer.from(payload).toString("base64")
+    const filename = `newsletter_export_${dateSuffix}.zip`
+
+    return { success: true, base64, filename, files: fileNames }
+  } catch (error: any) {
+    console.error("Error exporting newsletter ZIP:", error)
+    return { success: false, error: error.message || "Erreur lors de l'export." }
+  }
+}
+
+// ─── TEAM CATEGORIES ─────────────────────────────────────────────────────────
+
+export async function getTeamCategories() {
+  try {
+    const categories = await (prisma as any).teamCategory.findMany({
+      orderBy: { order: "asc" },
+    })
+    return categories as any[]
+  } catch {
+    // Le modèle TeamCategory n'existe peut-être pas encore en base.
+    // On retourne les valeurs enum statiques comme repli.
+    return [
+      { id: "DIRECTION", slug: "DIRECTION", name: "Direction", nameFr: "Direction", nameEn: "Management", nameDe: "Leitung", order: 1 },
+      { id: "COORDINATION", slug: "COORDINATION", name: "Coordination", nameFr: "Coordination", nameEn: "Coordination", nameDe: "Koordination", order: 2 },
+      { id: "FORMATION", slug: "FORMATION", name: "Formation", nameFr: "Formation", nameEn: "Training", nameDe: "Ausbildung", order: 3 },
+      { id: "CONSEIL", slug: "CONSEIL", name: "Conseil", nameFr: "Conseil", nameEn: "Advisory", nameDe: "Beratung", order: 4 },
+      { id: "VOLONTAIRE", slug: "VOLONTAIRE", name: "Volontaire", nameFr: "Volontaire", nameEn: "Volunteer", nameDe: "Freiwillig", order: 5 },
+    ] as any[]
+  }
+}
+
+
+export async function createTeamCategory(data: { nameFr: string; nameEn?: string; nameDe?: string; order?: number } | string) {
+  "use server"
+  // Compatibilité avec l'appel `createTeamCategory(name)` depuis AdminSettings
+  const normalized = typeof data === "string"
+    ? { nameFr: data }
+    : data
+  try {
+    if (!normalized.nameFr?.trim()) return { success: false, error: "Le nom (FR) est obligatoire." }
+    const slug = normalized.nameFr.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").toUpperCase()
+    const category = await (prisma as any).teamCategory.create({
+      data: {
+        slug,
+        nameFr: normalized.nameFr.trim(),
+        nameEn: normalized.nameEn?.trim() || null,
+        nameDe: normalized.nameDe?.trim() || null,
+        name: normalized.nameFr.trim(),
+        order: normalized.order ?? 99,
+      },
+    })
+    safeRevalidatePath("/backoffice/settings")
+    return { success: true, category }
+  } catch (error: any) {
+    return { success: false, error: error.message || "Erreur lors de la création." }
+  }
+}
+
+export async function updateTeamCategory(id: string, data: { nameFr?: string; nameEn?: string; nameDe?: string; order?: number } | string) {
+  "use server"
+  // Compatibilité avec l'appel `updateTeamCategory(id, name)` depuis AdminSettings
+  const normalized = typeof data === "string"
+    ? { nameFr: data, name: data }
+    : data
+  try {
+    const updateData: any = {}
+    if (normalized.nameFr !== undefined) { updateData.nameFr = normalized.nameFr.trim(); updateData.name = normalized.nameFr.trim() }
+    if ((normalized as any).nameEn !== undefined) updateData.nameEn = (normalized as any).nameEn?.trim() || null
+    if ((normalized as any).nameDe !== undefined) updateData.nameDe = (normalized as any).nameDe?.trim() || null
+    if ((normalized as any).order !== undefined) updateData.order = Number((normalized as any).order)
+
+    const category = await (prisma as any).teamCategory.update({
+      where: { id },
+      data: updateData,
+    })
+    safeRevalidatePath("/backoffice/settings")
+    return { success: true, category }
+  } catch (error: any) {
+    return { success: false, error: error.message || "Erreur lors de la mise à jour." }
+  }
+}
+
+export async function deleteTeamCategory(id: string) {
+  "use server"
+  try {
+    await (prisma as any).teamCategory.delete({ where: { id } })
+    safeRevalidatePath("/backoffice/settings")
+    return { success: true, message: "Catégorie supprimée." }
+  } catch (error: any) {
+    return { success: false, error: error.message || "Erreur lors de la suppression." }
+  }
+}
+
+// ─── TÉMOIGNAGES CRUD ────────────────────────────────────────────────────────
+
+export async function getAllTemoignages() {
+  try {
+    const items = await (prisma as any).temoignage.findMany({
+      orderBy: [{ featured: "desc" }, { order: "asc" }, { createdAt: "desc" }],
+    })
+    return { success: true, items }
+  } catch (error: any) {
+    console.error("Error fetching temoignages:", error)
+    return { success: false, error: error.message || "Erreur lors de la récupération.", items: [] }
+  }
+}
+
+export async function createTemoignage(data: any) {
+  "use server"
+  try {
+    if (!data.authorName?.trim()) return { success: false, error: "Le nom de l'auteur est obligatoire." }
+    if (!data.quoteFr?.trim()) return { success: false, error: "Le témoignage en français est obligatoire." }
+
+    const item = await (prisma as any).temoignage.create({
+      data: {
+        authorName: data.authorName.trim(),
+        authorRole: data.authorRole?.trim() || "",
+        authorType: data.authorType || "VOLUNTEER",
+        authorOrg: data.authorOrg?.trim() || null,
+        photoUrl: data.photoUrl?.trim() || null,
+        quoteFr: data.quoteFr.trim(),
+        quoteEn: data.quoteEn?.trim() || null,
+        quoteDe: data.quoteDe?.trim() || null,
+        rating: data.rating ?? null,
+        featured: data.featured ?? false,
+        order: data.order ?? 0,
+      },
+    })
+    safeRevalidatePath("/backoffice/temoignages")
+    safeRevalidatePath("/[lang]")
+    return { success: true, item, message: "Témoignage créé." }
+  } catch (error: any) {
+    console.error("Error creating temoignage:", error)
+    return { success: false, error: error.message || "Erreur lors de la création." }
+  }
+}
+
+export async function updateTemoignage(id: string, data: any) {
+  "use server"
+  try {
+    const updateData: any = {}
+    if (data.authorName !== undefined) updateData.authorName = data.authorName.trim()
+    if (data.authorRole !== undefined) updateData.authorRole = data.authorRole.trim()
+    if (data.authorType !== undefined) updateData.authorType = data.authorType
+    if (data.authorOrg !== undefined) updateData.authorOrg = data.authorOrg?.trim() || null
+    if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl?.trim() || null
+    if (data.quoteFr !== undefined) updateData.quoteFr = data.quoteFr.trim()
+    if (data.quoteEn !== undefined) updateData.quoteEn = data.quoteEn?.trim() || null
+    if (data.quoteDe !== undefined) updateData.quoteDe = data.quoteDe?.trim() || null
+    if (data.rating !== undefined) updateData.rating = data.rating
+    if (data.featured !== undefined) updateData.featured = Boolean(data.featured)
+    if (data.order !== undefined) updateData.order = Number(data.order)
+
+    const item = await (prisma as any).temoignage.update({ where: { id }, data: updateData })
+    safeRevalidatePath("/backoffice/temoignages")
+    safeRevalidatePath("/[lang]")
+    return { success: true, item, message: "Témoignage mis à jour." }
+  } catch (error: any) {
+    console.error("Error updating temoignage:", error)
+    return { success: false, error: error.message || "Erreur lors de la mise à jour." }
+  }
+}
+
+export async function deleteTemoignage(id: string) {
+  "use server"
+  try {
+    await (prisma as any).temoignage.delete({ where: { id } })
+    safeRevalidatePath("/backoffice/temoignages")
+    safeRevalidatePath("/[lang]")
+    return { success: true, message: "Témoignage supprimé." }
+  } catch (error: any) {
+    console.error("Error deleting temoignage:", error)
+    return { success: false, error: error.message || "Erreur lors de la suppression." }
+  }
+}
+
 
 

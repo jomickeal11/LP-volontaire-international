@@ -10,6 +10,7 @@ import {
   toggleArticleFeatured,
   createArticleCategory,
 } from "@/lib/cms-actions"
+import { useConfirm } from "@/components/admin/ConfirmProvider"
 
 interface ArticleItem {
   id: string
@@ -58,6 +59,7 @@ export default function AdminArticles() {
   const [submitting, setSubmitting] = useState(false)
   const [translating, setTranslating] = useState(false)
   const [translatingField, setTranslatingField] = useState<string | null>(null)
+  const confirm = useConfirm()
   const [translationNotice, setTranslationNotice] = useState("")
   const [showTranslationHelp, setShowTranslationHelp] = useState(true)
   const [error, setError] = useState("")
@@ -361,9 +363,13 @@ export default function AdminArticles() {
   }
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Supprimer l'article "${title}" ? Cette action est irréversible.`)) {
-      return
-    }
+    const ok = await confirm({
+      title: "Supprimer l'article ?",
+      message: `Supprimer l'article "${title}" ? Cette action est irréversible.`,
+      confirmLabel: "Supprimer"
+    })
+    if (!ok) return
+
     try {
       await deleteArticle(id)
       setArticles((prev) => prev.filter((a) => a.id !== id))
@@ -604,7 +610,7 @@ export default function AdminArticles() {
                 </div>
                 <p className="text-amber-800 pr-6">
                   Le site applique une <strong>séparation stricte des langues</strong> : un article non traduit en anglais ou en allemand 
-                  <strong>ne sera pas visible</strong> sur <em>/en/actualites</em> et <em>/de/aktuelles</em> afin de maintenir un contenu éditorial irréprochable.
+                  <strong>ne sera pas visible</strong> sur <em>/en/actualites</em> et <em>/de/actualites</em> afin de maintenir un contenu éditorial irréprochable.
                 </p>
                 <p className="text-amber-700 text-[11px]">
                   Cliquez sur <strong>« Traduire vers EN & DE »</strong> dans l'onglet français pour traduire le titre, l'extrait et le contenu en un clic.

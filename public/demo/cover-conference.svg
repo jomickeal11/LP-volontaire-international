@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-label="APTIC-R - Conférence">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#002244"/>
+      <stop offset="1" stop-color="#003366"/>
+    </linearGradient>
+    <pattern id="dots" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="2" fill="#ffffff" opacity="0.10"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <rect width="1200" height="675" fill="url(#dots)"/>
+  <g transform="translate(93.75,0) scale(0.84375)" data-fit="16-9">
+    <g opacity="0.28" fill="#ffffff">
+      <rect x="90" y="230" width="620" height="46" rx="23"/>
+      <rect x="90" y="300" width="520" height="46" rx="23"/>
+      <rect x="90" y="370" width="580" height="46" rx="23"/>
+    </g>
+    <g opacity="0.9" fill="none" stroke="#ffffff" stroke-width="4">
+      <circle cx="980" cy="300" r="70"/>
+      <circle cx="880" cy="420" r="45"/>
+      <path d="M880 420 L980 300" stroke-width="3"/>
+    </g>
+    <circle cx="980" cy="300" r="120" fill="#007BFF" opacity="0.14"/>
+    <text x="90" y="150" font-family="Montserrat, Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#7fc4ff" letter-spacing="6">APTIC-R</text>
+    <text x="90" y="620" font-family="Montserrat, Segoe UI, Arial, sans-serif" font-size="76" font-weight="800" fill="#ffffff">Conférence</text>
+    <text x="90" y="678" font-family="Montserrat, Segoe UI, Arial, sans-serif" font-size="28" fill="#dbe7f2">Événements &amp; Formations — visuel de démonstration</text>
+  </g>
+</svg>

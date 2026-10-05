@@ -5,6 +5,7 @@ import Link from "next/link"
 import { getProjects, getDomaines, createProject, deleteProject, updateProject } from "@/lib/cms-actions"
 import { translateCmsFieldsAction } from "@/lib/translator"
 import { ExternalLink, Star } from "lucide-react"
+import { useConfirm } from "@/components/admin/ConfirmProvider"
 
 interface ProjectItem {
   id: string
@@ -54,6 +55,7 @@ interface DomaineItem {
 }
 
 export default function AdminProjects() {
+  const confirm = useConfirm()
   const [projects, setProjects] = useState<ProjectItem[]>([])
   const [domaines, setDomaines] = useState<DomaineItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -354,9 +356,12 @@ export default function AdminProjects() {
 
       if (conflictingProject) {
         const nextAvailable = Math.max(...projects.map((p) => p.displayOrder || 0), 0) + 1
-        const confirmShift = confirm(
-          `Le projet "${conflictingProject.titleFr}" utilise déjà l'ordre d'affichage n°${formData.displayOrder}.\n\nVoulez-vous réattribuer l'ordre ${nextAvailable} au projet existant pour libérer la place ?`
-        )
+        const confirmShift = await confirm({
+          title: "Conflit d'ordre d'affichage",
+          message: `Le projet « ${conflictingProject.titleFr} » utilise déjà l'ordre n°${formData.displayOrder}. Voulez-vous réattribuer l'ordre ${nextAvailable} au projet existant pour libérer la place ?`,
+          confirmLabel: "Réattribuer",
+          cancelLabel: "Non, garder",
+        })
         if (confirmShift) {
           await updateProject(conflictingProject.id, { displayOrder: nextAvailable })
         }
@@ -416,9 +421,12 @@ export default function AdminProjects() {
   }
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Supprimer le projet "${title}" ? Cette action est irréversible.`)) {
-      return
-    }
+    const ok = await confirm({
+      title: "Supprimer le projet ?",
+      message: `Supprimer le projet « ${title} » ? Cette action est irréversible.`,
+      confirmLabel: "Supprimer",
+    })
+    if (!ok) return
     try {
       await deleteProject(id)
       setProjects((prev) => prev.filter((p) => p.id !== id))

@@ -7,6 +7,7 @@ import { logoutAction } from "@/actions/auth"
 import { getApplicationsCount } from "@/lib/actions"
 import { useEffect, useState } from "react"
 import { AdminHeaderProvider } from "@/lib/AdminHeaderContext"
+import { ConfirmProvider } from "@/components/admin/ConfirmProvider"
 
 export default function AdminClientLayout({
   children,
@@ -113,16 +114,18 @@ export default function AdminClientLayout({
   }
 
   return (
-    <AdminHeaderProvider>
-      <AdminLayout
-        currentPage={currentPage}
-        navigate={handleNavigate}
-        onLogout={handleLogout}
-        applicationsCount={appCount}
-        lang={lang}
-      >
-        {children}
-      </AdminLayout>
-    </AdminHeaderProvider>
+    <ConfirmProvider>
+      <AdminHeaderProvider>
+        <AdminLayout
+          currentPage={currentPage}
+          navigate={handleNavigate}
+          onLogout={handleLogout}
+          applicationsCount={appCount}
+          lang={lang}
+        >
+          {children}
+        </AdminLayout>
+      </AdminHeaderProvider>
+    </ConfirmProvider>
   )
 }

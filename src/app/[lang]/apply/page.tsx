@@ -1,6 +1,5 @@
 "use client"
 
-import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import ApplyPage from "@/views/ApplyPage"
 import type { Language, Page } from "@/types"
@@ -24,7 +23,7 @@ export default function ApplyRoute({
       case "apply":
         break
       case "partner":
-        router.push(`/${lang}/partners`)
+        router.push(`/${lang}/partenaires`)
         break
       default:
         router.push(`/${lang}`)
@@ -41,12 +40,7 @@ export default function ApplyRoute({
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header
-        lang={language}
-        setLang={handleSetLang}
-        currentPage="apply"
-        navigate={handleNavigate}
-      />
+      {/* Header : parcours de formulaire → header simplifié, rendu par ApplyPage. */}
       <main className="flex-1">
         <ApplyPage lang={language} navigate={handleNavigate} setLang={handleSetLang} />
       </main>

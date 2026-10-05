@@ -14,6 +14,7 @@ import {
   Line,
 } from "recharts"
 import type { AnalyticsPageData } from "../../lib/dashboard"
+import CampaignLinkGenerator from "./CampaignLinkGenerator"
 
 // APTIC-R Official Brand Tokens
 const BLUE = "#174F7A"
@@ -65,6 +66,16 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
   }
 
   const eventsSummary = data?.eventsSummary || []
+
+  const utmData = data?.utmData || {
+    topCampaigns: [],
+    topSources: [],
+    topMediums: [],
+    withUtm: 0,
+    withoutUtm: 0,
+  }
+
+  const savedLinks = data?.savedLinks || []
 
   return (
     <div className="space-y-8 pb-12">
@@ -481,6 +492,122 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ── UTM : GÉNÉRATEUR DE LIENS DE CAMPAGNE ────────────────────────── */}
+      <section className="space-y-4">
+        <CampaignLinkGenerator savedLinks={savedLinks} />
+      </section>
+
+      {/* ── UTM : ATTRIBUTION DES CAMPAGNES ────────────────────────────────────── */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            Attribution des campagnes
+          </span>
+          <span className="text-xs text-slate-400">
+            Données UTM first-touch enregistrées dans PostgreSQL
+          </span>
+        </div>
+
+        {utmData.topCampaigns.length === 0 && utmData.withUtm === 0 ? (
+          <div className="bg-white rounded-xl p-8 border border-[#EAF0F4] shadow-xs text-center">
+            <p className="text-sm font-semibold text-slate-600 mb-1">Aucune donnée UTM sur la période</p>
+            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+              Les paramètres UTM sont capturés automatiquement à la première visite et associés aux candidatures et demandes de partenariat.
+              Ajoutez <code className="bg-slate-100 px-1 rounded">?utm_campaign=…</code> à vos liens de campagne.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            {/* Top campagnes */}
+            <div className="lg:col-span-2 bg-white rounded-xl p-5 border border-[#EAF0F4] shadow-xs flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">Top campagnes</h3>
+                  <span className="text-xs text-slate-400">Candidatures + demandes partenaires par utm_campaign</span>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs font-mono text-slate-500">
+                    <span className="font-semibold text-slate-700">{utmData.withUtm}</span> avec UTM
+                    {" · "}
+                    <span className="text-slate-400">{utmData.withoutUtm}</span> sans
+                  </div>
+                </div>
+              </div>
+              {utmData.topCampaigns.length > 0 ? (
+                <div className="flex flex-col gap-1.5">
+                  {utmData.topCampaigns.map((c, i) => (
+                    <div key={c.campaign} className="flex items-center gap-3 text-xs">
+                      <span className="w-4 shrink-0 text-slate-400 font-mono text-right">{i + 1}.</span>
+                      <span className="flex-1 font-medium text-slate-700 truncate" title={c.campaign}>{c.campaign}</span>
+                      <span className="shrink-0 flex gap-2">
+                        {c.applications > 0 && (
+                          <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-mono font-semibold">
+                            {c.applications} cand.
+                          </span>
+                        )}
+                        {c.partnerRequests > 0 && (
+                          <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-mono font-semibold">
+                            {c.partnerRequests} part.
+                          </span>
+                        )}
+                        <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono font-bold">
+                          {c.total} total
+                        </span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-xs text-slate-400 italic py-6">
+                  Aucun utm_campaign renseigné sur la période
+                </div>
+              )}
+            </div>
+
+            {/* Sources & Médiums */}
+            <div className="bg-white rounded-xl p-5 border border-[#EAF0F4] shadow-xs flex flex-col gap-5">
+              {/* utm_source */}
+              <div>
+                <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-2">
+                  Sources (utm_source)
+                </span>
+                {utmData.topSources.length > 0 ? (
+                  <div className="flex flex-col gap-1.5">
+                    {utmData.topSources.map((s) => (
+                      <div key={s.source} className="flex items-center justify-between text-xs">
+                        <span className="text-slate-600 font-medium truncate max-w-[140px]" title={s.source}>{s.source}</span>
+                        <span className="font-mono font-semibold text-slate-800">{s.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-xs text-slate-400 italic">Aucune donnée</div>
+                )}
+              </div>
+
+              {/* utm_medium */}
+              <div className="pt-3 border-t border-slate-100">
+                <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-2">
+                  Médiums (utm_medium)
+                </span>
+                {utmData.topMediums.length > 0 ? (
+                  <div className="flex flex-col gap-1.5">
+                    {utmData.topMediums.map((m) => (
+                      <div key={m.medium} className="flex items-center justify-between text-xs">
+                        <span className="text-slate-600 font-medium truncate max-w-[140px]" title={m.medium}>{m.medium}</span>
+                        <span className="font-mono font-semibold text-slate-800">{m.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-xs text-slate-400 italic">Aucune donnée</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* ── 4. BLOC ÉVÉNEMENTS MÉTIER (Tableau synthétique) ──────────────────── */}

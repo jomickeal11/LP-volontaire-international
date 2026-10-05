@@ -11,6 +11,7 @@ import {
   revokeMembership,
   updateMemberApplicationData,
 } from "@/lib/cms-actions"
+import PhoneInputField, { splitPhoneNumber } from "@/components/PhoneInputField"
 
 interface MemberApplicationRecord {
   id: string
@@ -93,6 +94,9 @@ export default function AdminMemberApplications({}: AdminMemberApplicationsProps
   // Édition de données sans changement de statut
   const [isEditing, setIsEditing] = useState(false)
   const [editFormData, setEditFormData] = useState<Partial<MemberApplicationRecord>>({})
+  /** Indicatif du numéro en cours d'édition, reconstitué à l'ouverture. */
+  const [editPhoneDial, setEditPhoneDial] = useState("+228")
+  const [editPhoneIso, setEditPhoneIso] = useState("TG")
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState("")
 
@@ -149,11 +153,16 @@ export default function AdminMemberApplications({}: AdminMemberApplicationsProps
 
   const startEditing = () => {
     if (!selectedApp) return
+    // Le numéro en base est complet : on rend l'indicatif au sélecteur plutôt
+    // que de le laisser dans le champ texte.
+    const phone = splitPhoneNumber(selectedApp.phone)
+    setEditPhoneDial(phone.dial)
+    setEditPhoneIso(phone.iso)
     setEditFormData({
       firstName: selectedApp.firstName,
       lastName: selectedApp.lastName,
       email: selectedApp.email,
-      phone: selectedApp.phone || "",
+      phone: phone.local,
       profession: selectedApp.profession || "",
       organization: selectedApp.organization || "",
       country: selectedApp.country,
@@ -176,7 +185,9 @@ export default function AdminMemberApplications({}: AdminMemberApplicationsProps
         firstName: editFormData.firstName,
         lastName: editFormData.lastName,
         email: editFormData.email,
-        phone: editFormData.phone,
+        phone: editFormData.phone?.trim()
+          ? `${editPhoneDial} ${editFormData.phone.trim()}`.trim()
+          : "",
         profession: editFormData.profession,
         organization: editFormData.organization,
         country: editFormData.country,
@@ -708,12 +719,14 @@ export default function AdminMemberApplications({}: AdminMemberApplicationsProps
                     />
                   </div>
                   <div>
-                    <label className="font-semibold text-slate-700 block mb-1">Téléphone</label>
-                    <input
-                      type="text"
+                    <PhoneInputField
+                      label="Téléphone"
+                      size="sm"
                       value={editFormData.phone || ""}
-                      onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-[#174F7A]"
+                      onChange={(v) => setEditFormData({ ...editFormData, phone: v })}
+                      onCountryChange={(dial) => setEditPhoneDial(dial)}
+                      defaultDial={editPhoneDial}
+                      defaultIso={editPhoneIso}
                     />
                   </div>
                   <div>

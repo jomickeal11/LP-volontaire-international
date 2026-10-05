@@ -109,6 +109,25 @@ export interface AnalyticsPageData {
     professions: { profession: string; count: number }[]
     durations: { label: string; count: number; percentage: number }[]
   }
+  // UTM campaign attribution (from Postgres, no GA4 needed)
+  utmData: {
+    topCampaigns: { campaign: string; applications: number; partnerRequests: number; total: number }[]
+    topSources: { source: string; count: number }[]
+    topMediums: { medium: string; count: number }[]
+    withUtm: number
+    withoutUtm: number
+  }
+  // Liens de campagne sauvegardés par l'équipe
+  savedLinks: {
+    id: string
+    label: string
+    destinationPath: string
+    channel: string
+    utmCampaign: string
+    utmContent: string | null
+    generatedUrl: string
+    createdAt: string
+  }[]
   // System Events Table
   eventsSummary: {
     eventName: string
@@ -414,7 +433,12 @@ export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Pro
     application_submitted: { count: 0, lastDate: null },
     partner_request_click: { count: 0, lastDate: null },
     partner_request_started: { count: 0, lastDate: null },
+    partner_request: { count: 0, lastDate: null },
+    // Conservé pendant la transition (compatibilité).
     partner_request_submitted: { count: 0, lastDate: null },
+    // Deux compteurs distincts : ne jamais les additionner dans un même KPI
+    // générique, sinon un guide téléchargé serait compté deux fois.
+    resource_download: { count: 0, lastDate: null },
     volunteer_guide_download: { count: 0, lastDate: null },
     language_switch: { count: 0, lastDate: null },
     contact_click: { count: 0, lastDate: null },
@@ -438,10 +462,15 @@ export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Pro
   const formsStarted = Math.max(ga4Data.events?.application_started || 0, formsSubmitted)
 
   // Partner counts
-  const partnerRequestsSubmitted = await (prisma as any).demandePartenariat.count({
+  const partnerRequestsFromDb = await (prisma as any).demandePartenariat.count({
     where: { createdAt: { gte: cutoffDate } },
   }).catch(() => 0)
   const partnerClicks = ga4Data.events?.partner_request_click || 0
+  // Événement canonique `partner_request` : seul événement envoyé depuis le frontend.
+  // Repli sur la base de données si GA4 n'est pas connecté.
+  const partnerRequestsCanonical = ga4Data.events?.partner_request || 0
+  const partnerRequestsSubmitted =
+    partnerRequestsCanonical > 0 ? partnerRequestsCanonical : partnerRequestsFromDb
   const partnerFormsStarted = Math.max(ga4Data.events?.partner_request_started || 0, partnerRequestsSubmitted)
 
   // Countries
@@ -519,17 +548,72 @@ export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Pro
     percentage: applications.length > 0 ? Math.round((count / applications.length) * 100) : 0,
   }))
 
+  // UTM attribution (PostgreSQL only — no GA4 required)
+  const [utmApps, utmPartners] = await Promise.all([
+    prisma.candidature.findMany({
+      select: { utmCampaign: true, utmSource: true, utmMedium: true },
+      where: { createdAt: { gte: cutoffDate } },
+    }),
+    (prisma as any).demandePartenariat.findMany({
+      select: { utmCampaign: true, utmSource: true, utmMedium: true },
+      where: { createdAt: { gte: cutoffDate } },
+    }).catch(() => [] as { utmCampaign: string | null; utmSource: string | null; utmMedium: string | null }[]),
+  ])
+
+  const campaignMap: Record<string, { applications: number; partnerRequests: number }> = {}
+  const sourceMap2: Record<string, number> = {}
+  const mediumMap: Record<string, number> = {}
+  let withUtm = 0
+  let withoutUtm = 0
+
+  for (const app of utmApps) {
+    const hasUtm = !!(app.utmCampaign || app.utmSource || app.utmMedium)
+    if (hasUtm) withUtm++; else withoutUtm++
+    if (app.utmCampaign) {
+      if (!campaignMap[app.utmCampaign]) campaignMap[app.utmCampaign] = { applications: 0, partnerRequests: 0 }
+      campaignMap[app.utmCampaign].applications++
+    }
+    if (app.utmSource) sourceMap2[app.utmSource] = (sourceMap2[app.utmSource] || 0) + 1
+    if (app.utmMedium) mediumMap[app.utmMedium] = (mediumMap[app.utmMedium] || 0) + 1
+  }
+  for (const pr of utmPartners as { utmCampaign: string | null; utmSource: string | null; utmMedium: string | null }[]) {
+    if (pr.utmCampaign) {
+      if (!campaignMap[pr.utmCampaign]) campaignMap[pr.utmCampaign] = { applications: 0, partnerRequests: 0 }
+      campaignMap[pr.utmCampaign].partnerRequests++
+    }
+    if (pr.utmSource) sourceMap2[pr.utmSource] = (sourceMap2[pr.utmSource] || 0) + 1
+    if (pr.utmMedium) mediumMap[pr.utmMedium] = (mediumMap[pr.utmMedium] || 0) + 1
+  }
+
+  const topCampaigns = Object.entries(campaignMap)
+    .map(([campaign, v]) => ({ campaign, ...v, total: v.applications + v.partnerRequests }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10)
+
+  const topSources = Object.entries(sourceMap2)
+    .map(([source, count]) => ({ source, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8)
+
+  const topMediums = Object.entries(mediumMap)
+    .map(([medium, count]) => ({ medium, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6)
+
+  const utmData = { topCampaigns, topSources, topMediums, withUtm, withoutUtm }
+
   // Events summary list (PostgreSQL Business Events Only)
   const eventMeta: Record<string, string> = {
     application_submitted: "Candidature soumise",
-    partner_request_submitted: "Demande de partenariat soumise",
-    // We can add more business events here as they are added to EvenementStatistique
+    // Événement canonique (le legacy partner_request_submitted reste compté
+    // à part pour la transition, sans être affiché une seconde fois).
+    partner_request: "Demande de partenariat soumise",
   }
 
   const eventsSummary = Object.keys(eventMeta).map((name) => ({
     eventName: name,
     label: eventMeta[name],
-    count: eventCounts[name]?.count || (name === "application_submitted" ? applications.length : name === "partner_request_submitted" ? partnerRequestsSubmitted : 0),
+    count: eventCounts[name]?.count || (name === "application_submitted" ? applications.length : name === "partner_request" ? partnerRequestsSubmitted : 0),
     lastOccurred: eventCounts[name]?.lastDate
       ? new Intl.DateTimeFormat(locale, {
           day: "2-digit",
@@ -566,6 +650,24 @@ export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Pro
       professions,
       durations,
     },
+    utmData,
+    savedLinks: await (prisma as any).lienCampagne
+      .findMany({
+        orderBy: { createdAt: "desc" },
+        take: 50,
+        select: {
+          id:              true,
+          label:           true,
+          destinationPath: true,
+          channel:         true,
+          utmCampaign:     true,
+          utmContent:      true,
+          generatedUrl:    true,
+          createdAt:       true,
+        },
+      })
+      .then((rows: any[]) => rows.map((r: any) => ({ ...r, createdAt: r.createdAt.toISOString() })))
+      .catch(() => []),
     eventsSummary,
   }
 }

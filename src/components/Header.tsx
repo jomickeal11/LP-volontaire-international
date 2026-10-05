@@ -77,6 +77,7 @@ export default function Header({
       ],
     },
     { label: t.news, page: "news" as Page },
+    { label: (t as any).events || "Événements", page: "events" as Page },
     { label: t.contact, page: "contact" as Page },
   ]
 
@@ -153,7 +154,7 @@ export default function Header({
   }
 
   return (
-    <header className="fixed top-2 left-2 right-2 lg:top-4 lg:left-4 lg:right-4 z-50">
+    <header className="fixed top-2 left-2 right-2 lg:top-4 lg:left-4 lg:right-4 z-50" style={{ minHeight: '64px', contain: 'layout' }}>
       <div
         className="rounded-xl px-4 sm:px-6 h-14 lg:h-16 flex items-center justify-between transition-all duration-300"
         style={{
@@ -171,12 +172,15 @@ export default function Header({
             className="flex items-center group text-left cursor-pointer transition-transform hover:scale-[1.02]"
             aria-label="APTIC-R Home"
           >
-            <ApticLogo variant="header" lang={lang} />
+            <div className="min-h-[48px] flex items-center">
+              <ApticLogo variant="header" lang={lang} />
+            </div>
           </button>
         </div>
 
         {/* Center: Desktop Nav */}
-        <nav className="hidden lg:flex flex-[2] items-center justify-center gap-1 xl:gap-2">
+        <nav className="hidden lg:flex flex-[2] items-center justify-center gap-1 
+xl:gap-2 min-h-[40px]">
           {NAV.map((item) => {
             const isActive = isDropdownActive(item)
             const hasChildren = item.children && item.children.length > 0
@@ -276,10 +280,10 @@ export default function Header({
                 }}
                 className="px-2 py-1 text-[9px] sm:text-[10px] font-bold rounded-full transition-all cursor-pointer uppercase"
                 style={{
-                  backgroundColor: lang === l ? "rgba(0,51,102,0.06)" : "transparent",
-                  color: lang === l ? BLUE : "#233B4D",
+                  backgroundColor: currentLang === l ? "rgba(0,51,102,0.06)" : "transparent",
+                  color: currentLang === l ? BLUE : "#233B4D",
                 }}
-                aria-current={lang === l ? "true" : undefined}
+                aria-current={currentLang === l ? "true" : undefined}
               >
                 {l}
               </button>
@@ -433,6 +437,28 @@ export default function Header({
                 })}
               </div>
               
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between px-2">
+                <span className="text-xs font-bold text-slate-500 uppercase">Langue / Language</span>
+                <div className="flex items-center p-0.5 rounded-full border border-[rgba(0,51,102,0.12)] bg-[#F5F7F9]">
+                  {(["FR", "EN", "DE"] as Language[]).map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => {
+                        trackEvent("language_switch", { lang: l, source: "mobile_menu" })
+                        setLang(l)
+                        setMobileOpen(false)
+                      }}
+                      className="px-2.5 py-1 text-[10px] font-bold rounded-full transition-all cursor-pointer uppercase"
+                      style={{
+                        backgroundColor: currentLang === l ? BLUE : "transparent",
+                        color: currentLang === l ? "#FFFFFF" : "#233B4D",
+                      }}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="mt-3 pt-3 sm:pt-4 border-t border-slate-100 flex justify-center pb-1">
                 {(() => {
                   const isVolunteering = currentPage === "volunteering"

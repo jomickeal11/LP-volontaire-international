@@ -5,8 +5,10 @@ import AdminLayout from "@/views/admin/AdminLayout"
 import type { Page } from "@/types"
 import { logoutAction } from "@/actions/auth"
 import { getApplicationsCount } from "@/lib/actions"
+import { getEventsUnreadParticipationCounts } from "@/lib/event-participation-actions"
 import { useEffect, useState } from "react"
 import { AdminHeaderProvider } from "@/lib/AdminHeaderContext"
+import { ConfirmProvider } from "@/components/admin/ConfirmProvider"
 
 export default function AdminClientLayout({
   children,
@@ -16,10 +18,41 @@ export default function AdminClientLayout({
   const pathname = usePathname()
   const router = useRouter()
   const [appCount, setAppCount] = useState<number>()
+  /**
+   * Demandes de participation jamais consultées.
+   *
+   * Indicateur interne discret : aucun e-mail, aucune notification navigateur,
+   * aucun popup. Le compteur est relu quand l'administrateur ouvre ou ferme la
+   * liste des demandes d'un événement.
+   */
+  const [eventsUnreadCount, setEventsUnreadCount] = useState(0)
+
+  const refreshUnread = () => {
+    getEventsUnreadParticipationCounts()
+      .then((res) => {
+        if (res.success) setEventsUnreadCount(res.total)
+      })
+      .catch(console.error)
+  }
 
   useEffect(() => {
     getApplicationsCount().then(setAppCount).catch(console.error)
+    refreshUnread()
   }, [])
+
+  // Le compteur est relu au retour de focus et dès qu'un écran signale qu'une
+  // liste de demandes vient d'être consultée (les demandes sont alors marquées
+  // lues en base) : le point de la barre latérale retombe sans rechargement.
+  useEffect(() => {
+    const onFocus = () => refreshUnread()
+    const onParticipationUpdated = () => refreshUnread()
+    window.addEventListener("focus", onFocus)
+    window.addEventListener("aptic:participation-updated", onParticipationUpdated)
+    return () => {
+      window.removeEventListener("focus", onFocus)
+      window.removeEventListener("aptic:participation-updated", onParticipationUpdated)
+    }
+  }, [pathname])
 
   // Language is no longer part of the URL — read from cookie or default to "fr"
   const [lang, setLang] = useState("fr")
@@ -61,6 +94,10 @@ export default function AdminClientLayout({
     currentPage = "admin-candidates"
   else if (pathname?.includes("/applications"))
     currentPage = "admin-applications"
+  else if (pathname?.includes("/temoignages"))
+    currentPage = "admin-temoignages"
+  else if (pathname?.includes("/medias"))
+    currentPage = "admin-medias"
   else if (pathname?.includes("/settings"))
     currentPage = "admin-settings"
   else if (pathname?.includes("/login")) return <>{children}</>
@@ -100,6 +137,12 @@ export default function AdminClientLayout({
       case "admin-messages":
         router.push("/backoffice/messages")
         break
+      case "admin-temoignages":
+        router.push("/backoffice/temoignages")
+        break
+      case "admin-medias":
+        router.push("/backoffice/medias")
+        break
       case "admin-applications":
         router.push("/backoffice/applications")
         break
@@ -132,16 +175,19 @@ export default function AdminClientLayout({
   }
 
   return (
-    <AdminHeaderProvider>
-      <AdminLayout
-        currentPage={currentPage}
-        navigate={handleNavigate}
-        onLogout={handleLogout}
-        applicationsCount={appCount}
-        lang={lang}
-      >
-        {children}
-      </AdminLayout>
-    </AdminHeaderProvider>
+    <ConfirmProvider>
+      <AdminHeaderProvider>
+        <AdminLayout
+          currentPage={currentPage}
+          navigate={handleNavigate}
+          onLogout={handleLogout}
+          applicationsCount={appCount}
+          eventsUnreadCount={eventsUnreadCount}
+          lang={lang}
+        >
+          {children}
+        </AdminLayout>
+      </AdminHeaderProvider>
+    </ConfirmProvider>
   )
 }

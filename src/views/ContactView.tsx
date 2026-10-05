@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { getHeaderMode, ROUTES } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import RequiredAsterisk from "@/components/RequiredAsterisk"
 import type { Language, Page } from "@/types"
@@ -10,6 +11,8 @@ import { getPageUrl } from "@/types"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { isContactPageAvailable } from "@/lib/contact-cms-config"
 import { submitContactMessageAction } from "@/lib/contact-actions"
+import { trackEvent } from "@/lib/tracker"
+import { getUtmSubmissionFields } from "@/lib/utm"
 import { FREQUENT_COUNTRIES, ALL_COUNTRY_CODES } from "@/data/countryPhoneCodes"
 import { GlobeIcon, SearchIcon } from "@/components/Icons"
 
@@ -125,6 +128,7 @@ function PhoneInputField({
                 src={`https://flagcdn.com/w40/${currentCountry.code.toLowerCase()}.png`}
                 alt={currentCountry.name}
                 className="w-5 h-3.5 object-cover rounded-xs shrink-0 shadow-2xs"
+                loading="lazy"
                 onError={(e) => {
                   e.currentTarget.style.display = "none"
                 }}
@@ -158,8 +162,10 @@ function PhoneInputField({
         <input
           ref={inputRef}
           type="tel"
+          inputMode="numeric"
+          pattern="[0-9]*"
           value={phone}
-          onChange={(e) => onPhoneChange(e.target.value)}
+          onChange={(e) => onPhoneChange(e.target.value.replace(/\D/g, ""))}
           placeholder={placeholder || "90 12 34 56"}
           className="flex-1 h-full px-3.5 text-sm outline-none bg-transparent text-[#142332]"
         />
@@ -624,7 +630,7 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
 
     return (
       <div className="min-h-screen flex flex-col bg-white">
-        <Header lang={lang} setLang={handleSetLang} currentPage="contact" navigate={navigate} />
+        <PageHeader mode={getHeaderMode(ROUTES.contact)} lang={lang} setLang={handleSetLang} currentPage="contact" navigate={navigate} />
         <main className="flex-1 pt-28 pb-16 flex items-center justify-center px-4 bg-[#F7F8FA]">
           <div className="max-w-xl w-full bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-xs text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold uppercase tracking-wider mb-6">
@@ -788,9 +794,16 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
         message: formData.message,
         consent: formData.consent,
         lang: safeLang,
+        // Attribution first-touch (indépendante du consentement Analytics)
+        ...getUtmSubmissionFields(),
       })
 
       if (res.success) {
+        trackEvent("contact_click", {
+          lang: safeLang,
+          source: "contact_form",
+          metadata: { subject: finalSubject },
+        })
         setStatus("SUCCESS")
         setFormData({
           name: "",
@@ -817,7 +830,7 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header lang={lang} setLang={handleSetLang} currentPage="contact" navigate={navigate} />
+      <PageHeader mode={getHeaderMode(ROUTES.contact)} lang={lang} setLang={handleSetLang} currentPage="contact" navigate={navigate} />
 
       <main className="flex-1">
         {/* ── 1. Compact Hero (#F7F8FA) - Fond gris montant jusqu'en haut derrière le header ── */}
@@ -1216,6 +1229,7 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
                   scrolling="no"
                   marginHeight={0}
                   marginWidth={0}
+                  loading="lazy"
                   src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(mapLng) - 0.035}%2C${parseFloat(mapLat) - 0.03}%2C${parseFloat(mapLng) + 0.035}%2C${parseFloat(mapLat) + 0.03}&layer=mapnik&marker=${mapLat}%2C${mapLng}`}
                   className="w-full h-full filter contrast-[1.02]"
                 />

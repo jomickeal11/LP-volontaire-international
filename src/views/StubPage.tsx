@@ -1,6 +1,7 @@
 "use client"
 
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { DEFAULT_HEADER_MODE } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
@@ -83,7 +84,8 @@ export function createStubPage(config: {
 
     return (
       <div className="min-h-screen flex flex-col bg-[#F7F8FA]">
-        <Header
+        <PageHeader
+          mode={DEFAULT_HEADER_MODE}
           lang={language}
           setLang={handleSetLang}
           currentPage={config.page}

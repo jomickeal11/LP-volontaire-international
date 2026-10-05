@@ -8,6 +8,8 @@ interface AdminLayoutProps {
   navigate: (p: Page) => void
   onLogout: () => void
   applicationsCount?: number
+  /** Demandes de participation jamais consultées, pour l'entrée « Événements ». */
+  eventsUnreadCount?: number
   lang?: string
   children: React.ReactNode
 }
@@ -396,6 +398,7 @@ export default function AdminLayout({
   navigate,
   onLogout,
   applicationsCount,
+  eventsUnreadCount = 0,
   lang = "fr",
   children,
 }: AdminLayoutProps) {
@@ -704,6 +707,48 @@ export default function AdminLayout({
             </svg>
           ),
         },
+        {
+          page: "admin-temoignages" as Page,
+          label: "Témoignages",
+          icon: (
+            <svg
+              className="w-4.5 h-4.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              width={18}
+              height={18}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.75}
+                d="M8 10h8m-8 4h5m8-2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          ),
+        },
+        {
+          page: "admin-medias" as Page,
+          label: "Médias & Galerie",
+          icon: (
+            <svg
+              className="w-4.5 h-4.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              width={18}
+              height={18}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.75}
+                d="M4 5a2 2 0 012-2h12a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 12l3.5-4 2.5 2.5L15 12l5 5H7z"
+              />
+            </svg>
+          ),
+        },
     ],
   },
   {
@@ -876,6 +921,17 @@ export default function AdminLayout({
                       {item.icon}
                     </span>
                     <span className="text-sm font-medium">{item.label}</span>
+                    {/* Indicateur « non lu » : un point suivi du nombre, jamais un gros badge. */}
+                    {item.page === "admin-events" && eventsUnreadCount > 0 && (
+                      <span
+                        className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-full bg-[#007BFF]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#007BFF]"
+                        title={`${eventsUnreadCount} demande(s) de participation non consultée(s)`}
+                        aria-label={`${eventsUnreadCount} demande(s) non consultée(s)`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#007BFF]" />
+                        {eventsUnreadCount}
+                      </span>
+                    )}
                   </div>
                 </button>
               )
@@ -982,6 +1038,10 @@ export default function AdminLayout({
         return [{ label: t.nav.partnersList }]
       case "admin-resources":
         return [{ label: "Ressources" }]
+      case "admin-temoignages":
+        return [{ label: "Témoignages" }]
+      case "admin-medias":
+        return [{ label: "Médias & Galerie" }]
       default:
         return [{ label: t.nav.overview }]
     }

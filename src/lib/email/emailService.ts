@@ -7,6 +7,10 @@ import {
 import { renderPartnerConfirmationEmail } from "./templates/partnerConfirmation"
 import { renderAdminNotificationEmail } from "./templates/adminNotification"
 import { renderContactNotificationEmail, type ContactNotificationParams } from "./templates/contactNotification"
+import {
+  renderEventParticipationEmail,
+  type EventParticipationDecision,
+} from "./templates/eventParticipationTemplates"
 import type { CandidateStatus } from "@prisma/client"
 
 export interface ContactMessageEmailInput {
@@ -41,6 +45,20 @@ export interface PartnerEmailInput {
   referenceNumber: string
   country: string
   orgType: string
+  lang?: "FR" | "EN" | "DE"
+}
+
+/** Notification d'une demande de participation à un événement. */
+export interface EventParticipationEmailInput {
+  requestId?: string
+  decision: EventParticipationDecision
+  firstName: string
+  lastName: string
+  email: string
+  eventTitle: string
+  eventDate?: string
+  eventLocation?: string | null
+  rejectionReason?: string | null
   lang?: "FR" | "EN" | "DE"
 }
 
@@ -431,6 +449,84 @@ export class EmailService {
       }
     } catch (err: unknown) {
       console.error("❌ [EmailService] Exception envoi alerte contact:", err)
+      return { emailSent: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  }
+
+  /**
+   * 6. Demande de participation à un événement (accusé PENDING, ou décision
+   *    APPROVED / REJECTED / CANCELLED).
+   *
+   * Contrat strict : CETTE MÉTHODE NE FAIT JAMAIS ÉCHOUER L'OPÉRATION MÉTIER.
+   * Elle ne lève jamais et retourne toujours un objet. Une erreur SMTP est
+   * journalisée puis ignorée : valider une participation ne doit pas dépendre
+   * de la disponibilité d'un serveur d'e-mail.
+   */
+  static async sendEventParticipationEmails(input: EventParticipationEmailInput): Promise<{
+    emailSent: boolean
+    error?: string
+  }> {
+    try {
+      const template = renderEventParticipationEmail({
+        decision: input.decision,
+        firstName: input.firstName,
+        lastName: input.lastName,
+        eventTitle: input.eventTitle,
+        eventDate: input.eventDate,
+        eventLocation: input.eventLocation,
+        lang: input.lang,
+        rejectionReason: input.rejectionReason,
+      })
+
+      const res = await getEmailProvider().sendEmail({
+        to: input.email,
+        replyTo: this.getOfficialContactEmail(),
+        subject: template.subject,
+        html: template.html,
+        text: template.text,
+      })
+
+      // Journalisation best-effort : un échec ici n'a aucune incidence métier.
+      try {
+        await prisma.emailLog.create({
+          data: {
+            eventParticipationRequestId: input.requestId || null,
+            recipient: input.email,
+            recipientName: `${input.firstName} ${input.lastName}`.trim(),
+            subject: template.subject,
+            bodyHtml: template.html,
+            bodyText: template.text ?? null,
+            status: res.success ? "SENT" : "FAILED",
+            error: res.error || null,
+            actionType:
+              input.decision === "PENDING"
+                ? "EVENT_PARTICIPATION_REQUEST"
+                : "EVENT_PARTICIPATION_DECISION",
+            templateKey: input.decision,
+            metadata: {
+              decision: input.decision,
+              lang: input.lang || "FR",
+              eventTitle: input.eventTitle,
+            },
+          },
+        })
+      } catch (logErr) {
+        console.warn("⚠️ [EmailService] Journalisation EmailLog impossible (événement):", logErr)
+      }
+
+      if (res.success) {
+        console.log(
+          `✉️ [EmailService] Demande de participation [${input.decision}] notifiée : ${input.email}`
+        )
+        return { emailSent: true }
+      }
+
+      console.warn(
+        `⚠️ [EmailService] Échec envoi email participation [${input.decision}]: ${res.error}`
+      )
+      return { emailSent: false, error: res.error }
+    } catch (err: unknown) {
+      console.error("❌ [EmailService] Exception envoi email participation:", err)
       return { emailSent: false, error: err instanceof Error ? err.message : String(err) }
     }
   }

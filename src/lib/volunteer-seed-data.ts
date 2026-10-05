@@ -119,16 +119,7 @@ export function getInitialVolunteerEditorialSettings(): Record<string, string> {
       add(`${key}_desc`, point.desc)
     })
 
-    add("volunteer_conditions_table_title", t.support.tableTitle)
-    add("volunteer_conditions_table_summary", t.support.tableSummary)
-    add("volunteer_conditions_status_confirmed", t.support.statusConfirmed)
-    add("volunteer_conditions_status_pending", t.support.statusPending)
-    t.support.tableItems.forEach(([label, detail, status], index) => {
-      const key = `volunteer_conditions_row${index + 1}`
-      add(`${key}_label`, label)
-      add(`${key}_detail`, detail)
-      add(`${key}_status`, status)
-    })
+    // Informations pratiques are now explicit fields and will be left empty by default to not invent content.
 
     add("volunteer_process_step_label", t.appProcess.stepLabel)
     t.appProcess.steps.forEach((step, index) => {

@@ -1,11 +1,12 @@
 "use client"
 
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { getHeaderMode, ROUTES } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import InstitutionalHome from "@/views/InstitutionalHome"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
-import { useRouter, usePathname } from "next/navigation"
+import { useRouter, usePathname, useParams } from "next/navigation"
 import { use } from "react"
 
 export default function HomePage({
@@ -13,12 +14,14 @@ export default function HomePage({
 }: {
   params: Promise<{ lang: string }>
 }) {
-  const { lang } = use(params)
+  const clientParams = useParams()
+  const { lang: initialLang } = use(params)
   const router = useRouter()
   const pathname = usePathname()
+  const rawLang = ((clientParams?.lang as string) || initialLang || "FR").toUpperCase()
+  const language = (["FR", "EN", "DE"].includes(rawLang) ? rawLang : "FR") as Language
 
   const handleNavigate = (page: Page) => {
-    const language = lang.toUpperCase() as Language || "FR"
     const url = getPageUrl(page, language)
     if (page === "home") {
       window.scrollTo({ top: 0, behavior: "smooth" })
@@ -28,15 +31,14 @@ export default function HomePage({
   }
 
   const handleSetLang = (newLang: Language) => {
-    const newPath = pathname.replace(`/${lang}`, `/${newLang.toLowerCase()}`)
-    router.push(newPath || `/${newLang.toLowerCase()}`)
+    const target = newLang.toLowerCase()
+    const newPath = pathname.replace(/^\/(fr|en|de)(\/.*)?$/i, `/${target}$2`) || `/${target}`
+    router.push(newPath.startsWith(`/${target}`) ? newPath : `/${target}${newPath}`)
   }
-
-  const language = lang.toUpperCase() as Language || "FR"
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header
+      <PageHeader mode={getHeaderMode(ROUTES.home)}
         lang={language}
         setLang={handleSetLang}
         currentPage="home"

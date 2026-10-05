@@ -1,6 +1,5 @@
 "use client"
 
-import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import ApplyPage from "@/views/ApplyPage"
 import type { Language, Page } from "@/types"
@@ -31,12 +30,8 @@ export default function PostulerPage({
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header
-        lang={language}
-        setLang={handleSetLang}
-        currentPage="apply"
-        navigate={handleNavigate}
-      />
+      {/* Header : parcours de formulaire → header simplifié. Il est rendu par
+          ApplyPage (cf. convention src/lib/pageLayout.ts : ROUTES.apply). */}
       <main className="flex-1">
         <ApplyPage lang={language} navigate={handleNavigate} setLang={handleSetLang} />
       </main>

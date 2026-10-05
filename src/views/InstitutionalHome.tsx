@@ -6,8 +6,10 @@ import Link from "next/link"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { trackEvent } from "@/lib/tracker"
+import { getUtmSubmissionFields } from "@/lib/utm"
 import { subscribeNewsletter } from "@/lib/cms-actions"
 import { ApticNodeMarker, ApticDash, ApticEyebrow } from "@/components/ApticMarker"
+import OptimizedPhoto from "@/components/OptimizedPhoto"
 
 import { DomainCharterIcon } from "@/components/DomainIcons"
 
@@ -209,12 +211,14 @@ const CONTENT = {
       eyebrow: "RESTEZ INFORMÉ",
       title: "Actualités, projets et initiatives d\u2019APTIC-R",
       desc: "Recevez par courriel nos bilans de projets, annonces d\u2019ateliers et opportunités d\u2019engagement. Pas de spam, désinscription en 1 clic.",
-      namePlaceholder: "Votre prénom (optionnel)",
+      namePlaceholder: "Votre prénom",
       emailPlaceholder: "Votre adresse e-mail",
       consent: "J\u2019accepte de recevoir les courriels d\u2019information d\u2019APTIC-R.",
       btn: "S\u2019inscrire",
       btnLoading: "Inscription...",
-      success: "Merci ! Votre inscription a bien été enregistrée.",
+      success: "Merci pour votre inscription à la lettre d\u2019information APTIC-R.",
+      alreadySubscribed: "Cette adresse est déjà inscrite à la newsletter APTIC-R.",
+      errName: "Veuillez entrer votre prénom.",
       errEmail: "Veuillez entrer une adresse email valide.",
       errConsent: "Veuillez accepter de recevoir la lettre d\u2019information.",
       errGeneral: "Une erreur est survenue lors de l\u2019inscription.",
@@ -355,10 +359,12 @@ const CONTENT = {
       tag: "STAY INFORMED", eyebrow: "STAY INFORMED",
       title: "News, field projects, and initiatives from APTIC-R",
       desc: "Receive our quarterly project summaries, workshop announcements, and calls for volunteers. Unsubscribe anytime.",
-      namePlaceholder: "First name (optional)", emailPlaceholder: "Email address",
+      namePlaceholder: "First name", emailPlaceholder: "Email address",
       consent: "I agree to receive informative emails from APTIC-R.",
       btn: "Subscribe", btnLoading: "Subscribing...",
-      success: "Thank you! You are now subscribed.",
+      success: "Thank you for subscribing to the APTIC-R newsletter.",
+      alreadySubscribed: "This address is already subscribed to the APTIC-R newsletter.",
+      errName: "Please enter your first name.",
       errEmail: "Please enter a valid email address.", errConsent: "Please agree to receive updates.", errGeneral: "An error occurred during subscription.",
     },
     contact: {
@@ -482,10 +488,12 @@ const CONTENT = {
       tag: "INFORMIERT BLEIBEN", eyebrow: "INFORMIERT BLEIBEN",
       title: "Neuigkeiten, Projekte und Initiativen von APTIC-R",
       desc: "Erhalten Sie Berichte, Werkstattankündigungen und Aufrufe für Freiwillige. Abmeldung jederzeit möglich.",
-      namePlaceholder: "Vorname (optional)", emailPlaceholder: "E-Mail-Adresse",
+      namePlaceholder: "Vorname", emailPlaceholder: "E-Mail-Adresse",
       consent: "Ich stimme dem Erhalt von Informationen von APTIC-R zu.",
       btn: "Anmelden", btnLoading: "Anmeldung...",
-      success: "Vielen Dank! Ihre Anmeldung war erfolgreich.",
+      success: "Vielen Dank für Ihre Anmeldung zum APTIC-R Newsletter.",
+      alreadySubscribed: "Diese Adresse ist bereits für den APTIC-R Newsletter registriert.",
+      errName: "Bitte geben Sie Ihren Vornamen ein.",
       errEmail: "Bitte geben Sie eine gültige E-Mail-Adresse ein.", errConsent: "Bitte stimmen Sie dem Erhalt des Rundbriefs zu.", errGeneral: "Bei der Anmeldung ist ein Fehler aufgetreten.",
     },
     contact: {
@@ -544,7 +552,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
     .join(", ")
   const mapLatitude = settings.contact_map_lat ?? ""
   const mapLongitude = settings.contact_map_lng ?? ""
-  const mapZoom = settings.contact_map_zoom ?? ""
+  const mapZoom = (settings.contact_map_zoom ?? "").trim() || "13"
   const mapLabel = settings.contact_map_label ?? ""
   const mapConfigured = Boolean(mapLatitude.trim() && mapLongitude.trim() && mapZoom.trim())
   const contactAccessInfo = settings[`contact_access_info_${safeLang.toLowerCase()}`] ?? ""
@@ -647,60 +655,94 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
     }
   }, [dbProjects, safeLang])
 
-  /* Testimonials list computation - Règle stricte : zéro mélange de langues */
+  /* Testimonials list computation - Règle stricte : zéro mélange de langues.
+     Repli localisé : si le CMS n'a aucune citation traduite dans la langue
+     courante (quoteEn/quoteDe sont facultatifs), on affiche le contenu officiel
+     statique de cette langue — jamais la version française. */
   const testimonialsList = React.useMemo(() => {
-    return dbTestimonials
-      .filter((testimonial) => {
-        const quote = safeLang === "DE" ? testimonial.quoteDe : safeLang === "EN" ? testimonial.quoteEn : testimonial.quoteFr
-        return Boolean(quote?.trim())
-      })
-      .map((testimonial, idx) => ({
-        num: String(idx + 1).padStart(2, "0"),
+    const fromDb = dbTestimonials
+      .map((testimonial) => ({
         quote: safeLang === "DE" ? testimonial.quoteDe : safeLang === "EN" ? testimonial.quoteEn : testimonial.quoteFr,
-        author: testimonial.authorName,
-        role: testimonial.authorRole,
-        village: testimonial.authorOrg ?? "",
-        photoUrl: testimonial.photoUrl,
-      }))  }, [dbTestimonials, safeLang, c.testimonials])
+        author: testimonial.authorName as string,
+        role: testimonial.authorRole as string,
+        village: (testimonial.authorOrg ?? "") as string,
+        photoUrl: testimonial.photoUrl as string | null | undefined,
+      }))
+      .filter((testimonial) => Boolean(testimonial.quote?.trim()))
+
+    const fallback = [
+      {
+        quote: c.testimonials.t1Quote,
+        author: c.testimonials.t1Author,
+        role: c.testimonials.t1Role,
+        village: c.testimonials.t1Village,
+        photoUrl: undefined as string | undefined,
+      },
+      {
+        quote: c.testimonials.t2Quote,
+        author: c.testimonials.t2Author,
+        role: c.testimonials.t2Role,
+        village: c.testimonials.t2Village,
+        photoUrl: undefined as string | undefined,
+      },
+    ].filter((testimonial) => Boolean(testimonial.quote?.trim()))
+
+    const source = fromDb.length > 0 ? fromDb : fallback
+
+    return source.map((testimonial, idx) => ({
+      num: String(idx + 1).padStart(2, "0"),
+      ...testimonial,
+    }))
+  }, [dbTestimonials, safeLang, c.testimonials])
 
   /* Newsletter state */
   const [nlEmail, setNlEmail] = useState("")
   const [nlName, setNlName] = useState("")
   const [nlConsent, setNlConsent] = useState(true)
   const [nlSubmitting, setNlSubmitting] = useState(false)
-  const [nlSuccess, setNlSuccess] = useState(false)
-  const [nlError, setNlError] = useState("")
+  const [nlMessage, setNlMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null)
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setNlMessage(null)
+
+    if (!nlName.trim()) {
+      setNlMessage({ type: "error", text: c.newsletter.errName })
+      return
+    }
     if (!nlEmail || !nlEmail.includes("@")) {
-      setNlError(c.newsletter.errEmail)
+      setNlMessage({ type: "error", text: c.newsletter.errEmail })
       return
     }
     if (!nlConsent) {
-      setNlError(c.newsletter.errConsent)
+      setNlMessage({ type: "error", text: c.newsletter.errConsent })
       return
     }
 
     setNlSubmitting(true)
-    setNlError("")
     try {
       const res = await subscribeNewsletter({
         email: nlEmail,
-        firstName: nlName.trim() || undefined,
+        firstName: nlName.trim(),
         lang: safeLang,
         consent: nlConsent,
+        // Attribution first-touch (indépendante du consentement Analytics)
+        ...getUtmSubmissionFields(),
       })
       if (res.success) {
-        setNlSuccess(true)
-        setNlEmail("")
-        setNlName("")
-        trackEvent("newsletter_subscribe", { lang: safeLang })
+        if ("alreadySubscribed" in res && res.alreadySubscribed) {
+          setNlMessage({ type: "info", text: c.newsletter.alreadySubscribed })
+        } else {
+          setNlMessage({ type: "success", text: c.newsletter.success })
+          setNlEmail("")
+          setNlName("")
+          trackEvent("newsletter_subscribe", { lang: safeLang })
+        }
       } else {
-        setNlError(res.error || c.newsletter.errGeneral)
+        setNlMessage({ type: "error", text: c.newsletter.errGeneral })
       }
     } catch {
-      setNlError(c.newsletter.errGeneral)
+      setNlMessage({ type: "error", text: c.newsletter.errGeneral })
     } finally {
       setNlSubmitting(false)
     }
@@ -709,8 +751,13 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
   /* Testimonial carousel state */
   const [activeTestimonial, setActiveTestimonial] = useState(0)
 
+  /* Recalage de l'index si la liste change (changement de langue) */
+  React.useEffect(() => {
+    setActiveTestimonial((prev) => (prev >= testimonialsList.length ? 0 : prev))
+  }, [testimonialsList.length])
+
   return (
-    <div className="w-full bg-white text-[#16324A] antialiased overflow-x-clip" style={{ fontFamily: "'Montserrat', system-ui, sans-serif" }}>
+    <div className="w-full bg-white text-[#16324A] antialiased overflow-x-clip" style={{ fontFamily: "var(--font-aptic-montserrat), system-ui, sans-serif" }}>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
           01. HERO (FORTE) — PHOTO + OVERLAY #003366 + ACCENT #28A745 + CTA #007BFF
@@ -719,11 +766,16 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
         {/* Photographie de fond */}
         <div className="absolute inset-0">
           <picture>
+            <source srcSet="/hero-aptic-official.avif" type="image/avif" />
+            <source srcSet="/hero-aptic-official.webp" type="image/webp" />
             <img
               src="/hero-aptic-official.jpg"
+              width={1376}
+              height={768}
               alt="APTIC-R — Le numérique au service des territoires ruraux"
               className="w-full h-full object-cover object-[center_35%] lg:object-[68%_40%]"
               fetchPriority="high"
+              decoding="async"
             />
           </picture>
 
@@ -912,13 +964,15 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
             <div className="lg:col-span-5">
               <div className="relative rounded-3xl overflow-hidden shadow-xl border" style={{ backgroundColor: LIGHT_BG, borderColor: BORDER }}>
                 <div className="relative w-full aspect-[16/10] overflow-hidden bg-black/5">
-                  <picture>
-                    <img
-                      src={settings["about_story_image"] ?? ""}
+                  {settings["about_story_image"] ? (
+                    <OptimizedPhoto
+                      src={settings["about_story_image"]}
                       alt={c.about.altPhoto}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover object-[center_30%]"
                     />
-                  </picture>
+                  ) : null}
                 </div>
                 <div className="p-6 sm:p-7 text-white" style={{ backgroundColor: BLUE_INST }}>
                   <div className="flex items-center justify-between mb-2">
@@ -1106,13 +1160,15 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
             <div className="grid lg:grid-cols-12">
               
               <div className="lg:col-span-7 relative min-h-[420px] sm:min-h-[520px]" style={{ backgroundColor: LIGHT_BG }}>
-                <picture>
-                  <img
+                {flagshipProject.image ? (
+                  <OptimizedPhoto
                     src={flagshipProject.image}
                     alt={flagshipProject.title}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover object-center"
                   />
-                </picture>
+                ) : null}
                 <div className="absolute top-6 left-6">
                   <span className="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-white/95 shadow-sm" style={{ color: BLUE_INST }}>
                     {c.projects.flagshipBadge}
@@ -1200,11 +1256,19 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
       ═══════════════════════════════════════════════════════════════════════════ */}
       <section className="relative min-h-[620px] lg:min-h-[700px] flex items-center overflow-hidden">
         <div className="absolute inset-0">
-          <img
-            src="/photo-recit-documentaire.jpg"
-            alt={c.fieldReport.photoAlt}
-            className="w-full h-full object-cover object-center"
-          />
+          <picture>
+            <source srcSet="/photo-recit-documentaire.avif" type="image/avif" />
+            <source srcSet="/photo-recit-documentaire.webp" type="image/webp" />
+            <img
+              src="/photo-recit-documentaire.jpg"
+              width={1024}
+              height={420}
+              alt={c.fieldReport.photoAlt}
+              className="w-full h-full object-cover object-center"
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
           <div
             className="absolute inset-0"
             style={{
@@ -1412,49 +1476,64 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
             </p>
           </div>
 
-          {nlSuccess ? (
-            <div className="p-5 rounded-2xl border text-center text-sm font-bold" style={{ backgroundColor: "#E6F7ED", borderColor: "#A8E6C3", color: "#1B7A3D" }}>
-              {c.newsletter.success}
+          <form onSubmit={handleNewsletterSubmit} className="space-y-4 max-w-xl mx-auto">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="text"
+                required
+                placeholder={c.newsletter.namePlaceholder}
+                value={nlName}
+                onChange={(e) => setNlName(e.target.value)}
+                className="w-full sm:flex-1 px-5 py-3.5 border rounded-xl text-sm focus:outline-none focus:ring-2"
+                style={{ backgroundColor: WHITE, borderColor: BORDER, color: TEXT_MAIN } as React.CSSProperties}
+              />
+              <input
+                type="email"
+                required
+                placeholder={c.newsletter.emailPlaceholder}
+                value={nlEmail}
+                onChange={(e) => setNlEmail(e.target.value)}
+                className="w-full sm:flex-1 px-5 py-3.5 border rounded-xl text-sm focus:outline-none focus:ring-2"
+                style={{ backgroundColor: WHITE, borderColor: BORDER, color: TEXT_MAIN } as React.CSSProperties}
+              />
+              <button
+                type="submit"
+                disabled={nlSubmitting}
+                className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-sm text-white transition-colors cursor-pointer disabled:opacity-60 shadow-sm whitespace-nowrap"
+                style={{ backgroundColor: BLUE_TECH }}
+              >
+                {nlSubmitting ? c.newsletter.btnLoading : c.newsletter.btn}
+              </button>
             </div>
-          ) : (
-            <form onSubmit={handleNewsletterSubmit} className="space-y-4 max-w-xl mx-auto">
-              {nlError && (
-                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700">
-                  {nlError}
-                </div>
-              )}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="email"
-                  required
-                  placeholder={c.newsletter.emailPlaceholder}
-                  value={nlEmail}
-                  onChange={(e) => setNlEmail(e.target.value)}
-                  className="flex-1 px-5 py-3.5 border rounded-xl text-sm focus:outline-none focus:ring-2"
-                  style={{ backgroundColor: WHITE, borderColor: BORDER, color: TEXT_MAIN } as React.CSSProperties}
-                />
-                <button
-                  type="submit"
-                  disabled={nlSubmitting}
-                  className="px-8 py-3.5 rounded-xl font-bold text-sm text-white transition-colors cursor-pointer disabled:opacity-60 shadow-sm whitespace-nowrap"
-                  style={{ backgroundColor: BLUE_TECH }}
-                >
-                  {nlSubmitting ? c.newsletter.btnLoading : c.newsletter.btn}
-                </button>
-              </div>
 
-              <div className="flex items-center gap-2 text-xs pt-1" style={{ color: TEXT_MUTED }}>
-                <input
-                  type="checkbox"
-                  checked={nlConsent}
-                  onChange={(e) => setNlConsent(e.target.checked)}
-                  className="rounded border-gray-300 cursor-pointer"
-                  style={{ accentColor: BLUE_INST }}
-                />
-                <span>{c.newsletter.consent}</span>
-              </div>
-            </form>
-          )}
+            <div className="flex items-center gap-2 text-xs pt-1" style={{ color: TEXT_MUTED }}>
+              <input
+                type="checkbox"
+                checked={nlConsent}
+                onChange={(e) => setNlConsent(e.target.checked)}
+                className="rounded border-gray-300 cursor-pointer"
+                style={{ accentColor: BLUE_INST }}
+              />
+              <span>{c.newsletter.consent}</span>
+            </div>
+
+            {nlMessage && (
+              <p
+                role={nlMessage.type === "error" ? "alert" : "status"}
+                className="text-xs sm:text-[13px] leading-relaxed pt-1"
+                style={{
+                  color:
+                    nlMessage.type === "error"
+                      ? "#B42318"
+                      : nlMessage.type === "info"
+                      ? BLUE_INST
+                      : "#1B7A3D",
+                }}
+              >
+                {nlMessage.text}
+              </p>
+            )}
+          </form>
         </div>
       </section>
 
@@ -1552,6 +1631,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                     scrolling="no"
                     marginHeight={0}
                     marginWidth={0}
+                    loading="lazy"
                     src={mapConfigured ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(mapLongitude) - 0.035}%2C${Number(mapLatitude) - 0.03}%2C${Number(mapLongitude) + 0.035}%2C${Number(mapLatitude) + 0.03}&layer=mapnik&marker=${mapLatitude}%2C${mapLongitude}` : undefined}
                     className={`w-full h-full filter contrast-[1.02] ${mapConfigured ? "" : "hidden"}`}
                   />

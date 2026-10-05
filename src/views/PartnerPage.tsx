@@ -15,6 +15,8 @@ import {
 } from "../components/Icons"
 import { FREQUENT_COUNTRIES, ALL_COUNTRY_CODES } from "../data/countryPhoneCodes"
 import { trackEvent } from "../lib/tracker"
+import { getUtmSubmissionFields } from "../lib/utm"
+import SimplifiedHeader from "@/components/SimplifiedHeader"
 import { getSiteSettings } from "@/lib/cms-actions"
 
 interface PartnerPageProps {
@@ -277,6 +279,7 @@ function PhoneInputField({
                 src={`https://flagcdn.com/w40/${currentCountry.code.toLowerCase()}.png`}
                 alt={currentCountry.name}
                 className="w-5 h-3.5 object-cover rounded-xs shrink-0 shadow-2xs"
+                loading="lazy"
                 onError={(e) => {
                   e.currentTarget.style.display = "none"
                 }}
@@ -309,8 +312,10 @@ function PhoneInputField({
         <input
           ref={inputRef}
           type="tel"
+          inputMode="numeric"
+          pattern="[0-9]*"
           value={phone}
-          onChange={(e) => onPhoneChange(e.target.value)}
+          onChange={(e) => onPhoneChange(e.target.value.replace(/\D/g, ""))}
           placeholder={placeholder || "01 23 45 67 89"}
           className="flex-1 h-full px-3.5 text-sm outline-none bg-transparent"
           style={{ color: TEXT_DARK }}
@@ -361,6 +366,7 @@ function PhoneInputField({
                           src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
                           alt={c.name}
                           className="w-5 h-3.5 object-cover rounded-xs shrink-0 shadow-2xs"
+                          loading="lazy"
                         />
                         <span className="flex-1 truncate">{c.name}</span>
                         <span className="text-slate-500 font-mono text-[11px] shrink-0 font-semibold">
@@ -393,6 +399,7 @@ function PhoneInputField({
                           src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
                           alt={c.name}
                           className="w-5 h-3.5 object-cover rounded-xs shrink-0 shadow-2xs"
+                          loading="lazy"
                         />
                         <span className="flex-1 truncate">{c.name}</span>
                         <span className="text-slate-500 font-mono text-[11px] shrink-0 font-semibold">
@@ -944,6 +951,12 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
       formData.append("message", form.message.trim())
       formData.append("consent", "true")
 
+      // Attribution first-touch (indépendante du consentement Analytics)
+      const utmFields = getUtmSubmissionFields()
+      Object.entries(utmFields).forEach(([key, value]) => {
+        if (value) formData.append(key, value)
+      })
+
       if (form.docFile) {
         formData.append("docFile", form.docFile)
       }
@@ -952,7 +965,8 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
       setLoading(false)
 
       if (res.success && res.data) {
-        trackEvent("partner_request_submitted", {
+        // Événement canonique du cahier des charges.
+        trackEvent("partner_request", {
           lang,
           country: form.country,
           source: form.orgType || "organisation",
@@ -1026,54 +1040,15 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
         fontFamily: "'Plus Jakarta Sans', 'Outfit', system-ui, -apple-system, sans-serif",
       }}
     >
-      {/* ── 1. HEADER (Simple, barre d'identité dédiée au formulaire partenaire) ── */}
-      <header className="sticky top-0 z-40 bg-white border-b" style={{ borderColor: "#EAF0F4" }}>
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Gauche : Logo + APTIC-R Partners */}
-          <button
-            onClick={() => navigate("home")}
-            className="flex items-center gap-3 cursor-pointer text-left group"
-            aria-label="APTIC-R Accueil"
-          >
-            <div className="h-10 sm:h-12 flex items-center justify-center p-0.5 transition-transform group-hover:scale-105">
-              <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={140} height={48} className="h-full w-auto object-contain" unoptimized />
-            </div>
-          </button>
-
-          {/* Droite : Bouton Visiter le site / Retour présentation + Sélecteur FR EN DE */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            <button
-              onClick={() => navigate("partner")}
-              className="hidden sm:flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors cursor-pointer hover:opacity-80"
-              style={{ color: BLUE, backgroundColor: "#E8F2FA" }}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              {currentLang === "DE" ? "Zurück zur Übersicht" : currentLang === "EN" ? "Back to Overview" : "Présentation partenaires"}
-            </button>
-
-            <div className="h-4 w-[1px] bg-slate-200 hidden sm:block" />
-
-            <div className="flex items-center gap-1 bg-[#F7F8FA] p-1 rounded-lg border border-[#EAF0F4]">
-              {(["FR", "EN", "DE"] as Language[]).map((l) => (
-                <button
-                  key={l}
-                  onClick={() => setLang?.(l)}
-                  className="px-2.5 py-1 text-xs font-bold rounded-md transition-all cursor-pointer uppercase"
-                  style={{
-                    backgroundColor: currentLang === l ? "#FFFFFF" : "transparent",
-                    color: currentLang === l ? BLUE : "#5E6B76",
-                    boxShadow: currentLang === l ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                  }}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* ── 1. HEADER SIMPLIFIQUE ──────────────────────────────────────────────
+          Parcours de formulaire partenaire : logo + retour présentation +
+          sélecteur de langue, sans navigation (cf. ROUTES.partnerApply →
+          simplifiedHeader). */}
+      <SimplifiedHeader
+        lang={currentLang}
+        setLang={(l: Language) => setLang?.(l)}
+        backTo="partner"
+      />
 
       {/* ── 2. CONTEXTE PARTENARIAT (Bloc horizontal épuré avec photo) ── */}
       <section className="border-b" style={{ backgroundColor: BG_LIGHT, borderColor: "#EAF0F4" }}>

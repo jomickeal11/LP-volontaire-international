@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { getHeaderMode, ROUTES } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { useRouter, usePathname } from "next/navigation"
+import OptimizedPhoto from "@/components/OptimizedPhoto"
 import { getProjects } from "@/lib/cms-actions"
 
 interface ProjectsViewProps {
@@ -208,9 +210,9 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
             </span>
           </div>
           {p.featuredImage ? (
-            <img src={p.featuredImage} alt={title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <OptimizedPhoto src={p.featuredImage} alt={title} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           ) : (
-            <img src={['/photo-projet-phare.jpg', '/photo-recit-documentaire.jpg', '/photo-ancrage-togo.png'][index % 3]} alt="Placeholder projet" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <OptimizedPhoto src={['/photo-projet-phare.jpg', '/photo-recit-documentaire.jpg', '/photo-ancrage-togo.png'][index % 3]} alt="Placeholder projet" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           )}
         </div>
 
@@ -251,7 +253,7 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header lang={lang} setLang={handleSetLang} currentPage="projects" navigate={navigate} />
+      <PageHeader mode={getHeaderMode(ROUTES.projectsList)} lang={lang} setLang={handleSetLang} currentPage="projects" navigate={navigate} />
 
       <main className="flex-1">
         {/* ── 1. Hero (#F7F8FA) - Fond gris montant jusqu'en haut derrière le header ── */}

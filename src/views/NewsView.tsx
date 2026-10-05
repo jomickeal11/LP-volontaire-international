@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { getHeaderMode, ROUTES } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
 import { useRouter, usePathname } from "next/navigation"
+import OptimizedPhoto from "@/components/OptimizedPhoto"
 import { getArticles, getArticleCategories } from "@/lib/cms-actions"
 
 interface NewsViewProps {
@@ -226,7 +228,7 @@ export default function NewsView({ lang, initialSettings = {} }: NewsViewProps &
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header lang={safeLang} setLang={handleSetLang} currentPage="news" navigate={navigate} />
+      <PageHeader mode={getHeaderMode(ROUTES.newsList)} lang={safeLang} setLang={handleSetLang} currentPage="news" navigate={navigate} />
 
       <main className="flex-1">
         {/* ── 1. Compact Hero (#F7F8FA) - Fond gris montant jusqu'en haut derrière le header ── */}
@@ -338,14 +340,16 @@ export default function NewsView({ lang, initialSettings = {} }: NewsViewProps &
                     return (
                       <article className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow group">
                         <div className="lg:col-span-7 aspect-[16/10] sm:aspect-[16/9] lg:aspect-[16/10] overflow-hidden bg-slate-100">
-                          <img
+                          <OptimizedPhoto
                             src={imageSrc}
                             alt={title}
                             className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700"
+                            loading="eager"
+                            fetchPriority="high"
                           />
                         </div>
 
-                        <div className="lg:col-span-5 p-6 sm:p-8 lg:p-10 flex flex-col justify-between">
+                          <div className="lg:col-span-5 p-6 sm:p-8 lg:p-10 flex flex-col justify-between min-h-[300px] sm:min-h-[360px] lg:min-h-[420px]">
                           <div>
                             {/* Metadata */}
                             <div className="flex flex-wrap items-center gap-2.5 text-xs font-bold tracking-wider text-[#003366] uppercase mb-3 whitespace-nowrap overflow-hidden">
@@ -414,10 +418,12 @@ export default function NewsView({ lang, initialSettings = {} }: NewsViewProps &
                         >
                           {/* Image */}
                           <div className="aspect-[16/10] overflow-hidden bg-slate-100">
-                            <img
+                            <OptimizedPhoto
                               src={imageSrc}
                               alt={title}
                               className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700"
+                              loading="lazy"
+                              decoding="async"
                             />
                           </div>
 

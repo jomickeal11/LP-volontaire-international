@@ -147,6 +147,11 @@ export async function submitCandidateApplication(
           motivation: validated.motivation,
           projectExperience: validated.projectExp,
           source: validated.source,
+          utmSource: validated.utmSource || null,
+          utmMedium: validated.utmMedium || null,
+          utmCampaign: validated.utmCampaign || null,
+          utmContent: validated.utmContent || null,
+          utmTerm: validated.utmTerm || null,
           consentData: validated.consent,
           skills: {
             create: existingSkills.map(s => ({ skillId: s.id }))
@@ -233,6 +238,11 @@ export async function submitPartnerRequest(
         message: validated.message,
         consent: validated.consent,
         status: "PENDING",
+        utmSource: validated.utmSource || null,
+        utmMedium: validated.utmMedium || null,
+        utmCampaign: validated.utmCampaign || null,
+        utmContent: validated.utmContent || null,
+        utmTerm: validated.utmTerm || null,
       }
     })
 

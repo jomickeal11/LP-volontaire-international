@@ -2,7 +2,8 @@
 
 import React from "react"
 import { useRouter } from "next/navigation"
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { getHeaderMode, ROUTES } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import LegalView from "@/views/LegalView"
 import {
@@ -40,7 +41,7 @@ export default function LegalClientWrapper({
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F5F7F9]">
-      <Header
+      <PageHeader mode={getHeaderMode(ROUTES.legal)}
         lang={lang}
         setLang={handleSetLang}
         currentPage="home"

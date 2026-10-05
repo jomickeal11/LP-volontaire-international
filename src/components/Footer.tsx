@@ -65,6 +65,7 @@ export default function Footer({ lang, navigate }: FooterProps) {
 
   const RESOURCES_NAV = [
     { label: n.news || "Actualités", page: "news" as Page },
+    { label: (n as any).events || "Événements & Formations", page: "events" as Page },
     { label: n.resources || "Ressources", page: "resources" as Page },
     { label: n.gallery || "Galerie", page: "gallery" as Page },
   ]

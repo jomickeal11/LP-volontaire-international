@@ -2,7 +2,8 @@
 
 import React from "react"
 import Link from "next/link"
-import Header from "@/components/Header"
+import PageHeader from "@/components/PageHeader"
+import { getHeaderMode, ROUTES } from "@/lib/pageLayout"
 import Footer from "@/components/Footer"
 import type { Language, Page } from "@/types"
 import { getPageUrl } from "@/types"
@@ -59,7 +60,7 @@ export default function AboutView({ lang, initialSettings = {} }: AboutViewProps
   if (!isPublished) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
-        <Header lang={lang} setLang={handleSetLang} currentPage="about" navigate={navigate} />
+        <PageHeader mode={getHeaderMode(ROUTES.about)} lang={lang} setLang={handleSetLang} currentPage="about" navigate={navigate} />
         <main className="flex-1"><UnavailablePageNotice lang={lang} /></main>
         <Footer lang={lang} navigate={navigate} />
       </div>
@@ -135,7 +136,7 @@ export default function AboutView({ lang, initialSettings = {} }: AboutViewProps
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header lang={lang} setLang={handleSetLang} currentPage="about" navigate={navigate} />
+      <PageHeader mode={getHeaderMode(ROUTES.about)} lang={lang} setLang={handleSetLang} currentPage="about" navigate={navigate} />
 
       <main className="flex-1 pt-20 lg:pt-24">
         {/* ── 1. Editorial Hero (#FFFFFF) ── */}
@@ -253,11 +254,14 @@ export default function AboutView({ lang, initialSettings = {} }: AboutViewProps
               {/* Right Column: High Quality Field Photo */}
               <div className="lg:col-span-5">
                 <div className="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200 aspect-[4/5] bg-white">
-                  <img 
-                    src={storyImage} 
-                    alt={storyImageAlt} 
-                    className="w-full h-full object-cover"
-                  />
+                  {storyImage ? (
+                    <img
+                      src={storyImage}
+                      alt={storyImageAlt}
+                      className="w-full h-full object-cover"
+                      fetchPriority="high"
+                    />
+                  ) : null}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#003366]/85 via-[#003366]/20 to-transparent flex flex-col justify-end p-6">
                     {storyLocationTag && (
                       <div className="text-white/90 text-xs uppercase tracking-wider font-semibold">

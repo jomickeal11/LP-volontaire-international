@@ -347,10 +347,13 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
   // Gallery items from relation `medias` or fallback `gallery` JSON
   let galleryItems: { url: string; caption?: string }[] = []
   if (Array.isArray(project.medias) && project.medias.length > 0) {
-    galleryItems = project.medias.map((m: any) => ({
-      url: m.url,
-      caption: lang === "EN" ? m.captionEn ?? "" : lang === "DE" ? m.captionDe ?? "" : m.captionFr,
-    }))
+    galleryItems = project.medias.map((m: any) => {
+      const locCaption = lang === "EN" ? m.captionEn : lang === "DE" ? m.captionDe : m.captionFr
+      return {
+        url: m.url,
+        caption: locCaption ?? "",
+      }
+    })
   } else if (project.gallery) {
     try {
       const parsed = JSON.parse(project.gallery)
@@ -527,6 +530,7 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
                 src={project.featuredImage || "/photo-projet-phare.jpg"}
                 alt={title}
                 className="w-full h-full object-cover"
+                fetchPriority="high"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
 
@@ -763,6 +767,8 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
                           src={item.url}
                           alt={item.caption || `${title} - photo ${idx + 1}`}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                          decoding="async"
                         />
                         {item.caption && (
                           <div className="absolute inset-x-0 bottom-0 p-2.5 bg-black/60 text-white text-[11px] leading-tight opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs">
@@ -1005,6 +1011,8 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
               src={activeImageModal}
               alt="Photo grand format"
               className="w-full max-h-[85vh] object-contain rounded-lg shadow-2xl mx-auto"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>

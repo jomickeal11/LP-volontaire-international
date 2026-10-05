@@ -517,7 +517,7 @@ export default function AdminDashboard({
                 <p className="text-[11px] text-slate-400">
                   Canal par lequel le candidat a découvert le programme.
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
                   {sourceDistribution.length === 0 ? (
                     <div className="text-xs text-slate-400 py-8 text-center italic">
                       Aucune source déclarée
@@ -592,7 +592,7 @@ export default function AdminDashboard({
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
                   Métiers & Professions déclarés
                 </span>
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
                   {professionDistribution.length === 0 ? (
                     <span className="text-xs text-slate-400 italic">Aucune profession renseignée</span>
                   ) : (

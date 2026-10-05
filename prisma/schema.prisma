@@ -100,6 +100,13 @@ model Candidature {
   source      String?
   consentData Boolean @default(false)
 
+  // Attribution UTM first-touch (indépendante du consentement Analytics)
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  utmTerm     String?
+
   // Relations
   skills        CompetenceCandidature[]
   documents     DocumentCandidature[]
@@ -177,6 +184,11 @@ model EmailLog {
   applicationId String?
   application   Candidature?     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
+  // Journal transverse : couvre aussi les demandes de participation aux
+  // événements, qui ne passent pas par une candidature.
+  eventParticipationRequestId String?
+  eventParticipationRequest   DemandeParticipation? @relation(fields: [eventParticipationRequestId], references: [id], onDelete: Cascade)
+
   recipient     String
   recipientName String?
   subject       String
@@ -185,7 +197,10 @@ model EmailLog {
   status        String           @default("SENT") // "SENT" | "FAILED"
   error         String?          @db.Text
 
-  actionType    String           // "APPLICATION_CONFIRMATION" | "STATUS_CHANGE" | "INTERVIEW_INVITATION" | "DIRECT_EMAIL" | "PARTNER_CONFIRMATION" | "CONTACT_NOTIFICATION"
+  actionType    String           // "APPLICATION_CONFIRMATION" | "STATUS_CHANGE" | "INTERVIEW_INVITATION" | "DIRECT_EMAIL" | "PARTNER_CONFIRMATION" | "CONTACT_NOTIFICATION" | "EVENT_PARTICIPATION_REQUEST" | "EVENT_PARTICIPATION_DECISION"
+  // Volontairement laissés à null pour les emails d'événements : widened le type
+  // en texte ferait recréer la colonne par Prisma et perdrait l'historique des
+  // candidatures. Le statut de la demande voyage dans `metadata`.
   fromStatus    CandidateStatus?
   toStatus      CandidateStatus?
   templateKey   String?
@@ -194,6 +209,7 @@ model EmailLog {
   sentAt        DateTime         @default(now())
 
   @@index([applicationId])
+  @@index([eventParticipationRequestId])
   @@index([recipient])
   @@index([status])
   @@index([sentAt])
@@ -258,6 +274,13 @@ model DemandePartenariat {
   message         String  @db.Text
   consent         Boolean @default(false)
   status          String  @default("PENDING") // PENDING, REVIEW, CONTACTED, PARTNER, ARCHIVED
+
+  // Attribution UTM first-touch (indépendante du consentement Analytics)
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  utmTerm     String?
 
   documents DocumentPartenaire[]
 
@@ -597,6 +620,82 @@ model Projet {
 }
 
 // ─── 15. CMS : ÉVÉNEMENTS & FORMATIONS ────────────────────────────────────────
+
+/// Cycle de vie d'une DEMANDE de participation.
+/// Règle métier APTIC-R : une demande n'est pas une inscription.
+/// Seul `APPROVED`, décidé par un humain après contact, consomme une place.
+enum ParticipationRequestStatus {
+  PENDING // demande reçue, en attente de contact par l'équipe
+  APPROVED // participation confirmée → consomme une place
+  REJECTED // demande refusée → ne consomme aucune place
+  CANCELLED // participation annulée après validation → libère une place
+}
+
+/// Demande de participation à un événement, soumise depuis la page publique.
+/// Le champ `Evenement.maxParticipants` reste la capacité saisie par
+/// l'administrateur : il n'est JAMAIS décrémenté. Les places consommées se
+/// déduisent du seul décompte des demandes `APPROVED`.
+model DemandeParticipation {
+  id     String @id @default(cuid())
+  eventId String
+  event   Evenement @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Demandeur
+  firstName    String
+  lastName     String
+  email        String
+  phone        String
+  organization String?
+  city         String?
+  country      String?
+  message      String? @db.Text
+  lang         LanguageCode @default(FR)
+
+  consentAt DateTime?
+
+  status          ParticipationRequestStatus @default(PENDING)
+  rejectionReason String?                      @db.Text
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  reviewedByName  String?
+
+  // Lecture par l'administrateur, distincte de la validation.
+  // « Lue » ne veut pas dire « validée » : une demande peut être lue et rester
+  // PENDING jusqu'à ce que l'administrateur clique sur « Valider ».
+  readAt      DateTime?
+  history     HistoriqueParticipation[]
+  emailLogs   EmailLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+  @@index([eventId, status])
+  @@index([eventId, email])
+  @@index([readAt])
+  @@index([eventId, readAt])
+}
+
+/// Journal des changements de statut d'une demande de participation.
+/// Reprend le modèle `HistoriqueCandidature` : aucune demande n'est supprimée.
+model HistoriqueParticipation {
+  id        String             @id @default(cuid())
+  requestId String
+  request   DemandeParticipation @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  fromStatus ParticipationRequestStatus?
+  toStatus   ParticipationRequestStatus
+  changedById String?
+  changedByName String            @default("Système")
+  note       String?             @db.Text
+  changedAt  DateTime            @default(now())
+
+  @@index([requestId])
+}
+
 model Evenement {
   id               String    @id @default(cuid())
   slug             String    @unique
@@ -606,17 +705,28 @@ model Evenement {
   descriptionFr    String    @db.Text
   descriptionEn    String?   @db.Text
   descriptionDe    String?   @db.Text
-  category         String    @default("WORKSHOP") // WORKSHOP, TRAINING, CONFERENCE, HACKATHON, CEREMONY
-  location         String
+  programmeFr      String?   @db.Text
+  programmeEn      String?   @db.Text
+  programmeDe      String?   @db.Text
+  category         String    @default("WORKSHOP") // WORKSHOP, TRAINING, CONFERENCE, HACKATHON, CEREMONY, OTHER
+  categoryOther    String? // libellé libre, obligatoire si category = OTHER
+  location         String? // null pour un événement uniquement en ligne
   startDate        DateTime
   endDate          DateTime?
   isOnline         Boolean   @default(false)
   meetingUrl       String?
-  registrationUrl  String?
-  registrationOpen Boolean   @default(true)
-  maxParticipants  Int?
+  registrationUrl  String? // formulaire externe OPTIONNEL : le canal principal est désormais la demande intégrée
+  registrationOpen Boolean   @default(false) // ouverture des DEMANDES de participation
+  maxParticipants  Int? // capacité MAXIMALE saisie par l'administrateur — jamais décrémentée
+  demandes         DemandeParticipation[]
   featuredImage    String?
-  published        Boolean   @default(true)
+  contactName      String? // contact de l'événement, distinct du contact institutionnel
+  contactEmail     String?
+  contactPhone     String?
+  published        Boolean   @default(false)
+  publishedFr      Boolean   @default(false)
+  publishedEn      Boolean   @default(false)
+  publishedDe      Boolean   @default(false)
 
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -624,6 +734,9 @@ model Evenement {
   @@index([startDate])
   @@index([published])
   @@index([category])
+  @@index([publishedFr])
+  @@index([publishedEn])
+  @@index([publishedDe])
 }
 
 // ─── 16. CMS : BIBLIOTHÈQUE DE RESSOURCES ─────────────────────────────────────
@@ -667,8 +780,12 @@ model Ressource {
 // ─── 17. CMS : GALERIE MÉDIAS ─────────────────────────────────────────────────
 model Media {
   id           String   @id @default(cuid())
-  title        String
-  caption      String?
+  titleFr      String
+  titleEn      String?
+  titleDe      String?
+  captionFr    String?
+  captionEn    String?
+  captionDe    String?
   url          String
   thumbnailUrl String?
   type         String   @default("PHOTO") // PHOTO, VIDEO
@@ -689,7 +806,20 @@ model Media {
   @@index([projetId])
 }
 
-// ─── 18. CMS : ÉQUIPE & GOUVERNANCE ───────────────────────────────────────────
+// ─── 18. CMS : CATÉGORIES D'ÉQUIPE ──────────────────────────────────────────
+model CategorieEquipe {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  order     Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+}
+
+// ─── 19. CMS : ÉQUIPE & GOUVERNANCE ───────────────────────────────────────────
 model MembreEquipe {
   id        String   @id @default(cuid())
   firstName String
@@ -718,7 +848,7 @@ model MembreEquipe {
   @@index([active])
 }
 
-// ─── 19. CMS : TÉMOIGNAGES ADMINISTRABLES ─────────────────────────────────────
+// ─── 20. CMS : TÉMOIGNAGES ADMINISTRABLES ─────────────────────────────────────
 model Temoignage {
   id         String   @id @default(cuid())
   authorName String
@@ -741,7 +871,7 @@ model Temoignage {
   @@index([order])
 }
 
-// ─── 20. NEWSLETTER : ABONNÉS ─────────────────────────────────────────────────
+// ─── 21. NEWSLETTER : ABONNÉS ─────────────────────────────────────────────────
 model NewsletterAbonne {
   id             String       @id @default(cuid())
   email          String       @unique
@@ -752,11 +882,18 @@ model NewsletterAbonne {
   subscribedAt   DateTime     @default(now())
   unsubscribedAt DateTime?
 
+  // Attribution UTM first-touch (indépendante du consentement Analytics)
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  utmTerm     String?
+
   @@index([email])
   @@index([active])
 }
 
-// ─── 21. CMS : PARAMÈTRES & MÉDIAS DU SITE ───────────────────────────────────
+// ─── 22. CMS : PARAMÈTRES & MÉDIAS DU SITE ───────────────────────────────────
 model ParametreSite {
   id          String   @id @default(cuid())
   key         String   @unique // ex: about_story_image, about_story_location, contact_email, contact_phone, contact_director
@@ -769,7 +906,7 @@ model ParametreSite {
   @@index([group])
 }
 
-// ─── 22. MESSAGES DU FORMULAIRE DE CONTACT ────────────────────────────────────
+// ─── 23. MESSAGES DU FORMULAIRE DE CONTACT ────────────────────────────────────
 enum MessageContactStatus {
   UNREAD     // Non lu
   READ       // Lu
@@ -788,6 +925,13 @@ model MessageContact {
   routedTo     String?
   lang         LanguageCode         @default(FR)
   status       MessageContactStatus @default(UNREAD)
+
+  // Attribution UTM first-touch (indépendante du consentement Analytics)
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  utmTerm     String?
   notes        String?              @db.Text
   repliedAt    DateTime?
   createdAt    DateTime             @default(now())
@@ -798,3 +942,27 @@ model MessageContact {
   @@index([email])
 }
 
+// ─── 24. LIENS UTM : CAMPAGNES CRÉÉES PAR L'ÉQUIPE ────────────────────────────
+// Historique des liens de campagne générés depuis le back-office.
+// Ne stocke aucune donnée personnelle : c'est un outil de création de liens,
+// pas un outil de tracking des visiteurs (qui reste dans utm.ts).
+model LienCampagne {
+  id              String   @id @default(cuid())
+  label           String                         // Nom humain : "Recrutement octobre 2026"
+  destinationPath String                         // ex: /volontariat
+  channel         String                         // facebook | instagram | linkedin | ...
+  utmSource       String
+  utmMedium       String
+  utmCampaign     String                         // valeur normalisée (slug)
+  utmContent      String?
+  utmTerm         String?
+  generatedUrl    String   @db.Text              // URL complète prête à l'emploi
+  createdBy       String?                        // email de l'admin créateur (optionnel)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([utmCampaign])
+  @@index([channel])
+  @@index([createdAt])
+}

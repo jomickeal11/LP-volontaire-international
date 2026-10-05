@@ -118,16 +118,18 @@ function Hero({
   const stat3Sub = settings[`volunteer_hero_stat3_sub_${langLower}`] ?? ""
 
   return (
-    <section className="relative z-10 min-h-[95vh] lg:min-h-screen flex flex-col">
+    <section className="relative z-10 min-h-[95vh] lg:min-h-[100svh] lg:min-h-screen flex flex-col" style={{ contentVisibility: "auto" }}>
       {/* Background Layer with overflow hidden */}
       <div className="absolute inset-0 overflow-hidden">
-        {heroImage.startsWith("/hero-volunteer-collab") ? (
+        {!heroImage || heroImage.startsWith("/hero-volunteer-collab") ? (
           <picture>
             <source srcSet="/hero-volunteer-collab.avif" type="image/avif" />
             <source srcSet="/hero-volunteer-collab.webp" type="image/webp" />
             <img
               src="/hero-volunteer-collab.jpg"
               alt="Collaboration in Togo"
+              width={1376}
+              height={768}
               className="absolute inset-0 w-full h-full object-cover object-[center_top] lg:object-center"
               fetchPriority="high"
               decoding="async"
@@ -137,6 +139,8 @@ function Hero({
           <img
             src={heroImage}
             alt="Volontariat au Togo"
+            width={1376}
+            height={768}
             className="absolute inset-0 w-full h-full object-cover object-[center_top] lg:object-center"
             fetchPriority="high"
             decoding="async"
@@ -157,7 +161,7 @@ function Hero({
 
       <div className="flex-1 flex flex-col justify-center pt-32 pb-8 sm:pt-32 sm:pb-24 lg:pt-40 lg:pb-32 relative z-10 max-w-7xl w-full mx-auto px-5 sm:px-6 lg:px-8">
         <div
-          className="text-center mx-auto mb-10 sm:mb-16 lg:mb-20 w-full"
+          className="text-center mx-auto mb-10 sm:mb-16 lg:mb-20 w-full min-h-[420px] sm:min-h-[480px] lg:min-h-[560px] flex flex-col justify-center"
           style={{ maxWidth: "900px" }}
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-[#003366]/45 px-4 py-2 text-xs sm:text-sm font-semibold text-white/90 mb-5">
@@ -165,7 +169,7 @@ function Hero({
             {badge}
           </div>
           <h1
-            className="leading-[1.05] sm:leading-[1.1] tracking-tight mb-6 sm:mb-8"
+            className="leading-[1.05] sm:leading-[1.1] tracking-tight mb-6 sm:mb-8 min-h-[180px] sm:min-h-[240px] lg:min-h-[320px] flex flex-col justify-center"
             style={{ textShadow: "0 2px 12px rgba(0,0,0,0.14)" }}
           >
             {/* Niveau 1 - Principal */}
@@ -239,7 +243,7 @@ function Hero({
         </div>
 
         {/* Key Facts - intentionally overlapping the next section */}
-        <div className="relative mt-2 sm:mt-8 mb-4 sm:-mb-12 max-w-4xl mx-auto z-20">
+        <div className="relative mt-2 sm:mt-8 mb-4 sm:-mb-12 max-w-4xl mx-auto z-20 min-h-[72px] sm:min-h-[88px]">
           <div
             className="absolute inset-0 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
             style={{
@@ -308,6 +312,8 @@ function DualPath({
               src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80"
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000"
               alt="Volunteer"
+              loading="lazy"
+              decoding="async"
             />
           </div>
           <div className="flex-1 flex flex-col items-start mt-2 sm:mt-0">
@@ -339,6 +345,8 @@ function DualPath({
               src="/meeting-org.jpg"
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000"
               alt="Organization"
+              loading="lazy"
+              decoding="async"
             />
           </div>
           <div className="flex-1 flex flex-col items-start mb-2 sm:mb-0">
@@ -636,11 +644,15 @@ function WhatCouldYouBuild({
           {/* Featured Primary Project: Smart Irrigation */}
           <div className="lg:col-span-12 xl:col-span-7 rounded-[2.5rem] overflow-hidden flex flex-col bg-white border border-[#EAF0F4] group shadow-sm w-full min-w-0">
             <div className="relative h-80 sm:h-[400px] overflow-hidden">
-              <img
-                src={featuredImage}
-                alt={featuredTitle}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
+              {featuredImage ? (
+                <img
+                  src={featuredImage}
+                  alt={featuredTitle}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : null}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <div className="absolute bottom-10 left-10 text-white">
                 <span className="text-sm font-bold uppercase tracking-widest text-[#28A745] mb-2 block">
@@ -984,6 +996,8 @@ function LifeInTogo({
               src="https://images.unsplash.com/photo-1637149253733-44ef8365db1c?w=800&h=600&fit=crop&auto=format"
               alt="Togo landscape"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              loading="lazy"
+              decoding="async"
             />
           </div>
           <div className="rounded-2xl overflow-hidden group shadow-sm h-[220px] md:h-full">
@@ -991,6 +1005,8 @@ function LifeInTogo({
               src="https://images.unsplash.com/photo-1609252509229-364936a1d1a2?w=800&h=600&fit=crop&auto=format"
               alt="Community members in Agbelouve"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              loading="lazy"
+              decoding="async"
             />
           </div>
           <div className="rounded-2xl overflow-hidden group shadow-sm h-[220px] md:h-full">
@@ -998,6 +1014,8 @@ function LifeInTogo({
               src="https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800&h=600&fit=crop&auto=format"
               alt="Nature and village surroundings"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>
@@ -1057,26 +1075,114 @@ function Conditions({
   settings: Record<string, string>
   langLower: string
 }) {
-  const s = t.support
   const tag = settings[`volunteer_conditions_tag_${langLower}`] ?? ""
   const title = settings[`volunteer_conditions_title_${langLower}`] ?? ""
   const subtitle = settings[`volunteer_conditions_subtitle_${langLower}`] ?? ""
-  const tableTitle =
-    settings[`volunteer_conditions_table_title_${langLower}`] ?? ""
-  const tableSummary =
-    settings[`volunteer_conditions_table_summary_${langLower}`] ?? ""
-  const statusConfirmed =
-    settings[`volunteer_conditions_status_confirmed_${langLower}`] ?? ""
-  const statusPending =
-    settings[`volunteer_conditions_status_pending_${langLower}`] ?? ""
-  const tableItems = s.tableItems.map(([label, detail, status], index) => {
-    const key = `volunteer_conditions_row${index + 1}`
-    return [
-      settings[`${key}_label_${langLower}`] ?? "",
-      settings[`${key}_detail_${langLower}`] ?? "",
-      settings[`${key}_status_${langLower}`] ?? "",
-    ] as const
-  })
+
+  // Local translations for the new groups and labels
+  const dict = {
+    fr: {
+      g1: "Conditions du volontariat",
+      g2: "Accueil et vie sur place",
+      g3: "Formalités et conditions",
+      labels: {
+        age_min: "Âge minimum requis",
+        duration: "Durée du volontariat",
+        response_time: "Délai de réponse",
+        processing_time: "Délai de traitement des candidatures",
+        accommodation: "Hébergement",
+        meals: "Repas",
+        local_transport: "Transport local",
+        accompaniment: "Accompagnement",
+        mentor: "Mentor / référent",
+        sim_card: "Carte SIM",
+        internet: "Connexion Internet",
+        health_info: "Informations santé",
+        insurance: "Assurance",
+        visa: "Visa",
+        allowance: "Indemnités"
+      }
+    },
+    en: {
+      g1: "Volunteer Conditions",
+      g2: "Welcome & Life on site",
+      g3: "Formalities & Conditions",
+      labels: {
+        age_min: "Minimum Age Required",
+        duration: "Volunteer Duration",
+        response_time: "Response Time",
+        processing_time: "Application Processing Time",
+        accommodation: "Accommodation",
+        meals: "Meals",
+        local_transport: "Local Transport",
+        accompaniment: "Accompaniment",
+        mentor: "Mentor / Reference",
+        sim_card: "SIM Card",
+        internet: "Internet Connection",
+        health_info: "Health Information",
+        insurance: "Insurance",
+        visa: "Visa",
+        allowance: "Allowance"
+      }
+    },
+    de: {
+      g1: "Freiwilligenbedingungen",
+      g2: "Willkommen & Leben vor Ort",
+      g3: "Formalitäten & Bedingungen",
+      labels: {
+        age_min: "Mindestalter erforderlich",
+        duration: "Dauer der Freiwilligenarbeit",
+        response_time: "Antwortzeit",
+        processing_time: "Bearbeitungszeit für Bewerbungen",
+        accommodation: "Unterkunft",
+        meals: "Mahlzeiten",
+        local_transport: "Lokaler Transport",
+        accompaniment: "Begleitung",
+        mentor: "Mentor / Referenz",
+        sim_card: "SIM-Karte",
+        internet: "Internetverbindung",
+        health_info: "Gesundheitsinformationen",
+        insurance: "Versicherung",
+        visa: "Visum",
+        allowance: "Zulage"
+      }
+    }
+  }
+  
+  const d = dict[langLower as keyof typeof dict] || dict.en
+
+  const groups = [
+    {
+      title: d.g1,
+      items: [
+        { label: d.labels.age_min, value: settings[`volunteer_practical_age_min_${langLower}`] },
+        { label: d.labels.duration, value: settings[`volunteer_practical_duration_${langLower}`] },
+        { label: d.labels.response_time, value: settings[`volunteer_practical_response_time_${langLower}`] },
+        { label: d.labels.processing_time, value: settings[`volunteer_practical_processing_time_${langLower}`] },
+      ].filter(i => i.value?.trim())
+    },
+    {
+      title: d.g2,
+      items: [
+        { label: d.labels.accommodation, value: settings[`volunteer_practical_accommodation_${langLower}`] },
+        { label: d.labels.meals, value: settings[`volunteer_practical_meals_${langLower}`] },
+        { label: d.labels.local_transport, value: settings[`volunteer_practical_local_transport_${langLower}`] },
+        { label: d.labels.accompaniment, value: settings[`volunteer_practical_accompaniment_${langLower}`] },
+        { label: d.labels.mentor, value: settings[`volunteer_practical_mentor_${langLower}`] },
+        { label: d.labels.sim_card, value: settings[`volunteer_practical_sim_card_${langLower}`] },
+        { label: d.labels.internet, value: settings[`volunteer_practical_internet_${langLower}`] },
+        { label: d.labels.health_info, value: settings[`volunteer_practical_health_info_${langLower}`] },
+      ].filter(i => i.value?.trim())
+    },
+    {
+      title: d.g3,
+      items: [
+        { label: d.labels.insurance, value: settings[`volunteer_practical_insurance_${langLower}`] },
+        { label: d.labels.visa, value: settings[`volunteer_practical_visa_${langLower}`] },
+        { label: d.labels.allowance, value: settings[`volunteer_practical_allowance_${langLower}`] },
+      ].filter(i => i.value?.trim())
+    }
+  ].filter(g => g.items.length > 0)
 
   return (
     <section className="py-20 sm:py-24 bg-[#F7F8FA]">
@@ -1091,49 +1197,29 @@ function Conditions({
           </p>
         </div>
 
-        {/* Tableau récapitulatif clair des conditions réelles */}
-        <div className="bg-white rounded-[2rem] border border-[#EAF0F4] overflow-hidden shadow-sm">
-          <div className="px-8 py-5 flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#EAF0F4] bg-[#FFFFFF]">
-            <h3 className="text-xl text-[#003366] font-bold">{tableTitle}</h3>
-            <span className="text-xs font-bold uppercase tracking-widest text-[#28A745] mt-1 sm:mt-0">
-              {tableSummary}
-            </span>
-          </div>
-          <div className="flex flex-col w-full divide-y divide-[#EAF0F4]">
-            {tableItems.map(([el, info, status]) => {
-              const isConfirmed = status === statusConfirmed
-              const isPending = status === statusPending
-              return (
-                <div
-                  key={el}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-5 sm:px-8 sm:py-5 hover:bg-[#F7F8FA] transition-colors gap-2 sm:gap-4"
-                >
-                  <div className="sm:w-1/3">
-                    <div className="text-sm sm:text-base font-bold text-[#003366]">
-                      {el}
-                    </div>
-                  </div>
-                  <div className="sm:flex-1 text-xs sm:text-sm text-[#5E6B76] font-medium leading-relaxed">
-                    {info}
-                  </div>
-                  <div className="sm:w-auto shrink-0 pt-1 sm:pt-0">
-                    <span
-                      className={`inline-block text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg ${
-                        isConfirmed
-                          ? "bg-[#EAF5EA] text-[#28A745]"
-                          : isPending
-                            ? "bg-amber-50 text-amber-700"
-                            : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {status}
-                    </span>
-                  </div>
+        {groups.length > 0 ? (
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            {groups.map((g, idx) => (
+              <div key={idx} className="bg-white rounded-[2rem] border border-[#EAF0F4] overflow-hidden shadow-sm flex flex-col">
+                <div className="px-6 py-5 border-b border-[#EAF0F4] bg-[#F7F8FA]">
+                  <h3 className="text-lg text-[#003366] font-bold">{g.title}</h3>
                 </div>
-              )
-            })}
+                <div className="flex flex-col w-full divide-y divide-[#EAF0F4]">
+                  {g.items.map((item) => (
+                    <div key={item.label} className="p-5 flex flex-col gap-1.5 hover:bg-[#F7F8FA] transition-colors">
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-[#28A745]">
+                        {item.label}
+                      </span>
+                      <span className="text-sm text-[#5E6B76] font-medium leading-relaxed whitespace-pre-wrap">
+                        {item.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        ) : null}
       </div>
     </section>
   )
@@ -1367,6 +1453,8 @@ function FinalCTA({
         src="https://images.unsplash.com/photo-1652971876875-05db98fab376?w=1920&h=1080&fit=crop&auto=format"
         alt="Rural landscape in West Africa with community gathering"
         className="absolute inset-0 w-full h-full object-cover object-[center_top] md:object-center"
+        loading="lazy"
+        decoding="async"
       />
       <div
         className="absolute inset-0"

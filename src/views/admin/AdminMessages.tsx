@@ -8,12 +8,14 @@ import {
   getContactMessagesStatsAction,
   type ContactMessageRecord,
 } from "@/lib/contact-actions"
+import { useConfirm } from "@/components/admin/ConfirmProvider"
 
 interface AdminMessagesProps {
   lang?: string
 }
 
 export default function AdminMessages({ lang = "fr" }: AdminMessagesProps) {
+  const confirm = useConfirm()
   const [messages, setMessages] = useState<ContactMessageRecord[]>([])
   const [stats, setStats] = useState({ total: 0, unread: 0, replied: 0, archived: 0 })
   const [loading, setLoading] = useState(true)
@@ -116,7 +118,12 @@ export default function AdminMessages({ lang = "fr" }: AdminMessagesProps) {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer définitivement ce message ?")) return
+    const ok = await confirm({
+      title: "Supprimer le message ?",
+      message: "Voulez-vous vraiment supprimer définitivement ce message ? Cette action est irréversible.",
+      confirmLabel: "Supprimer",
+    })
+    if (!ok) return
     setActionLoading(true)
     try {
       const res = await deleteContactMessageAction(id)

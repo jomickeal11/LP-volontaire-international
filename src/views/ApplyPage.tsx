@@ -27,6 +27,8 @@ import {
 } from "../components/Icons"
 import { FREQUENT_COUNTRIES, ALL_COUNTRY_CODES } from "../data/countryPhoneCodes"
 import { trackEvent } from "../lib/tracker"
+import { getUtmSubmissionFields } from "../lib/utm"
+import SimplifiedHeader from "@/components/SimplifiedHeader"
 import { getSiteSettings } from "@/lib/cms-actions"
 
 interface ApplyPageProps {
@@ -293,6 +295,7 @@ function PhoneInputField({
                 src={`https://flagcdn.com/w40/${currentCountry.code.toLowerCase()}.png`}
                 alt={currentCountry.name}
                 className="w-5 h-3.5 object-cover rounded-xs shrink-0 shadow-2xs"
+                loading="lazy"
                 onError={(e) => {
                   e.currentTarget.style.display = "none"
                 }}
@@ -326,8 +329,10 @@ function PhoneInputField({
         <input
           ref={inputRef}
           type="tel"
+          inputMode="numeric"
+          pattern="[0-9]*"
           value={phone}
-          onChange={(e) => onPhoneChange(e.target.value)}
+          onChange={(e) => onPhoneChange(e.target.value.replace(/\D/g, ""))}
           placeholder={placeholder || "90 12 34 56"}
           className="flex-1 h-full px-3.5 text-sm outline-none bg-transparent"
           style={{ color: TEXT_DARK }}
@@ -1142,6 +1147,12 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       formData.append("source", form.source)
       formData.append("consent", "true")
 
+      // Attribution first-touch (indépendante du consentement Analytics)
+      const utmFields = getUtmSubmissionFields()
+      Object.entries(utmFields).forEach(([key, value]) => {
+        if (value) formData.append(key, value)
+      })
+
       if (form.cvFile) formData.append("cvFile", form.cvFile)
       if (form.motivationFile) formData.append("motivationFile", form.motivationFile)
       if (form.portfolioFile) formData.append("portfolioFile", form.portfolioFile)
@@ -1341,60 +1352,14 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
       }}
     >
 
-      {/* ── 1. HEADER (Simple, barre d'identité) ──────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-white border-b" style={{ borderColor: "#EAF0F4" }}>
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Gauche : Logo + APTIC-R International Volunteers */}
-          <button
-            onClick={() => navigate("home")}
-            className="flex items-center gap-3 cursor-pointer text-left group"
-            aria-label="APTIC-R Accueil"
-          >
-            <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-[#D8E2E9] flex items-center justify-center p-0.5 shadow-2xs group-hover:border-[#003366] transition-colors">
-              <Image src="/logo-aptic.png" alt="APTIC-R Logo" width={60} height={60} className="w-full h-full object-contain" unoptimized />
-            </div>
-            <div>
-              <div className="font-extrabold text-sm leading-none tracking-tight text-[#003366]">APTIC-R</div>
-              <div className="text-[9px] font-bold tracking-[0.12em] uppercase mt-0.5 text-slate-500">
-                International Volunteers
-              </div>
-            </div>
-          </button>
-
-          {/* Droite : Bouton Visite + Sélecteur FR EN DE */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            <button
-              onClick={() => navigate("home")}
-              className="hidden sm:flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors cursor-pointer hover:opacity-80"
-              style={{ color: BLUE, backgroundColor: "#E8F2FA" }}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-              {t.apply.header?.visitSite || "Visiter le site"}
-            </button>
-
-            <div className="h-4 w-[1px] bg-slate-200 hidden sm:block" />
-
-            <div className="flex items-center gap-1 bg-[#F7F8FA] p-1 rounded-lg border border-[#EAF0F4]">
-              {(["FR", "EN", "DE"] as Language[]).map((l) => (
-                <button
-                  key={l}
-                  onClick={() => setLang?.(l)}
-                  className="px-2.5 py-1 text-xs font-bold rounded-md transition-all cursor-pointer uppercase"
-                  style={{
-                    backgroundColor: currentLang === l ? "#FFFFFF" : "transparent",
-                    color: currentLang === l ? BLUE : "#5E6B76",
-                    boxShadow: currentLang === l ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                  }}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* ── 1. HEADER SIMPLIFIQUE ──────────────────────────────────────────────
+          Parcours de formulaire : logo + retour portail + sélecteur de langue,
+          sans navigation principale (cf. ROUTES.apply → simplifiedHeader). */}
+      <SimplifiedHeader
+        lang={currentLang}
+        setLang={(l: Language) => setLang?.(l)}
+        backTo="volunteering"
+      />
 
       {/* ── 2. UNIVERS APTIC-R (Bloc horizontal avec photo modeste épurée à droite) ── */}
       <section className="border-b" style={{ backgroundColor: BG_LIGHT, borderColor: "#EAF0F4" }}>

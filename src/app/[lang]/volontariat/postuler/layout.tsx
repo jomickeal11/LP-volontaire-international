@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { DEFAULT_OG_IMAGE } from "@/lib/seo"
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://apticr.org"
 
@@ -61,11 +62,13 @@ export async function generateMetadata({
       siteName: "APTIC-R",
       locale: currentLang === "fr" ? "fr_FR" : currentLang === "de" ? "de_DE" : "en_US",
       type: "website",
+      images: [{ url: DEFAULT_OG_IMAGE }],
     },
     twitter: {
       card: "summary_large_image",
       title: meta.ogTitle,
       description: meta.ogDesc,
+      images: [DEFAULT_OG_IMAGE],
     },
   }
 }

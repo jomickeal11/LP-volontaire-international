@@ -92,10 +92,14 @@ import {
   getSiteSettings,
   updateSiteSettings,
   getTeamMembers,
+  getTeamCategories,
   createTeamMember,
   updateTeamMember,
   deleteTeamMember,
   reorderTeamMembersAction,
+  createTeamCategory,
+  updateTeamCategory,
+  deleteTeamCategory,
 } from "@/lib/cms-actions"
 
 import {
@@ -163,6 +167,7 @@ import {
   diffCmsSettings,
   type CmsLang,
 } from "./cms-tab-editor"
+import { useConfirm } from "@/components/admin/ConfirmProvider"
 
 type SiteSettingUpdate = {
   key: string
@@ -237,6 +242,24 @@ function getTeamMemberName(member: TeamMemberItem) {
   return `${member.firstName} ${member.lastName}`
 }
 
+interface TeamCategoryItem {
+  id: string
+  slug: string
+  name: string
+  order: number
+}
+
+const CREATE_TEAM_CATEGORY_VALUE = "__CREATE_NEW__"
+
+// Catégories historiques : renommables, jamais supprimables (slug immuable).
+const HISTORICAL_TEAM_CATEGORY_SLUGS = [
+  "DIRECTION",
+  "COORDINATION",
+  "FORMATION",
+  "CONSEIL",
+  "VOLONTAIRE",
+]
+
 const TABS = [
   { id: "TEAM", label: "Équipe & Rôles" },
   { id: "NEWS", label: "Page Actualités" },
@@ -254,18 +277,6 @@ function cmsFieldWidthClass(type: string, key = "") {
   if (type === "textarea") return "w-full max-w-4xl lg:col-span-2"
   if (/(title|headline|line\d)/i.test(key)) return "w-full max-w-3xl"
   return "w-full max-w-2xl"
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-  DIRECTION: "Direction & Fondateurs",
-
-  COORDINATION: "Coordination des programmes",
-
-  FORMATION: "Formateurs & FabLab",
-
-  CONSEIL: "Conseil & Experts",
-
-  VOLONTAIRE: "Volontaires & Bénévoles",
 }
 
 const SETTINGS_CONFIG: Record<string, {
@@ -411,7 +422,7 @@ const SETTINGS_CONFIG: Record<string, {
       type: "text",
     },
 
-{
+    {
       key: "site_social_facebook",
 
       label: "Lien page Facebook",
@@ -451,6 +462,7 @@ const SECTION_NUMBERS: Record<string, string> = {
 }
 
 export default function AdminSettings() {
+  const confirm = useConfirm()
   const [activeTab, setActiveTab] = useState<string>("TEAM")
   const [tabPreferenceReady, setTabPreferenceReady] = useState(false)
 
@@ -583,10 +595,41 @@ export default function AdminSettings() {
     }
   }
   const [teamMembers, setTeamMembers] = useState<TeamMemberItem[]>([])
+  const [teamCategories, setTeamCategories] = useState<TeamCategoryItem[]>([])
   const [teamLoading, setTeamLoading] = useState(true)
   const [teamLoadError, setTeamLoadError] = useState("")
 
   const [teamModalOpen, setTeamModalOpen] = useState(false)
+
+  const [teamCategoryModalOpen, setTeamCategoryModalOpen] = useState(false)
+
+  const [newTeamCategoryName, setNewTeamCategoryName] = useState("")
+
+  const [teamCategorySubmitting, setTeamCategorySubmitting] = useState(false)
+
+  const [teamCategoryError, setTeamCategoryError] = useState("")
+
+  const [teamCategorySelectKey, setTeamCategorySelectKey] = useState(0)
+
+  const [editingCategory, setEditingCategory] = useState<TeamCategoryItem | null>(
+    null,
+  )
+
+  const [teamCategoryEditName, setTeamCategoryEditName] = useState("")
+
+  const [teamCategoryEditSubmitting, setTeamCategoryEditSubmitting] =
+    useState(false)
+
+  const [teamCategoryEditError, setTeamCategoryEditError] = useState("")
+
+  const [deletingCategory, setDeletingCategory] = useState<TeamCategoryItem | null>(
+    null,
+  )
+
+  const [teamCategoryDeleteSubmitting, setTeamCategoryDeleteSubmitting] =
+    useState(false)
+
+  const [teamCategoryDeleteError, setTeamCategoryDeleteError] = useState("")
 
   const [editingMember, setEditingMember] = useState<TeamMemberItem | null>(
     null,
@@ -618,6 +661,8 @@ export default function AdminSettings() {
     lastName: "",
 
     category: "COORDINATION",
+
+    customCategory: "",
 
     photoUrl: "",
 
@@ -844,7 +889,7 @@ export default function AdminSettings() {
 
     VOLUNTEER_FIELDS.forEach((f) => {
       if (f.isTranslatable) {
-        ;(["fr", "en", "de"] as const).forEach((l) => {
+        ; (["fr", "en", "de"] as const).forEach((l) => {
           const k = `${f.key}_${l}`
 
           payload.push({
@@ -869,19 +914,19 @@ export default function AdminSettings() {
         })
       }
     })
-    ;(["fr", "en", "de"] as const).forEach((l) => {
-      const k = `volunteer_published_${l}`
+      ; (["fr", "en", "de"] as const).forEach((l) => {
+        const k = `volunteer_published_${l}`
 
-      payload.push({
-        key: k,
+        payload.push({
+          key: k,
 
-        value: values[k] || "DRAFT",
+          value: values[k] || "DRAFT",
 
-        group: "VOLUNTEER",
+          group: "VOLUNTEER",
 
-        description: `Statut publication Volontariat (${l.toUpperCase()})`,
+          description: `Statut publication Volontariat (${l.toUpperCase()})`,
+        })
       })
-    })
 
     try {
       const { result: res, changedEntries } = await persistSettings(payload)
@@ -969,7 +1014,7 @@ export default function AdminSettings() {
 
     PARTNER_FIELDS.forEach((f) => {
       if (f.isTranslatable) {
-        ;(["fr", "en", "de"] as const).forEach((l) => {
+        ; (["fr", "en", "de"] as const).forEach((l) => {
           const k = `${f.key}_${l}`
 
           payload.push({
@@ -1083,7 +1128,7 @@ export default function AdminSettings() {
 
     MEMBERSHIP_FIELDS.forEach((f) => {
       if (f.multilingual) {
-        ;(["fr", "en", "de"] as const).forEach((l) => {
+        ; (["fr", "en", "de"] as const).forEach((l) => {
           const k = `${f.key}_${l}`
 
           payload.push({
@@ -1281,7 +1326,7 @@ export default function AdminSettings() {
       (f) => f.section !== "AXES" && f.section !== "WHY",
     ).forEach((f) => {
       if (f.multilingual) {
-        ;(["fr", "en", "de"] as const).forEach((l) => {
+        ; (["fr", "en", "de"] as const).forEach((l) => {
           const k = `${f.key}_${l}`
 
           payload.push({
@@ -1306,28 +1351,28 @@ export default function AdminSettings() {
         })
       }
     })
-    ;[
-      "support_axes_tag",
+      ;[
+        "support_axes_tag",
 
-      "support_axes_title",
+        "support_axes_title",
 
-      "support_axes_subtitle",
-    ].forEach((k) => {
-      const label = k.replace("support_axes_", "")
-      ;(["fr", "en", "de"] as const).forEach((l) => {
-        const dk = `${k}_${l}`
+        "support_axes_subtitle",
+      ].forEach((k) => {
+        const label = k.replace("support_axes_", "")
+          ; (["fr", "en", "de"] as const).forEach((l) => {
+            const dk = `${k}_${l}`
 
-        payload.push({
-          key: dk,
+            payload.push({
+              key: dk,
 
-          value: values[dk] || "",
+              value: values[dk] || "",
 
-          group: "SUPPORT",
+              group: "SUPPORT",
 
-          description: `Axes ${label} (${l.toUpperCase()})`,
-        })
+              description: `Axes ${label} (${l.toUpperCase()})`,
+            })
+          })
       })
-    })
 
     const axesCount = Math.max(
       0,
@@ -1357,7 +1402,7 @@ export default function AdminSettings() {
 
         `support_axes_${i}_link`,
       ].forEach((k) => {
-        ;(["fr", "en", "de"] as const).forEach((l) => {
+        ; (["fr", "en", "de"] as const).forEach((l) => {
           const dk = `${k}_${l}`
 
           payload.push({
@@ -1372,7 +1417,7 @@ export default function AdminSettings() {
     }
     ;["support_why_tag", "support_why_title", "support_why_desc"].forEach(
       (k) => {
-        ;(["fr", "en", "de"] as const).forEach((l) => {
+        ; (["fr", "en", "de"] as const).forEach((l) => {
           const dk = `${k}_${l}`
 
           payload.push({
@@ -1408,7 +1453,7 @@ export default function AdminSettings() {
 
     for (let i = 1; i <= whyCount; i++) {
       ;[`support_why_${i}_title`, `support_why_${i}_desc`].forEach((k) => {
-        ;(["fr", "en", "de"] as const).forEach((l) => {
+        ; (["fr", "en", "de"] as const).forEach((l) => {
           const dk = `${k}_${l}`
 
           payload.push({
@@ -1505,7 +1550,7 @@ export default function AdminSettings() {
 
     NEWS_FIELDS.forEach((f) => {
       if (f.multilingual) {
-        ;(["FR", "EN", "DE"] as const).forEach((l) => {
+        ; (["FR", "EN", "DE"] as const).forEach((l) => {
           const key = getNewsFieldDbKey(f, l)
 
           snapshot[key] = source[key] || ""
@@ -1681,7 +1726,7 @@ export default function AdminSettings() {
 
     NEWS_FIELDS.forEach((f) => {
       if (f.multilingual) {
-        ;(["fr", "en", "de"] as const).forEach((l) => {
+        ; (["fr", "en", "de"] as const).forEach((l) => {
           const k = `${f.key}_${l}`
 
           payload.push({
@@ -1795,7 +1840,7 @@ export default function AdminSettings() {
 
     CONTACT_FIELDS.forEach((f) => {
       if (f.multilingual) {
-        ;(["fr", "en", "de"] as const).forEach((l) => {
+        ; (["fr", "en", "de"] as const).forEach((l) => {
           const k = `${f.key}_${l}`
 
           payload.push({
@@ -1963,7 +2008,7 @@ export default function AdminSettings() {
 
     ABOUT_FIELDS.forEach((f) => {
       if (f.isTranslatable) {
-        ;(["fr", "en", "de"] as const).forEach((l) => {
+        ; (["fr", "en", "de"] as const).forEach((l) => {
           const k = `${f.key}_${l}`
 
           payload.push({
@@ -1988,19 +2033,19 @@ export default function AdminSettings() {
         })
       }
     })
-    ;(["fr", "en", "de"] as const).forEach((l) => {
-      const k = `about_published_${l}`
+      ; (["fr", "en", "de"] as const).forEach((l) => {
+        const k = `about_published_${l}`
 
-      payload.push({
-        key: k,
+        payload.push({
+          key: k,
 
-        value: values[k] || "DRAFT",
+          value: values[k] || "DRAFT",
 
-        group: "ABOUT",
+          group: "ABOUT",
 
-        description: `Statut publication À Propos (${l.toUpperCase()})`,
+          description: `Statut publication À Propos (${l.toUpperCase()})`,
+        })
       })
-    })
 
     try {
       const { result: res, changedEntries } = await persistSettings(payload)
@@ -2073,10 +2118,22 @@ export default function AdminSettings() {
     setTeamLoading(true)
     setTeamLoadError("")
     try {
-      const res = await getTeamMembers({ activeOnly: false })
+      // Les catégories ne doivent jamais masquer une erreur de chargement des membres.
+      const categoriesPromise = getTeamCategories()
+        .then((categories) => categories || [])
+        .catch((err) => {
+          console.error("Erreur de chargement des catégories d'équipe:", err)
+          return []
+        })
 
-      if (!res.success) throw new Error(res.error || "Impossible de charger l’équipe.")
-      setTeamMembers(res.members || [])
+      const [membersRes, categories] = await Promise.all([
+        getTeamMembers({ activeOnly: false }),
+        categoriesPromise,
+      ])
+
+      if (!membersRes.success) throw new Error(membersRes.error || "Impossible de charger l’équipe.")
+      setTeamMembers(membersRes.members || [])
+      setTeamCategories(categories)
     } catch (err) {
       console.error("Erreur de chargement des membres:", err)
       setTeamLoadError("Impossible de charger l’équipe. Réessayez.")
@@ -2219,6 +2276,8 @@ export default function AdminSettings() {
 
       category: "COORDINATION",
 
+      customCategory: "",
+
       photoUrl: "",
 
       email: "",
@@ -2260,6 +2319,8 @@ export default function AdminSettings() {
       lastName: m.lastName,
 
       category: m.category,
+
+      customCategory: "",
 
       photoUrl: m.photoUrl || "",
 
@@ -2351,9 +2412,9 @@ export default function AdminSettings() {
 
     const skills =
       pendingSkill &&
-      !teamFormData.skills.some(
-        (item) => item.toLowerCase() === pendingSkill.toLowerCase(),
-      )
+        !teamFormData.skills.some(
+          (item) => item.toLowerCase() === pendingSkill.toLowerCase(),
+        )
         ? [...teamFormData.skills, pendingSkill]
         : teamFormData.skills
 
@@ -2427,7 +2488,12 @@ export default function AdminSettings() {
   }
 
   const handleDeleteTeamMember = async (id: string, name: string) => {
-    if (!confirm(`Supprimer définitivement le profil de "${name}" ?`)) return
+    const ok = await confirm({
+      title: "Supprimer le profil ?",
+      message: `Supprimer définitivement le profil de "${name}" ? Cette action est irréversible.`,
+      confirmLabel: "Supprimer",
+    })
+    if (!ok) return
 
     try {
       const res = await deleteTeamMember(id)
@@ -2437,6 +2503,202 @@ export default function AdminSettings() {
       }
     } catch (err) {
       console.error(err)
+    }
+  }
+
+  // ─── Catégories d'équipe (gérées en base) ───────────────────────────────
+
+  const getTeamCategoryName = (slug: string) =>
+    teamCategories.find((category) => category.slug === slug)?.name || slug
+
+  // Compteur calculé depuis MembreEquipe.category (jamais stocké en base côté catégories).
+  const teamCategoryUsage = teamMembers.reduce<Record<string, number>>(
+    (usage, member) => {
+      usage[member.category] = (usage[member.category] || 0) + 1
+      return usage
+    },
+    {},
+  )
+
+  const openEditTeamCategoryModal = (category: TeamCategoryItem) => {
+    setEditingCategory(category)
+    setTeamCategoryEditName(category.name)
+    setTeamCategoryEditError("")
+  }
+
+  const closeEditTeamCategoryModal = () => {
+    setEditingCategory(null)
+    setTeamCategoryEditName("")
+    setTeamCategoryEditError("")
+  }
+
+  const handleUpdateTeamCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!editingCategory) return
+
+    const name = teamCategoryEditName.trim()
+    if (!name) {
+      setTeamCategoryEditError("Veuillez saisir le nom de la catégorie.")
+      return
+    }
+    if (name.length > 100) {
+      setTeamCategoryEditError(
+        "Le nom de la catégorie ne peut pas dépasser 100 caractères.",
+      )
+      return
+    }
+
+    setTeamCategoryEditSubmitting(true)
+    setTeamCategoryEditError("")
+
+    try {
+      const result = await updateTeamCategory(editingCategory.id, name)
+
+      if (!result.success || !result.category) {
+        setTeamCategoryEditError(result.error || "Impossible de modifier la catégorie.")
+        return
+      }
+
+      // Le slug n'est pas modifié : la sélection en cours reste valide.
+      const updated: TeamCategoryItem = {
+        id: result.category.id,
+        slug: result.category.slug,
+        name: result.category.name,
+        order: result.category.order,
+      }
+
+      setTeamCategories((prev) =>
+        prev.map((category) => (category.id === updated.id ? updated : category)),
+      )
+
+      setTeamCategoryEditName("")
+      setTeamCategoryEditError("")
+      setEditingCategory(null)
+    } catch (err: any) {
+      setTeamCategoryEditError(err.message || "Erreur réseau.")
+    } finally {
+      setTeamCategoryEditSubmitting(false)
+    }
+  }
+
+  const openDeleteTeamCategoryModal = (category: TeamCategoryItem) => {
+    setDeletingCategory(category)
+    setTeamCategoryDeleteError("")
+  }
+
+  const closeDeleteTeamCategoryModal = () => {
+    setDeletingCategory(null)
+    setTeamCategoryDeleteError("")
+  }
+
+  const handleDeleteTeamCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!deletingCategory) return
+
+    setTeamCategoryDeleteSubmitting(true)
+    setTeamCategoryDeleteError("")
+
+    try {
+      const result = await deleteTeamCategory(deletingCategory.id)
+
+      if (!result.success) {
+        setTeamCategoryDeleteError(
+          result.error || "Impossible de supprimer la catégorie.",
+        )
+        return
+      }
+
+      setTeamCategories((prev) =>
+        prev.filter((category) => category.id !== deletingCategory.id),
+      )
+      setDeletingCategory(null)
+    } catch (err: any) {
+      setTeamCategoryDeleteError(err.message || "Erreur réseau.")
+    } finally {
+      setTeamCategoryDeleteSubmitting(false)
+    }
+  }
+
+  // Une valeur enregistrée mais absente de CategorieEquipe (membre créé avant
+  // l'initialisation, catégorie supprimée manuellement) reste sélectionnable :
+  // elle ne doit jamais être perdue ni réécrite silencieusement.
+  const teamCategoryOptions = (() => {
+    const options = teamCategories.map((category) => ({
+      slug: category.slug,
+      name: category.name,
+    }))
+    const current = teamFormData.category
+    if (
+      current &&
+      current !== CREATE_TEAM_CATEGORY_VALUE &&
+      !options.some((option) => option.slug === current)
+    ) {
+      options.push({ slug: current, name: `${current} (catégorie enregistrée)` })
+    }
+    return options
+  })()
+
+  const openCreateTeamCategoryModal = () => {
+    setNewTeamCategoryName("")
+    setTeamCategoryError("")
+    setTeamCategorySelectKey((key) => key + 1)
+    setTeamCategoryModalOpen(true)
+  }
+
+  const closeCreateTeamCategoryModal = () => {
+    setTeamCategoryModalOpen(false)
+    setNewTeamCategoryName("")
+    setTeamCategoryError("")
+    setTeamCategorySelectKey((key) => key + 1)
+  }
+
+  const handleCreateTeamCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const name = newTeamCategoryName.trim()
+    if (!name) {
+      setTeamCategoryError("Veuillez saisir le nom de la catégorie.")
+      return
+    }
+    if (name.length > 100) {
+      setTeamCategoryError("Le nom de la catégorie ne peut pas dépasser 100 caractères.")
+      return
+    }
+
+    setTeamCategorySubmitting(true)
+    setTeamCategoryError("")
+
+    try {
+      const result = await createTeamCategory(name)
+
+      if (!result.success || !result.category) {
+        setTeamCategoryError(result.error || "Impossible de créer la catégorie.")
+        return
+      }
+
+      const created: TeamCategoryItem = {
+        id: result.category.id,
+        slug: result.category.slug,
+        name: result.category.name,
+        order: result.category.order,
+      }
+
+      setTeamCategories((prev) =>
+        prev.some((category) => category.id === created.id)
+          ? prev.map((category) => (category.id === created.id ? created : category))
+          : [...prev, created],
+      )
+
+      setTeamFormData((prev) => ({ ...prev, category: created.slug }))
+      setNewTeamCategoryName("")
+      setTeamCategoryError("")
+      setTeamCategoryModalOpen(false)
+    } catch (err: any) {
+      setTeamCategoryError(err.message || "Erreur réseau.")
+    } finally {
+      setTeamCategorySubmitting(false)
     }
   }
 
@@ -2567,7 +2829,7 @@ export default function AdminSettings() {
 
   return (
     <div className="space-y-6 font-sans">
-      {}
+      { }
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#003366] tracking-tight">
@@ -2580,7 +2842,7 @@ export default function AdminSettings() {
         </div>
       </div>
 
-      {}
+      { }
       <div className="flex border-b border-slate-200 overflow-x-auto gap-2">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id
@@ -2597,11 +2859,10 @@ export default function AdminSettings() {
                   // The selected tab still changes for this visit.
                 }
               }}
-              className={`px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 cursor-pointer ${
-                isActive
-                  ? "border-[#003366] text-[#003366]"
-                  : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
-              }`}
+              className={`px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 cursor-pointer ${isActive
+                ? "border-[#003366] text-[#003366]"
+                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+                }`}
             >
               {tab.label}
             </button>
@@ -2609,11 +2870,11 @@ export default function AdminSettings() {
         })}
       </div>
 
-      {}
+      { }
       {activeTab === "TEAM" && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+        <div className="space-y-10">
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-bold text-slate-800">
                   Gestion de l&apos;Équipe & du Personnel
@@ -2643,9 +2904,97 @@ export default function AdminSettings() {
                 <span>Ajouter un membre</span>
               </button>
             </div>
+          </div>
 
-            {}
-            <div className="mt-4">
+          { }
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-[#003366] uppercase tracking-wider">
+                Catégories / Groupes
+              </h3>
+              <button
+                type="button"
+                onClick={openCreateTeamCategoryModal}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Ajouter une catégorie
+              </button>
+            </div>
+
+            {teamCategories.length === 0 ? (
+              <p className="mt-2 text-xs text-slate-400">
+                Aucune catégorie enregistrée.
+              </p>
+            ) : (
+              <div className="mt-2 divide-y divide-slate-100">
+                {teamCategories.map((category) => {
+                  const usage = teamCategoryUsage[category.slug] || 0
+                  const isHistorical = HISTORICAL_TEAM_CATEGORY_SLUGS.includes(
+                    category.slug,
+                  )
+                  const canDelete = !isHistorical && usage === 0
+
+                  return (
+                    <div
+                      key={category.id}
+                      className="py-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 truncate">
+                          {category.name}
+                        </p>
+                        <p className="text-[11px] text-slate-500">
+                          {isHistorical
+                            ? `${usage} membre${usage > 1 ? "s" : ""}`
+                            : usage > 0
+                              ? `Utilisée par ${usage} membre${usage > 1 ? "s" : ""}`
+                              : "0 membre"}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => openEditTeamCategoryModal(category)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                        >
+                          Modifier
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openDeleteTeamCategoryModal(category)}
+                          disabled={!canDelete}
+                          title={
+                            isHistorical
+                              ? "Les catégories historiques ne peuvent pas être supprimées."
+                              : usage > 0
+                                ? `Cette catégorie est utilisée par ${usage} membre(s). Réaffectez d'abord ces membres à une autre catégorie.`
+                                : "Supprimer"
+                          }
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white cursor-pointer"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          { }
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-[#003366] uppercase tracking-wider">
+                Membres de l&apos;équipe
+              </h3>
+              <span className="text-xs font-semibold text-slate-500">
+                {teamMembers.length} membre{teamMembers.length > 1 ? "s" : ""}
+              </span>
+            </div>
+
+            <div className="mt-2">
               {reorderingTeam && (
                 <p className="mb-3 text-xs font-semibold text-[#007BFF]">
                   Enregistrement de l&apos;ordre...
@@ -2693,9 +3042,8 @@ export default function AdminSettings() {
                           m.active && event.preventDefault()
                         }
                         onDrop={() => handleTeamMemberDrop(m.id)}
-                        className={`py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-opacity ${
-                          draggedMemberId === m.id ? "opacity-50" : ""
-                        }`}
+                        className={`py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-opacity ${draggedMemberId === m.id ? "opacity-50" : ""
+                          }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           {m.active && (
@@ -2726,9 +3074,8 @@ export default function AdminSettings() {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              `${m.firstName[0] || ""}${
-                                m.lastName[0] || ""
-                              }`.toUpperCase()
+                              `${m.firstName[0] || ""}${m.lastName[0] || ""
+                                }`.toUpperCase()
                             )}
                           </div>
                           <div className="min-w-0">
@@ -2737,7 +3084,7 @@ export default function AdminSettings() {
                                 {memberName}
                               </h3>
                               <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                                {CATEGORY_LABELS[m.category] || m.category}
+                                {getTeamCategoryName(m.category)}
                               </span>
                               {!m.active && (
                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-200">
@@ -2785,7 +3132,7 @@ export default function AdminSettings() {
                                 onClick={() => moveTeamMember(m.id, 1)}
                                 disabled={
                                   activeIndex ===
-                                    activeTeamMembers.length - 1 ||
+                                  activeTeamMembers.length - 1 ||
                                   reorderingTeam
                                 }
                                 aria-label={`Descendre ${memberName}`}
@@ -2815,11 +3162,10 @@ export default function AdminSettings() {
                                 ? "Désactiver / Masquer"
                                 : "Activer / Afficher"
                             }
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-colors ${
-                              m.active
-                                ? "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
-                                : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
-                            }`}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-colors ${m.active
+                              ? "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                              : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                              }`}
                           >
                             {m.active ? "Masquer" : "Publier"}
                           </button>
@@ -2863,10 +3209,10 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {}
+      { }
       {activeTab === "ABOUT" && (
         <div className="space-y-6 pb-28">
-          {}
+          { }
           <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
               <div>
@@ -2920,7 +3266,7 @@ export default function AdminSettings() {
               </div>
             )}
 
-            {}
+            { }
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
               {(["FR", "EN", "DE"] as const).map((lang) => {
                 const completeness = calculateAboutCompleteness(values, lang)
@@ -2937,11 +3283,10 @@ export default function AdminSettings() {
                 return (
                   <div
                     key={lang}
-                    className={`p-5 rounded-2xl border transition-all ${
-                      aboutLangTab === lang
-                        ? "bg-white border-[#003366] shadow-sm ring-2 ring-[#003366]/10"
-                        : "bg-slate-50/70 border-slate-200 hover:bg-white"
-                    }`}
+                    className={`p-5 rounded-2xl border transition-all ${aboutLangTab === lang
+                      ? "bg-white border-[#003366] shadow-sm ring-2 ring-[#003366]/10"
+                      : "bg-slate-50/70 border-slate-200 hover:bg-white"
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2.5">
@@ -2953,11 +3298,10 @@ export default function AdminSettings() {
                         </span>
                       </div>
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          isPub
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                            : "bg-amber-100 text-amber-800 border border-amber-200"
-                        }`}
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isPub
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                          : "bg-amber-100 text-amber-800 border border-amber-200"
+                          }`}
                       >
                         {isPub ? "● Publié" : "○ Brouillon"}
                       </span>
@@ -2969,22 +3313,20 @@ export default function AdminSettings() {
                           Complétude :
                         </span>
                         <span
-                          className={`font-bold ${
-                            completeness.isComplete
-                              ? "text-emerald-700"
-                              : "text-amber-700"
-                          }`}
+                          className={`font-bold ${completeness.isComplete
+                            ? "text-emerald-700"
+                            : "text-amber-700"
+                            }`}
                         >
                           {completeness.percentage}%
                         </span>
                       </div>
                       <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            completeness.isComplete
-                              ? "bg-emerald-500"
-                              : "bg-amber-500"
-                          }`}
+                          className={`h-full rounded-full transition-all duration-500 ${completeness.isComplete
+                            ? "bg-emerald-500"
+                            : "bg-amber-500"
+                            }`}
                           style={{ width: `${completeness.percentage}%` }}
                         />
                       </div>
@@ -2992,8 +3334,7 @@ export default function AdminSettings() {
                         {completeness.filledCount} / {completeness.totalCount}{" "}
                         champs requis
                         {!completeness.isComplete &&
-                          ` (${completeness.missingFields.length} manquant${
-                            completeness.missingFields.length > 1 ? "s" : ""
+                          ` (${completeness.missingFields.length} manquant${completeness.missingFields.length > 1 ? "s" : ""
                           })`}
                       </p>
                     </div>
@@ -3002,11 +3343,10 @@ export default function AdminSettings() {
                       <button
                         type="button"
                         onClick={() => aboutEditor.switchLang(lang)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                          aboutLangTab === lang
-                            ? "bg-[#003366] text-white shadow-xs"
-                            : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${aboutLangTab === lang
+                          ? "bg-[#003366] text-white shadow-xs"
+                          : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                          }`}
                       >
                         Éditer {lang}
                       </button>
@@ -3020,13 +3360,12 @@ export default function AdminSettings() {
                             ? `Complétude à 100% requise pour publier cette langue (${completeness.missingFields.length} champ(s) restant(s))`
                             : undefined
                         }
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                          isPub
-                            ? "bg-slate-100 border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200"
-                            : completeness.isComplete
-                              ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs"
-                              : "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 opacity-60"
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${isPub
+                          ? "bg-slate-100 border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200"
+                          : completeness.isComplete
+                            ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs"
+                            : "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 opacity-60"
+                          }`}
                       >
                         {isPub
                           ? "Passer en Brouillon"
@@ -3040,7 +3379,7 @@ export default function AdminSettings() {
               })}
             </div>
 
-            {}
+            { }
             <div className="mt-8 border-t border-slate-100 pt-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <CmsLangSwitcher
@@ -3078,7 +3417,7 @@ export default function AdminSettings() {
             </div>
           </div>
 
-          {}
+          { }
           <form onSubmit={handleSaveAboutTab} className="space-y-6">
             {ABOUT_SECTIONS.map((section) => {
               const fields = ABOUT_FIELDS.filter(
@@ -3092,7 +3431,7 @@ export default function AdminSettings() {
                   key={section.id}
                   className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs"
                 >
-                  {}
+                  { }
                   <div className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
                     <div
                       onClick={() => toggleAboutSection(section.id)}
@@ -3129,7 +3468,7 @@ export default function AdminSettings() {
                         />
                       </span>
 
-                      {}
+                      { }
                       <button
                         type="button"
                         onClick={() => toggleAboutSection(section.id)}
@@ -3137,9 +3476,8 @@ export default function AdminSettings() {
                       >
                         <span>{isExpanded ? "Masquer" : "Déplier"}</span>
                         <svg
-                          className={`w-4 h-4 transition-transform duration-200 ${
-                            isExpanded ? "rotate-180" : ""
-                          }`}
+                          className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+                            }`}
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -3155,7 +3493,7 @@ export default function AdminSettings() {
                     </div>
                   </div>
 
-                  {}
+                  { }
                   {isExpanded && (
                     <div className="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-6">
                       {fields.map((field) => {
@@ -3191,7 +3529,7 @@ export default function AdminSettings() {
                               </p>
                             )}
 
-                            {}
+                            { }
                             {aboutLangTab !== "FR" &&
                               field.isTranslatable &&
                               frValue && (
@@ -3205,7 +3543,7 @@ export default function AdminSettings() {
                                 </div>
                               )}
 
-                            {}
+                            { }
                             {field.type === "image" ? (
                               <div className="space-y-3">
                                 <div className="flex flex-col sm:flex-row gap-3">
@@ -3250,7 +3588,7 @@ export default function AdminSettings() {
                                         alt="Aperçu"
                                         className="w-full h-full object-cover"
                                         onError={(e) => {
-                                          ;(e.target as HTMLElement).style.display =
+                                          ; (e.target as HTMLElement).style.display =
                                             "none"
                                         }}
                                       />
@@ -3286,7 +3624,7 @@ export default function AdminSettings() {
               )
             })}
 
-            {}
+            { }
             <CmsSaveBar
               isDirty={aboutEditor.isDirty}
               isReady={aboutEditor.isReady}
@@ -3303,17 +3641,17 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {}
+      { }
       <CmsReplaceConfirmDialog
         pending={aboutEditor.pendingTranslation}
         onCancel={aboutEditor.cancelPendingTranslation}
         onConfirm={aboutEditor.confirmPendingTranslation}
       />
 
-      {}
+      { }
       {activeTab === "VOLUNTEER" && (
         <div className="space-y-6 pb-28">
-          {}
+          { }
           <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
               <div>
@@ -3368,7 +3706,7 @@ export default function AdminSettings() {
               </div>
             )}
 
-            {}
+            { }
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
               {(["FR", "EN", "DE"] as const).map((lang) => {
                 const completeness = calculateVolunteerCompleteness(
@@ -3389,11 +3727,10 @@ export default function AdminSettings() {
                 return (
                   <div
                     key={lang}
-                    className={`p-5 rounded-2xl border transition-all ${
-                      volunteerLangTab === lang
-                        ? "bg-white border-[#003366] shadow-sm ring-2 ring-[#003366]/10"
-                        : "bg-slate-50/70 border-slate-200 hover:bg-white"
-                    }`}
+                    className={`p-5 rounded-2xl border transition-all ${volunteerLangTab === lang
+                      ? "bg-white border-[#003366] shadow-sm ring-2 ring-[#003366]/10"
+                      : "bg-slate-50/70 border-slate-200 hover:bg-white"
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2.5">
@@ -3405,11 +3742,10 @@ export default function AdminSettings() {
                         </span>
                       </div>
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          isPub
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                            : "bg-amber-100 text-amber-800 border border-amber-200"
-                        }`}
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isPub
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                          : "bg-amber-100 text-amber-800 border border-amber-200"
+                          }`}
                       >
                         {isPub ? "● Publié" : "○ Brouillon"}
                       </span>
@@ -3421,22 +3757,20 @@ export default function AdminSettings() {
                           Complétude :
                         </span>
                         <span
-                          className={`font-bold ${
-                            completeness.isComplete
-                              ? "text-emerald-700"
-                              : "text-amber-700"
-                          }`}
+                          className={`font-bold ${completeness.isComplete
+                            ? "text-emerald-700"
+                            : "text-amber-700"
+                            }`}
                         >
                           {completeness.percentage}%
                         </span>
                       </div>
                       <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            completeness.isComplete
-                              ? "bg-emerald-500"
-                              : "bg-amber-500"
-                          }`}
+                          className={`h-full rounded-full transition-all duration-500 ${completeness.isComplete
+                            ? "bg-emerald-500"
+                            : "bg-amber-500"
+                            }`}
                           style={{ width: `${completeness.percentage}%` }}
                         />
                       </div>
@@ -3444,8 +3778,7 @@ export default function AdminSettings() {
                         {completeness.filledCount} / {completeness.totalCount}{" "}
                         champs requis
                         {!completeness.isComplete &&
-                          ` (${completeness.missingFields.length} manquant${
-                            completeness.missingFields.length > 1 ? "s" : ""
+                          ` (${completeness.missingFields.length} manquant${completeness.missingFields.length > 1 ? "s" : ""
                           })`}
                       </p>
                     </div>
@@ -3454,11 +3787,10 @@ export default function AdminSettings() {
                       <button
                         type="button"
                         onClick={() => volunteerEditor.switchLang(lang)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                          volunteerLangTab === lang
-                            ? "bg-[#003366] text-white shadow-xs"
-                            : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${volunteerLangTab === lang
+                          ? "bg-[#003366] text-white shadow-xs"
+                          : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                          }`}
                       >
                         Éditer {lang}
                       </button>
@@ -3472,13 +3804,12 @@ export default function AdminSettings() {
                             ? `Complétude à 100% requise pour publier cette langue (${completeness.missingFields.length} champ(s) restant(s))`
                             : undefined
                         }
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                          isPub
-                            ? "bg-slate-100 border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200"
-                            : completeness.isComplete
-                              ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs"
-                              : "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 opacity-60"
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${isPub
+                          ? "bg-slate-100 border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200"
+                          : completeness.isComplete
+                            ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs"
+                            : "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 opacity-60"
+                          }`}
                       >
                         {isPub
                           ? "Passer en Brouillon"
@@ -3492,7 +3823,7 @@ export default function AdminSettings() {
               })}
             </div>
 
-            {}
+            { }
             <div className="mt-8 border-t border-slate-100 pt-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <CmsLangSwitcher
@@ -3530,7 +3861,7 @@ export default function AdminSettings() {
             </div>
           </div>
 
-          {}
+          { }
           <form onSubmit={handleSaveVolunteerTab} className="space-y-6">
             {VOLUNTEER_SECTIONS.map((section, sIdx) => {
               const fields = VOLUNTEER_FIELDS.filter(
@@ -3546,7 +3877,7 @@ export default function AdminSettings() {
                   key={section.id}
                   className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs"
                 >
-                  {}
+                  { }
                   <div className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
                     <div
                       onClick={() => toggleVolunteerSection(section.id)}
@@ -3569,7 +3900,7 @@ export default function AdminSettings() {
                     </div>
 
                     <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
-                      {}
+                      { }
                       <span onClick={(e) => e.stopPropagation()}>
                         <CmsSectionTranslateButton
                           lang={volunteerLangTab}
@@ -3586,7 +3917,7 @@ export default function AdminSettings() {
                         />
                       </span>
 
-                      {}
+                      { }
                       <button
                         type="button"
                         onClick={() => toggleVolunteerSection(section.id)}
@@ -3594,9 +3925,8 @@ export default function AdminSettings() {
                       >
                         <span>{isExpanded ? "Masquer" : "Déplier"}</span>
                         <svg
-                          className={`w-4 h-4 transition-transform duration-200 ${
-                            isExpanded ? "rotate-180" : ""
-                          }`}
+                          className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+                            }`}
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -3612,7 +3942,7 @@ export default function AdminSettings() {
                     </div>
                   </div>
 
-                  {}
+                  { }
                   {isExpanded && (
                     <div className="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-6">
                       {fields.map((field) => {
@@ -3648,7 +3978,7 @@ export default function AdminSettings() {
                               </p>
                             )}
 
-                            {}
+                            { }
                             {volunteerLangTab !== "FR" &&
                               field.isTranslatable &&
                               frValue && (
@@ -3662,7 +3992,7 @@ export default function AdminSettings() {
                                 </div>
                               )}
 
-                            {}
+                            { }
                             {field.type === "image" ? (
                               <div className="space-y-3">
                                 <div className="flex flex-col sm:flex-row gap-3">
@@ -3707,7 +4037,7 @@ export default function AdminSettings() {
                                         alt="Aperçu"
                                         className="w-full h-full object-cover"
                                         onError={(e) => {
-                                          ;(e.target as HTMLElement).style.display =
+                                          ; (e.target as HTMLElement).style.display =
                                             "none"
                                         }}
                                       />
@@ -3743,7 +4073,7 @@ export default function AdminSettings() {
               )
             })}
 
-            {}
+            { }
             <CmsSaveBar
               isDirty={volunteerEditor.isDirty}
               isReady={volunteerEditor.isReady}
@@ -3759,17 +4089,17 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {}
+      { }
       <CmsReplaceConfirmDialog
         pending={volunteerEditor.pendingTranslation}
         onCancel={volunteerEditor.cancelPendingTranslation}
         onConfirm={volunteerEditor.confirmPendingTranslation}
       />
 
-      {}
+      { }
       {activeTab === "PARTNER" && (
         <div className="space-y-6 pb-28">
-          {}
+          { }
           <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
               <div>
@@ -3783,8 +4113,8 @@ export default function AdminSettings() {
                 </p>
               </div>
 
-              {}
-            <CmsPagePublicationControls group="PARTNER" values={values} onToggle={handleToggleCmsPagePublication} />
+              { }
+              <CmsPagePublicationControls group="PARTNER" values={values} onToggle={handleToggleCmsPagePublication} />
 
               <CmsLangSwitcher
                 value={partnerLangTab}
@@ -3805,11 +4135,10 @@ export default function AdminSettings() {
                 return (
                   <div
                     key={lang}
-                    className={`p-5 rounded-2xl border transition-all ${
-                      partnerLangTab === lang
-                        ? "bg-white border-[#003366] shadow-sm ring-2 ring-[#003366]/10"
-                        : "bg-slate-50/70 border-slate-200 hover:bg-white"
-                    }`}
+                    className={`p-5 rounded-2xl border transition-all ${partnerLangTab === lang
+                      ? "bg-white border-[#003366] shadow-sm ring-2 ring-[#003366]/10"
+                      : "bg-slate-50/70 border-slate-200 hover:bg-white"
+                      }`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2.5">
@@ -3821,11 +4150,10 @@ export default function AdminSettings() {
                         </span>
                       </div>
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          completeness.isComplete
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                            : "bg-amber-100 text-amber-800 border border-amber-200"
-                        }`}
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${completeness.isComplete
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                          : "bg-amber-100 text-amber-800 border border-amber-200"
+                          }`}
                       >
                         {completeness.isComplete ? "Complet" : "Incomplet"}
                       </span>
@@ -3837,22 +4165,20 @@ export default function AdminSettings() {
                           Complétude :
                         </span>
                         <span
-                          className={`font-bold ${
-                            completeness.isComplete
-                              ? "text-emerald-700"
-                              : "text-amber-700"
-                          }`}
+                          className={`font-bold ${completeness.isComplete
+                            ? "text-emerald-700"
+                            : "text-amber-700"
+                            }`}
                         >
                           {completeness.percentage}%
                         </span>
                       </div>
                       <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            completeness.isComplete
-                              ? "bg-emerald-500"
-                              : "bg-amber-500"
-                          }`}
+                          className={`h-full rounded-full transition-all duration-500 ${completeness.isComplete
+                            ? "bg-emerald-500"
+                            : "bg-amber-500"
+                            }`}
                           style={{ width: `${completeness.percentage}%` }}
                         />
                       </div>
@@ -3867,11 +4193,10 @@ export default function AdminSettings() {
                       <button
                         type="button"
                         onClick={() => partnerEditor.switchLang(lang)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                          partnerLangTab === lang
-                            ? "bg-[#003366] text-white shadow-xs"
-                            : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${partnerLangTab === lang
+                          ? "bg-[#003366] text-white shadow-xs"
+                          : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                          }`}
                       >
                         Éditer {lang}
                       </button>
@@ -3881,7 +4206,7 @@ export default function AdminSettings() {
               })}
             </div>
 
-            {}
+            { }
             <CmsCompletenessBar
               completeness={calculatePartnerCompleteness(
                 values,
@@ -3910,7 +4235,7 @@ export default function AdminSettings() {
             )}
           </div>
 
-          {}
+          { }
           <form onSubmit={handleSavePartnerTab} className="space-y-4">
             {PARTNER_SECTIONS.map((section, sIdx) => {
               const fields = PARTNER_FIELDS.filter(
@@ -3926,7 +4251,7 @@ export default function AdminSettings() {
                   key={section.id}
                   className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs transition-shadow"
                 >
-                  {}
+                  { }
                   <div
                     onClick={() => togglePartnerSection(section.id)}
                     className="p-5 sm:px-8 sm:py-6 bg-slate-50/50 hover:bg-slate-50 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer select-none transition-colors"
@@ -3960,7 +4285,7 @@ export default function AdminSettings() {
                         />
                       </span>
 
-                      {}
+                      { }
                       <button
                         type="button"
                         onClick={(event) => {
@@ -3971,9 +4296,8 @@ export default function AdminSettings() {
                       >
                         <span>{isExpanded ? "Masquer" : "Déplier"}</span>
                         <svg
-                          className={`w-4 h-4 transition-transform duration-200 ${
-                            isExpanded ? "rotate-180" : ""
-                          }`}
+                          className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+                            }`}
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -3989,7 +4313,7 @@ export default function AdminSettings() {
                     </div>
                   </div>
 
-                  {}
+                  { }
                   {isExpanded && (
                     <div className="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-6">
                       {fields.map((field) => {
@@ -4025,7 +4349,7 @@ export default function AdminSettings() {
                               </p>
                             )}
 
-                            {}
+                            { }
                             {partnerLangTab !== "FR" &&
                               field.isTranslatable &&
                               frValue && (
@@ -4039,7 +4363,7 @@ export default function AdminSettings() {
                                 </div>
                               )}
 
-                            {}
+                            { }
                             {field.type === "image" ? (
                               <div className="space-y-3">
                                 <div className="flex flex-col sm:flex-row gap-3">
@@ -4084,7 +4408,7 @@ export default function AdminSettings() {
                                         alt="Aperçu"
                                         className="w-full h-full object-cover"
                                         onError={(e) => {
-                                          ;(e.target as HTMLElement).style.display =
+                                          ; (e.target as HTMLElement).style.display =
                                             "none"
                                         }}
                                       />
@@ -4120,7 +4444,7 @@ export default function AdminSettings() {
               )
             })}
 
-            {}
+            { }
             <CmsSaveBar
               isDirty={partnerEditor.isDirty}
               isReady={partnerEditor.isReady}
@@ -4136,17 +4460,17 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {}
+      { }
       <CmsReplaceConfirmDialog
         pending={partnerEditor.pendingTranslation}
         onCancel={partnerEditor.cancelPendingTranslation}
         onConfirm={partnerEditor.confirmPendingTranslation}
       />
 
-      {}
+      { }
       {activeTab === "MEMBERSHIP" && (
         <div className="space-y-6 pb-28">
-          {}
+          { }
           <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
               <div>
@@ -4160,7 +4484,7 @@ export default function AdminSettings() {
                 </p>
               </div>
 
-              {}
+              { }
               <CmsPagePublicationControls group="MEMBERSHIP" values={values} onToggle={handleToggleCmsPagePublication} />
 
               <CmsLangSwitcher
@@ -4169,7 +4493,7 @@ export default function AdminSettings() {
               />
             </div>
 
-            {}
+            { }
             <CmsCompletenessBar
               completeness={calculateMembershipCompleteness(
                 values,
@@ -4198,7 +4522,7 @@ export default function AdminSettings() {
             )}
           </div>
 
-          {}
+          { }
           <form onSubmit={handleSaveMembershipTab} className="space-y-6">
             {MEMBERSHIP_SECTIONS.map((section, sIdx) => {
               const fields = MEMBERSHIP_FIELDS.filter(
@@ -4215,7 +4539,7 @@ export default function AdminSettings() {
                   key={section.id}
                   className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs"
                 >
-                  {}
+                  { }
                   <div className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
                     <div
                       onClick={() => toggleMembershipSection(section.id)}
@@ -4305,7 +4629,7 @@ export default function AdminSettings() {
                         if (section.id === "WHY") {
                           const whyCount = Math.max(0, parseInt(values["membership_why_count"] || "6", 10))
                           const headerFields = fields.filter(f => ["membership_why_tag", "membership_why_title", "membership_why_subtitle"].includes(f.key))
-                          
+
                           return (
                             <div className="space-y-5">
                               <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
@@ -4565,7 +4889,7 @@ export default function AdminSettings() {
               )
             })}
 
-            {}
+            { }
             <CmsSaveBar
               isDirty={membershipEditor.isDirty}
               isReady={membershipEditor.isReady}
@@ -4581,17 +4905,17 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {}
+      { }
       <CmsReplaceConfirmDialog
         pending={membershipEditor.pendingTranslation}
         onCancel={membershipEditor.cancelPendingTranslation}
         onConfirm={membershipEditor.confirmPendingTranslation}
       />
 
-      {}
+      { }
       {activeTab === "SUPPORT" && (
         <div className="space-y-6 pb-28">
-          {}
+          { }
           <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
               <div>
@@ -4604,7 +4928,7 @@ export default function AdminSettings() {
                 </p>
               </div>
 
-              {}
+              { }
               <CmsPagePublicationControls group="SUPPORT" values={values} onToggle={handleToggleCmsPagePublication} />
 
               <CmsLangSwitcher
@@ -4613,7 +4937,7 @@ export default function AdminSettings() {
               />
             </div>
 
-            {}
+            { }
             <CmsCompletenessBar
               completeness={calculateSupportCompleteness(
                 values,
@@ -4642,7 +4966,7 @@ export default function AdminSettings() {
             )}
           </div>
 
-          {}
+          { }
           <form onSubmit={handleSaveSupportTab} className="space-y-6">
             {SUPPORT_SECTIONS.map((section, sIdx) => {
               const fields = SUPPORT_FIELDS.filter(
@@ -4658,7 +4982,7 @@ export default function AdminSettings() {
                   key={section.id}
                   className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs"
                 >
-                  {}
+                  { }
                   <div className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
                     <div
                       onClick={() => toggleSupportSection(section.id)}
@@ -4702,36 +5026,212 @@ export default function AdminSettings() {
                     </div>
                   </div>
 
-                  {}
+                  { }
                   {isExpanded && (
                     <div className="p-5 sm:p-6 bg-white">
                       {/* ── SECTION AXES : header 2 cols + cartes grille 2×2 ── */}
                       {section.id === "AXES"
                         ? (() => {
-                            const axesCount = Math.max(
+                          const axesCount = Math.max(
+                            0,
+                            parseInt(values["support_axes_count"] || "4", 10),
+                          )
+                          const headerFields = SUPPORT_FIELDS.filter(
+                            (f) =>
+                              f.section === "AXES" &&
+                              ["support_axes_tag", "support_axes_title", "support_axes_subtitle"].includes(f.key),
+                          )
+
+                          return (
+                            <div className="space-y-5">
+                              {/* Header fields in 2 columns: tag+title left, subtitle full-width */}
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+                                {headerFields.map((field) => {
+                                  const dbKey = getSupportFieldDbKey(field, supportLangTab)
+                                  const currentValue = values[dbKey] || ""
+                                  const frRef = values[`${field.key}_fr`]
+                                  const isSubtitle = field.key === "support_axes_subtitle"
+
+                                  return (
+                                    <div
+                                      key={field.key}
+                                      className={`space-y-1.5 ${isSubtitle ? "lg:col-span-2" : ""}`}
+                                    >
+                                      <label className="block text-sm font-semibold text-slate-800">
+                                        {field.label}
+                                      </label>
+                                      {supportLangTab !== "FR" && frRef && (
+                                        <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs text-slate-500">
+                                          <span className="font-bold text-slate-700 block mb-0.5">Réf. FR :</span>
+                                          <p className="italic">{frRef}</p>
+                                        </div>
+                                      )}
+                                      {field.type === "textarea" ? (
+                                        <textarea
+                                          rows={2}
+                                          value={currentValue}
+                                          onChange={(e) => handleInputChange(dbKey, e.target.value)}
+                                          className="w-full max-w-3xl px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
+                                        />
+                                      ) : (
+                                        <input
+                                          type="text"
+                                          value={currentValue}
+                                          onChange={(e) => handleInputChange(dbKey, e.target.value)}
+                                          className={`w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white ${field.key === "support_axes_tag" ? "max-w-xs" : "max-w-xl"}`}
+                                        />
+                                      )}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+
+                              {/* Cartes d'axes en grille 2×2 */}
+                              <div className="border-t border-slate-100 pt-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                                    Cartes d&apos;axes ({axesCount})
+                                  </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                                  {Array.from({ length: axesCount }, (_, i) => i + 1).map((idx) => {
+                                    const tKey = `support_axes_${idx}_title`
+                                    const dKey = `support_axes_${idx}_desc`
+                                    const lKey = `support_axes_${idx}_link`
+                                    const lang = supportLangTab.toLowerCase()
+                                    const tDbKey = `${tKey}_${lang}`
+                                    const dDbKey = `${dKey}_${lang}`
+                                    const lDbKey = `${lKey}_${lang}`
+
+                                    return (
+                                      <div
+                                        key={idx}
+                                        className="p-3 rounded-xl border border-slate-100 bg-slate-50/50 space-y-1.5"
+                                      >
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-[11px] font-black uppercase tracking-widest text-[#28A745]">
+                                            Axe {String(idx).padStart(2, "0")}
+                                          </span>
+                                          {axesCount > 1 && (
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const updated: Record<string, string> = { ...values }
+                                                for (let j = idx; j < axesCount; j++) {
+                                                  for (const sfx of ["fr", "en", "de"]) {
+                                                    updated[`support_axes_${j}_title_${sfx}`] = values[`support_axes_${j + 1}_title_${sfx}`] || ""
+                                                    updated[`support_axes_${j}_desc_${sfx}`] = values[`support_axes_${j + 1}_desc_${sfx}`] || ""
+                                                    updated[`support_axes_${j}_link_${sfx}`] = values[`support_axes_${j + 1}_link_${sfx}`] || ""
+                                                  }
+                                                }
+                                                for (const sfx of ["fr", "en", "de"]) {
+                                                  updated[`support_axes_${axesCount}_title_${sfx}`] = ""
+                                                  updated[`support_axes_${axesCount}_desc_${sfx}`] = ""
+                                                  updated[`support_axes_${axesCount}_link_${sfx}`] = ""
+                                                }
+                                                updated["support_axes_count"] = String(axesCount - 1)
+                                                setValues(updated)
+                                              }}
+                                              className="text-[10px] font-semibold text-rose-500 hover:text-rose-700 cursor-pointer transition-colors"
+                                            >
+                                              ✕ Supprimer
+                                            </button>
+                                          )}
+                                        </div>
+
+                                        <div className="space-y-1">
+                                          <label className="text-[10px] font-bold text-slate-600">
+                                            Titre
+                                          </label>
+                                          {supportLangTab !== "FR" && values[`${tKey}_fr`] && (
+                                            <p className="text-[10px] italic text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{values[`${tKey}_fr`]}</p>
+                                          )}
+                                          <input
+                                            type="text"
+                                            value={values[tDbKey] || ""}
+                                            onChange={(e) => handleInputChange(tDbKey, e.target.value)}
+                                            placeholder={`Titre de l'axe ${idx}...`}
+                                            className="w-full px-2.5 py-1 rounded-lg border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
+                                          />
+                                        </div>
+
+                                        <div className="space-y-1">
+                                          <label className="text-[10px] font-bold text-slate-600">
+                                            Description
+                                          </label>
+                                          {supportLangTab !== "FR" && values[`${dKey}_fr`] && (
+                                            <p className="text-[10px] italic text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{values[`${dKey}_fr`]}</p>
+                                          )}
+                                          <textarea
+                                            rows={2}
+                                            value={values[dDbKey] || ""}
+                                            onChange={(e) => handleInputChange(dDbKey, e.target.value)}
+                                            placeholder={`Description de l'axe ${idx}...`}
+                                            className="w-full px-2.5 py-1 rounded-lg border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
+                                          />
+                                        </div>
+
+                                        <div className="space-y-1">
+                                          <label className="text-[10px] font-bold text-slate-600">
+                                            Texte du lien
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={values[lDbKey] || ""}
+                                            onChange={(e) => handleInputChange(lDbKey, e.target.value)}
+                                            placeholder="Ex: Échanger avec l'équipe"
+                                            className="w-full px-2.5 py-1 rounded-lg border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
+                                          />
+                                        </div>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+
+                                <div className="mt-3 flex justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleInputChange("support_axes_count", String(axesCount + 1))
+                                    }}
+                                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 text-slate-500 text-[11px] font-bold hover:border-[#003366] hover:text-[#003366] transition-colors cursor-pointer"
+                                  >
+                                    <span>+</span> Ajouter un axe
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })()
+
+                        /* ── SECTION WHY : header 2 cols + piliers grille 2 cols ── */
+                        : section.id === "WHY"
+                          ? (() => {
+                            const whyCount = Math.max(
                               0,
-                              parseInt(values["support_axes_count"] || "4", 10),
+                              parseInt(values["support_why_count"] || "3", 10),
                             )
-                            const headerFields = SUPPORT_FIELDS.filter(
+                            const whyHeaderFields = SUPPORT_FIELDS.filter(
                               (f) =>
-                                f.section === "AXES" &&
-                                ["support_axes_tag", "support_axes_title", "support_axes_subtitle"].includes(f.key),
+                                f.section === "WHY" &&
+                                ["support_why_tag", "support_why_title", "support_why_desc"].includes(f.key),
                             )
 
                             return (
                               <div className="space-y-5">
-                                {/* Header fields in 2 columns: tag+title left, subtitle full-width */}
+                                {/* Header: tag + title side-by-side, desc full-width */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
-                                  {headerFields.map((field) => {
+                                  {whyHeaderFields.map((field) => {
                                     const dbKey = getSupportFieldDbKey(field, supportLangTab)
                                     const currentValue = values[dbKey] || ""
                                     const frRef = values[`${field.key}_fr`]
-                                    const isSubtitle = field.key === "support_axes_subtitle"
+                                    const isDesc = field.key === "support_why_desc"
 
                                     return (
                                       <div
                                         key={field.key}
-                                        className={`space-y-1.5 ${isSubtitle ? "lg:col-span-2" : ""}`}
+                                        className={`space-y-1.5 ${isDesc ? "lg:col-span-2" : ""}`}
                                       >
                                         <label className="block text-sm font-semibold text-slate-800">
                                           {field.label}
@@ -4744,7 +5244,7 @@ export default function AdminSettings() {
                                         )}
                                         {field.type === "textarea" ? (
                                           <textarea
-                                            rows={2}
+                                            rows={3}
                                             value={currentValue}
                                             onChange={(e) => handleInputChange(dbKey, e.target.value)}
                                             className="w-full max-w-3xl px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
@@ -4754,7 +5254,7 @@ export default function AdminSettings() {
                                             type="text"
                                             value={currentValue}
                                             onChange={(e) => handleInputChange(dbKey, e.target.value)}
-                                            className={`w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white ${field.key === "support_axes_tag" ? "max-w-xs" : "max-w-xl"}`}
+                                            className={`w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white ${field.key === "support_why_tag" ? "max-w-xs" : "max-w-xl"}`}
                                           />
                                         )}
                                       </div>
@@ -4762,23 +5262,19 @@ export default function AdminSettings() {
                                   })}
                                 </div>
 
-                                {/* Cartes d'axes en grille 2×2 */}
+                                {/* Pilier cards in 2-col grid */}
                                 <div className="border-t border-slate-100 pt-4">
-                                  <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                                      Cartes d&apos;axes ({axesCount})
-                                    </span>
-                                  </div>
+                                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-3">
+                                    Piliers ({whyCount})
+                                  </span>
 
                                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                                    {Array.from({ length: axesCount }, (_, i) => i + 1).map((idx) => {
-                                      const tKey = `support_axes_${idx}_title`
-                                      const dKey = `support_axes_${idx}_desc`
-                                      const lKey = `support_axes_${idx}_link`
+                                    {Array.from({ length: whyCount }, (_, i) => i + 1).map((idx) => {
+                                      const tKey = `support_why_${idx}_title`
+                                      const dKey = `support_why_${idx}_desc`
                                       const lang = supportLangTab.toLowerCase()
                                       const tDbKey = `${tKey}_${lang}`
                                       const dDbKey = `${dKey}_${lang}`
-                                      const lDbKey = `${lKey}_${lang}`
 
                                       return (
                                         <div
@@ -4786,27 +5282,25 @@ export default function AdminSettings() {
                                           className="p-3 rounded-xl border border-slate-100 bg-slate-50/50 space-y-1.5"
                                         >
                                           <div className="flex items-center justify-between">
-                                            <span className="text-[11px] font-black uppercase tracking-widest text-[#28A745]">
-                                              Axe {String(idx).padStart(2, "0")}
+                                            <span className="text-[11px] font-black uppercase tracking-widest text-[#007BFF]">
+                                              Pilier {String(idx).padStart(2, "0")}
                                             </span>
-                                            {axesCount > 1 && (
+                                            {whyCount > 1 && (
                                               <button
                                                 type="button"
                                                 onClick={() => {
                                                   const updated: Record<string, string> = { ...values }
-                                                  for (let j = idx; j < axesCount; j++) {
+                                                  for (let j = idx; j < whyCount; j++) {
                                                     for (const sfx of ["fr", "en", "de"]) {
-                                                      updated[`support_axes_${j}_title_${sfx}`] = values[`support_axes_${j + 1}_title_${sfx}`] || ""
-                                                      updated[`support_axes_${j}_desc_${sfx}`] = values[`support_axes_${j + 1}_desc_${sfx}`] || ""
-                                                      updated[`support_axes_${j}_link_${sfx}`] = values[`support_axes_${j + 1}_link_${sfx}`] || ""
+                                                      updated[`support_why_${j}_title_${sfx}`] = values[`support_why_${j + 1}_title_${sfx}`] || ""
+                                                      updated[`support_why_${j}_desc_${sfx}`] = values[`support_why_${j + 1}_desc_${sfx}`] || ""
                                                     }
                                                   }
                                                   for (const sfx of ["fr", "en", "de"]) {
-                                                    updated[`support_axes_${axesCount}_title_${sfx}`] = ""
-                                                    updated[`support_axes_${axesCount}_desc_${sfx}`] = ""
-                                                    updated[`support_axes_${axesCount}_link_${sfx}`] = ""
+                                                    updated[`support_why_${whyCount}_title_${sfx}`] = ""
+                                                    updated[`support_why_${whyCount}_desc_${sfx}`] = ""
                                                   }
-                                                  updated["support_axes_count"] = String(axesCount - 1)
+                                                  updated["support_why_count"] = String(whyCount - 1)
                                                   setValues(updated)
                                                 }}
                                                 className="text-[10px] font-semibold text-rose-500 hover:text-rose-700 cursor-pointer transition-colors"
@@ -4815,11 +5309,8 @@ export default function AdminSettings() {
                                               </button>
                                             )}
                                           </div>
-
                                           <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-slate-600">
-                                              Titre
-                                            </label>
+                                            <label className="text-[10px] font-bold text-slate-600">Titre</label>
                                             {supportLangTab !== "FR" && values[`${tKey}_fr`] && (
                                               <p className="text-[10px] italic text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{values[`${tKey}_fr`]}</p>
                                             )}
@@ -4827,15 +5318,12 @@ export default function AdminSettings() {
                                               type="text"
                                               value={values[tDbKey] || ""}
                                               onChange={(e) => handleInputChange(tDbKey, e.target.value)}
-                                              placeholder={`Titre de l'axe ${idx}...`}
+                                              placeholder={`Titre du pilier ${idx}...`}
                                               className="w-full px-2.5 py-1 rounded-lg border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
                                             />
                                           </div>
-
                                           <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-slate-600">
-                                              Description
-                                            </label>
+                                            <label className="text-[10px] font-bold text-slate-600">Description</label>
                                             {supportLangTab !== "FR" && values[`${dKey}_fr`] && (
                                               <p className="text-[10px] italic text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{values[`${dKey}_fr`]}</p>
                                             )}
@@ -4843,20 +5331,7 @@ export default function AdminSettings() {
                                               rows={2}
                                               value={values[dDbKey] || ""}
                                               onChange={(e) => handleInputChange(dDbKey, e.target.value)}
-                                              placeholder={`Description de l'axe ${idx}...`}
-                                              className="w-full px-2.5 py-1 rounded-lg border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
-                                            />
-                                          </div>
-
-                                          <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-slate-600">
-                                              Texte du lien
-                                            </label>
-                                            <input
-                                              type="text"
-                                              value={values[lDbKey] || ""}
-                                              onChange={(e) => handleInputChange(lDbKey, e.target.value)}
-                                              placeholder="Ex: Échanger avec l'équipe"
+                                              placeholder={`Description du pilier ${idx}...`}
                                               className="w-full px-2.5 py-1 rounded-lg border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
                                             />
                                           </div>
@@ -4868,12 +5343,10 @@ export default function AdminSettings() {
                                   <div className="mt-3 flex justify-end">
                                     <button
                                       type="button"
-                                      onClick={() => {
-                                        handleInputChange("support_axes_count", String(axesCount + 1))
-                                      }}
-                                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 text-slate-500 text-[11px] font-bold hover:border-[#003366] hover:text-[#003366] transition-colors cursor-pointer"
+                                      onClick={() => handleInputChange("support_why_count", String(whyCount + 1))}
+                                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 text-slate-500 text-[11px] font-bold hover:border-[#007BFF] hover:text-[#007BFF] transition-colors cursor-pointer"
                                     >
-                                      <span>+</span> Ajouter un axe
+                                      <span>+</span> Ajouter un pilier
                                     </button>
                                   </div>
                                 </div>
@@ -4881,260 +5354,111 @@ export default function AdminSettings() {
                             )
                           })()
 
-                        /* ── SECTION WHY : header 2 cols + piliers grille 2 cols ── */
-                        : section.id === "WHY"
-                          ? (() => {
-                              const whyCount = Math.max(
-                                0,
-                                parseInt(values["support_why_count"] || "3", 10),
-                              )
-                              const whyHeaderFields = SUPPORT_FIELDS.filter(
-                                (f) =>
-                                  f.section === "WHY" &&
-                                  ["support_why_tag", "support_why_title", "support_why_desc"].includes(f.key),
-                              )
+                          /* ── SECTIONS STATIQUES (TRANSPARENCY, FUTURE, CTA) : 2 colonnes ── */
+                          : (() => {
+                            const sectionFields = fields
+                            return (
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+                                {sectionFields.map((field) => {
+                                  const dbKey = getSupportFieldDbKey(field, supportLangTab)
+                                  const currentValue = values[dbKey] || ""
+                                  const frReferenceKey = `${field.key}_fr`
+                                  const frReferenceValue = values[frReferenceKey]
+                                  const isRequired = "required" in field && Boolean(field.required)
 
-                              return (
-                                <div className="space-y-5">
-                                  {/* Header: tag + title side-by-side, desc full-width */}
-                                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
-                                    {whyHeaderFields.map((field) => {
-                                      const dbKey = getSupportFieldDbKey(field, supportLangTab)
-                                      const currentValue = values[dbKey] || ""
-                                      const frRef = values[`${field.key}_fr`]
-                                      const isDesc = field.key === "support_why_desc"
+                                  // Textarea spans full width, everything else stays in its column
+                                  const spanFull = field.type === "textarea"
 
-                                      return (
-                                        <div
-                                          key={field.key}
-                                          className={`space-y-1.5 ${isDesc ? "lg:col-span-2" : ""}`}
-                                        >
-                                          <label className="block text-sm font-semibold text-slate-800">
-                                            {field.label}
-                                          </label>
-                                          {supportLangTab !== "FR" && frRef && (
-                                            <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs text-slate-500">
-                                              <span className="font-bold text-slate-700 block mb-0.5">Réf. FR :</span>
-                                              <p className="italic">{frRef}</p>
-                                            </div>
-                                          )}
-                                          {field.type === "textarea" ? (
-                                            <textarea
-                                              rows={3}
-                                              value={currentValue}
-                                              onChange={(e) => handleInputChange(dbKey, e.target.value)}
-                                              className="w-full max-w-3xl px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
-                                            />
-                                          ) : (
+                                  return (
+                                    <div
+                                      key={field.key}
+                                      className={`space-y-1.5 ${spanFull ? "lg:col-span-2" : ""}`}
+                                    >
+                                      <label className="block text-sm font-semibold text-slate-800">
+                                        {field.label}
+                                        {isRequired && (
+                                          <span className="ml-1 text-red-500" aria-label="Champ obligatoire">*</span>
+                                        )}
+                                      </label>
+
+                                      {field.multilingual &&
+                                        supportLangTab !== "FR" &&
+                                        frReferenceValue && (
+                                          <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs text-slate-500">
+                                            <span className="font-bold text-slate-700 block mb-0.5">Réf. FR :</span>
+                                            <p className="italic">{frReferenceValue}</p>
+                                          </div>
+                                        )}
+
+                                      {field.type === "image" ? (
+                                        <div className="space-y-3">
+                                          <div className="flex flex-col sm:flex-row gap-3">
                                             <input
                                               type="text"
                                               value={currentValue}
                                               onChange={(e) => handleInputChange(dbKey, e.target.value)}
-                                              className={`w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white ${field.key === "support_why_tag" ? "max-w-xs" : "max-w-xl"}`}
+                                              placeholder="https://... ou /uploads/..."
+                                              className="flex-1 max-w-lg px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm font-mono text-slate-800"
                                             />
+                                            <label className="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer transition-colors shrink-0">
+                                              <span>
+                                                {uploadingSettingKey === dbKey ? "Téléversement..." : "Choisir une image"}
+                                              </span>
+                                              <input
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/webp,image/avif"
+                                                className="hidden"
+                                                disabled={uploadingSettingKey === dbKey}
+                                                onChange={(e) => {
+                                                  const f = e.target.files?.[0]
+                                                  if (f) handleSettingImageUpload(dbKey, f)
+                                                }}
+                                              />
+                                            </label>
+                                          </div>
+
+                                          {currentValue && (
+                                            <div className="mt-2">
+                                              <span className="text-xs font-semibold text-slate-400 block mb-1.5">Aperçu :</span>
+                                              <div className="w-48 h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 relative">
+                                                <img
+                                                  src={currentValue}
+                                                  alt="Aperçu"
+                                                  className="w-full h-full object-cover"
+                                                  onError={(e) => { ; (e.target as HTMLElement).style.display = "none" }}
+                                                />
+                                              </div>
+                                            </div>
                                           )}
                                         </div>
-                                      )
-                                    })}
-                                  </div>
-
-                                  {/* Pilier cards in 2-col grid */}
-                                  <div className="border-t border-slate-100 pt-4">
-                                    <span className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-3">
-                                      Piliers ({whyCount})
-                                    </span>
-
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                                      {Array.from({ length: whyCount }, (_, i) => i + 1).map((idx) => {
-                                        const tKey = `support_why_${idx}_title`
-                                        const dKey = `support_why_${idx}_desc`
-                                        const lang = supportLangTab.toLowerCase()
-                                        const tDbKey = `${tKey}_${lang}`
-                                        const dDbKey = `${dKey}_${lang}`
-
-                                        return (
-                                          <div
-                                            key={idx}
-                                            className="p-3 rounded-xl border border-slate-100 bg-slate-50/50 space-y-1.5"
-                                          >
-                                            <div className="flex items-center justify-between">
-                                              <span className="text-[11px] font-black uppercase tracking-widest text-[#007BFF]">
-                                                Pilier {String(idx).padStart(2, "0")}
-                                              </span>
-                                              {whyCount > 1 && (
-                                                <button
-                                                  type="button"
-                                                  onClick={() => {
-                                                    const updated: Record<string, string> = { ...values }
-                                                    for (let j = idx; j < whyCount; j++) {
-                                                      for (const sfx of ["fr", "en", "de"]) {
-                                                        updated[`support_why_${j}_title_${sfx}`] = values[`support_why_${j + 1}_title_${sfx}`] || ""
-                                                        updated[`support_why_${j}_desc_${sfx}`] = values[`support_why_${j + 1}_desc_${sfx}`] || ""
-                                                      }
-                                                    }
-                                                    for (const sfx of ["fr", "en", "de"]) {
-                                                      updated[`support_why_${whyCount}_title_${sfx}`] = ""
-                                                      updated[`support_why_${whyCount}_desc_${sfx}`] = ""
-                                                    }
-                                                    updated["support_why_count"] = String(whyCount - 1)
-                                                    setValues(updated)
-                                                  }}
-                                                  className="text-[10px] font-semibold text-rose-500 hover:text-rose-700 cursor-pointer transition-colors"
-                                                >
-                                                  ✕ Supprimer
-                                                </button>
-                                              )}
-                                            </div>
-                                            <div className="space-y-1">
-                                              <label className="text-[10px] font-bold text-slate-600">Titre</label>
-                                              {supportLangTab !== "FR" && values[`${tKey}_fr`] && (
-                                                <p className="text-[10px] italic text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{values[`${tKey}_fr`]}</p>
-                                              )}
-                                              <input
-                                                type="text"
-                                                value={values[tDbKey] || ""}
-                                                onChange={(e) => handleInputChange(tDbKey, e.target.value)}
-                                                placeholder={`Titre du pilier ${idx}...`}
-                                                className="w-full px-2.5 py-1 rounded-lg border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
-                                              />
-                                            </div>
-                                            <div className="space-y-1">
-                                              <label className="text-[10px] font-bold text-slate-600">Description</label>
-                                              {supportLangTab !== "FR" && values[`${dKey}_fr`] && (
-                                                <p className="text-[10px] italic text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{values[`${dKey}_fr`]}</p>
-                                              )}
-                                              <textarea
-                                                rows={2}
-                                                value={values[dDbKey] || ""}
-                                                onChange={(e) => handleInputChange(dDbKey, e.target.value)}
-                                                placeholder={`Description du pilier ${idx}...`}
-                                                className="w-full px-2.5 py-1 rounded-lg border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
-                                              />
-                                            </div>
-                                          </div>
-                                        )
-                                      })}
+                                      ) : field.type === "textarea" ? (
+                                        <textarea
+                                          rows={3}
+                                          value={currentValue}
+                                          onChange={(e) => handleInputChange(dbKey, e.target.value)}
+                                          className="w-full max-w-3xl px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
+                                        />
+                                      ) : (
+                                        <input
+                                          type="text"
+                                          value={currentValue}
+                                          onChange={(e) => handleInputChange(dbKey, e.target.value)}
+                                          className={`w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white ${/(tag|badge|btn)/i.test(field.key) ? "max-w-xs" : "max-w-xl"}`}
+                                        />
+                                      )}
                                     </div>
-
-                                    <div className="mt-3 flex justify-end">
-                                      <button
-                                        type="button"
-                                        onClick={() => handleInputChange("support_why_count", String(whyCount + 1))}
-                                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 text-slate-500 text-[11px] font-bold hover:border-[#007BFF] hover:text-[#007BFF] transition-colors cursor-pointer"
-                                      >
-                                        <span>+</span> Ajouter un pilier
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              )
-                            })()
-
-                          /* ── SECTIONS STATIQUES (TRANSPARENCY, FUTURE, CTA) : 2 colonnes ── */
-                          : (() => {
-                              const sectionFields = fields
-                              return (
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
-                                  {sectionFields.map((field) => {
-                                    const dbKey = getSupportFieldDbKey(field, supportLangTab)
-                                    const currentValue = values[dbKey] || ""
-                                    const frReferenceKey = `${field.key}_fr`
-                                    const frReferenceValue = values[frReferenceKey]
-                                    const isRequired = "required" in field && Boolean(field.required)
-
-                                    // Textarea spans full width, everything else stays in its column
-                                    const spanFull = field.type === "textarea"
-
-                                    return (
-                                      <div
-                                        key={field.key}
-                                        className={`space-y-1.5 ${spanFull ? "lg:col-span-2" : ""}`}
-                                      >
-                                        <label className="block text-sm font-semibold text-slate-800">
-                                          {field.label}
-                                          {isRequired && (
-                                            <span className="ml-1 text-red-500" aria-label="Champ obligatoire">*</span>
-                                          )}
-                                        </label>
-
-                                        {field.multilingual &&
-                                          supportLangTab !== "FR" &&
-                                          frReferenceValue && (
-                                            <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs text-slate-500">
-                                              <span className="font-bold text-slate-700 block mb-0.5">Réf. FR :</span>
-                                              <p className="italic">{frReferenceValue}</p>
-                                            </div>
-                                          )}
-
-                                        {field.type === "image" ? (
-                                          <div className="space-y-3">
-                                            <div className="flex flex-col sm:flex-row gap-3">
-                                              <input
-                                                type="text"
-                                                value={currentValue}
-                                                onChange={(e) => handleInputChange(dbKey, e.target.value)}
-                                                placeholder="https://... ou /uploads/..."
-                                                className="flex-1 max-w-lg px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm font-mono text-slate-800"
-                                              />
-                                              <label className="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer transition-colors shrink-0">
-                                                <span>
-                                                  {uploadingSettingKey === dbKey ? "Téléversement..." : "Choisir une image"}
-                                                </span>
-                                                <input
-                                                  type="file"
-                                                  accept="image/jpeg,image/png,image/webp,image/avif"
-                                                  className="hidden"
-                                                  disabled={uploadingSettingKey === dbKey}
-                                                  onChange={(e) => {
-                                                    const f = e.target.files?.[0]
-                                                    if (f) handleSettingImageUpload(dbKey, f)
-                                                  }}
-                                                />
-                                              </label>
-                                            </div>
-
-                                            {currentValue && (
-                                              <div className="mt-2">
-                                                <span className="text-xs font-semibold text-slate-400 block mb-1.5">Aperçu :</span>
-                                                <div className="w-48 h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 relative">
-                                                  <img
-                                                    src={currentValue}
-                                                    alt="Aperçu"
-                                                    className="w-full h-full object-cover"
-                                                    onError={(e) => { ;(e.target as HTMLElement).style.display = "none" }}
-                                                  />
-                                                </div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        ) : field.type === "textarea" ? (
-                                          <textarea
-                                            rows={3}
-                                            value={currentValue}
-                                            onChange={(e) => handleInputChange(dbKey, e.target.value)}
-                                            className="w-full max-w-3xl px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
-                                          />
-                                        ) : (
-                                          <input
-                                            type="text"
-                                            value={currentValue}
-                                            onChange={(e) => handleInputChange(dbKey, e.target.value)}
-                                            className={`w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white ${/(tag|badge|btn)/i.test(field.key) ? "max-w-xs" : "max-w-xl"}`}
-                                          />
-                                        )}
-                                      </div>
-                                    )
-                                  })}
-                                </div>
-                              )
-                            })()}
+                                  )
+                                })}
+                              </div>
+                            )
+                          })()}
                     </div>
                   )}
                 </div>
               )
             })}
 
-            {}
+            { }
             <CmsSaveBar
               isDirty={supportEditor.isDirty}
               isReady={supportEditor.isReady}
@@ -5150,17 +5474,17 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {}
+      { }
       <CmsReplaceConfirmDialog
         pending={supportEditor.pendingTranslation}
         onCancel={supportEditor.cancelPendingTranslation}
         onConfirm={supportEditor.confirmPendingTranslation}
       />
 
-      {}
+      { }
       {activeTab === "NEWS" && (
         <div className="space-y-4 pb-28">
-          {}
+          { }
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xs">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 sm:p-5">
               <div className="min-w-0">
@@ -5173,7 +5497,7 @@ export default function AdminSettings() {
                 </p>
               </div>
 
-              {}
+              { }
               <div className="flex items-center gap-1 bg-[#F7F8FA] border border-slate-200 rounded-xl p-1 self-start lg:self-auto shrink-0">
                 {(["FR", "EN", "DE"] as const).map((lang) => (
                   <button
@@ -5181,11 +5505,10 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => handleNewsLangSwitch(lang)}
                     aria-pressed={newsLangTab === lang}
-                    className={`whitespace-nowrap px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      newsLangTab === lang
-                        ? "bg-[#003366] text-white shadow-xs"
-                        : "text-slate-500 hover:text-[#003366] hover:bg-white"
-                    }`}
+                    className={`whitespace-nowrap px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${newsLangTab === lang
+                      ? "bg-[#003366] text-white shadow-xs"
+                      : "text-slate-500 hover:text-[#003366] hover:bg-white"
+                      }`}
                   >
                     {newsLangLabel(lang)}
                   </button>
@@ -5193,7 +5516,7 @@ export default function AdminSettings() {
               </div>
             </div>
 
-            {}
+            { }
             {(() => {
               const completeness = calculateNewsCompleteness(
                 values,
@@ -5267,13 +5590,12 @@ export default function AdminSettings() {
 
           {newsNotice && (
             <div
-              className={`inline-flex w-fit max-w-full items-center justify-between gap-3 px-3 py-2 rounded-xl text-xs font-medium border ${
-                newsNotice.type === "success"
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-                  : newsNotice.type === "info"
-                    ? "bg-[#007BFF]/5 border-[#007BFF]/20 text-[#003366]"
-                    : "bg-rose-50 border-rose-200 text-rose-800"
-              }`}
+              className={`inline-flex w-fit max-w-full items-center justify-between gap-3 px-3 py-2 rounded-xl text-xs font-medium border ${newsNotice.type === "success"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                : newsNotice.type === "info"
+                  ? "bg-[#007BFF]/5 border-[#007BFF]/20 text-[#003366]"
+                  : "bg-rose-50 border-rose-200 text-rose-800"
+                }`}
             >
               <span>{newsNotice.text}</span>
               <button
@@ -5287,7 +5609,7 @@ export default function AdminSettings() {
             </div>
           )}
 
-          {}
+          { }
           <form onSubmit={handleSaveNewsTab} className="space-y-4">
             {NEWS_SECTIONS.map((section, sIdx) => {
               const fields = NEWS_FIELDS.filter((f) => f.section === section.id)
@@ -5371,7 +5693,7 @@ export default function AdminSettings() {
                   key={section.id}
                   className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden"
                 >
-                  {}
+                  { }
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 sm:px-5 py-3 bg-[#F7F8FA]">
                     <button
                       type="button"
@@ -5448,14 +5770,13 @@ export default function AdminSettings() {
               )
             })}
 
-            {}
+            { }
             <div className="pointer-events-auto fixed bottom-0 left-0 lg:left-60 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 lg:px-12 py-3">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span
-                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                      newsIsDirty ? "bg-amber-500" : "bg-[#28A745]"
-                    }`}
+                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${newsIsDirty ? "bg-amber-500" : "bg-[#28A745]"
+                      }`}
                   />
                   <span className="text-xs font-bold text-slate-700 truncate">
                     {newsIsDirty
@@ -5492,7 +5813,7 @@ export default function AdminSettings() {
             </div>
           </form>
 
-          {}
+          { }
           {newsPendingTranslation && (
             <div
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -5549,10 +5870,10 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {}
+      { }
       {activeTab === "CONTACT" && (
         <div className="space-y-6 pb-28">
-          {}
+          { }
           <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
               <div>
@@ -5566,14 +5887,14 @@ export default function AdminSettings() {
                 </p>
               </div>
 
-              {}
+              { }
               <CmsLangSwitcher
                 value={contactLangTab}
                 onChange={contactEditor.switchLang}
               />
             </div>
 
-            {}
+            { }
             <CmsCompletenessBar
               completeness={calculateContactCompleteness(
                 values,
@@ -5638,7 +5959,7 @@ export default function AdminSettings() {
             )}
           </div>
 
-          {}
+          { }
           <form onSubmit={handleSaveContactTab} className="space-y-6">
             {CONTACT_SECTIONS.filter(
               (section) => section.id === "CONTENT" || contactLangTab === "FR",
@@ -5653,8 +5974,8 @@ export default function AdminSettings() {
               const visibleFields =
                 section.id === "MAP"
                   ? fields.filter(
-                      (field) => field.key === "contact_map_label",
-                    )
+                    (field) => field.key === "contact_map_label",
+                  )
                   : fields
 
               const isExpanded = contactExpandedSections[section.id] !== false
@@ -5681,7 +6002,7 @@ export default function AdminSettings() {
                   key={section.id}
                   className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs"
                 >
-                  {}
+                  { }
                   <div className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
                     <div
                       onClick={() => toggleContactSection(section.id)}
@@ -5734,14 +6055,13 @@ export default function AdminSettings() {
                     </div>
                   </div>
 
-                  {}
+                  { }
                   {isExpanded && (
                     <div
-                      className={`grid grid-cols-1 bg-white ${
-                        section.id === "MAP"
-                          ? "p-4 sm:p-5 sm:grid-cols-2 gap-4"
-                          : "p-6 lg:grid-cols-2 gap-x-10 gap-y-6"
-                      }`}
+                      className={`grid grid-cols-1 bg-white ${section.id === "MAP"
+                        ? "p-4 sm:p-5 sm:grid-cols-2 gap-4"
+                        : "p-6 lg:grid-cols-2 gap-x-10 gap-y-6"
+                        }`}
                     >
                       {visibleFields.map((field) => {
                         const dbKey = getContactFieldDbKey(
@@ -5795,7 +6115,7 @@ export default function AdminSettings() {
                               </p>
                             )}
 
-                            {}
+                            { }
                             {field.multilingual &&
                               contactLangTab !== "FR" &&
                               frReferenceValue && (
@@ -5826,7 +6146,7 @@ export default function AdminSettings() {
                                 }
                                 placeholder={
                                   field.section === "ROUTING" ||
-                                  field.key === "contact_map_label"
+                                    field.key === "contact_map_label"
                                     ? ""
                                     : field.placeholder || ""
                                 }
@@ -5849,9 +6169,9 @@ export default function AdminSettings() {
                           </span>
                           {hasSavedMapPosition ? (
                             <p className="text-[11px] text-emerald-700" role="status">
-                                {savedMapLabel
-                                  ? "Position enregistrée"
-                                  : "Position définie sur la carte"}
+                              {savedMapLabel
+                                ? "Position enregistrée"
+                                : "Position définie sur la carte"}
                             </p>
                           ) : (
                             <p className="text-[11px] text-slate-500" role="status">
@@ -5910,7 +6230,7 @@ export default function AdminSettings() {
               )
             })}
 
-            {}
+            { }
             <div className="h-14" aria-hidden="true" />
             <CmsSaveBar
               isDirty={contactEditor.isDirty}
@@ -5944,14 +6264,14 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {}
+      { }
       <CmsReplaceConfirmDialog
         pending={contactEditor.pendingTranslation}
         onCancel={contactEditor.cancelPendingTranslation}
         onConfirm={contactEditor.confirmPendingTranslation}
       />
 
-      {}
+      { }
       {activeTab !== "TEAM" &&
         activeTab !== "ABOUT" &&
         activeTab !== "VOLUNTEER" &&
@@ -5969,11 +6289,10 @@ export default function AdminSettings() {
               <form onSubmit={handleSaveTab} className="space-y-8">
                 {statusMessage && (
                   <div
-                    className={`inline-flex w-fit max-w-full items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium ${
-                      statusMessage.type === "success"
-                        ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
-                        : "bg-rose-50 border border-rose-200 text-rose-800"
-                    }`}
+                    className={`inline-flex w-fit max-w-full items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium ${statusMessage.type === "success"
+                      ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+                      : "bg-rose-50 border border-rose-200 text-rose-800"
+                      }`}
                   >
                     <span>{statusMessage.text}</span>
                     <button
@@ -6000,7 +6319,7 @@ export default function AdminSettings() {
                         title: "Contacts officiels",
                         keys: ["site_contact_email", "site_contact_phone", "site_social_whatsapp"],
                       },
-{
+                      {
                         number: "03",
                         title: "Réseaux sociaux",
                         keys: ["site_social_linkedin", "site_social_facebook", "site_social_instagram"],
@@ -6036,89 +6355,89 @@ export default function AdminSettings() {
                     ))}
                   </div>
                 ) : (
-                <div className="space-y-6">
-                  {(SETTINGS_CONFIG[activeTab] || []).map((field) => (
-                    <div key={field.key} className="space-y-2">
-                      <label className="block text-sm font-bold text-slate-800">
-                        {field.label}
-                      </label>
-                      <p className="text-xs text-slate-500 leading-relaxed">
-                        {field.description}
-                      </p>
+                  <div className="space-y-6">
+                    {(SETTINGS_CONFIG[activeTab] || []).map((field) => (
+                      <div key={field.key} className="space-y-2">
+                        <label className="block text-sm font-bold text-slate-800">
+                          {field.label}
+                        </label>
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                          {field.description}
+                        </p>
 
-                      {field.type === "image" ? (
-                        <div className="space-y-3">
-                          <div className="flex flex-col sm:flex-row gap-3">
-                            <input
-                              type="text"
-                              value={values[field.key] || ""}
-                              onChange={(e) =>
-                                handleInputChange(field.key, e.target.value)
-                              }
-                              placeholder="https://... ou /uploads/..."
-                              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm font-mono text-slate-800"
-                            />
-                            <label className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer transition-colors shrink-0">
-                              <span>
-                                {uploadingSettingKey === field.key
-                                  ? "Téléversement..."
-                                  : "Choisir une image"}
-                              </span>
+                        {field.type === "image" ? (
+                          <div className="space-y-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
                               <input
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp,image/avif"
-                                className="hidden"
-                                disabled={uploadingSettingKey === field.key}
-                                onChange={(e) => {
-                                  const f = e.target.files?.[0]
-
-                                  if (f) handleSettingImageUpload(field.key, f)
-                                }}
+                                type="text"
+                                value={values[field.key] || ""}
+                                onChange={(e) =>
+                                  handleInputChange(field.key, e.target.value)
+                                }
+                                placeholder="https://... ou /uploads/..."
+                                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm font-mono text-slate-800"
                               />
-                            </label>
-                          </div>
+                              <label className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer transition-colors shrink-0">
+                                <span>
+                                  {uploadingSettingKey === field.key
+                                    ? "Téléversement..."
+                                    : "Choisir une image"}
+                                </span>
+                                <input
+                                  type="file"
+                                  accept="image/jpeg,image/png,image/webp,image/avif"
+                                  className="hidden"
+                                  disabled={uploadingSettingKey === field.key}
+                                  onChange={(e) => {
+                                    const f = e.target.files?.[0]
 
-                          {values[field.key] && (
-                            <div className="mt-2">
-                              <span className="text-xs font-semibold text-slate-400 block mb-1.5">
-                                Aperçu actuel :
-                              </span>
-                              <div className="w-48 h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 relative">
-                                <img
-                                  src={values[field.key]}
-                                  alt="Aperçu"
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    ;(e.target as HTMLElement).style.display =
-                                      "none"
+                                    if (f) handleSettingImageUpload(field.key, f)
                                   }}
                                 />
-                              </div>
+                              </label>
                             </div>
-                          )}
-                        </div>
-                      ) : field.type === "textarea" ? (
-                        <textarea
-                          rows={4}
-                          value={values[field.key] || ""}
-                          onChange={(e) =>
-                            handleInputChange(field.key, e.target.value)
-                          }
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800"
-                        />
-                      ) : (
-                        <input
-                          type="text"
-                          value={values[field.key] || ""}
-                          onChange={(e) =>
-                            handleInputChange(field.key, e.target.value)
-                          }
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800"
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
+
+                            {values[field.key] && (
+                              <div className="mt-2">
+                                <span className="text-xs font-semibold text-slate-400 block mb-1.5">
+                                  Aperçu actuel :
+                                </span>
+                                <div className="w-48 h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 relative">
+                                  <img
+                                    src={values[field.key]}
+                                    alt="Aperçu"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      ; (e.target as HTMLElement).style.display =
+                                        "none"
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : field.type === "textarea" ? (
+                          <textarea
+                            rows={4}
+                            value={values[field.key] || ""}
+                            onChange={(e) =>
+                              handleInputChange(field.key, e.target.value)
+                            }
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800"
+                          />
+                        ) : (
+                          <input
+                            type="text"
+                            value={values[field.key] || ""}
+                            onChange={(e) =>
+                              handleInputChange(field.key, e.target.value)
+                            }
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800"
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 <div className="pt-4 border-t border-slate-100 flex justify-end">
@@ -6139,7 +6458,7 @@ export default function AdminSettings() {
           </div>
         )}
 
-      {}
+      { }
       {teamModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
           <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-slate-200">
@@ -6176,7 +6495,7 @@ export default function AdminSettings() {
             )}
 
             <form onSubmit={handleTeamFormSubmit} className="space-y-6">
-              {}
+              { }
               <div className="p-4 rounded-2xl bg-[#F7F8FA] border border-slate-200/80">
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-xs font-bold text-[#003366] uppercase">
@@ -6259,7 +6578,7 @@ export default function AdminSettings() {
                 </div>
               </div>
 
-              {}
+              { }
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
@@ -6308,21 +6627,29 @@ export default function AdminSettings() {
                     Catégorie / Groupe *
                   </label>
                   <select
+                    key={teamCategorySelectKey}
                     value={teamFormData.category}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const value = e.target.value
+                      if (value === CREATE_TEAM_CATEGORY_VALUE) {
+                        openCreateTeamCategoryModal()
+                        return
+                      }
                       setTeamFormData({
                         ...teamFormData,
-
-                        category: e.target.value,
+                        category: value,
                       })
-                    }
+                    }}
                     className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm bg-white"
                   >
-                    {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
+                    {teamCategoryOptions.map((option) => (
+                      <option key={option.slug} value={option.slug}>
+                        {option.name}
                       </option>
                     ))}
+                    <option value={CREATE_TEAM_CATEGORY_VALUE}>
+                      + Ajouter une catégorie
+                    </option>
                   </select>
                 </div>
               </div>
@@ -6344,11 +6671,10 @@ export default function AdminSettings() {
                         key={lang}
                         type="button"
                         onClick={() => setMemberLangTab(lang)}
-                        className={`whitespace-nowrap px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                          memberLangTab === lang
-                            ? "bg-[#003366] text-white shadow-xs"
-                            : "text-slate-600 hover:bg-slate-100"
-                        }`}
+                        className={`whitespace-nowrap px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${memberLangTab === lang
+                          ? "bg-[#003366] text-white shadow-xs"
+                          : "text-slate-600 hover:bg-slate-100"
+                          }`}
                       >
                         {lang === "FR"
                           ? "Français\u00A0*"
@@ -6640,6 +6966,218 @@ export default function AdminSettings() {
                         : "Ajouter le membre"}
                   </button>
                 </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {teamCategoryModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+              <h3 className="text-base font-bold text-[#003366]">
+                Ajouter une catégorie
+              </h3>
+              <button
+                type="button"
+                onClick={closeCreateTeamCategoryModal}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {teamCategoryError && (
+              <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold">
+                {teamCategoryError}
+              </div>
+            )}
+
+            <form onSubmit={handleCreateTeamCategory}>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Nom de la catégorie
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  maxLength={100}
+                  value={newTeamCategoryName}
+                  onChange={(e) => setNewTeamCategoryName(e.target.value)}
+                  placeholder="ex. Communication & Médias"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm"
+                />
+              </div>
+
+              <div className="pt-5 mt-5 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeCreateTeamCategoryModal}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={!newTeamCategoryName.trim() || teamCategorySubmitting}
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-[#007BFF] hover:bg-[#0069d9] transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {teamCategorySubmitting
+                    ? "Création..."
+                    : "Créer la catégorie"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingCategory && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+              <h3 className="text-base font-bold text-[#003366]">
+                Modifier la catégorie
+              </h3>
+              <button
+                type="button"
+                onClick={closeEditTeamCategoryModal}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {teamCategoryEditError && (
+              <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold">
+                {teamCategoryEditError}
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateTeamCategory}>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Nom de la catégorie
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  maxLength={100}
+                  value={teamCategoryEditName}
+                  onChange={(e) => setTeamCategoryEditName(e.target.value)}
+                  placeholder="ex. Communication & Médias"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm"
+                />
+              </div>
+
+              <div className="pt-5 mt-5 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeEditTeamCategoryModal}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={!teamCategoryEditName.trim() || teamCategoryEditSubmitting}
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-[#007BFF] hover:bg-[#0069d9] transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {teamCategoryEditSubmitting ? "Enregistrement..." : "Enregistrer"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {deletingCategory && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+              <h3 className="text-base font-bold text-[#003366]">
+                Supprimer la catégorie
+              </h3>
+              <button
+                type="button"
+                onClick={closeDeleteTeamCategoryModal}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <p className="text-sm font-semibold text-slate-800">
+              Supprimer « {deletingCategory.name} » ?
+            </p>
+            <p className="mt-2 text-xs text-slate-500">
+              Cette catégorie ne contient actuellement aucun membre.
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              Cette action est irréversible.
+            </p>
+
+            {teamCategoryDeleteError && (
+              <div className="mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold">
+                {teamCategoryDeleteError}
+              </div>
+            )}
+
+            <form onSubmit={handleDeleteTeamCategory}>
+              <div className="pt-5 mt-5 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeDeleteTeamCategoryModal}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={teamCategoryDeleteSubmitting}
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-rose-600 hover:bg-rose-700 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {teamCategoryDeleteSubmitting ? "Suppression..." : "Supprimer"}
+                </button>
               </div>
             </form>
           </div>

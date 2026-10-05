@@ -1,5 +1,6 @@
 import { trackAnalyticsEvent } from "./actions"
 import { getCookieConsent } from "./cookieConsent"
+import { getStoredUtm } from "./utm"
 
 export function trackEvent(
   eventName: string,
@@ -27,6 +28,18 @@ export function trackEvent(
     }
   }
 
+  // Attribution first-touch, ajoutée sans écraser d'éventuelles métadonnées.
+  const storedUtm = typeof window !== "undefined" ? getStoredUtm() : null
+  const utmMetadata = storedUtm
+    ? {
+        utm_source: storedUtm.utmSource || undefined,
+        utm_medium: storedUtm.utmMedium || undefined,
+        utm_campaign: storedUtm.utmCampaign || undefined,
+        utm_content: storedUtm.utmContent || undefined,
+        utm_term: storedUtm.utmTerm || undefined,
+      }
+    : {}
+
   // 1. Google Analytics 4 (uniquement si le visiteur a explicitement consenti)
   if (typeof window !== "undefined") {
     const consent = getCookieConsent()
@@ -36,6 +49,7 @@ export function trackEvent(
           event_category: "Engagement",
           event_label: data?.source || eventName,
           language: data?.lang,
+          ...utmMetadata,
           ...data?.metadata,
         }
 
@@ -54,7 +68,12 @@ export function trackEvent(
   }
 
   // 2. PostgreSQL Audit via Server Action (non-blocking)
-  trackAnalyticsEvent(eventName, data).catch((err) => {
+  const mergedMetadata = { ...utmMetadata, ...data?.metadata }
+  const hasMetadata = Object.values(mergedMetadata).some((value) => value !== undefined)
+  trackAnalyticsEvent(eventName, {
+    ...data,
+    metadata: hasMetadata ? mergedMetadata : undefined,
+  }).catch((err) => {
     console.error("Failed to track event:", err)
   })
 }

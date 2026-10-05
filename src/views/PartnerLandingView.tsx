@@ -700,29 +700,33 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
         {/* ═══════════════════════════════════════════════════════════════════════════
             01. HERO (Exactement même forme, structure et typographie que Volontariat)
         ═══════════════════════════════════════════════════════════════════════════ */}
-        <section className="relative z-10 min-h-[95vh] lg:min-h-screen flex flex-col">
+          <section className="relative z-10 min-h-[95vh] lg:min-h-[100svh] lg:min-h-screen flex flex-col">
           {/* Background Layer with overflow hidden */}
           <div className="absolute inset-0 overflow-hidden">
-            {heroImage.startsWith("/meeting-org") ? (
+            {!heroImage || heroImage.startsWith("/meeting-org") ? (
               <picture>
                 <source srcSet="/meeting-org.avif" type="image/avif" />
                 <source srcSet="/meeting-org.webp" type="image/webp" />
+                  <img
+                    src="/meeting-org.jpg"
+                    alt="Partenariat institutionnel et volontariat au Togo"
+                    width={1013}
+                    height={1013}
+                    className="absolute inset-0 w-full h-full object-cover object-center"
+                    fetchPriority="high"
+                    decoding="async"
+                  />
+              </picture>
+            ) : (
                 <img
-                  src="/meeting-org.jpg"
+                  src={heroImage}
                   alt="Partenariat institutionnel et volontariat au Togo"
+                  width={1013}
+                  height={1013}
                   className="absolute inset-0 w-full h-full object-cover object-center"
                   fetchPriority="high"
                   decoding="async"
                 />
-              </picture>
-            ) : (
-              <img
-                src={heroImage}
-                alt="Partenariat institutionnel et volontariat au Togo"
-                className="absolute inset-0 w-full h-full object-cover object-center"
-                fetchPriority="high"
-                decoding="async"
-              />
             )}
             <div
               className="absolute inset-0"
@@ -738,18 +742,18 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
           </div>
 
           <div className="flex-1 flex flex-col justify-center pt-32 pb-8 sm:pt-32 sm:pb-24 lg:pt-40 lg:pb-32 relative z-10 max-w-7xl w-full mx-auto px-5 sm:px-6 lg:px-8">
-            <div
-              className="text-center mx-auto mb-10 sm:mb-16 lg:mb-20 w-full"
-              style={{ maxWidth: "900px" }}
-            >
+              <div
+                className="text-center mx-auto mb-10 sm:mb-16 lg:mb-20 w-full min-h-[420px] sm:min-h-[480px] lg:min-h-[560px] flex flex-col justify-center"
+                style={{ maxWidth: "900px" }}
+              >
               <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-[#003366]/45 px-4 py-2 text-xs sm:text-sm font-semibold text-white/90 mb-5">
                 <span className="h-2 w-2 shrink-0 rounded-full bg-[#28A745]" />
                 {heroBadge}
               </div>
-              <h1
-                className="leading-[1.05] sm:leading-[1.1] tracking-tight mb-6 sm:mb-8"
-                style={{ textShadow: "0 2px 12px rgba(0,0,0,0.14)" }}
-              >
+                <h1
+                  className="leading-[1.05] sm:leading-[1.1] tracking-tight mb-6 sm:mb-8 min-h-[180px] sm:min-h-[240px] lg:min-h-[320px] flex flex-col justify-center"
+                  style={{ textShadow: "0 2px 12px rgba(0,0,0,0.14)" }}
+                >
                 {/* Niveau 1 - Principal */}
                 <span className="text-3xl sm:text-5xl lg:text-[72px] block mb-2 sm:mb-3 text-[#FFFFFF]">
                   {heroLine1}
@@ -800,7 +804,7 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
             </div>
 
             {/* Key Facts - intentionally overlapping next section */}
-            <div className="relative mt-2 sm:mt-8 mb-4 sm:-mb-12 max-w-4xl mx-auto z-20">
+              <div className="relative mt-2 sm:mt-8 mb-4 sm:-mb-12 max-w-4xl mx-auto z-20 min-h-[72px] sm:min-h-[88px]">
               <div
                 className="absolute inset-0 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
                 style={{
@@ -969,6 +973,8 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
                   src="https://images.unsplash.com/photo-1637149253733-44ef8365db1c?w=800&h=600&fit=crop&auto=format"
                   alt="Togo landscape"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div className="rounded-2xl overflow-hidden group shadow-sm h-[220px] md:h-full">
@@ -976,6 +982,8 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
                   src="https://images.unsplash.com/photo-1609252509229-364936a1d1a2?w=800&h=600&fit=crop&auto=format"
                   alt="Community members in Agbelouve"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div className="rounded-2xl overflow-hidden group shadow-sm h-[220px] md:h-full">
@@ -983,6 +991,8 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
                   src="https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800&h=600&fit=crop&auto=format"
                   alt="Nature and village surroundings"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>
@@ -1178,6 +1188,8 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
             src="https://images.unsplash.com/photo-1652971876875-05db98fab376?w=1920&h=1080&fit=crop&auto=format"
             alt="Rural landscape in West Africa with community gathering"
             className="absolute inset-0 w-full h-full object-cover object-[center_top] md:object-center"
+            loading="lazy"
+            decoding="async"
           />
           <div
             className="absolute inset-0"

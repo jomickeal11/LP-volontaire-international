@@ -1,6 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Les polices Montserrat et JetBrains Mono sont auto-hébergées via next/font/google
+   (voir src/app/[lang]/layout.tsx). Ne pas réintroduire d'@import Google Fonts ici :
+   cela recrée un aller-retour CSS bloquant mesuré à 1 134 ms par Lighthouse. */
 @import 'leaflet/dist/leaflet.css';
 @import 'tailwindcss';
+
+/* ── Modale : hauteur bornée au viewport ────────────────────────────────
+   La hauteur maximale est calée sur la hauteur utile du viewport : 100vh en
+   repli, puis 100dvh quand le navigateur sait librer la place de la barre
+   d'adresse mobile. Marge de sécurité de 16px sur mobile, 32px dès sm.
+   Le conteneur de la modale applique max-height: var(--modal-max-h).      */
+.modal-viewport-fit {
+  --modal-max-h: calc(100vh - 16px);
+}
+
+@supports (height: 100dvh) {
+  .modal-viewport-fit {
+    --modal-max-h: calc(100dvh - 16px);
+  }
+}
+
+@media (min-width: 640px) {
+  .modal-viewport-fit {
+    --modal-max-h: calc(100vh - 32px);
+  }
+
+  @supports (height: 100dvh) {
+    .modal-viewport-fit {
+      --modal-max-h: calc(100dvh - 32px);
+    }
+  }
+}
+
+/* Empêche la page de défiler derrière une modale ouverte. */
+body.modal-scroll-locked {
+  overflow: hidden;
+}
 
 .aptic-contact-map {
   z-index: 0;
@@ -21,9 +55,9 @@
 }
 
 @theme {
-  --font-serif: 'Montserrat', system-ui, sans-serif;
-  --font-sans: 'Montserrat', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --font-serif: var(--font-aptic-montserrat), system-ui, sans-serif;
+  --font-sans: var(--font-aptic-montserrat), system-ui, sans-serif;
+  --font-mono: var(--font-aptic-jetbrains-mono), 'Courier New', monospace;
 
   /* ── Charte graphique officielle APTIC-R ──────────────────────── */
   --color-blue-inst: #003366;
