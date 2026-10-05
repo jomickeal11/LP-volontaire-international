@@ -459,84 +459,89 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
       />
 
       <main className="flex-1">
-        {/* ── 1. Hero sobre ── */}
+        {/* ── 1. Hero + Toggle intégré ── */}
         <section className="bg-white border-b border-slate-200/80">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-18 text-center">
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-5"
               style={{ color: BLUE }}
             >
               {t.title}
             </h1>
-            <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
+            <p className="text-base sm:text-lg text-slate-600 leading-relaxed mb-10">
               {t.subtitle}
             </p>
-          </div>
-        </section>
-
-
-        {/* ── TOGGLE GALERIE / ALBUMS ── */}
-        <section className="bg-white border-b border-slate-200">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center gap-4">
-            <button
-              onClick={() => { setViewMode("GALLERY"); setSelectedAlbum(null); }}
-              className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${
-                viewMode === "GALLERY" && !selectedAlbum
-                  ? "bg-[#003366] text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              {t.generalGallery || "Galerie générale"}
-            </button>
-            <button
-              onClick={() => { setViewMode("ALBUMS"); setSelectedAlbum(null); }}
-              className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${
-                viewMode === "ALBUMS" || selectedAlbum
-                  ? "bg-[#003366] text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              {t.albumsTab || "Albums"}
-            </button>
+            {/* Toggle Galerie / Albums */}
+            <div className="inline-flex items-center gap-1 bg-slate-100 rounded-full p-1">
+              <button
+                onClick={() => { setViewMode("GALLERY"); setSelectedAlbum(null); }}
+                className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  viewMode === "GALLERY" && !selectedAlbum
+                    ? "bg-[#003366] text-white shadow-md"
+                    : "text-slate-600 hover:text-slate-800"
+                }`}
+              >
+                {t.generalGallery}
+              </button>
+              <button
+                onClick={() => { setViewMode("ALBUMS"); setSelectedAlbum(null); }}
+                className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  viewMode === "ALBUMS" || selectedAlbum
+                    ? "bg-[#003366] text-white shadow-md"
+                    : "text-slate-600 hover:text-slate-800"
+                }`}
+              >
+                {t.albumsTab}
+              </button>
+            </div>
           </div>
         </section>
 
         {viewMode === "ALBUMS" && !selectedAlbum ? (
-          <section className="bg-slate-50 py-12 lg:py-16">
+          <section className="bg-slate-50 py-14 lg:py-20">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
               {albumsList.length === 0 ? (
-                <div className="text-center text-slate-500 py-12">Aucun album disponible.</div>
+                <div className="text-center text-slate-400 py-20">
+                  <svg className="w-12 h-12 mx-auto mb-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.25} d="M3.75 5.25h16.5v13.5H3.75zM3.75 15.75l4.5-4.5 4.5 4.5" />
+                  </svg>
+                  <p className="font-medium text-slate-500">Aucun album disponible.</p>
+                </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {albumsList.map(album => (
                     <button
                       key={album.name}
                       onClick={() => { setSelectedAlbum(album.name); setViewMode("ALBUMS"); }}
-                      className="group flex flex-col text-left bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition-all"
+                      className="group relative aspect-[3/2] overflow-hidden rounded-2xl bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003366]"
                     >
-                      <div className="relative w-full aspect-[4/3] bg-slate-100 overflow-hidden">
+                      {/* Cover image */}
+                      {(album.cover.thumbnailUrl || album.cover.url) ? (
                         <img
                           src={(album.cover.thumbnailUrl || album.cover.url) as string}
                           alt={album.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                        <div className="absolute bottom-4 left-4 right-4 text-white">
-                          <span className="inline-block px-2.5 py-1 bg-black/40 backdrop-blur-md rounded-md text-[11px] font-semibold tracking-wider uppercase mb-2">
-                            {album.items.length} {t.mediaCount || "médias"}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="p-5 flex-1 flex flex-col justify-between w-full">
-                        <h3 className="font-bold text-lg text-[#142332] group-hover:text-[#007BFF] transition-colors line-clamp-2">
+                      ) : null}
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                      {/* Content */}
+                      <div className="absolute inset-x-0 bottom-0 p-5 flex flex-col items-start gap-2">
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-white/70">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {album.items.length} {t.mediaCount}
+                        </span>
+                        <h3 className="text-white font-bold text-lg leading-tight text-left line-clamp-2 drop-shadow-sm">
                           {album.name}
                         </h3>
-                        <div className="mt-4 flex items-center text-[#007BFF] text-sm font-semibold">
+                        <span className="inline-flex items-center text-[#7EC8E3] text-xs font-semibold group-hover:gap-2 gap-1 transition-all duration-200">
                           Voir l'album
-                          <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                           </svg>
-                        </div>
+                        </span>
                       </div>
                     </button>
                   ))}
@@ -547,19 +552,22 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
         ) : (
           <>
             {selectedAlbum && (
-              <div className="bg-slate-50 pt-12 pb-4">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <button
-                    onClick={() => setSelectedAlbum(null)}
-                    className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-[#007BFF] transition-colors mb-6"
-                  >
-                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    {t.backToAlbums || "Retour aux albums"}
-                  </button>
-                  <h2 className="text-3xl font-bold text-[#142332] mb-2">{selectedAlbum}</h2>
-                  <p className="text-slate-500">{filtered.length} {t.mediaCount || "médias"}</p>
+              <div className="relative bg-[#003366] text-white overflow-hidden">
+                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=60 height=60 viewBox=0 0 60 60 xmlns=http://www.w3.org/2000/svg%3E%3Cg fill=none fill-rule=evenodd%3E%3Cg fill=%23ffffff fill-opacity=0.4%3E%3Cpath d=M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')" }} />
+                <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex items-end gap-6">
+                  <div className="flex-1">
+                    <button
+                      onClick={() => setSelectedAlbum(null)}
+                      className="inline-flex items-center text-xs font-semibold text-white/60 hover:text-white transition-colors mb-4 uppercase tracking-wider"
+                    >
+                      <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                      </svg>
+                      {t.backToAlbums}
+                    </button>
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight mb-2">{selectedAlbum}</h2>
+                    <p className="text-white/60 text-sm">{filtered.length} {t.mediaCount}</p>
+                  </div>
                 </div>
               </div>
             )}
