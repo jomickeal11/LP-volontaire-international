@@ -64,9 +64,6 @@ export default function AdminResources() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
-&&
-    (formData.fileUrl.trim() || formData.fileName.trim())
-  )
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
 
   // Upload PDF
@@ -90,10 +87,11 @@ export default function AdminResources() {
   })
 
   const canSubmit = !!(
-    formData.title.trim() 
+    formData.title.trim() &&
+    (formData.fileUrl.trim() || formData.fileName.trim())
+  )
 
-  
-const loadData = async () => {
+  const loadData = async () => {
     setLoading(true)
     try {
       const [items, doms] = await Promise.all([

@@ -69,9 +69,6 @@ export default function AdminProjects() {
   const [showTranslationHelp, setShowTranslationHelp] = useState(true)
   const [activeLangTab, setActiveLangTab] = useState<"FR" | "EN" | "DE">("FR")
   const [error, setError] = useState("")
-&&
-    formData.summaryFr.trim()
-  )
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
@@ -109,10 +106,11 @@ export default function AdminProjects() {
   })
 
   const canSubmit = !!(
-    formData.titleFr.trim() 
+    formData.titleFr.trim() &&
+    formData.summaryFr.trim()
+  )
 
-  
-const loadData = async () => {
+  const loadData = async () => {
     setLoading(true)
     try {
       const [projs, doms] = await Promise.all([

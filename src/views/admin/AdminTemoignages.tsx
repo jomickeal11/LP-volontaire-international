@@ -479,8 +479,8 @@ export default function AdminTemoignages() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={submitting}
-                className="px-5 py-2 rounded-lg text-sm font-semibold bg-[#003366] text-white hover:bg-[#002244] transition-colors disabled:opacity-40"
+                disabled={submitting || !canSubmit}
+                className="px-5 py-2 rounded-lg text-sm font-semibold bg-[#003366] text-white hover:bg-[#002244] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {submitting ? "Enregistrement…" : editingId ? "Enregistrer" : "Créer"}
               </button>

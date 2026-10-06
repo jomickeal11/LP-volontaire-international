@@ -71,10 +71,6 @@ export default function AdminDomaines() {
   const [showTranslationHelp, setShowTranslationHelp] = useState(true)
   const [activeLangTab, setActiveLangTab] = useState<"FR" | "EN" | "DE">("FR")
   const [error, setError] = useState("")
-&&
-    formData.nameFr.trim() &&
-    formData.descFr.trim()
-  )
   const [editingId, setEditingId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -224,10 +220,12 @@ export default function AdminDomaines() {
   })
 
   const canSubmit = !!(
-    formData.code.trim() 
+    formData.code.trim() &&
+    formData.nameFr.trim() &&
+    formData.descFr.trim()
+  )
 
-  
-const loadData = async () => {
+  const loadData = async () => {
     setLoading(true)
     try {
       const res = await getDomaines()
