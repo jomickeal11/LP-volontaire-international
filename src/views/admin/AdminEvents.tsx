@@ -1237,11 +1237,18 @@ export default function AdminEvents() {
                         </label>
                         <input
                           type="text"
+                          list="category-suggestions"
                           value={formData.categoryOther}
                           onChange={(e) => update({ categoryOther: e.target.value })}
                           placeholder="ex: Forum, Sensibilisation, Webinaire"
                           className={INPUT}
                         />
+                        <datalist id="category-suggestions">
+                          <option value="Forum" />
+                          <option value="Sensibilisation" />
+                          <option value="Webinaire" />
+                          <option value="Conférence" />
+                        </datalist>
                         <p className={HINT}>Ce texte est affiché tel quel sur le site public.</p>
                       </div>
                     )}
@@ -1284,11 +1291,18 @@ export default function AdminEvents() {
                     </label>
                     <input
                       type="text"
+                      list="location-suggestions"
                       value={formData.location}
                       onChange={(e) => update({ location: e.target.value })}
                       placeholder="ex: FabLab d'Agbélouvé, Lomé"
                       className={INPUT}
                     />
+                    <datalist id="location-suggestions">
+                      <option value="FabLab d'Agbélouvé" />
+                      <option value="Siège APTIC-R, Lomé" />
+                      <option value="Lycée d'Agbélouvé" />
+                      <option value="Mairie de Zio 1" />
+                    </datalist>
                   </div>
 
                   {formData.isOnline && (

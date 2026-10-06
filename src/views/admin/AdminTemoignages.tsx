@@ -333,10 +333,19 @@ export default function AdminTemoignages() {
                   <input
                     type="text"
                     required
+                    list="role-suggestions"
                     value={form.authorRole}
                     onChange={(e) => setForm({ ...form, authorRole: e.target.value })}
                     className={inputClass}
+                    placeholder="Ex: Volontaire internationale (France)"
                   />
+                  <datalist id="role-suggestions">
+                    <option value="Volontaire internationale (France)" />
+                    <option value="Volontaire national (Togo)" />
+                    <option value="Formateur" />
+                    <option value="Partenaire technique" />
+                    <option value="Bénéficiaire" />
+                  </datalist>
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -360,10 +369,18 @@ export default function AdminTemoignages() {
                   </label>
                   <input
                     type="text"
+                    list="org-suggestions"
                     value={form.authorOrg}
                     onChange={(e) => setForm({ ...form, authorOrg: e.target.value })}
                     className={inputClass}
+                    placeholder="Ex: France Volontaires"
                   />
+                  <datalist id="org-suggestions">
+                    <option value="APTIC-R" />
+                    <option value="France Volontaires" />
+                    <option value="Commune de Zio 1" />
+                    <option value="La Guilde" />
+                  </datalist>
                 </div>
               </div>
 
