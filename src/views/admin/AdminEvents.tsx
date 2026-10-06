@@ -255,6 +255,12 @@ export default function AdminEvents() {
 
   const update = (patch: Partial<typeof formData>) => setFormData((prev) => ({ ...prev, ...patch }))
 
+  const canSubmit = !!(
+    formData.titleFr.trim() &&
+    formData.startDate.trim() &&
+    formData.location.trim()
+  )
+
   const loadData = async () => {
     setLoading(true)
     try {

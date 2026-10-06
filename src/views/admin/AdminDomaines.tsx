@@ -71,6 +71,10 @@ export default function AdminDomaines() {
   const [showTranslationHelp, setShowTranslationHelp] = useState(true)
   const [activeLangTab, setActiveLangTab] = useState<"FR" | "EN" | "DE">("FR")
   const [error, setError] = useState("")
+&&
+    formData.nameFr.trim() &&
+    formData.descFr.trim()
+  )
   const [editingId, setEditingId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -219,7 +223,11 @@ export default function AdminDomaines() {
     active: true,
   })
 
-  const loadData = async () => {
+  const canSubmit = !!(
+    formData.code.trim() 
+
+  
+const loadData = async () => {
     setLoading(true)
     try {
       const res = await getDomaines()
@@ -1608,7 +1616,7 @@ export default function AdminDomaines() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || !canSubmit}
                   className="px-5 py-2 text-xs font-semibold bg-[#003366] text-white hover:bg-[#002244] rounded-xl transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
                 >
                   {submitting ? "Enregistrement..." : editingId ? "Mettre à jour" : "Créer le domaine"}

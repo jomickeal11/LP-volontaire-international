@@ -57,6 +57,12 @@ export default function AdminTemoignages() {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState("")
   const [feedback, setFeedback] = useState<string | null>(null)
+
+  const canSubmit = !!(
+    form.authorName.trim() &&
+    form.authorRole.trim() &&
+    form.quoteFr.trim()
+  )
   const photoInputRef = useRef<HTMLInputElement | null>(null)
 
   const loadData = async () => {

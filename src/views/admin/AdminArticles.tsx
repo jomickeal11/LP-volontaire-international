@@ -63,6 +63,9 @@ export default function AdminArticles() {
   const [translationNotice, setTranslationNotice] = useState("")
   const [showTranslationHelp, setShowTranslationHelp] = useState(true)
   const [error, setError] = useState("")
+&&
+    formData.contentFr.trim()
+  )
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
   const [uploadingImage, setUploadingImage] = useState(false)
 
@@ -90,8 +93,17 @@ export default function AdminArticles() {
     publishedDe: false,
   })
 
-  const loadData = async () => {
+  const canSubmit = !!(
+    formData.titleFr.trim() 
+
+  
+const loadData = async () => {
     setLoading(true)
+
+  const canSubmit = !!(
+    formData.titleFr.trim() &&
+    formData.contentFr.trim()
+  )
     try {
       const [arts, cats] = await Promise.all([
         getArticles({ publishedOnly: false }),

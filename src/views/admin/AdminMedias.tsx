@@ -58,6 +58,11 @@ export default function AdminMedias() {
   const [submitting, setSubmitting] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState("")
+
+  const canSubmit = !!(
+    form.titleFr.trim() &&
+    form.url.trim()
+  )
   const [feedback, setFeedback] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [projects, setProjects] = useState<{ id: string; titleFr: string; slug: string }[]>([])
