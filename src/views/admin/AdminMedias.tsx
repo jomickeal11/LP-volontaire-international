@@ -64,6 +64,13 @@ export default function AdminMedias() {
     form.url.trim()
   )
   const [feedback, setFeedback] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => setFeedback(null), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [feedback])
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [projects, setProjects] = useState<{ id: string; titleFr: string; slug: string }[]>([])
 

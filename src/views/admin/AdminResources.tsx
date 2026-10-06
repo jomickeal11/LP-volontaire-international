@@ -66,6 +66,13 @@ export default function AdminResources() {
   const [error, setError] = useState("")
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (feedbackMessage) {
+      const timer = setTimeout(() => setFeedbackMessage(null), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [feedbackMessage])
+
   // Upload PDF
   const [uploadingPdf, setUploadingPdf] = useState(false)
   const pdfInputRef = useRef<HTMLInputElement | null>(null)

@@ -64,6 +64,13 @@ export default function AdminArticles() {
   const [showTranslationHelp, setShowTranslationHelp] = useState(true)
   const [error, setError] = useState("")
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (feedbackMessage) {
+      const timer = setTimeout(() => setFeedbackMessage(null), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [feedbackMessage])
   const [uploadingImage, setUploadingImage] = useState(false)
 
   // Sub-tab de langue dans le modal

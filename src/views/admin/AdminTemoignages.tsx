@@ -58,6 +58,13 @@ export default function AdminTemoignages() {
   const [error, setError] = useState("")
   const [feedback, setFeedback] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => setFeedback(null), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [feedback])
+
   const canSubmit = !!(
     form.authorName.trim() &&
     form.authorRole.trim() &&
