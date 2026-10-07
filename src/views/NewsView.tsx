@@ -10,6 +10,7 @@ import { getPageUrl } from "@/types"
 import { useRouter, usePathname } from "next/navigation"
 import OptimizedPhoto from "@/components/OptimizedPhoto"
 import { getArticles, getArticleCategories } from "@/lib/cms-actions"
+import SocialLinks from "@/components/SocialLinks"
 
 interface NewsViewProps {
   lang: Language
@@ -71,6 +72,9 @@ const I18N = {
     ctaProjects: "Consulter nos projets",
     ctaPartner: "Devenir partenaire",
     readTime: "min de lecture",
+    socialTitle: "Suivez nos actualités",
+    socialText:
+      "Ne manquez aucune actualité, initiative ou évolution d’APTIC-R. Retrouvez-nous sur nos réseaux sociaux.",
   },
   EN: {
     badge: "NEWS & UPDATES",
@@ -88,6 +92,9 @@ const I18N = {
     ctaProjects: "Explore our projects",
     ctaPartner: "Become a partner",
     readTime: "min read",
+    socialTitle: "Follow our latest news",
+    socialText:
+      "Don't miss APTIC-R news, initiatives and updates. Follow us on our social media channels.",
   },
   DE: {
     badge: "AKTUELL",
@@ -105,6 +112,9 @@ const I18N = {
     ctaProjects: "Projekte ansehen",
     ctaPartner: "Partner werden",
     readTime: "Min. Lesezeit",
+    socialTitle: "Folgen Sie unseren Neuigkeiten",
+    socialText:
+      "Verpassen Sie keine Neuigkeiten, Initiativen oder Entwicklungen von APTIC-R. Folgen Sie uns in den sozialen Netzwerken.",
   },
 }
 
@@ -506,6 +516,25 @@ export default function NewsView({ lang, initialSettings = {} }: NewsViewProps &
                   {ctaBtnPartner}
                 </Link>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 5. Réseaux sociaux : Suivez nos actualités ── */}
+        <section
+          className="px-4 sm:px-6 lg:px-8 py-10 sm:py-12 border-t border-slate-200"
+          style={{ backgroundColor: BG_SECTION_ALT }}
+          aria-label={t.socialTitle}
+        >
+          <div className="max-w-2xl mx-auto text-center">
+            <h3 className="text-lg sm:text-xl font-bold text-[#003366] mb-1.5">
+              {t.socialTitle}
+            </h3>
+            <p className="text-xs sm:text-sm text-[#5E6B76] max-w-md mx-auto mb-5 leading-relaxed">
+              {t.socialText}
+            </p>
+            <div className="flex justify-center">
+              <SocialLinks variant="section" overrides={settings} />
             </div>
           </div>
         </section>

@@ -16,6 +16,7 @@ logs/
 # Temp
 .claude-replay.*
 .tmp-*
+tmp_*
 
 # Platform-managed agentplat state
 /.plugins/

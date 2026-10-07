@@ -10,6 +10,7 @@ import {
   reorderDomainesAction,
   duplicateDomaineAction,
 } from "@/lib/cms-actions"
+import { uploadMediaFile } from "@/lib/upload-client"
 import { DomainCharterIcon } from "@/components/DomainIcons"
 import { useConfirm } from "@/components/admin/ConfirmProvider"
 
@@ -338,17 +339,10 @@ export default function AdminDomaines() {
     setError("")
 
     try {
-      const data = new FormData()
-      data.append("file", file)
+      const result = await uploadMediaFile(file, "image")
 
-      const response = await fetch("/api/upload/image", {
-        method: "POST",
-        body: data,
-      })
-      const result = await response.json()
-
-      if (response.ok && result.fileUrl) {
-        setFormData((prev) => ({ ...prev, imageUrl: result.fileUrl }))
+      if (result.success) {
+        setFormData((prev) => ({ ...prev, imageUrl: result.url }))
       } else {
         setError(result.error || "Erreur lors de l'upload de l'image")
       }

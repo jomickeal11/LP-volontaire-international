@@ -959,6 +959,10 @@ model LienCampagne {
   generatedUrl    String   @db.Text              // URL complète prête à l'emploi
   createdBy       String?                        // email de l'admin créateur (optionnel)
 
+  // Compteur de clics (redirection suivie via /api/r/[id])
+  clicks          Int      @default(0)
+  lastClickedAt   DateTime?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

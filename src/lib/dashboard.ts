@@ -126,6 +126,8 @@ export interface AnalyticsPageData {
     utmCampaign: string
     utmContent: string | null
     generatedUrl: string
+    clicks: number
+    lastClickedAt: string | null
     createdAt: string
   }[]
   // System Events Table
@@ -454,24 +456,23 @@ export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Pro
     }
   })
 
-  // Ensure submitted matches DB counts if events weren't triggered prior
+  // Candidatures soumises : lignes réellement créées en base sur la période.
   const formsSubmitted = applications.length
-  
-  // Use GA4 for funnel events, fallback to Postgres for legacy/safety if needed, but per user request we use GA4 directly
-  const applyClicks = ga4Data.events?.apply_now_click || 0
-  const formsStarted = Math.max(ga4Data.events?.application_started || 0, formsSubmitted)
+
+  // Entonnoir de conversion : source réelle = table EvenementStatistique
+  // (événements envoyés par le frontend). Plus aucun plancher synthétique
+  // ni dépendance à GA4 pour ces comptes — GA4 ne sert qu'au trafic.
+  const applyClicks = eventCounts.apply_now_click?.count ?? 0
+  const formsStarted = eventCounts.application_started?.count ?? 0
 
   // Partner counts
   const partnerRequestsFromDb = await (prisma as any).demandePartenariat.count({
     where: { createdAt: { gte: cutoffDate } },
   }).catch(() => 0)
-  const partnerClicks = ga4Data.events?.partner_request_click || 0
-  // Événement canonique `partner_request` : seul événement envoyé depuis le frontend.
-  // Repli sur la base de données si GA4 n'est pas connecté.
-  const partnerRequestsCanonical = ga4Data.events?.partner_request || 0
-  const partnerRequestsSubmitted =
-    partnerRequestsCanonical > 0 ? partnerRequestsCanonical : partnerRequestsFromDb
-  const partnerFormsStarted = Math.max(ga4Data.events?.partner_request_started || 0, partnerRequestsSubmitted)
+  // Demandes finalisées : lignes réellement créées en base sur la période.
+  const partnerRequestsSubmitted = partnerRequestsFromDb
+  const partnerClicks = eventCounts.partner_request_click?.count ?? 0
+  const partnerFormsStarted = eventCounts.partner_request_started?.count ?? 0
 
   // Countries
   const countryMap: Record<string, number> = {}
@@ -613,7 +614,7 @@ export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Pro
   const eventsSummary = Object.keys(eventMeta).map((name) => ({
     eventName: name,
     label: eventMeta[name],
-    count: eventCounts[name]?.count || (name === "application_submitted" ? applications.length : name === "partner_request" ? partnerRequestsSubmitted : 0),
+    count: eventCounts[name]?.count ?? 0,
     lastOccurred: eventCounts[name]?.lastDate
       ? new Intl.DateTimeFormat(locale, {
           day: "2-digit",
@@ -663,10 +664,16 @@ export async function getAnalyticsPageStats(days = 30, lang: string = "fr"): Pro
           utmCampaign:     true,
           utmContent:      true,
           generatedUrl:    true,
+          clicks:          true,
+          lastClickedAt:   true,
           createdAt:       true,
         },
       })
-      .then((rows: any[]) => rows.map((r: any) => ({ ...r, createdAt: r.createdAt.toISOString() })))
+      .then((rows: any[]) => rows.map((r: any) => ({
+        ...r,
+        lastClickedAt: r.lastClickedAt ? r.lastClickedAt.toISOString() : null,
+        createdAt: r.createdAt.toISOString(),
+      })))
       .catch(() => []),
     eventsSummary,
   }

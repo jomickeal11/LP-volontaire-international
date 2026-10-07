@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
-import { DEFAULT_OG_IMAGE } from "@/lib/seo"
+import { DEFAULT_OG_IMAGE, getSiteUrl } from "@/lib/seo"
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://apticr.org"
+const baseUrl = getSiteUrl()
 
 interface LocalizedMeta {
   title: string

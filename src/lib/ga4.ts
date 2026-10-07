@@ -106,47 +106,6 @@ export async function getGA4Data(days: number): Promise<GA4Data> {
       value: parseInt(row.metricValues?.[0].value || "0"),
     }))
 
-    // Fetch Events Counts (using totalUsers to get unique visitors per event)
-    const [eventsResponse] = await analyticsDataClient.runReport({
-      property: `properties/${propertyId}`,
-      dateRanges: [{ startDate, endDate }],
-      dimensions: [{ name: "eventName" }],
-      metrics: [{ name: "totalUsers" }],
-      dimensionFilter: {
-        filter: {
-          fieldName: "eventName",
-          inListFilter: {
-            values: [
-              "apply_now_click",
-              "application_started",
-              "partner_request_click",
-              "partner_request_started",
-              "partner_request",
-            ],
-          },
-        },
-      },
-    })
-
-    const events: Record<string, number> = {
-      apply_now_click: 0,
-      application_started: 0,
-      partner_request_click: 0,
-      partner_request_started: 0,
-      partner_request: 0,
-    }
-
-    if (eventsResponse.rows) {
-      eventsResponse.rows.forEach((row) => {
-        const eventName = row.dimensionValues?.[0].value
-        // We read metricValues[0] which is now totalUsers
-        const count = parseInt(row.metricValues?.[0].value || "0")
-        if (eventName && events[eventName] !== undefined) {
-          events[eventName] = count
-        }
-      })
-    }
-
     return {
       connected: true,
       measurementId: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || null,
@@ -156,7 +115,6 @@ export async function getGA4Data(days: number): Promise<GA4Data> {
       engagementRate,
       trafficTrend,
       trafficSources,
-      events,
     }
   } catch (error) {
     console.error("Error fetching GA4 data:", error)

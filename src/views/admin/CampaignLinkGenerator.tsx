@@ -11,13 +11,12 @@ import {
   deleteLienCampagne,
   type SavedCampaignLink,
 } from "@/lib/campaign-actions"
+import { getSiteUrl } from "@/lib/seo"
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 const BASE_URL =
-  typeof window !== "undefined"
-    ? window.location.origin
-    : process.env.NEXT_PUBLIC_SITE_URL ?? "https://apticr.org"
+  typeof window !== "undefined" ? window.location.origin : getSiteUrl()
 
 /** Suggestions datalist pour le canal de diffusion */
 const CHANNEL_SUGGESTIONS = [
@@ -293,6 +292,8 @@ function CampaignModal({ onClose, onCreated }: ModalProps) {
           utmCampaign:     result.data.utmCampaign,
           utmContent:      utmContent || null,
           generatedUrl:    result.data.generatedUrl,
+          clicks:          0,
+          lastClickedAt:   null,
           createdAt:       new Date().toISOString(),
         })
         onClose()
@@ -555,15 +556,17 @@ function CampaignModal({ onClose, onCreated }: ModalProps) {
 
               {/* URL */}
               <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 space-y-1">
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">URL générée</p>
+                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Aperçu de l&apos;URL de destination</p>
                 <p className="text-xs font-mono text-slate-700 break-all leading-relaxed select-all">
                   {previewUrl}
+                </p>
+                <p className="text-[11px] text-slate-400 leading-relaxed pt-1">
+                  Le lien de suivi (qui compte les clics) est généré à l&apos;enregistrement. Copiez-le ensuite depuis la liste ci-dessous.
                 </p>
               </div>
 
               {/* Actions */}
               <div className="flex flex-wrap items-center gap-3">
-                <CopyButton url={previewUrl} />
                 <button
                   type="button"
                   onClick={() => setStep(2)}
@@ -737,12 +740,13 @@ export default function CampaignLinkGenerator({ savedLinks: initialLinks }: Prop
         {/* Historique des liens */}
         {savedLinks.length > 0 && (
           <div className="border-t border-[#EAF0F4] overflow-x-auto">
-            <table className="w-full min-w-[600px] text-left text-xs">
+            <table className="w-full min-w-[720px] text-left text-xs">
               <thead className="bg-slate-50/80 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
                 <tr>
                   <th className="py-2.5 px-4">Campagne</th>
                   <th className="py-2.5 px-4">Canal</th>
                   <th className="py-2.5 px-4">Page</th>
+                  <th className="py-2.5 px-4 text-right">Clics</th>
                   <th className="py-2.5 px-4">Date</th>
                   <th className="py-2.5 px-4 text-right">Actions</th>
                 </tr>
@@ -758,6 +762,14 @@ export default function CampaignLinkGenerator({ savedLinks: initialLinks }: Prop
                     </td>
                     <td className="py-2.5 px-4 text-slate-600">{lien.channel}</td>
                     <td className="py-2.5 px-4 font-mono text-slate-400 text-[11px]">{lien.destinationPath}</td>
+                    <td className="py-2.5 px-4 text-right">
+                      <span
+                        className="inline-block font-mono font-bold text-slate-800 tabular-nums"
+                        title={lien.lastClickedAt ? `Dernier clic : ${formatDateFr(lien.lastClickedAt)}` : "Aucun clic enregistré"}
+                      >
+                        {lien.clicks}
+                      </span>
+                    </td>
                     <td className="py-2.5 px-4 text-slate-400 font-mono text-[11px] whitespace-nowrap">
                       {formatDateFr(lien.createdAt)}
                     </td>

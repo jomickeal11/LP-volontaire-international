@@ -103,6 +103,14 @@ import {
 } from "@/lib/cms-actions"
 
 import {
+  HOME_SECTIONS,
+  HOME_FIELDS,
+  getHomeFieldDbKey,
+  calculateHomeCompleteness,
+  isHomePagePublished,
+} from "@/lib/home-cms-config"
+
+import {
   ABOUT_SECTIONS,
   ABOUT_FIELDS,
   getAboutFieldDbKey,
@@ -262,6 +270,7 @@ const HISTORICAL_TEAM_CATEGORY_SLUGS = [
 
 const TABS = [
   { id: "TEAM", label: "Équipe & Rôles" },
+  { id: "HOME", label: "Page Accueil" },
   { id: "NEWS", label: "Page Actualités" },
   { id: "SUPPORT", label: "Page Soutien" },
   { id: "MEMBERSHIP", label: "Page Devenir membre" },
@@ -688,6 +697,170 @@ export default function AdminSettings() {
   })
 
   const [skillInput, setSkillInput] = useState("")
+
+  const [homeExpandedSections, setHomeExpandedSections] =
+    useState<Record<string, boolean>>({})
+
+  const toggleAllHomeSections = (expand: boolean) => {
+    const next: Record<string, boolean> = {}
+    HOME_SECTIONS.forEach((s) => {
+      next[s.id] = expand
+    })
+    setHomeExpandedSections(next)
+  }
+
+  const homeEditor = useCmsTabEditor(values, setValues, {
+    translatableKeys: (scope) =>
+      HOME_FIELDS.filter(
+        (f) => f.isTranslatable && (scope === "ALL" || f.section === scope),
+      ),
+    baseKey: (field) => field.key,
+    trackedKeys: () => [
+      "home_published_fr",
+      "home_published_en",
+      "home_published_de",
+    ],
+  })
+
+  const { langTab: homeLangTab, setNotice: setHomeNotice } = homeEditor
+  const homeNotice = homeEditor.notice
+
+  const toggleHomeSection = (sectionId: string) => {
+    setHomeExpandedSections((prev) => ({
+      ...prev,
+      [sectionId]: !prev[sectionId],
+    }))
+  }
+
+  const handleToggleHomePublish = async (lang: "FR" | "EN" | "DE") => {
+    const completeness = calculateHomeCompleteness(values, lang)
+    const langLower = lang.toLowerCase()
+    const pubKey = `home_published_${langLower}`
+    const currentlyPublished = isHomePagePublished(values, lang)
+
+    if (currentlyPublished) {
+      const nextVal = "DRAFT"
+      setValues((prev) => ({ ...prev, [pubKey]: nextVal }))
+      try {
+        const { changedEntries } = await persistSettings([
+          {
+            key: pubKey,
+            value: nextVal,
+            group: "HOME",
+            description: `Statut publication Accueil (${lang})`,
+          },
+        ])
+        homeEditor.markSaved(changedEntries)
+        setHomeNotice({
+          type: "info",
+          text: `La version ${lang} est repassée en BROUILLON.`,
+        })
+      } catch (err: any) {
+        setHomeNotice({
+          type: "error",
+          text: err.message || "Erreur réseau.",
+        })
+      }
+    } else {
+      if (!completeness.isComplete) {
+        setHomeNotice({
+          type: "error",
+          text: `Publication impossible pour la version ${lang} : ${completeness.missingFields.length} champ(s) obligatoire(s) non renseigné(s). Complétude actuelle : ${completeness.percentage}%.`,
+        })
+        return
+      }
+
+      const nextVal = "PUBLISHED"
+      setValues((prev) => ({ ...prev, [pubKey]: nextVal }))
+      try {
+        const { changedEntries } = await persistSettings([
+          {
+            key: pubKey,
+            value: nextVal,
+            group: "HOME",
+            description: `Statut publication Accueil (${lang})`,
+          },
+        ])
+        homeEditor.markSaved(changedEntries)
+        setHomeNotice({
+          type: "success",
+          text: `Version ${lang} publiée.`,
+        })
+      } catch (err: any) {
+        setHomeNotice({
+          type: "error",
+          text: err.message || "Erreur réseau.",
+        })
+      }
+    }
+  }
+
+  const handleSaveHomeTab = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    setSaving(true)
+    setHomeNotice(null)
+
+    const payload: {
+      key: string
+      value: string
+      group: string
+      description?: string
+    }[] = []
+
+    HOME_FIELDS.forEach((f) => {
+      if (f.isTranslatable) {
+        ; (["fr", "en", "de"] as const).forEach((l) => {
+          const k = `${f.key}_${l}`
+          payload.push({
+            key: k,
+            value: values[k] || "",
+            group: "HOME",
+            description: `${f.label} (${l.toUpperCase()})`,
+          })
+        })
+      } else {
+        payload.push({
+          key: f.key,
+          value: values[f.key] || "",
+          group: "HOME",
+          description: f.label,
+        })
+      }
+    })
+
+    ; (["fr", "en", "de"] as const).forEach((l) => {
+      const k = `home_published_${l}`
+      payload.push({
+        key: k,
+        value: values[k] || (l === "fr" ? "PUBLISHED" : "DRAFT"),
+        group: "HOME",
+        description: `Statut publication Accueil (${l.toUpperCase()})`,
+      })
+    })
+
+    try {
+      const { result: res, changedEntries } = await persistSettings(payload)
+      if (res.success) {
+        homeEditor.markSaved(changedEntries)
+        setHomeNotice({
+          type: "success",
+          text: "Modifications de la page d'accueil enregistrées.",
+        })
+      } else {
+        setHomeNotice({
+          type: "error",
+          text: res.error || "Erreur lors de l'enregistrement.",
+        })
+      }
+    } catch (err: any) {
+      setHomeNotice({
+        type: "error",
+        text: err.message || "Erreur réseau.",
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const [aboutExpandedSections, setAboutExpandedSections] =
     useState<Record<string, boolean>>({
@@ -3208,6 +3381,471 @@ export default function AdminSettings() {
           </div>
         </div>
       )}
+
+      {/* ─── ONGLET PAGE ACCUEIL (CMS DYNAMIQUE 11 SECTIONS) ─── */}
+      {activeTab === "HOME" && (
+        <div className="space-y-6 pb-28">
+          {/* ── En-tête principal & Cartes de langues ── */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#007BFF] border border-blue-200">
+                    Page d&apos;Accueil
+                  </span>
+                </div>
+                <h2 className="text-xl font-bold text-[#003366] mt-1.5">
+                  Éditeur de Page : « Accueil APTIC-R »
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
+                  Gérez l&apos;intégralité des 11 sections éditoriales de la page d&apos;accueil : Hero,
+                  Présentation, Domaines d&apos;action, Chiffres d&apos;impact, Projets phares, Récit
+                  documentaire, 4 façons d&apos;agir, Témoignages, Newsletter, Contact et SEO.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <a
+                  href={`/${homeLangTab.toLowerCase()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-[#003366] bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                >
+                  <span>Aperçu public ({homeLangTab})</span>
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
+                  </svg>
+                </a>
+              </div>
+            </div>
+
+            {homeNotice && (
+              <div className="mt-4">
+                <CmsNoticeBanner
+                  notice={homeNotice}
+                  onClose={() => setHomeNotice(null)}
+                />
+              </div>
+            )}
+
+            {/* Cartes de Statut & Complétude par Langue */}
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              {(["FR", "EN", "DE"] as const).map((lang) => {
+                const completeness = calculateHomeCompleteness(values, lang)
+                const isPub = isHomePagePublished(values, lang)
+                const langTitle =
+                  lang === "FR"
+                    ? "Français (Source)"
+                    : lang === "EN"
+                      ? "English (Anglais)"
+                      : "Deutsch (Allemand)"
+
+                return (
+                  <div
+                    key={lang}
+                    className={`p-5 rounded-2xl border transition-all ${
+                      homeLangTab === lang
+                        ? "bg-white border-[#003366] shadow-sm ring-2 ring-[#003366]/10"
+                        : "bg-slate-50/70 border-slate-200 hover:bg-white"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2.5">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[#003366] text-[11px] font-bold font-mono tracking-wider">
+                          {lang}
+                        </span>
+                        <span className="text-sm font-bold text-slate-800">
+                          {langTitle}
+                        </span>
+                      </div>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          isPub
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                            : "bg-amber-100 text-amber-800 border border-amber-200"
+                        }`}
+                      >
+                        {isPub ? "● Publié" : "○ Brouillon"}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 mb-4">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500 font-medium">
+                          Complétude :
+                        </span>
+                        <span
+                          className={`font-bold ${
+                            completeness.isComplete
+                              ? "text-emerald-700"
+                              : "text-amber-700"
+                          }`}
+                        >
+                          {completeness.percentage}%
+                        </span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            completeness.isComplete
+                              ? "bg-emerald-500"
+                              : "bg-amber-500"
+                          }`}
+                          style={{ width: `${completeness.percentage}%` }}
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        {completeness.filledCount} / {completeness.totalCount}{" "}
+                        champs requis
+                        {!completeness.isComplete &&
+                          ` (${completeness.missingFields.length} manquant${
+                            completeness.missingFields.length > 1 ? "s" : ""
+                          })`}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => homeEditor.switchLang(lang)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                          homeLangTab === lang
+                            ? "bg-[#003366] text-white shadow-xs"
+                            : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                        }`}
+                      >
+                        Éditer {lang}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleToggleHomePublish(lang)}
+                        disabled={!isPub && !completeness.isComplete}
+                        title={
+                          !isPub && !completeness.isComplete
+                            ? `Complétude à 100% requise pour publier cette langue (${completeness.missingFields.length} champ(s) restant(s))`
+                            : undefined
+                        }
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          isPub
+                            ? "bg-slate-100 border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200"
+                            : completeness.isComplete
+                              ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs"
+                              : "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 opacity-60"
+                        }`}
+                      >
+                        {isPub
+                          ? "Passer en Brouillon"
+                          : completeness.isComplete
+                            ? "Publier"
+                            : "Non publiable"}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Sélecteur de langue = contexte d'édition */}
+            <div className="mt-8 border-t border-slate-100 pt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <CmsLangSwitcher
+                  value={homeLangTab}
+                  onChange={homeEditor.switchLang}
+                />
+              </div>
+
+              {homeLangTab !== "FR" && (
+                <div className="mt-4 px-4 py-3 rounded-xl bg-[#007BFF]/5 border border-[#007BFF]/20 text-[#003366] text-xs flex items-center gap-3">
+                  <svg
+                    className="w-4 h-4 text-[#007BFF] shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span>
+                    Vous éditez actuellement la version{" "}
+                    <strong>
+                      {homeLangTab === "EN" ? "anglaise" : "allemande"}
+                    </strong>
+                    . Le texte de référence français est affiché sous chaque
+                    champ, et rien n&apos;est enregistré avant votre clic sur «
+                    Enregistrer ».
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Contrôles Déplier / Replier tout */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+            <span className="text-xs font-semibold text-slate-500">
+              11 sections éditoriales · Repliées par défaut (dépliez pour éditer)
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => toggleAllHomeSections(true)}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Tout déplier
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleAllHomeSections(false)}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Tout replier
+              </button>
+            </div>
+          </div>
+
+          {/* Formulaire par Sections Accordéon */}
+          <form onSubmit={handleSaveHomeTab} className="space-y-4">
+            {HOME_SECTIONS.map((section, sIdx) => {
+              const fields = HOME_FIELDS.filter(
+                (f) => f.section === section.id,
+              )
+              const isExpanded = Boolean(homeExpandedSections[section.id])
+              const sectionNum = String(sIdx + 1).padStart(2, "0")
+
+              return (
+                <div
+                  key={section.id}
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs"
+                >
+                  {/* Section Header */}
+                  <div className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
+                    <div
+                      onClick={() => toggleHomeSection(section.id)}
+                      className="flex items-center gap-3 cursor-pointer select-none flex-1"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-mono font-bold text-xs text-[#003366] shrink-0">
+                        {sectionNum}
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                          <span>{section.label}</span>
+                          <span className="text-[11px] font-normal text-slate-400">
+                            ({fields.length} champs)
+                          </span>
+                        </h3>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Section : {section.id}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
+                      <span onClick={(e) => e.stopPropagation()}>
+                        <CmsSectionTranslateButton
+                          lang={homeLangTab}
+                          busy={homeEditor.sectionTranslating === section.id}
+                          onClick={() =>
+                            homeEditor.requestTranslation(
+                              section.id,
+                              cmsTargetLang(homeLangTab),
+                            )
+                          }
+                        />
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleHomeSection(section.id)}
+                        className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-slate-600 px-2 py-1.5 rounded-lg cursor-pointer"
+                      >
+                        <span>{isExpanded ? "Masquer" : "Déplier"}</span>
+                        <svg
+                          className={`w-4 h-4 transition-transform duration-200 ${
+                            isExpanded ? "rotate-180" : ""
+                          }`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Section Fields */}
+                  {isExpanded && (
+                    <div className="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-6">
+                      {fields.map((field) => {
+                        const dbKey = field.isTranslatable
+                          ? getHomeFieldDbKey(field.key, homeLangTab)
+                          : field.key
+                        const frKey = `${field.key}_fr`
+                        const frValue = field.isTranslatable
+                          ? values[frKey] || ""
+                          : ""
+                        const currentValue = values[dbKey] || ""
+
+                        return (
+                          <div
+                            key={field.key}
+                            className={cmsFieldWidthClass(field.type, field.key)}
+                          >
+                            <div className="mb-2">
+                              <label className="block text-sm font-semibold text-slate-800">
+                                {field.label}
+                                {field.required && (
+                                  <span
+                                    className="ml-1 text-red-500"
+                                    aria-label="Champ obligatoire"
+                                  >
+                                    *
+                                  </span>
+                                )}
+                              </label>
+                            </div>
+
+                            {field.description && (
+                              <p className="text-xs text-slate-500 mb-2 leading-relaxed">
+                                {field.description}
+                              </p>
+                            )}
+
+                            {/* Référence source française */}
+                            {homeLangTab !== "FR" &&
+                              field.isTranslatable &&
+                              frValue && (
+                                <div className="mb-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                                  <div className="flex items-center justify-between gap-2 font-bold text-[#003366] text-[11px] uppercase tracking-wider mb-1">
+                                    <span>Référence source (Français) :</span>
+                                  </div>
+                                  <p className="italic leading-relaxed whitespace-pre-line text-slate-700">
+                                    {frValue}
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Champ selon le type */}
+                            {field.type === "image" ? (
+                              <div className="space-y-3">
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                  <input
+                                    type="text"
+                                    value={currentValue}
+                                    onChange={(e) =>
+                                      handleInputChange(dbKey, e.target.value)
+                                    }
+                                    placeholder="https://... ou /uploads/..."
+                                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-xs font-mono text-slate-800"
+                                  />
+                                  <label className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer transition-colors shrink-0">
+                                    <span>
+                                      {uploadingSettingKey === dbKey
+                                        ? "Téléversement..."
+                                        : "Choisir une image"}
+                                    </span>
+                                    <input
+                                      type="file"
+                                      accept="image/jpeg,image/png,image/webp,image/avif"
+                                      className="hidden"
+                                      disabled={uploadingSettingKey === dbKey}
+                                      onChange={(e) => {
+                                        const f = e.target.files?.[0]
+                                        if (f)
+                                          handleSettingImageUpload(dbKey, f)
+                                      }}
+                                    />
+                                  </label>
+                                </div>
+
+                                {currentValue && (
+                                  <div className="mt-2">
+                                    <span className="text-xs font-semibold text-slate-400 block mb-1.5">
+                                      Aperçu actuel :
+                                    </span>
+                                    <div className="w-56 h-36 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 relative">
+                                      <img
+                                        src={currentValue}
+                                        alt="Aperçu"
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          ;(e.target as HTMLElement).style.display =
+                                            "none"
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : field.type === "textarea" ? (
+                              <textarea
+                                rows={4}
+                                value={currentValue}
+                                onChange={(e) =>
+                                  handleInputChange(dbKey, e.target.value)
+                                }
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
+                              />
+                            ) : (
+                              <input
+                                type="text"
+                                value={currentValue}
+                                onChange={(e) =>
+                                  handleInputChange(dbKey, e.target.value)
+                                }
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/10 outline-none text-sm text-slate-800 bg-white"
+                              />
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+
+            {/* Barre de sauvegarde fixe */}
+            <CmsSaveBar
+              isDirty={homeEditor.isDirty}
+              isReady={homeEditor.isReady}
+              saving={saving}
+              saved={saveConfirmed}
+              lang={homeLangTab}
+              onCancel={homeEditor.cancelChanges}
+              onSubmit={() => {
+                void handleSaveHomeTab()
+              }}
+            />
+          </form>
+        </div>
+      )}
+
+      {/* Confirmation avant remplacement de contenus existants (HOME) */}
+      <CmsReplaceConfirmDialog
+        pending={homeEditor.pendingTranslation}
+        onCancel={homeEditor.cancelPendingTranslation}
+        onConfirm={homeEditor.confirmPendingTranslation}
+      />
 
       { }
       {activeTab === "ABOUT" && (
@@ -6273,6 +6911,7 @@ export default function AdminSettings() {
 
       { }
       {activeTab !== "TEAM" &&
+        activeTab !== "HOME" &&
         activeTab !== "ABOUT" &&
         activeTab !== "VOLUNTEER" &&
         activeTab !== "PARTNER" &&

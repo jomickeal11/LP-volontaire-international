@@ -834,16 +834,18 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
                             </div>
                           </div>
 
-                          <a
-                            href={res.fileUrl || `/api/documents/download?id=${res.id}`}
-                            download
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white bg-[#007BFF] hover:bg-[#003366] transition-colors shrink-0 active:scale-98"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>{t.downloadBtn}</span>
-                          </a>
+                          {res.fileUrl ? (
+                            <a
+                              href={res.fileUrl}
+                              download
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white bg-[#007BFF] hover:bg-[#003366] transition-colors shrink-0 active:scale-98"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>{t.downloadBtn}</span>
+                            </a>
+                          ) : null}
                         </div>
                       )
                     })}

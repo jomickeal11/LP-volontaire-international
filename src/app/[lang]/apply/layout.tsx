@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
+import { getSiteUrl } from "@/lib/seo"
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://volontaires.apticr.org"
+const baseUrl = getSiteUrl()
 
 interface LocalizedMeta {
   title: string

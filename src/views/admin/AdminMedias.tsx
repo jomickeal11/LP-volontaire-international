@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react"
 import { getAllMedias, createMedia, updateMedia, deleteMedia, getProjectsForSelect } from "@/lib/cms-actions"
+import { uploadMediaFile } from "@/lib/upload-client"
 import { useConfirm } from "@/components/admin/ConfirmProvider"
 
 interface MediaItem {
@@ -99,11 +100,8 @@ export default function AdminMedias() {
     setUploading(true)
     setError("")
     try {
-      const data = new FormData()
-      data.append("file", file)
-      const response = await fetch("/api/upload/image", { method: "POST", body: data })
-      const result = await response.json()
-      if (result.success && result.url) {
+      const result = await uploadMediaFile(file, "image")
+      if (result.success) {
         setForm((prev) => ({
           ...prev,
           url: result.url,

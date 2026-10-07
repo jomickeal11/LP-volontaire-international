@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react"
-import {
-  getLiveCandidates,
-  mapLegacyToStoreStatus,
-  statusColors,
-  transformRecordToCandidate,
-} from "../../data/mockCandidates"
+import { statusColors } from "../../data/mockCandidates"
 import type { CandidateStatus } from "../../data/mockCandidates"
 import type { Page } from "../../types"
 import { MapPinIcon, MailIcon, PhoneIcon, GlobeIcon, CheckIcon } from "../../components/Icons"

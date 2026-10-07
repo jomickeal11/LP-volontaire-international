@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react"
 import { getEvents, createEvent, updateEvent, deleteEvent } from "@/lib/cms-actions"
+import { uploadMediaFile } from "@/lib/upload-client"
 import { translateCmsFieldsAction } from "@/lib/translator"
 import {
   OTHER_CATEGORY,
@@ -543,13 +544,9 @@ export default function AdminEvents() {
     setErrors([])
 
     try {
-      const data = new FormData()
-      data.append("file", file)
+      const result = await uploadMediaFile(file, "image")
 
-      const response = await fetch("/api/upload/image", { method: "POST", body: data })
-      const result = await response.json()
-
-      if (result.success && result.url) {
+      if (result.success) {
         update({ featuredImage: result.url })
       } else {
         setErrors([result.error || "Erreur lors du téléversement de l'image."])

@@ -10,6 +10,7 @@ import {
   toggleArticleFeatured,
   createArticleCategory,
 } from "@/lib/cms-actions"
+import { uploadMediaFile } from "@/lib/upload-client"
 import { useConfirm } from "@/components/admin/ConfirmProvider"
 
 interface ArticleItem {
@@ -133,16 +134,9 @@ export default function AdminArticles() {
     setError("")
 
     try {
-      const data = new FormData()
-      data.append("file", file)
+      const result = await uploadMediaFile(file, "image")
 
-      const response = await fetch("/api/upload/image", {
-        method: "POST",
-        body: data,
-      })
-      const result = await response.json()
-
-      if (result.success && result.url) {
+      if (result.success) {
         setFormData((prev) => ({ ...prev, featuredImage: result.url }))
       } else {
         setError(result.error || "Erreur lors du téléversement de l'image.")

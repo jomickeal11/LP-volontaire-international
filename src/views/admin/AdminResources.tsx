@@ -9,6 +9,7 @@ import {
   toggleRessourcePublished,
   getDomaines,
 } from "@/lib/cms-actions"
+import { uploadMediaFile } from "@/lib/upload-client"
 import { useConfirm } from "@/components/admin/ConfirmProvider"
 
 interface DomaineItem {
@@ -126,16 +127,9 @@ export default function AdminResources() {
     setError("")
 
     try {
-      const data = new FormData()
-      data.append("file", file)
+      const result = await uploadMediaFile(file, "resource-pdf")
 
-      const response = await fetch("/api/upload/resource-pdf", {
-        method: "POST",
-        body: data,
-      })
-      const result = await response.json()
-
-      if (result.success && result.url) {
+      if (result.success) {
         setFormData((prev) => ({
           ...prev,
           fileUrl: result.url,

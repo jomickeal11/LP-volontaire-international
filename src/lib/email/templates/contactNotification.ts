@@ -1,5 +1,6 @@
 import { wrapEmailHtml, renderEmailTextFooter } from "./emailTheme"
 import { formatTextToHtml } from "../variableEngine"
+import { getSiteUrl } from "@/lib/seo"
 
 export interface ContactNotificationParams {
   name: string
@@ -32,11 +33,7 @@ export function renderContactNotificationEmail(params: ContactNotificationParams
   const subjectText = subjectLabelMap[params.subject] || params.subject || "Demande de contact"
   const emailSubject = "APTIC-R — Nouveau message de contact"
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.NEXTAUTH_URL ||
-    process.env.NEXT_PUBLIC_APP_URL ||
-    "https://aptic-rural.org"
+  const siteUrl = getSiteUrl()
   const backofficeUrl = `${siteUrl}/backoffice/messages`
 
   const bodyContent = `Bonjour,

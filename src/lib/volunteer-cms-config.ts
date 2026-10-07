@@ -155,29 +155,8 @@ const ADDITIONAL_EDITORIAL_FIELDS: VolunteerFieldDefinition[] = [
       ]
     }).flat(),
   ),
-  ...makeVolunteerFields(
-    "CONDITIONS",
-    [
-      // Conditions du volontariat
-      { key: "volunteer_practical_age_min", label: "Conditions - Âge minimum requis" },
-      { key: "volunteer_practical_duration", label: "Conditions - Durée du volontariat" },
-      { key: "volunteer_practical_response_time", label: "Conditions - Délai de réponse" },
-      { key: "volunteer_practical_processing_time", label: "Conditions - Délai de traitement des candidatures" },
-      // Accueil et vie sur place
-      { key: "volunteer_practical_accommodation", label: "Accueil - Hébergement" },
-      { key: "volunteer_practical_meals", label: "Accueil - Repas" },
-      { key: "volunteer_practical_local_transport", label: "Accueil - Transport local" },
-      { key: "volunteer_practical_accompaniment", label: "Accueil - Accompagnement" },
-      { key: "volunteer_practical_mentor", label: "Accueil - Mentor / référent" },
-      { key: "volunteer_practical_sim_card", label: "Accueil - Carte SIM" },
-      { key: "volunteer_practical_internet", label: "Accueil - Connexion Internet" },
-      { key: "volunteer_practical_health_info", label: "Accueil - Informations santé", type: "textarea" as const },
-      // Formalités et conditions
-      { key: "volunteer_practical_insurance", label: "Formalités - Assurance" },
-      { key: "volunteer_practical_visa", label: "Formalités - Visa" },
-      { key: "volunteer_practical_allowance", label: "Formalités - Indemnités" },
-    ],
-  ),
+  // Les 15 champs volunteer_practical_* (section CONDITIONS) sont déclarés une
+  // seule fois dans VOLUNTEER_FIELDS, bloc « 8. CONDITIONS » — ne pas les dupliquer ici.
   ...makeVolunteerFields(
     "PROCESS",
     [
@@ -747,6 +726,141 @@ export const VOLUNTEER_FIELDS: VolunteerFieldDefinition[] = [
     isTranslatable: true,
     required: true,
   },
+  {
+    key: "volunteer_practical_age_min",
+    label: "Âge minimum requis",
+    description: "Ex: 21 ans",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_duration",
+    label: "Durée du volontariat",
+    description: "Ex: 6 à 12 mois",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_response_time",
+    label: "Délai de réponse",
+    description: "Ex: 48h à 72h ouvrées",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_processing_time",
+    label: "Délai de traitement",
+    description: "Ex: 2 à 3 semaines",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_accommodation",
+    label: "Hébergement",
+    description: "Ex: Pris en charge (Maison sécurisée partagée)",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_meals",
+    label: "Repas",
+    description: "Ex: Pris en charge (Indemnité repas versée)",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_local_transport",
+    label: "Transport local",
+    description: "Ex: Pris en charge (Trajets liés à la mission)",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_accompaniment",
+    label: "Accompagnement",
+    description: "Ex: Dès l'aéroport et tout au long du séjour",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_mentor",
+    label: "Mentor / référent",
+    description: "Ex: 1 référent dédié sur place 24/7",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_sim_card",
+    label: "Carte SIM",
+    description: "Ex: Fournie à l'arrivée avec forfait initial",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_internet",
+    label: "Connexion Internet",
+    description: "Ex: Wi-Fi disponible dans les locaux du projet",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_health_info",
+    label: "Informations santé",
+    description: "Ex: Hôpital à proximité, trousse de secours sur place",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_insurance",
+    label: "Assurance",
+    description: "Ex: À la charge du volontaire (Rapatriement exigé)",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_visa",
+    label: "Visa",
+    description: "Ex: Accompagnement aux démarches administratives",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
+  {
+    key: "volunteer_practical_allowance",
+    label: "Indemnités",
+    description: "Ex: 150 € / mois",
+    type: "text",
+    section: "CONDITIONS",
+    isTranslatable: true,
+    required: true,
+  },
 
   // ── 9. COMMENT POSTULER ──
   {
@@ -854,10 +968,14 @@ export function calculateVolunteerCompleteness(
   let totalCount = 0
   let filledCount = 0
 
+  const seenDbKeys = new Set<string>()
+
   for (const field of VOLUNTEER_FIELDS) {
     if (!field.required) continue
-    totalCount++
     const dbKey = getVolunteerFieldDbKey(field.key, lang)
+    if (seenDbKeys.has(dbKey)) continue
+    seenDbKeys.add(dbKey)
+    totalCount++
     const val = settings[dbKey]?.trim()
 
     if (val) {

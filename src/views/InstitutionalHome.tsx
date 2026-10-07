@@ -12,6 +12,7 @@ import { ApticNodeMarker, ApticDash, ApticEyebrow } from "@/components/ApticMark
 import OptimizedPhoto from "@/components/OptimizedPhoto"
 
 import { DomainCharterIcon } from "@/components/DomainIcons"
+import SocialLinks from "@/components/SocialLinks"
 
 interface InstitutionalHomeProps {
   lang: Language
@@ -512,7 +513,6 @@ const CONTENT = {
 
 export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeProps) {
   const safeLang = (["FR", "EN", "DE"].includes(lang) ? lang : "FR") as "FR" | "EN" | "DE"
-  const c = CONTENT[safeLang]
 
   const DOMAIN_IDS = [
     "agri-lowtech",
@@ -527,6 +527,169 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
   const [dbDomains, setDbDomains] = useState<any[]>([])
   const [dbProjects, setDbProjects] = useState<any[]>([])
   const [dbTestimonials, setDbTestimonials] = useState<any[]>([])
+  const l = safeLang.toLowerCase()
+  const c = {
+    hero: {
+      territoryBadge: settings[`home_hero_badge_${l}`] || "",
+      titleLine1: (settings[`home_hero_title_${l}`] || "").split("\n")[0] || "",
+      titleLine2: (settings[`home_hero_title_${l}`] || "").split("\n")[1] || "",
+      subtitle: settings[`home_hero_subtitle_${l}`] || "",
+      ctaProjects: settings[`home_hero_cta1_label_${l}`] || "",
+      ctaGetInvolved: settings[`home_hero_cta2_label_${l}`] || "",
+      statYears: settings[`home_hero_stat1_val_${l}`] || "",
+      statYearsDesc: settings[`home_hero_stat1_lbl_${l}`] || "",
+      statVillages: settings[`home_hero_stat2_val_${l}`] || "",
+      statVillagesDesc: settings[`home_hero_stat2_lbl_${l}`] || "",
+      statSolar: settings[`home_hero_stat3_val_${l}`] || "",
+      statSolarDesc: settings[`home_hero_stat3_lbl_${l}`] || "",
+      image: settings["home_hero_image"] || "/images/home/hero-aptic.jpg",
+    },
+    about: {
+      tag: settings[`home_about_eyebrow_${l}`] || "",
+      eyebrow: settings[`home_about_eyebrow_${l}`] || "",
+      title: settings[`home_about_title_${l}`] || "",
+      headline: settings[`home_about_quote_${l}`] || "",
+      p1: settings[`home_about_p1_${l}`] || "",
+      p2: settings[`home_about_p2_${l}`] || "",
+      moreBtn: settings[`home_about_cta_label_${l}`] || "",
+      photoTag: settings[`about_story_location_tag_${l}`] || "",
+      photoLoc: settings[`about_story_location_${l}`] || "",
+      altPhoto: settings[`about_story_image_alt_${l}`] || "",
+      photoUrl: settings[`about_story_image`] || "",
+      photoCaption: settings[`about_story_caption_${l}`] || settings[`about_story_location_${l}`] || "",
+      historyTitle: settings[`about_history_title_${l}`] || (safeLang === "DE" ? "Geschichte" : safeLang === "EN" ? "Our History" : "Notre Histoire"),
+      historySummary: settings[`about_history_summary_${l}`] || (safeLang === "DE" ? "Erfahren Sie mehr über die Gründung und Entwicklung der APTIC-R." : safeLang === "EN" ? "Learn about APTIC-R\'s founding story and evolution." : "Découvrez la fondation et l\'histoire de l\'APTIC-R."),
+      missionTitle: settings[`about_mission_title_${l}`] || (safeLang === "DE" ? "Mission & Werte" : safeLang === "EN" ? "Mission & Values" : "Mission & Valeurs"),
+      missionSummary: settings[`about_mission_summary_${l}`] || (safeLang === "DE" ? "Unsere Mission für ländliche digitale Inklusion." : safeLang === "EN" ? "Our mission for rural digital inclusion." : "Notre mission pour l\'inclusion numérique rurale."),
+      visionTitle: settings[`about_vision_title_${l}`] || (safeLang === "DE" ? "Unsere Vision" : safeLang === "EN" ? "Our Vision" : "Notre Vision"),
+      visionSummary: settings[`about_vision_summary_${l}`] || (safeLang === "DE" ? "Unsere Zukunftsvision für ländliche Gebiete." : safeLang === "EN" ? "Our vision for the future of rural communities." : "Notre vision pour l\'avenir des territoires ruraux."),
+    },
+    domains: {
+      tag: settings[`home_domains_tag_${l}`] || "",
+      title: settings[`home_domains_title_${l}`] || "",
+      subtitle: settings[`home_domains_subtitle_${l}`] || "",
+      discoverLabel: settings[`home_domains_cta_label_${l}`] || "",
+    },
+    impact: {
+      tag: settings[`home_impact_tag_${l}`] || "",
+      title: settings[`home_impact_title_${l}`] || "",
+      stat1Val: settings[`home_impact_stat1_val_${l}`] || "",
+      stat1Lbl: settings[`home_impact_stat1_lbl_${l}`] || "",
+      stat1Sub: settings[`home_impact_stat1_sub_${l}`] || "",
+      stat2Val: settings[`home_impact_stat2_val_${l}`] || (dbDomains.length > 0 ? String(dbDomains.length).padStart(2, "0") : ""),
+      stat2Lbl: settings[`home_impact_stat2_lbl_${l}`] || "",
+      stat2Sub: settings[`home_impact_stat2_sub_${l}`] || "",
+      stat3Val: settings[`home_impact_stat3_val_${l}`] || "",
+      stat3Lbl: settings[`home_impact_stat3_lbl_${l}`] || "",
+      stat3Sub: settings[`home_impact_stat3_sub_${l}`] || "",
+      stat4Val: settings[`home_impact_stat4_val_${l}`] || "",
+      stat4Lbl: settings[`home_impact_stat4_lbl_${l}`] || "",
+      stat4Sub: settings[`home_impact_stat4_sub_${l}`] || "",
+      legalNotice: settings[`home_impact_legal_${l}`] || "",
+    },
+    projects: {
+      tag: settings[`home_projects_tag_${l}`] || "",
+      title: settings[`home_projects_title_${l}`] || "",
+      allProjectsBtn: settings[`home_projects_cta_label_${l}`] || "",
+      projectLabel: safeLang === "DE" ? "PROJEKT" : safeLang === "EN" ? "PROJECT" : "PROJET",
+      flagshipBadge: safeLang === "DE" ? "LEUCHTTURMPROJEKT" : safeLang === "EN" ? "FLAGSHIP PROJECT" : "PROJET PHARE",
+      flagshipBtn: safeLang === "DE" ? "Projekt im Detail ansehen" : safeLang === "EN" ? "Explore this project in detail" : "Découvrir ce projet en détail",
+      viewResultsBtn: safeLang === "DE" ? "Projektergebnisse ansehen" : safeLang === "EN" ? "View project outcomes" : "Consulter les résultats du projet",
+    },
+    fieldReport: {
+      tag: settings[`home_field_tag_${l}`] || "",
+      title: settings[`home_field_quote_${l}`] || "",
+      quote: settings[`home_field_quote_${l}`] || "",
+      author: settings[`home_field_author_${l}`] || "",
+      location: settings[`home_field_location_${l}`] || "",
+      image: settings["home_field_image"] || "",
+      photoAlt: settings[`home_field_image_alt_${l}`] || (safeLang === "DE" ? "Dokumentarisches Feldbild APTIC-R" : safeLang === "EN" ? "APTIC-R field documentary photo" : "Photo documentaire terrain APTIC-R"),
+    },
+    getInvolved: {
+      tag: settings[`home_engagement_tag_${l}`] || "",
+      title: settings[`home_engagement_title_${l}`] || "",
+      subtitle: settings[`home_engagement_subtitle_${l}`] || "",
+      path1Title: settings[`home_engagement_c1_title_${l}`] || "",
+      path1Desc: settings[`home_engagement_c1_desc_${l}`] || "",
+      path1Btn: settings[`home_engagement_c1_cta_${l}`] || "",
+      path1Track: safeLang === "DE" ? "WEG 01" : safeLang === "EN" ? "TRACK 01" : "PARCOURS 01",
+      path1Duration: safeLang === "DE" ? "6–12 MONATE" : safeLang === "EN" ? "6–12 MONTHS" : "6–12 MOIS",
+      path2Title: settings[`home_engagement_c2_title_${l}`] || "",
+      path2Desc: settings[`home_engagement_c2_desc_${l}`] || "",
+      path2Btn: settings[`home_engagement_c2_cta_${l}`] || "",
+      path2Track: safeLang === "DE" ? "WEG 02" : safeLang === "EN" ? "TRACK 02" : "PARCOURS 02",
+      path2Tag: safeLang === "DE" ? "MITGLIED" : safeLang === "EN" ? "MEMBER" : "MEMBRE",
+      path3Title: settings[`home_engagement_c3_title_${l}`] || "",
+      path3Desc: settings[`home_engagement_c3_desc_${l}`] || "",
+      path3Btn: settings[`home_engagement_c3_cta_${l}`] || "",
+      path3Track: safeLang === "DE" ? "WEG 03" : safeLang === "EN" ? "TRACK 03" : "PARCOURS 03",
+      path3Tag: safeLang === "DE" ? "PARTNER" : safeLang === "EN" ? "PARTNER" : "PARTENAIRE",
+      path4Title: settings[`home_engagement_c4_title_${l}`] || "",
+      path4Desc: settings[`home_engagement_c4_desc_${l}`] || "",
+      path4Btn: settings[`home_engagement_c4_cta_${l}`] || "",
+      path4Track: safeLang === "DE" ? "WEG 04" : safeLang === "EN" ? "TRACK 04" : "PARCOURS 04",
+      path4Tag: safeLang === "DE" ? "FÖRDERN" : safeLang === "EN" ? "SUPPORT" : "SOUTIEN",
+      socialFollow:
+        settings[`home_engagement_social_follow_${l}`] ||
+        (safeLang === "DE"
+          ? "Verfolgen Sie unsere Aktionen und entdecken Sie unsere täglichen Projekte."
+          : safeLang === "EN"
+          ? "Follow our actions and discover our daily projects."
+          : "Suivez nos actions et découvrez nos projets au quotidien."),
+    },
+    newsletter: {
+      tag: settings[`home_newsletter_eyebrow_${l}`] || "",
+      eyebrow: settings[`home_newsletter_eyebrow_${l}`] || "",
+      title: settings[`home_newsletter_title_${l}`] || "",
+      desc: settings[`home_newsletter_desc_${l}`] || "",
+      namePlaceholder: safeLang === "DE" ? "Vorname" : safeLang === "EN" ? "First name" : "Votre prénom",
+      emailPlaceholder: safeLang === "DE" ? "E-Mail-Adresse" : safeLang === "EN" ? "Email address" : "Votre adresse e-mail",
+      consent: safeLang === "DE" ? "Ich stimme dem Erhalt von Informationen von APTIC-R zu." : safeLang === "EN" ? "I agree to receive informative emails from APTIC-R." : "J'accepte de recevoir les courriels d'information d'APTIC-R.",
+      btn: safeLang === "DE" ? "Anmelden" : safeLang === "EN" ? "Subscribe" : "S'inscrire",
+      btnLoading: safeLang === "DE" ? "Anmeldung..." : safeLang === "EN" ? "Subscribing..." : "Inscription...",
+      success: safeLang === "DE" ? "Vielen Dank für Ihre Anmeldung zum APTIC-R Newsletter." : safeLang === "EN" ? "Thank you for subscribing to the APTIC-R newsletter." : "Merci pour votre inscription à la lettre d'information APTIC-R.",
+      alreadySubscribed: safeLang === "DE" ? "Diese Adresse ist bereits für den APTIC-R Newsletter registriert." : safeLang === "EN" ? "This address is already subscribed to the APTIC-R newsletter." : "Cette adresse est déjà inscrite à la newsletter APTIC-R.",
+      errName: safeLang === "DE" ? "Bitte geben Sie Ihren Vornamen ein." : safeLang === "EN" ? "Please enter your first name." : "Veuillez entrer votre prénom.",
+      errEmail: safeLang === "DE" ? "Bitte geben Sie eine gültige E-Mail-Adresse ein." : safeLang === "EN" ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.",
+      errConsent: safeLang === "DE" ? "Bitte stimmen Sie dem Erhalt des Rundbriefs zu." : safeLang === "EN" ? "Please agree to receive updates." : "Veuillez accepter de recevoir la lettre d'information.",
+      errGeneral: safeLang === "DE" ? "Bei der Anmeldung ist ein Fehler aufgetreten." : safeLang === "EN" ? "An error occurred during subscription." : "Une erreur est survenue lors de l'inscription.",
+    },
+    contact: {
+      tag: settings[`home_contact_tag_${l}`] || "",
+      title: settings[`home_contact_title_${l}`] || "",
+      subtitle: settings[`home_contact_subtitle_${l}`] || "",
+      addressLabel: safeLang === "DE" ? "Vereinssitz" : safeLang === "EN" ? "Headquarters" : "Siège de l'association",
+      phoneLabel: safeLang === "DE" ? "Telefon & WhatsApp" : safeLang === "EN" ? "Phone & WhatsApp" : "Téléphone & WhatsApp direct",
+      emailLabel: safeLang === "DE" ? "Offizielle E-Mail" : safeLang === "EN" ? "Official Email" : "Courriel officiel",
+      accessBoxTitle: safeLang === "DE" ? "Anfahrt & Erreichbarkeit" : safeLang === "EN" ? "Access & Directions" : "Accès & Déplacements",
+      legalRegStatus: safeLang === "DE" ? "Eingetragener Verein N° 0586/MATDCL" : safeLang === "EN" ? "Non-profit organization N° 0586/MATDCL" : "Association loi 1901 N° 0586/MATDCL",
+      fieldPresenceBadge: safeLang === "DE" ? "Kontinuierliche Präsenz vor Ort" : safeLang === "EN" ? "Continuous field presence" : "Présence terrain continue",
+      whatsappBtn: safeLang === "DE" ? "Über WhatsApp schreiben" : safeLang === "EN" ? "Chat on WhatsApp" : "Écrire directement sur WhatsApp",
+      contactBtn: safeLang === "DE" ? "Kontaktformular & Details" : safeLang === "EN" ? "Contact Form & Details" : "Formulaire & Page Contact",
+    },
+    testimonials: {
+      tag: safeLang === "DE" ? "STIMMEN VOR ORT" : safeLang === "EN" ? "VOICES FROM THE FIELD" : "VOIX DU TERRAIN",
+      eyebrow: safeLang === "DE" ? "STIMMEN VOR ORT" : safeLang === "EN" ? "VOICES FROM THE FIELD" : "VOIX DU TERRAIN",
+      title: safeLang === "DE" ? "Stimmen aus den ländlichen Gemeinden" : safeLang === "EN" ? "Voices from the Ground & Local Communities" : "La Parole aux Acteurs Locaux",
+    },
+    socialBanner: {
+      title:
+        settings[`home_social_banner_title_${l}`] ||
+        (safeLang === "DE"
+          ? "Folgen Sie APTIC-R"
+          : safeLang === "EN"
+          ? "Follow APTIC-R"
+          : "Suivez APTIC-R"),
+      subtitle:
+        settings[`home_social_banner_subtitle_${l}`] ||
+        (safeLang === "DE"
+          ? "Entdecken Sie unsere Projekte, Initiativen und Neuigkeiten aus unserer Gemeinschaft."
+          : safeLang === "EN"
+          ? "Discover our projects, initiatives and community news."
+          : "Découvrez nos projets, nos initiatives et les actualités de notre communauté."),
+    },
+  }
+
   const contactEmail = settings.site_contact_email ?? ""
   const contactPhone = settings.site_contact_phone ?? ""
   const contactWhatsapp = settings.site_social_whatsapp ?? ""
@@ -605,15 +768,8 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
       }
     }
 
-    // Fallback par défaut adapté à la langue courante uniquement
-    return c.domains.list.map((d, index) => ({
-      num: d.num,
-      title: d.title,
-      desc: d.desc,
-      slug: DOMAIN_IDS[index] || "inclusion-numerique",
-      code: "INCLUSION_NUMERIQUE",
-    }))
-  }, [dbDomains, safeLang, c.domains.list])
+    return []
+  }, [dbDomains, safeLang])
 
   /* Projects list computation - Règle stricte : zéro mélange de langues */
   const { flagshipProject, secondaryProjects } = React.useMemo(() => {
@@ -672,17 +828,24 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
 
     const fallback = [
       {
-        quote: c.testimonials.t1Quote,
-        author: c.testimonials.t1Author,
-        role: c.testimonials.t1Role,
-        village: c.testimonials.t1Village,
+        quote: settings[`home_testimonial_1_quote_${l}`] || "",
+        author: settings[`home_testimonial_1_author_${l}`] || "",
+        role: settings[`home_testimonial_1_role_${l}`] || "",
+        village: settings[`home_testimonial_1_location_${l}`] || "",
         photoUrl: undefined as string | undefined,
       },
       {
-        quote: c.testimonials.t2Quote,
-        author: c.testimonials.t2Author,
-        role: c.testimonials.t2Role,
-        village: c.testimonials.t2Village,
+        quote: settings[`home_testimonial_2_quote_${l}`] || "",
+        author: settings[`home_testimonial_2_author_${l}`] || "",
+        role: settings[`home_testimonial_2_role_${l}`] || "",
+        village: settings[`home_testimonial_2_location_${l}`] || "",
+        photoUrl: undefined as string | undefined,
+      },
+      {
+        quote: settings[`home_testimonial_3_quote_${l}`] || "",
+        author: settings[`home_testimonial_3_author_${l}`] || "",
+        role: settings[`home_testimonial_3_role_${l}`] || "",
+        village: settings[`home_testimonial_3_location_${l}`] || "",
         photoUrl: undefined as string | undefined,
       },
     ].filter((testimonial) => Boolean(testimonial.quote?.trim()))
@@ -1393,6 +1556,25 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
               </div>
             ))}
           </div>
+
+          {/* Zone réseaux sociaux : Suivez nos actions et découvrez nos projets au quotidien */}
+          <div
+            className="mt-10 sm:mt-12 pt-6 sm:pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 rounded-2xl px-6 py-5"
+            style={{
+              borderColor: BORDER,
+              backgroundColor: "rgba(255, 255, 255, 0.75)",
+            }}
+          >
+            <p
+              className="text-sm sm:text-base font-semibold text-center sm:text-left"
+              style={{ color: BLUE_INST }}
+            >
+              {c.getInvolved.socialFollow}
+            </p>
+            <div className="shrink-0">
+              <SocialLinks variant="section" overrides={settings} />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1701,6 +1883,34 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
               </div>
             </div>
 
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════════════
+          BANDEAU COMPACT : SUIVEZ APTIC-R (AVANT LE FOOTER)
+      ═══════════════════════════════════════════════════════════════════════════ */}
+      <section
+        className="py-10 sm:py-12 border-t"
+        style={{ backgroundColor: LIGHT_BG, borderColor: BORDER }}
+        aria-label="Réseaux sociaux APTIC-R"
+      >
+        <div className="max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20">
+          <div
+            className="flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8 p-6 sm:p-8 rounded-2xl bg-white border shadow-xs"
+            style={{ borderColor: BORDER }}
+          >
+            <div className="text-center md:text-left space-y-1">
+              <h3 className="text-xl sm:text-2xl font-black" style={{ color: BLUE_INST }}>
+                {c.socialBanner.title}
+              </h3>
+              <p className="text-xs sm:text-sm max-w-xl" style={{ color: TEXT_MUTED }}>
+                {c.socialBanner.subtitle}
+              </p>
+            </div>
+            <div className="shrink-0">
+              <SocialLinks variant="banner" overrides={settings} />
+            </div>
           </div>
         </div>
       </section>

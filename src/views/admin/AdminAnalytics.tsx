@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useTransition } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import {
   BarChart,
   Bar,
@@ -24,8 +25,16 @@ const TEXT_DARK = "#0F172A"
 const TEXT_MID = "#5E6B76"
 const BORDER = "#EAF0F4"
 
-export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
-  const [selectedPeriod, setSelectedPeriod] = useState<"7" | "30" | "90" | "365">("30")
+export default function AdminAnalytics({ data, period = 30 }: { data?: AnalyticsPageData; period?: number }) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const [isPending, startTransition] = useTransition()
+
+  const handlePeriodChange = (value: string) => {
+    startTransition(() => {
+      router.replace(`${pathname}?period=${value}`, { scroll: false })
+    })
+  }
 
   // Fallback safe state
   const ga4 = data?.ga4 || {
@@ -91,12 +100,13 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
         </div>
 
         {/* Dropdown Période */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <div className="relative">
             <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value as any)}
-              className="appearance-none bg-white border border-[#EAF0F4] text-xs font-semibold text-slate-700 py-2 pl-3 pr-8 rounded-lg shadow-xs hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#174F7A]/20 cursor-pointer"
+              value={String(period)}
+              onChange={(e) => handlePeriodChange(e.target.value)}
+              disabled={isPending}
+              className="appearance-none bg-white border border-[#EAF0F4] text-xs font-semibold text-slate-700 py-2 pl-3 pr-8 rounded-lg shadow-xs hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#174F7A]/20 cursor-pointer disabled:opacity-50 disabled:cursor-wait"
             >
               <option value="7">7 derniers jours</option>
               <option value="30">30 derniers jours</option>
@@ -109,6 +119,9 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
               </svg>
             </div>
           </div>
+          <span className="text-xs text-slate-400 font-medium whitespace-nowrap">
+            {isPending ? "Chargement…" : data?.period || `Derniers ${period} jours`}
+          </span>
         </div>
       </div>
 
@@ -306,7 +319,7 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
                 {funnel.applyClicks}
               </div>
               <div className="mt-auto pt-2 flex items-center justify-between">
-                <span className="text-[10px] uppercase font-bold text-blue-400/80">Source : GA4</span>
+                <span className="text-[10px] uppercase font-bold text-blue-400/80">Source : PostgreSQL</span>
                 <span className="text-[11px] font-medium text-slate-500">
                   {ga4.visitors ? `${Math.min(100, Math.round((funnel.applyClicks / ga4.visitors) * 100))}%` : "—"}
                 </span>
@@ -320,7 +333,7 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
                 {funnel.formsStarted}
               </div>
               <div className="mt-auto pt-2 flex items-center justify-between">
-                <span className="text-[10px] uppercase font-bold text-indigo-400/80">Source : GA4</span>
+                <span className="text-[10px] uppercase font-bold text-indigo-400/80">Source : PostgreSQL</span>
                 <span className="text-[11px] font-medium text-slate-500">
                   {funnel.applyClicks > 0 ? `${Math.min(100, Math.round((funnel.formsStarted / funnel.applyClicks) * 100))}%` : "—"}
                 </span>
@@ -364,14 +377,14 @@ export default function AdminAnalytics({ data }: { data?: AnalyticsPageData }) {
               <span className="text-xs text-slate-500 block mb-1">Clics « Devenir partenaire »</span>
               <div className="text-xl font-bold font-mono text-slate-700">{partnerFunnel.partnerClicks}</div>
               <div className="mt-auto pt-2">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Source : GA4</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400">Source : PostgreSQL</span>
               </div>
             </div>
             <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200/60 flex flex-col">
               <span className="text-xs text-slate-500 block mb-1">Formulaires partenariat commencés</span>
               <div className="text-xl font-bold font-mono text-slate-700">{partnerFunnel.formsStarted}</div>
               <div className="mt-auto pt-2">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Source : GA4</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400">Source : PostgreSQL</span>
               </div>
             </div>
             <div className="p-3.5 rounded-lg bg-[#EAF5ED]/60 border border-emerald-200 flex flex-col">

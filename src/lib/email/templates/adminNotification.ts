@@ -1,5 +1,6 @@
 import { wrapEmailHtml, renderEmailTextFooter } from "./emailTheme"
 import { formatTextToHtml } from "../variableEngine"
+import { getSiteUrl } from "@/lib/seo"
 
 interface AdminCandidateAlertParams {
   type: "CANDIDATE"
@@ -29,11 +30,7 @@ export function renderAdminNotificationEmail(params: AdminAlertParams): {
   text: string
 } {
   const isCandidate = params.type === "CANDIDATE"
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.NEXTAUTH_URL ||
-    process.env.NEXT_PUBLIC_APP_URL ||
-    "https://aptic-rural.org"
+  const siteUrl = getSiteUrl()
 
   const subject = isCandidate
     ? `APTIC-R — Nouvelle candidature — ${params.referenceNumber}`

@@ -8,6 +8,7 @@ import Link from "next/link"
 import translations from "../i18n/translations"
 import { LEGAL_SLUGS } from "@/lib/legalContent"
 import ApticLogo from "./ApticLogo"
+import { OFFICIAL_SOCIAL_LINKS } from "@/lib/social-links"
 
 interface FooterProps {
   lang: Language
@@ -100,17 +101,17 @@ export default function Footer({ lang, navigate }: FooterProps) {
               {[
                 {
                   label: "Facebook",
-                  href: settings.site_social_facebook,
+                  href: settings.site_social_facebook || OFFICIAL_SOCIAL_LINKS.facebook,
                   icon: "M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z",
                 },
                 {
                   label: "LinkedIn",
-                  href: settings.site_social_linkedin,
+                  href: settings.site_social_linkedin || OFFICIAL_SOCIAL_LINKS.linkedin,
                   icon: "M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z M4 6a2 2 0 100-4 2 2 0 000 4z",
                 },
                 {
                   label: "Instagram",
-                  href: settings.site_social_instagram,
+                  href: settings.site_social_instagram || OFFICIAL_SOCIAL_LINKS.instagram,
                   icon: "M8 2.1A5.9 5.9 0 002.1 8v8A5.9 5.9 0 008 21.9h8A5.9 5.9 0 0021.9 16V8A5.9 5.9 0 0016 2.1H8zm0 2h8A3.9 3.9 0 0119.9 8v8A3.9 3.9 0 0116 19.9H8A3.9 3.9 0 014.1 16V8A3.9 3.9 0 018 4.1zM12 7a5 5 0 100 10A5 5 0 0012 7zm0 2a3 3 0 110 6 3 3 0 010-6zm5.2-2.5a1.3 1.3 0 100 2.6 1.3 1.3 0 000-2.6z",
                 },
                 {

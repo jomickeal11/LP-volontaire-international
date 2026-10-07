@@ -39,6 +39,7 @@ export type Page =
   | "admin-temoignages"
   | "admin-medias"
   | "admin-settings"
+  | "admin-account"
 
 export type Language = "FR" | "EN" | "DE"
 

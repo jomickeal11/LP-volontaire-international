@@ -7,6 +7,7 @@ import {
   updateTemoignage,
   deleteTemoignage,
 } from "@/lib/cms-actions"
+import { uploadMediaFile } from "@/lib/upload-client"
 import { useConfirm } from "@/components/admin/ConfirmProvider"
 
 interface TemoignageItem {
@@ -91,11 +92,8 @@ export default function AdminTemoignages() {
     setUploading(true)
     setError("")
     try {
-      const data = new FormData()
-      data.append("file", file)
-      const response = await fetch("/api/upload/image", { method: "POST", body: data })
-      const result = await response.json()
-      if (result.success && result.url) {
+      const result = await uploadMediaFile(file, "image")
+      if (result.success) {
         setForm((prev) => ({ ...prev, photoUrl: result.url }))
       } else {
         setError(result.error || "Erreur lors du téléversement de la photo.")

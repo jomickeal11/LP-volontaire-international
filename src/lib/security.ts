@@ -118,6 +118,35 @@ const MAGIC_SIGNATURES: Record<string, { matches: (buf: Buffer) => boolean; desc
     matches: (buf) => buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4B && buf[2] === 0x03 && buf[3] === 0x04,
     desc: "OpenDocument Text (ODT)",
   },
+  // WEBP : "RIFF" (0x52 0x49 0x46 0x46) suivi de "WEBP" aux octets 8-11
+  webp: {
+    matches: (buf) =>
+      buf.length >= 12 &&
+      buf[0] === 0x52 &&
+      buf[1] === 0x49 &&
+      buf[2] === 0x46 &&
+      buf[3] === 0x46 &&
+      buf[8] === 0x57 &&
+      buf[9] === 0x45 &&
+      buf[10] === 0x42 &&
+      buf[11] === 0x50,
+    desc: "WebP Image",
+  },
+  // AVIF : conteneur ISOBMFF "ftyp" (octets 4-7) avec marque "avif" ou "avis"
+  avif: {
+    matches: (buf) => {
+      if (buf.length < 16) return false
+      if (!(buf[4] === 0x66 && buf[5] === 0x74 && buf[6] === 0x79 && buf[7] === 0x70)) return false
+      // major_brand (8-11) puis compatible brands alignés sur 4 octets
+      for (let offset = 8; offset <= 40 && offset + 4 <= buf.length; offset += 4) {
+        const brand = buf.subarray(offset, offset + 4).toString("latin1")
+        if (brand === "avif" || brand === "avis") return true
+        if (offset === 8) offset = 12 // saute la minor_version
+      }
+      return false
+    },
+    desc: "AVIF Image",
+  },
   // Anciens formats Office OLE2 / Compound File : 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1
   doc: {
     matches: (buf) =>

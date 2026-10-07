@@ -3702,18 +3702,18 @@ export async function exportNewsletterSubscribersCsv(options: {
 }): Promise<{ success: true; csv: string; filename: string; count: number } | { success: false; error: string }> {
   "use server"
   try {
-    const where: any = {}
+    const where: { active?: boolean; lang?: LanguageCode } = {}
     if (options.activeOnly) where.active = true
-    if (options.lang && options.lang !== "ALL") where.lang = options.lang
+    if (options.lang && options.lang !== "ALL") where.lang = options.lang as LanguageCode
 
-    const subscribers = await (prisma as any).newsletterSubscriber.findMany({
+    const subscribers = await prisma.newsletterAbonne.findMany({
       where,
       orderBy: [{ lang: "asc" }, { subscribedAt: "desc" }],
       select: { email: true, firstName: true, lang: true, active: true, consent: true, subscribedAt: true },
     })
 
     const header = "Email,Prénom,Langue,Actif,Consentement,Date d'abonnement"
-    const rows = subscribers.map((s: any) => {
+    const rows = subscribers.map((s) => {
       const date = s.subscribedAt ? new Date(s.subscribedAt).toISOString().split("T")[0] : ""
       const esc = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`
       return [esc(s.email), esc(s.firstName ?? ""), esc(s.lang), s.active ? "Oui" : "Non", s.consent ? "Oui" : "Non", date].join(",")
@@ -3739,10 +3739,10 @@ export async function exportNewsletterByLanguageZip(options: {
 }): Promise<{ success: true; base64: string; filename: string; files: string[] } | { success: false; error: string }> {
   "use server"
   try {
-    const where: any = {}
+    const where: { active?: boolean } = {}
     if (options.activeOnly) where.active = true
 
-    const subscribers = await (prisma as any).newsletterSubscriber.findMany({
+    const subscribers = await prisma.newsletterAbonne.findMany({
       where,
       orderBy: { subscribedAt: "desc" },
       select: { email: true, firstName: true, lang: true, active: true, consent: true, subscribedAt: true },
@@ -3798,23 +3798,30 @@ export async function exportNewsletterByLanguageZip(options: {
 
 export async function getTeamCategories() {
   try {
-    const categories = await (prisma as any).teamCategory.findMany({
+    const categories = await prisma.categorieEquipe.findMany({
       orderBy: { order: "asc" },
     })
-    return categories as any[]
-  } catch {
-    // Le modèle TeamCategory n'existe peut-être pas encore en base.
-    // On retourne les valeurs enum statiques comme repli.
+    if (categories && categories.length > 0) {
+      return categories
+    }
+    // Si la table est encore vide, on retourne les catégories historiques par défaut
     return [
-      { id: "DIRECTION", slug: "DIRECTION", name: "Direction", nameFr: "Direction", nameEn: "Management", nameDe: "Leitung", order: 1 },
-      { id: "COORDINATION", slug: "COORDINATION", name: "Coordination", nameFr: "Coordination", nameEn: "Coordination", nameDe: "Koordination", order: 2 },
-      { id: "FORMATION", slug: "FORMATION", name: "Formation", nameFr: "Formation", nameEn: "Training", nameDe: "Ausbildung", order: 3 },
-      { id: "CONSEIL", slug: "CONSEIL", name: "Conseil", nameFr: "Conseil", nameEn: "Advisory", nameDe: "Beratung", order: 4 },
-      { id: "VOLONTAIRE", slug: "VOLONTAIRE", name: "Volontaire", nameFr: "Volontaire", nameEn: "Volunteer", nameDe: "Freiwillig", order: 5 },
-    ] as any[]
+      { id: "DIRECTION", slug: "DIRECTION", name: "Direction", order: 1 },
+      { id: "COORDINATION", slug: "COORDINATION", name: "Coordination", order: 2 },
+      { id: "FORMATION", slug: "FORMATION", name: "Formation", order: 3 },
+      { id: "CONSEIL", slug: "CONSEIL", name: "Conseil", order: 4 },
+      { id: "VOLONTAIRE", slug: "VOLONTAIRE", name: "Volontaire", order: 5 },
+    ]
+  } catch {
+    return [
+      { id: "DIRECTION", slug: "DIRECTION", name: "Direction", order: 1 },
+      { id: "COORDINATION", slug: "COORDINATION", name: "Coordination", order: 2 },
+      { id: "FORMATION", slug: "FORMATION", name: "Formation", order: 3 },
+      { id: "CONSEIL", slug: "CONSEIL", name: "Conseil", order: 4 },
+      { id: "VOLONTAIRE", slug: "VOLONTAIRE", name: "Volontaire", order: 5 },
+    ]
   }
 }
-
 
 export async function createTeamCategory(data: { nameFr: string; nameEn?: string; nameDe?: string; order?: number } | string) {
   "use server"
@@ -3825,12 +3832,9 @@ export async function createTeamCategory(data: { nameFr: string; nameEn?: string
   try {
     if (!normalized.nameFr?.trim()) return { success: false, error: "Le nom (FR) est obligatoire." }
     const slug = normalized.nameFr.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").toUpperCase()
-    const category = await (prisma as any).teamCategory.create({
+    const category = await prisma.categorieEquipe.create({
       data: {
         slug,
-        nameFr: normalized.nameFr.trim(),
-        nameEn: normalized.nameEn?.trim() || null,
-        nameDe: normalized.nameDe?.trim() || null,
         name: normalized.nameFr.trim(),
         order: normalized.order ?? 99,
       },
@@ -3845,17 +3849,22 @@ export async function createTeamCategory(data: { nameFr: string; nameEn?: string
 export async function updateTeamCategory(id: string, data: { nameFr?: string; nameEn?: string; nameDe?: string; order?: number } | string) {
   "use server"
   // Compatibilité avec l'appel `updateTeamCategory(id, name)` depuis AdminSettings
-  const normalized = typeof data === "string"
-    ? { nameFr: data, name: data }
-    : data
+  const normalized: { nameFr?: string; name?: string; order?: number } =
+    typeof data === "string"
+      ? { nameFr: data, name: data }
+      : { ...data, name: (data as any).name ?? data.nameFr }
   try {
-    const updateData: any = {}
-    if (normalized.nameFr !== undefined) { updateData.nameFr = normalized.nameFr.trim(); updateData.name = normalized.nameFr.trim() }
-    if ((normalized as any).nameEn !== undefined) updateData.nameEn = (normalized as any).nameEn?.trim() || null
-    if ((normalized as any).nameDe !== undefined) updateData.nameDe = (normalized as any).nameDe?.trim() || null
-    if ((normalized as any).order !== undefined) updateData.order = Number((normalized as any).order)
+    const updateData: { name?: string; order?: number } = {}
+    if (normalized.nameFr !== undefined && normalized.nameFr.trim()) {
+      updateData.name = normalized.nameFr.trim()
+    } else if (normalized.name !== undefined && normalized.name.trim()) {
+      updateData.name = normalized.name.trim()
+    }
+    if (normalized.order !== undefined) {
+      updateData.order = Number(normalized.order)
+    }
 
-    const category = await (prisma as any).teamCategory.update({
+    const category = await prisma.categorieEquipe.update({
       where: { id },
       data: updateData,
     })
@@ -3869,7 +3878,7 @@ export async function updateTeamCategory(id: string, data: { nameFr?: string; na
 export async function deleteTeamCategory(id: string) {
   "use server"
   try {
-    await (prisma as any).teamCategory.delete({ where: { id } })
+    await prisma.categorieEquipe.delete({ where: { id } })
     safeRevalidatePath("/backoffice/settings")
     return { success: true, message: "Catégorie supprimée." }
   } catch (error: any) {

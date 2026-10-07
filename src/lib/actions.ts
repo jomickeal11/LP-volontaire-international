@@ -14,6 +14,7 @@ import {
 import prisma from "./prisma"
 import { verifySession } from "./auth"
 import { verifyMagicBytes, checkRateLimit, getClientIp } from "./security"
+import { validateStoredDocument } from "./upload-policy"
 import type { CandidateStatus, LanguageCode } from "@prisma/client"
 import { randomBytes, randomUUID } from "crypto"
 import { files } from "./storage"
@@ -314,6 +315,21 @@ export async function submitPartnerRequestFormData(
           }
           data[key] = filename
         }
+      } else if (key === "document") {
+        // Téléversement direct vers le stockage : on revalide l'objet stocké
+        // (taille réelle + octets magiques) avant de rattacher le document.
+        const descriptor = JSON.parse(String(value))
+        const check = await validateStoredDocument("partner-doc", descriptor)
+        if (!check.valid) {
+          return { success: false as const, error: check.error || "Fichier non autorisé" }
+        }
+        uploadedFile = {
+          originalName: descriptor.originalName,
+          storageKey: descriptor.storageKey,
+          mimeType: check.mimeType || "application/octet-stream",
+          size: check.size || 0,
+        }
+        data.docFile = descriptor.storageKey
       } else {
         data[key] = value === "true" ? true : value === "false" ? false : value
       }
@@ -616,6 +632,31 @@ export async function submitCandidateApplicationFormData(
     for (const [key, value] of formData.entries()) {
       if (key === "skills") {
         data.skills.push(value)
+      } else if (key === "documents") {
+        // Téléversement direct vers le stockage : les fichiers sont déjà déposés,
+        // on revalide l'objet stocké (taille réelle + octets magiques) avant de le rattacher.
+        const descriptors = JSON.parse(String(value))
+        if (!Array.isArray(descriptors)) {
+          throw new Error("Liste de documents invalide.")
+        }
+        const allowedTypes = new Set(["CV", "MOTIVATION_LETTER", "PORTFOLIO"])
+        for (const descriptor of descriptors) {
+          const check = await validateStoredDocument("candidate-doc", descriptor)
+          if (!check.valid) {
+            return { success: false as const, error: check.error || "Fichier non autorisé" }
+          }
+          const docType = allowedTypes.has(descriptor?.type) ? descriptor.type : "CV"
+          documentsToCreate.push({
+            type: docType as any,
+            originalName: descriptor.originalName,
+            storageKey: descriptor.storageKey,
+            mimeType: check.mimeType || "application/octet-stream",
+            size: check.size || 0,
+          })
+          if (docType === "CV") data.cvFile = descriptor.storageKey
+          if (docType === "MOTIVATION_LETTER") data.motivationFile = descriptor.storageKey
+          if (docType === "PORTFOLIO") data.portfolioFile = descriptor.storageKey
+        }
       } else if (value instanceof File) {
         if (value.size > 0 && value.name !== "undefined") {
           const buffer = Buffer.from(await value.arrayBuffer())

@@ -3,6 +3,7 @@ import type { Page, Language } from "../types"
 import translations, { type TKey } from "../i18n/translations"
 import { isVolunteerPagePublished } from "@/lib/volunteer-cms-config"
 import { getSiteSettings } from "@/lib/cms-actions"
+import SocialLinks from "@/components/SocialLinks"
 import {
   MonitorIcon,
   CodeIcon,
@@ -164,7 +165,7 @@ function Hero({
           className="text-center mx-auto mb-10 sm:mb-16 lg:mb-20 w-full min-h-[420px] sm:min-h-[480px] lg:min-h-[560px] flex flex-col justify-center"
           style={{ maxWidth: "900px" }}
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-[#003366]/45 px-4 py-2 text-xs sm:text-sm font-semibold text-white/90 mb-5">
+          <div className="inline-flex items-center self-center gap-2 rounded-full border border-white/25 bg-[#003366]/45 px-4 py-2 text-xs sm:text-sm font-semibold text-white/90 mb-5">
             <span className="h-2 w-2 shrink-0 rounded-full bg-[#28A745]" />
             {badge}
           </div>
@@ -1065,7 +1066,7 @@ function LifeInTogo({
   )
 }
 
-// ─── Support & Confirmed Conditions (Streamlined) ─────────────────────────────
+// ─── Conditions & Cadre (Tableau institutionnel 2 colonnes) ──────────────────
 function Conditions({
   t,
   settings,
@@ -1079,12 +1080,9 @@ function Conditions({
   const title = settings[`volunteer_conditions_title_${langLower}`] ?? ""
   const subtitle = settings[`volunteer_conditions_subtitle_${langLower}`] ?? ""
 
-  // Local translations for the new groups and labels
+  // Local translations for the table row labels (not editorial data)
   const dict = {
     fr: {
-      g1: "Conditions du volontariat",
-      g2: "Accueil et vie sur place",
-      g3: "Formalités et conditions",
       labels: {
         age_min: "Âge minimum requis",
         duration: "Durée du volontariat",
@@ -1104,9 +1102,6 @@ function Conditions({
       }
     },
     en: {
-      g1: "Volunteer Conditions",
-      g2: "Welcome & Life on site",
-      g3: "Formalities & Conditions",
       labels: {
         age_min: "Minimum Age Required",
         duration: "Volunteer Duration",
@@ -1126,9 +1121,6 @@ function Conditions({
       }
     },
     de: {
-      g1: "Freiwilligenbedingungen",
-      g2: "Willkommen & Leben vor Ort",
-      g3: "Formalitäten & Bedingungen",
       labels: {
         age_min: "Mindestalter erforderlich",
         duration: "Dauer der Freiwilligenarbeit",
@@ -1151,42 +1143,30 @@ function Conditions({
   
   const d = dict[langLower as keyof typeof dict] || dict.en
 
-  const groups = [
-    {
-      title: d.g1,
-      items: [
-        { label: d.labels.age_min, value: settings[`volunteer_practical_age_min_${langLower}`] },
-        { label: d.labels.duration, value: settings[`volunteer_practical_duration_${langLower}`] },
-        { label: d.labels.response_time, value: settings[`volunteer_practical_response_time_${langLower}`] },
-        { label: d.labels.processing_time, value: settings[`volunteer_practical_processing_time_${langLower}`] },
-      ].filter(i => i.value?.trim())
-    },
-    {
-      title: d.g2,
-      items: [
-        { label: d.labels.accommodation, value: settings[`volunteer_practical_accommodation_${langLower}`] },
-        { label: d.labels.meals, value: settings[`volunteer_practical_meals_${langLower}`] },
-        { label: d.labels.local_transport, value: settings[`volunteer_practical_local_transport_${langLower}`] },
-        { label: d.labels.accompaniment, value: settings[`volunteer_practical_accompaniment_${langLower}`] },
-        { label: d.labels.mentor, value: settings[`volunteer_practical_mentor_${langLower}`] },
-        { label: d.labels.sim_card, value: settings[`volunteer_practical_sim_card_${langLower}`] },
-        { label: d.labels.internet, value: settings[`volunteer_practical_internet_${langLower}`] },
-        { label: d.labels.health_info, value: settings[`volunteer_practical_health_info_${langLower}`] },
-      ].filter(i => i.value?.trim())
-    },
-    {
-      title: d.g3,
-      items: [
-        { label: d.labels.insurance, value: settings[`volunteer_practical_insurance_${langLower}`] },
-        { label: d.labels.visa, value: settings[`volunteer_practical_visa_${langLower}`] },
-        { label: d.labels.allowance, value: settings[`volunteer_practical_allowance_${langLower}`] },
-      ].filter(i => i.value?.trim())
-    }
-  ].filter(g => g.items.length > 0)
+  const rows = [
+    { key: "age_min", label: d.labels.age_min },
+    { key: "duration", label: d.labels.duration },
+    { key: "response_time", label: d.labels.response_time },
+    { key: "processing_time", label: d.labels.processing_time },
+    { key: "accommodation", label: d.labels.accommodation },
+    { key: "meals", label: d.labels.meals },
+    { key: "local_transport", label: d.labels.local_transport },
+    { key: "accompaniment", label: d.labels.accompaniment },
+    { key: "mentor", label: d.labels.mentor },
+    { key: "sim_card", label: d.labels.sim_card },
+    { key: "internet", label: d.labels.internet },
+    { key: "health_info", label: d.labels.health_info },
+    { key: "insurance", label: d.labels.insurance },
+    { key: "visa", label: d.labels.visa },
+    { key: "allowance", label: d.labels.allowance },
+  ].map((row) => ({
+    ...row,
+    value: settings[`volunteer_practical_${row.key}_${langLower}`]?.trim() ?? "",
+  }))
 
   return (
     <section className="py-20 sm:py-24 bg-[#F7F8FA]">
-      <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
           <Badge text={tag} centered />
           <h2 className="text-3xl sm:text-4xl lg:text-5xl leading-tight mb-4 text-[#003366] tracking-[-0.02em]">
@@ -1197,29 +1177,30 @@ function Conditions({
           </p>
         </div>
 
-        {groups.length > 0 ? (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {groups.map((g, idx) => (
-              <div key={idx} className="bg-white rounded-[2rem] border border-[#EAF0F4] overflow-hidden shadow-sm flex flex-col">
-                <div className="px-6 py-5 border-b border-[#EAF0F4] bg-[#F7F8FA]">
-                  <h3 className="text-lg text-[#003366] font-bold">{g.title}</h3>
-                </div>
-                <div className="flex flex-col w-full divide-y divide-[#EAF0F4]">
-                  {g.items.map((item) => (
-                    <div key={item.label} className="p-5 flex flex-col gap-1.5 hover:bg-[#F7F8FA] transition-colors">
-                      <span className="text-[11px] font-bold uppercase tracking-widest text-[#28A745]">
-                        {item.label}
-                      </span>
-                      <span className="text-sm text-[#5E6B76] font-medium leading-relaxed whitespace-pre-wrap">
-                        {item.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : null}
+        <div className="mx-auto bg-white rounded-2xl border border-[#EEF1F4] overflow-hidden">
+          <table className="w-full text-left">
+            <tbody>
+              {rows.map((row, idx) => (
+                <tr
+                  key={row.key}
+                  className={`block md:table-row ${
+                    idx % 2 === 0 ? "bg-white" : "bg-[#F5F7F9]"
+                  }`}
+                >
+                  <th
+                    scope="row"
+                    className="block w-full px-6 sm:px-8 pt-4 pb-1.5 text-sm font-semibold text-[#174F7A] align-top break-words md:table-cell md:w-[40%] md:py-5"
+                  >
+                    {row.label}
+                  </th>
+                  <td className="block px-6 sm:px-8 pt-1.5 pb-4 text-sm sm:text-[15px] font-normal leading-relaxed text-[#5E6B76] align-top whitespace-pre-wrap break-words md:table-cell md:py-5">
+                    {row.value}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   )
@@ -1502,6 +1483,57 @@ function FinalCTA({
   )
 }
 
+function VolunteerSocialSection({
+  lang,
+  settings,
+}: {
+  lang: Language
+  settings: Record<string, string>
+}) {
+  const content: Record<
+    "FR" | "EN" | "DE",
+    { title: string; text: string }
+  > = {
+    FR: {
+      title: "Découvrez APTIC-R au quotidien",
+      text: "Suivez nos projets, nos initiatives et la vie de notre communauté sur nos réseaux sociaux.",
+    },
+    EN: {
+      title: "Discover APTIC-R every day",
+      text: "Follow our projects, initiatives and community life on our social media channels.",
+    },
+    DE: {
+      title: "APTIC-R im Alltag entdecken",
+      text: "Verfolgen Sie unsere Projekte, Initiativen und das Leben unserer Gemeinschaft in den sozialen Netzwerken.",
+    },
+  }
+
+  const safeLang = (["FR", "EN", "DE"].includes(lang) ? lang : "FR") as
+    | "FR"
+    | "EN"
+    | "DE"
+  const c = content[safeLang]
+
+  return (
+    <section
+      className="py-10 sm:py-12 bg-[#F7F8FA] border-t border-slate-200"
+      aria-label={c.title}
+    >
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
+        <h3 className="text-lg sm:text-xl font-bold text-[#003366] mb-1.5">
+          {c.title}
+        </h3>
+        <p className="text-xs sm:text-sm text-[#5E6B76] max-w-md mx-auto mb-5 leading-relaxed">
+          {c.text}
+        </p>
+        <div className="flex justify-center">
+          <SocialLinks variant="section" overrides={settings} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ─── Main Export : Streamlined Volunteer Recruitment Page ──────────────────────
 export default function Home({ lang, navigate, initialSettings = {} }: HomeProps) {
   const currentLang = (lang || "FR").toUpperCase() as Language
@@ -1585,6 +1617,9 @@ export default function Home({ lang, navigate, initialSettings = {} }: HomeProps
 
       {/* 13. CTA FINAL — Décision & passage à l'action */}
       <FinalCTA t={t} navigate={navigate} settings={settings} langLower={langLower} />
+
+      {/* 14. DÉCOUVREZ APTIC-R AU QUOTIDIEN — Réseaux sociaux */}
+      <VolunteerSocialSection lang={currentLang} settings={settings} />
     </main>
   )
 }

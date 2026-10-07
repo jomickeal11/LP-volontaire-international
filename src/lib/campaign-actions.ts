@@ -2,12 +2,13 @@
 
 import { prisma } from "./prisma"
 import { z } from "zod"
+import { randomUUID } from "node:crypto"
 import { revalidatePath } from "next/cache"
 import { verifySession } from "./auth"
 import {
   CHANNEL_MAP,
   normalizeCampaignSlug,
-  buildCampaignUrl,
+  buildTrackingUrl,
 } from "./campaign-utils"
 
 // ─── Schéma de validation ─────────────────────────────────────────────────────
@@ -73,19 +74,13 @@ export async function createCampaignLink(
     return { success: false, error: "Le nom de la campagne est invalide." }
   }
 
-  const generatedUrl = buildCampaignUrl({
-    baseUrl,
-    destinationPath,
-    utmSource,
-    utmMedium,
-    utmCampaign,
-    utmContent: utmContent || undefined,
-    utmTerm:    utmTerm    || undefined,
-  })
+  const id = randomUUID()
+  const generatedUrl = buildTrackingUrl(baseUrl, id)
 
   try {
     const record = await (prisma as any).lienCampagne.create({
       data: {
+        id,
         label,
         destinationPath,
         channel,
@@ -119,6 +114,8 @@ export interface SavedCampaignLink {
   utmCampaign:     string
   utmContent:      string | null
   generatedUrl:    string
+  clicks:          number
+  lastClickedAt:   string | null
   createdAt:       string
 }
 
@@ -135,13 +132,23 @@ export async function getSavedCampaignLinks(limit = 50): Promise<SavedCampaignLi
         utmCampaign:     true,
         utmContent:      true,
         generatedUrl:    true,
+        clicks:          true,
+        lastClickedAt:   true,
         createdAt:       true,
       },
     })
 
     return rows.map((r: any) => ({
-      ...r,
-      createdAt: r.createdAt.toISOString(),
+      id:              r.id,
+      label:           r.label,
+      destinationPath: r.destinationPath,
+      channel:         r.channel,
+      utmCampaign:     r.utmCampaign,
+      utmContent:      r.utmContent,
+      generatedUrl:    r.generatedUrl,
+      clicks:          r.clicks,
+      lastClickedAt:   r.lastClickedAt ? r.lastClickedAt.toISOString() : null,
+      createdAt:       r.createdAt.toISOString(),
     }))
   } catch {
     return []

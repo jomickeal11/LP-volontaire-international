@@ -11,8 +11,10 @@ import { AdminHeaderProvider } from "@/lib/AdminHeaderContext"
 import { ConfirmProvider } from "@/components/admin/ConfirmProvider"
 
 export default function AdminClientLayout({
+  user,
   children,
 }: {
+  user?: { name: string; email: string; role: string } | null
   children: React.ReactNode
 }) {
   const pathname = usePathname()
@@ -67,7 +69,8 @@ export default function AdminClientLayout({
   }, [])
 
   let currentPage: Page = "admin-dashboard"
-  if (pathname?.includes("/analytics") || pathname?.includes("/statistics")) currentPage = "admin-analytics"
+  if (pathname?.includes("/compte")) currentPage = "admin-account"
+  else if (pathname?.includes("/analytics") || pathname?.includes("/statistics")) currentPage = "admin-analytics"
   else if (pathname?.includes("/members/applications"))
     currentPage = "admin-member-applications"
   else if (pathname?.includes("/members"))
@@ -161,6 +164,9 @@ export default function AdminClientLayout({
       case "admin-settings":
         router.push("/backoffice/settings")
         break
+      case "admin-account":
+        router.push("/backoffice/compte")
+        break
       case "admin-login":
         router.push("/backoffice/login")
         break
@@ -184,6 +190,7 @@ export default function AdminClientLayout({
           applicationsCount={appCount}
           eventsUnreadCount={eventsUnreadCount}
           lang={lang}
+          user={user}
         >
           {children}
         </AdminLayout>

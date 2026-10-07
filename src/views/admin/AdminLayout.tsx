@@ -11,6 +11,8 @@ interface AdminLayoutProps {
   /** Demandes de participation jamais consultées, pour l'entrée « Événements ». */
   eventsUnreadCount?: number
   lang?: string
+  /** Utilisateur réellement authentifié (jamais de valeur codée en dur). */
+  user?: { name: string; email: string; role: string } | null
   children: React.ReactNode
 }
 
@@ -364,7 +366,7 @@ const NAV_ITEMS = [
       },
       {
         page: "admin-settings" as Page,
-        label: "Paramètres & Médias",
+        label: "Paramètres",
         icon: (
           <svg
             className="w-4.5 h-4.5"
@@ -400,10 +402,44 @@ export default function AdminLayout({
   applicationsCount,
   eventsUnreadCount = 0,
   lang = "fr",
+  user,
   children,
 }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const t = getAdminTranslations(lang)
+
+  const displayName = user?.name?.trim() || t.account.myAccount
+  const roleLabel = user?.role
+    ? (t.account.roles as Record<string, string>)[user.role] || user.role
+    : ""
+  const initials = (() => {
+    const source = user?.name?.trim() || ""
+    const parts = source.split(/\s+/).filter(Boolean)
+    if (parts.length === 0) return "•"
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  })()
+
+  // Fermeture du menu utilisateur au clic extérieur / touche Échap.
+  useEffect(() => {
+    if (!userMenuOpen) return
+    const onClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setUserMenuOpen(false)
+    }
+    document.addEventListener("mousedown", onClickOutside)
+    document.addEventListener("keydown", onKeyDown)
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside)
+      document.removeEventListener("keydown", onKeyDown)
+    }
+  }, [userMenuOpen])
 
   const NAV_ITEMS_I18N = [
     {
@@ -799,7 +835,7 @@ export default function AdminLayout({
       },
         {
           page: "admin-settings" as Page,
-          label: "Paramètres & Médias",
+          label: "Paramètres",
           icon: (
             <svg
               className="w-4.5 h-4.5"
@@ -942,23 +978,36 @@ export default function AdminLayout({
 
       {/* Bottom area */}
       <div className="px-3 py-4 mt-auto">
-        <div
-          className="flex items-center gap-2.5 px-3 py-2 mb-2 rounded-lg"
+        <button
+          type="button"
+          onClick={() => {
+            navigate("admin-account")
+            setSidebarOpen(false)
+          }}
+          className="w-full flex items-center gap-2.5 px-3 py-2 mb-2 rounded-lg transition-colors text-left"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = BG
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "transparent"
+          }}
+          title={t.account.myAccount}
         >
-          <img
-            src="https://ui-avatars.com/api/?name=Admin+Aptic&background=174F7A&color=fff"
-            alt="Admin"
-            className="w-8 h-8 rounded-full"
-          />
-          <div>
-            <div className="text-sm font-semibold" style={{ color: "#1A2B3C" }}>
-              Admin
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 select-none"
+            style={{ backgroundColor: "#174F7A" }}
+          >
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <div className="text-sm font-semibold truncate" style={{ color: "#1A2B3C" }}>
+              {displayName}
             </div>
-            <div className="text-xs" style={{ color: "#5E6B76" }}>
-              APTIC-R
+            <div className="text-xs truncate" style={{ color: "#5E6B76" }}>
+              {roleLabel}
             </div>
           </div>
-        </div>
+        </button>
         <button
           onClick={() => navigate("home")}
           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors mb-1"
@@ -1042,6 +1091,8 @@ export default function AdminLayout({
         return [{ label: "Témoignages" }]
       case "admin-medias":
         return [{ label: "Médias & Galerie" }]
+      case "admin-account":
+        return [{ label: t.account.myAccount }]
       default:
         return [{ label: t.nav.overview }]
     }
@@ -1139,22 +1190,76 @@ export default function AdminLayout({
           </div>
 
           {/* Right: User account */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="hidden sm:flex items-center gap-2 py-1 px-2.5 rounded-full bg-slate-50 border border-slate-200/80">
-              <span className="text-xs font-semibold text-slate-700">Admin</span>
-              <span className="text-slate-300 text-xs">·</span>
-              <span className="text-xs font-medium text-slate-500">APTIC-R</span>
-            </div>
-
-            <div className="flex items-center gap-2">
+          <div className="relative shrink-0" ref={userMenuRef}>
+            <button
+              type="button"
+              onClick={() => setUserMenuOpen((open) => !open)}
+              aria-haspopup="menu"
+              aria-expanded={userMenuOpen}
+              className="flex items-center gap-3 rounded-full py-1 pl-2.5 pr-1 hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              <div className="hidden sm:flex flex-col items-end leading-tight">
+                <span className="text-xs font-semibold text-slate-700">{displayName}</span>
+                <span className="text-[11px] font-medium text-slate-500">{roleLabel}</span>
+              </div>
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-xs select-none"
                 style={{ backgroundColor: "#174F7A" }}
-                title="Administrateur APTIC-R"
+                title={displayName}
               >
-                AA
+                {initials}
               </div>
-            </div>
+            </button>
+
+            {userMenuOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 top-full mt-2 w-60 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-50"
+              >
+                <div className="px-3.5 py-2.5 border-b border-slate-100">
+                  <div className="text-sm font-semibold text-slate-800 truncate">{displayName}</div>
+                  {user?.email && (
+                    <div className="text-[11px] text-slate-500 truncate mt-0.5">{user.email}</div>
+                  )}
+                </div>
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setUserMenuOpen(false)
+                    navigate("admin-account")
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                >
+                  <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.75}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  {t.account.myAccount}
+                </button>
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setUserMenuOpen(false)
+                    onLogout()
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.75}
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
+                  </svg>
+                  {t.nav.logout}
+                </button>
+              </div>
+            )}
           </div>
         </header>
 

@@ -84,3 +84,16 @@ export function buildCampaignUrl({
 
   return url.toString()
 }
+
+// ─── Construction de l'URL de suivi (comptage de clics) ──────────────────────
+
+/**
+ * L'URL distribuée pointe vers /api/r/[id] : elle incrémente le compteur de
+ * clics du lien puis redirige vers la destination finale avec les paramètres
+ * UTM. La destination est reconstruite à partir des champs stockés, ce qui
+ * évite d'y figer un nom de domaine.
+ */
+export function buildTrackingUrl(baseUrl: string, id: string): string {
+  const base = baseUrl.replace(/\/$/, "")
+  return `${base}/api/r/${id}`
+}

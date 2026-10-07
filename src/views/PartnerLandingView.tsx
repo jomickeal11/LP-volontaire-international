@@ -746,7 +746,7 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
                 className="text-center mx-auto mb-10 sm:mb-16 lg:mb-20 w-full min-h-[420px] sm:min-h-[480px] lg:min-h-[560px] flex flex-col justify-center"
                 style={{ maxWidth: "900px" }}
               >
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-[#003366]/45 px-4 py-2 text-xs sm:text-sm font-semibold text-white/90 mb-5">
+              <div className="inline-flex items-center self-center gap-2 rounded-full border border-white/25 bg-[#003366]/45 px-4 py-2 text-xs sm:text-sm font-semibold text-white/90 mb-5">
                 <span className="h-2 w-2 shrink-0 rounded-full bg-[#28A745]" />
                 {heroBadge}
               </div>

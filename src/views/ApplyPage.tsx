@@ -28,6 +28,7 @@ import {
 import { FREQUENT_COUNTRIES, ALL_COUNTRY_CODES } from "../data/countryPhoneCodes"
 import { trackEvent } from "../lib/tracker"
 import { getUtmSubmissionFields } from "../lib/utm"
+import { uploadPrivateFile } from "../lib/upload-client"
 import SimplifiedHeader from "@/components/SimplifiedHeader"
 import { getSiteSettings } from "@/lib/cms-actions"
 
@@ -1153,9 +1154,34 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
         if (value) formData.append(key, value)
       })
 
-      if (form.cvFile) formData.append("cvFile", form.cvFile)
-      if (form.motivationFile) formData.append("motivationFile", form.motivationFile)
-      if (form.portfolioFile) formData.append("portfolioFile", form.portfolioFile)
+      const documents: Array<{
+        type: string
+        storageKey: string
+        originalName: string
+        mimeType?: string
+        size?: number
+      }> = []
+      const filesToUpload: Array<{ type: string; file: File }> = []
+      if (form.cvFile) filesToUpload.push({ type: "CV", file: form.cvFile })
+      if (form.motivationFile) filesToUpload.push({ type: "MOTIVATION_LETTER", file: form.motivationFile })
+      if (form.portfolioFile) filesToUpload.push({ type: "PORTFOLIO", file: form.portfolioFile })
+
+      for (const entry of filesToUpload) {
+        const uploaded = await uploadPrivateFile(entry.file, "candidate-doc")
+        if (!uploaded.success) {
+          setErrorMessage(uploaded.error || t.apply.errors.submitError)
+          setIsSubmitting(false)
+          return
+        }
+        documents.push({
+          type: entry.type,
+          storageKey: uploaded.key,
+          originalName: entry.file.name,
+          mimeType: uploaded.mimeType,
+          size: uploaded.fileSize,
+        })
+      }
+      formData.append("documents", JSON.stringify(documents))
 
       const result = await submitCandidateApplicationFormData(formData, lang)
       setIsSubmitting(false)

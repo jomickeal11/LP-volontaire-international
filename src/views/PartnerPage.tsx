@@ -16,6 +16,7 @@ import {
 import { FREQUENT_COUNTRIES, ALL_COUNTRY_CODES } from "../data/countryPhoneCodes"
 import { trackEvent } from "../lib/tracker"
 import { getUtmSubmissionFields } from "../lib/utm"
+import { uploadPrivateFile } from "../lib/upload-client"
 import SimplifiedHeader from "@/components/SimplifiedHeader"
 import { getSiteSettings } from "@/lib/cms-actions"
 
@@ -958,7 +959,21 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
       })
 
       if (form.docFile) {
-        formData.append("docFile", form.docFile)
+        const uploaded = await uploadPrivateFile(form.docFile, "partner-doc")
+        if (!uploaded.success) {
+          setLoading(false)
+          setErrorMessage(uploaded.error || "Une erreur est survenue lors du téléversement du document.")
+          return
+        }
+        formData.append(
+          "document",
+          JSON.stringify({
+            storageKey: uploaded.key,
+            originalName: form.docFile.name,
+            mimeType: uploaded.mimeType,
+            size: uploaded.fileSize,
+          })
+        )
       }
 
       const res = await submitPartnerRequestFormData(formData, (lang || "FR").toUpperCase() as any)

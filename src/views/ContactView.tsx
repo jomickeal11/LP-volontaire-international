@@ -15,6 +15,7 @@ import { trackEvent } from "@/lib/tracker"
 import { getUtmSubmissionFields } from "@/lib/utm"
 import { FREQUENT_COUNTRIES, ALL_COUNTRY_CODES } from "@/data/countryPhoneCodes"
 import { GlobeIcon, SearchIcon } from "@/components/Icons"
+import SocialLinks from "@/components/SocialLinks"
 
 function PhoneInputField({
   label,
@@ -355,6 +356,8 @@ const I18N = {
     ctaDesc: "Nos coordinateurs de programmes organisent des réunions en visioconférence ou directement à Agbélouvé.",
     ctaPartner: "Proposer un partenariat",
     ctaVolunteering: "Postuler comme volontaire",
+    socialTitle: "Suivez APTIC-R",
+    socialText: "Restez informé de nos actions, projets et actualités.",
   },
   EN: {
     badge: "CONTACT",
@@ -413,6 +416,8 @@ const I18N = {
     ctaDesc: "Our project coordinators are available for video calls or on-site visits in Agbélouvé.",
     ctaPartner: "Propose a partnership",
     ctaVolunteering: "Apply as volunteer",
+    socialTitle: "Follow APTIC-R",
+    socialText: "Stay informed about our actions, projects and latest news.",
   },
   DE: {
     badge: "KONTAKT",
@@ -471,6 +476,8 @@ const I18N = {
     ctaDesc: "Unsere Programmkoordinatoren stehen für Videokonferenzen oder Treffen in Agbélouvé bereit.",
     ctaPartner: "Partnerschaft vorschlagen",
     ctaVolunteering: "Als Freiwilliger bewerben",
+    socialTitle: "APTIC-R folgen",
+    socialText: "Bleiben Sie über unsere Aktivitäten, Projekte und Neuigkeiten informiert.",
   },
 }
 
@@ -1301,6 +1308,24 @@ export default function ContactView({ lang, initialSettings = {} }: ContactViewP
               >
                 {t.ctaVolunteering}
               </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 4. Suivez APTIC-R (Réseaux sociaux) ── */}
+        <section
+          className="px-4 sm:px-6 lg:px-8 py-10 sm:py-12 bg-[#F7F8FA] border-t border-slate-200"
+          aria-label={t.socialTitle}
+        >
+          <div className="max-w-2xl mx-auto text-center">
+            <h3 className="text-lg sm:text-xl font-bold text-[#003366] mb-1.5">
+              {t.socialTitle}
+            </h3>
+            <p className="text-xs sm:text-sm text-[#5E6B76] max-w-md mx-auto mb-5 leading-relaxed">
+              {t.socialText}
+            </p>
+            <div className="flex justify-center">
+              <SocialLinks variant="section" overrides={settings} />
             </div>
           </div>
         </section>

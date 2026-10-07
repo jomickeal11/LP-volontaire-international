@@ -227,7 +227,7 @@ export default function AdminPartnerRequestDetail({
             {/* Document presentation button if exists */}
             {data.documents.length > 0 && (
               <a
-                href={`/api/documents/${data.documents[0].storageKey}`}
+                href={`/api/documents/partner/${data.documents[0].id}`}
                 download={data.documents[0].originalName}
                 target="_blank"
                 rel="noreferrer"
@@ -435,7 +435,7 @@ export default function AdminPartnerRequestDetail({
                       </p>
                     </div>
                     <a
-                      href={`/api/documents/${doc.storageKey}`}
+                      href={`/api/documents/partner/${doc.id}`}
                       download={doc.originalName}
                       target="_blank"
                       rel="noreferrer"

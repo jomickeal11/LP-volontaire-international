@@ -125,14 +125,16 @@ export async function middleware(request: NextRequest) {
       !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`,
   )
 
-  // Redirect if there is no locale (e.g. /apply -> /fr/apply)
+  // Redirect if there is no locale (e.g. /apply -> /fr/apply).
+  // Conserve la query string (utm_*, etc.) : les liens de campagne arrivent
+  // sans préfixe de langue et l'attribution UTM first-touch en dépend.
   if (pathnameIsMissingLocale) {
-    return NextResponse.redirect(
-      new URL(
-        `/${defaultLocale}${pathname.startsWith("/") ? "" : "/"}${pathname}`,
-        request.url,
-      ),
+    const url = new URL(
+      `/${defaultLocale}${pathname.startsWith("/") ? "" : "/"}${pathname}`,
+      request.url,
     )
+    url.search = request.nextUrl.search
+    return NextResponse.redirect(url)
   }
 
   // ── Legacy route redirects (301 permanent) ──────────────────────────────────
@@ -140,7 +142,9 @@ export async function middleware(request: NextRequest) {
   // Alias multi-segments (ex. /en/partners/apply → /en/partenaires/demande)
   const multiSegmentTarget = LEGACY_MULTI_REDIRECTS[pathname]
   if (multiSegmentTarget) {
-    return NextResponse.redirect(new URL(multiSegmentTarget, request.url), {
+    const url = new URL(multiSegmentTarget, request.url)
+    url.search = request.nextUrl.search
+    return NextResponse.redirect(url, {
       status: 301,
     })
   }
@@ -151,7 +155,9 @@ export async function middleware(request: NextRequest) {
     if (aliases) {
       for (const [alias, target] of Object.entries(aliases)) {
         if (pathname === `/${locale}/${alias}` || pathname === `/${locale}/${alias}/`) {
-          return NextResponse.redirect(new URL(`/${locale}/${target}`, request.url), {
+          const url = new URL(`/${locale}/${target}`, request.url)
+          url.search = request.nextUrl.search
+          return NextResponse.redirect(url, {
             status: 301,
           })
         }
@@ -161,10 +167,9 @@ export async function middleware(request: NextRequest) {
     for (const [oldSegment, newSegment] of Object.entries(LEGACY_REDIRECTS)) {
       const oldPath = `/${locale}/${oldSegment}`
       if (pathname === oldPath || pathname === `${oldPath}/`) {
-        return NextResponse.redirect(
-          new URL(`/${locale}/${newSegment}`, request.url),
-          { status: 301 }
-        )
+        const url = new URL(`/${locale}/${newSegment}`, request.url)
+        url.search = request.nextUrl.search
+        return NextResponse.redirect(url, { status: 301 })
       }
     }
   }
@@ -173,6 +178,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Matcher ignoring `/_next/` and `/api/`
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Matcher ignoring `/_next/`, `/api/` and `/uploads/` (médias publics servis par leur route)
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|uploads).*)"],
 }
