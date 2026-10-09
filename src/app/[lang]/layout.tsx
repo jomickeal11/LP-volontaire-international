@@ -149,6 +149,7 @@ export async function generateMetadata({
     },
     icons: {
       icon: [
+        { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
         { url: "/logo-aptic-icon-32.png",  sizes: "32x32",   type: "image/png" },
         { url: "/logo-aptic-icon-64.png",  sizes: "64x64",   type: "image/png" },
         { url: "/logo-aptic-icon-192.png", sizes: "192x192", type: "image/png" },
@@ -157,7 +158,7 @@ export async function generateMetadata({
       apple: [
         { url: "/logo-aptic-icon-192.png", sizes: "192x192", type: "image/png" },
       ],
-      shortcut: "/logo-aptic-icon-32.png",
+      shortcut: "/favicon.ico",
     },
     ...(googleVerification ? { verification: { google: googleVerification } } : {}),
     robots: {
