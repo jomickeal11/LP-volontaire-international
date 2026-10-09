@@ -11,6 +11,7 @@ import { useRouter, usePathname } from "next/navigation"
 interface GalleryViewProps {
   lang: Language
   initialMedias?: GalleryMedia[]
+  initialAlbums?: GalleryAlbum[]
 }
 
 /**
@@ -28,16 +29,43 @@ export interface GalleryMedia {
   thumbnailUrl?: string | null
   type?: string | null
   album?: string | null
+  albumId?: string | null
   category?: string | null
   order?: number | null
   featured?: boolean | null
   createdAt?: string | Date | null
 }
 
+/**
+ * Représentation d'un album publiable, alignée sur le modèle Prisma `Album`.
+ * Les titres/descriptions sont résolus strictement par langue, sans fallback.
+ */
+export interface GalleryAlbum {
+  id: string
+  slug: string
+  titleFr?: string | null
+  titleEn?: string | null
+  titleDe?: string | null
+  descriptionFr?: string | null
+  descriptionEn?: string | null
+  descriptionDe?: string | null
+  coverImage?: string | null
+  published?: boolean | null
+  _count?: { medias: number } | null
+}
+
 // Interne à la vue, avec les contenus déjà résolus pour la langue courante
 interface ProcessedGalleryMedia extends GalleryMedia {
   _locTitle: string
   _locCaption: string
+}
+
+// Album interne, résolu pour la langue courante (titre, description, couverture, compteur)
+interface ProcessedGalleryAlbum extends GalleryAlbum {
+  _locTitle: string
+  _locDescription: string
+  _cover: string
+  _mediaCount: number
 }
 
 const BG = "#F7F8FA"
@@ -68,6 +96,9 @@ const I18N = {
     generalGallery: "Galerie générale",
     backToAlbums: "Retour aux albums",
     mediaCount: "médias",
+    noAlbums: "Aucun album disponible.",
+    viewAlbum: "Voir l'album",
+    emptyAlbum: "Cet album ne contient aucun média à afficher dans cette langue.",
   },
   EN: {
     title: "Gallery",
@@ -92,6 +123,9 @@ const I18N = {
     generalGallery: "General Gallery",
     backToAlbums: "Back to albums",
     mediaCount: "media",
+    noAlbums: "No albums available.",
+    viewAlbum: "View album",
+    emptyAlbum: "This album has no media to display in this language.",
   },
   DE: {
     title: "Galerie",
@@ -116,6 +150,9 @@ const I18N = {
     generalGallery: "Allgemeine Galerie",
     backToAlbums: "Zurück zu den Alben",
     mediaCount: "Medien",
+    noAlbums: "Keine Alben verfügbar.",
+    viewAlbum: "Album ansehen",
+    emptyAlbum: "Dieses Album enthält in dieser Sprache keine Medien.",
   },
 }
 
@@ -221,13 +258,13 @@ function MediaPlaceholder({ label }: { label?: string }) {
   )
 }
 
-export default function GalleryView({ lang, initialMedias = [] }: GalleryViewProps) {
+export default function GalleryView({ lang, initialMedias = [], initialAlbums = [] }: GalleryViewProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const t = I18N[lang] || I18N.FR
+  const t = lang === "EN" ? I18N.EN : lang === "DE" ? I18N.DE : I18N.FR
 
   const [viewMode, setViewMode] = useState<"GALLERY" | "ALBUMS">("GALLERY")
-  const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null)
+  const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null)
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("ALL")
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -260,29 +297,75 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
 
   const featured = useMemo(() => sortMedias(medias.filter((m) => m.featured === true)), [medias])
 
-  const albumsList = useMemo(() => {
+  // Regroupement des médias localisés par album (albumId). Les médias sans album
+  // restent uniquement dans la galerie générale.
+  const albumMediaMap = useMemo(() => {
     const map = new Map<string, ProcessedGalleryMedia[]>()
     for (const media of medias) {
-      const album = media.album?.trim()
-      if (!album) continue
-      if (!map.has(album)) map.set(album, [])
-      map.get(album)!.push(media)
+      const id = media.albumId?.trim()
+      if (!id) continue
+      if (!map.has(id)) map.set(id, [])
+      map.get(id)!.push(media)
     }
-    return Array.from(map.entries())
-      .map(([name, items]) => {
-        const sorted = sortMedias(items)
+    for (const [key, list] of map.entries()) {
+      map.set(key, sortMedias(list))
+    }
+    return map
+  }, [medias])
+
+  // Albums publiés, strictement résolus dans la langue courante : un album sans
+  // titre dans cette langue n'est jamais affiché (aucun fallback EN/DE -> FR).
+  const albumsList = useMemo<ProcessedGalleryAlbum[]>(() => {
+    return (Array.isArray(initialAlbums) ? initialAlbums : [])
+      .map((album) => {
+        let locTitle = ""
+        let locDescription = ""
+
+        if (lang === "EN") {
+          locTitle = album.titleEn || ""
+          locDescription = album.descriptionEn || ""
+        } else if (lang === "DE") {
+          locTitle = album.titleDe || ""
+          locDescription = album.descriptionDe || ""
+        } else {
+          locTitle = album.titleFr || ""
+          locDescription = album.descriptionFr || ""
+        }
+
+        const items = albumMediaMap.get(album.id) || []
+        const explicitCover = (album.coverImage || "").trim()
+        const firstMedia = items[0]
+        const derivedCover = firstMedia
+          ? (firstMedia.thumbnailUrl || firstMedia.url || "").trim()
+          : ""
+
         return {
-          name,
-          items: sorted,
-          cover: sorted.find((m) => m.thumbnailUrl || m.url) || sorted[0],
+          ...album,
+          _locTitle: locTitle.trim(),
+          _locDescription: locDescription.trim(),
+          _cover: explicitCover || derivedCover,
+          _mediaCount: items.length,
         }
       })
-      .sort((a, b) => a.name.localeCompare(b.name))
-  }, [medias])
+      .filter((album) => album._locTitle.length > 0) as ProcessedGalleryAlbum[]
+  }, [initialAlbums, lang, albumMediaMap])
+
+  const selectedAlbum = useMemo(
+    () => (selectedAlbumId ? albumsList.find((a) => a.id === selectedAlbumId) || null : null),
+    [albumsList, selectedAlbumId]
+  )
+
+  // Source filtrée par album (ou galerie entière), avant les filtres type/thème.
+  // Les compteurs et thèmes reflètent toujours le contexte courant (album ou galerie).
+  const activeAlbumMedia = useMemo(
+    () =>
+      selectedAlbumId ? medias.filter((m) => m.albumId === selectedAlbumId) : medias,
+    [medias, selectedAlbumId]
+  )
 
   const categories = useMemo(() => {
     const counts = new Map<string, number>()
-    for (const media of medias) {
+    for (const media of activeAlbumMedia) {
       const category = getCategory(media)
       if (!category) continue
       counts.set(category, (counts.get(category) || 0) + 1)
@@ -291,23 +374,19 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .slice(0, MAX_CATEGORY_FILTERS)
       .map(([label, count]) => ({ label, count }))
-  }, [medias])
+  }, [activeAlbumMedia])
 
   const hasActiveFilter = typeFilter !== "ALL" || categoryFilter !== null
 
   const filtered = useMemo(() => {
-    let source = medias
-    if (selectedAlbum) {
-      source = medias.filter(m => m.album?.trim() === selectedAlbum)
-    }
-    return source.filter((media) => {
+    return activeAlbumMedia.filter((media) => {
       if (typeFilter !== "ALL" && normalizeType(media) !== typeFilter) return false
       if (categoryFilter !== null && getCategory(media) !== categoryFilter) return false
       return true
     })
-  }, [medias, typeFilter, categoryFilter, selectedAlbum])
+  }, [activeAlbumMedia, typeFilter, categoryFilter])
 
-  const showFeatured = featured.length > 0 && !hasActiveFilter && !selectedAlbum && viewMode === "GALLERY"
+  const showFeatured = featured.length > 0 && !hasActiveFilter && !selectedAlbumId && viewMode === "GALLERY"
   const gridItems = showFeatured ? filtered.filter((m) => m.featured !== true) : filtered
 
   const activeMedia = lightboxIndex !== null ? filtered[lightboxIndex] : null
@@ -357,9 +436,9 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
   }
 
   const typeFilters: { id: TypeFilter; label: string; count: number }[] = [
-    { id: "ALL", label: t.filterAll, count: medias.length },
-    { id: "PHOTO", label: t.filterPhotos, count: medias.filter((m) => !isVideo(m)).length },
-    { id: "VIDEO", label: t.filterVideos, count: medias.filter(isVideo).length },
+    { id: "ALL", label: t.filterAll, count: activeAlbumMedia.length },
+    { id: "PHOTO", label: t.filterPhotos, count: activeAlbumMedia.filter((m) => !isVideo(m)).length },
+    { id: "VIDEO", label: t.filterVideos, count: activeAlbumMedia.filter(isVideo).length },
   ]
 
   const renderTypeFilter = (tab: { id: TypeFilter; label: string; count: number }) => {
@@ -474,9 +553,9 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
             {/* Toggle Galerie / Albums */}
             <div className="inline-flex items-center gap-1 bg-slate-100 rounded-full p-1">
               <button
-                onClick={() => { setViewMode("GALLERY"); setSelectedAlbum(null); }}
+                onClick={() => { setViewMode("GALLERY"); setSelectedAlbumId(null); }}
                 className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
-                  viewMode === "GALLERY" && !selectedAlbum
+                  viewMode === "GALLERY" && !selectedAlbumId
                     ? "bg-[#003366] text-white shadow-md"
                     : "text-slate-600 hover:text-slate-800"
                 }`}
@@ -484,9 +563,9 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
                 {t.generalGallery}
               </button>
               <button
-                onClick={() => { setViewMode("ALBUMS"); setSelectedAlbum(null); }}
+                onClick={() => { setViewMode("ALBUMS"); setSelectedAlbumId(null); }}
                 className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
-                  viewMode === "ALBUMS" || selectedAlbum
+                  viewMode === "ALBUMS" || selectedAlbumId
                     ? "bg-[#003366] text-white shadow-md"
                     : "text-slate-600 hover:text-slate-800"
                 }`}
@@ -497,7 +576,7 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
           </div>
         </section>
 
-        {viewMode === "ALBUMS" && !selectedAlbum ? (
+        {viewMode === "ALBUMS" && !selectedAlbumId ? (
           <section className="bg-slate-50 py-14 lg:py-20">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
               {albumsList.length === 0 ? (
@@ -505,24 +584,31 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
                   <svg className="w-12 h-12 mx-auto mb-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.25} d="M3.75 5.25h16.5v13.5H3.75zM3.75 15.75l4.5-4.5 4.5 4.5" />
                   </svg>
-                  <p className="font-medium text-slate-500">Aucun album disponible.</p>
+                  <p className="font-medium text-slate-500">{t.noAlbums}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {albumsList.map(album => (
                     <button
-                      key={album.name}
-                      onClick={() => { setSelectedAlbum(album.name); setViewMode("ALBUMS"); }}
+                      key={album.id}
+                      onClick={() => { setSelectedAlbumId(album.id); setViewMode("ALBUMS"); }}
                       className="group relative aspect-[3/2] overflow-hidden bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003366]"
                     >
-                      {/* Cover image */}
-                      {(album.cover.thumbnailUrl || album.cover.url) ? (
+                      {/* Cover image (explicite, sinon premier média traduit) */}
+                      {album._cover ? (
                         <img
-                          src={(album.cover.thumbnailUrl || album.cover.url) as string}
-                          alt={album.name}
+                          src={album._cover}
+                          alt={album._locTitle}
+                          loading="lazy"
                           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                         />
-                      ) : null}
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-300">
+                          <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={1.25} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 5.25h16.5v13.5H3.75zM3.75 15.75l4.5-4.5 4.5 4.5M9 9.75h.008v.008H9V9.75z" />
+                          </svg>
+                        </div>
+                      )}
                       {/* Gradient overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                       {/* Content */}
@@ -531,13 +617,18 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
                           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
-                          {album.items.length} {t.mediaCount}
+                          {album._mediaCount} {t.mediaCount}
                         </span>
                         <h3 className="text-white font-bold text-lg leading-tight text-left line-clamp-2 drop-shadow-sm">
-                          {album.name}
+                          {album._locTitle}
                         </h3>
+                        {album._locDescription ? (
+                          <p className="text-white/70 text-xs text-left line-clamp-2">
+                            {album._locDescription}
+                          </p>
+                        ) : null}
                         <span className="inline-flex items-center text-[#7EC8E3] text-xs font-semibold group-hover:gap-2 gap-1 transition-all duration-200">
-                          Voir l'album
+                          {t.viewAlbum}
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                           </svg>
@@ -557,7 +648,7 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
                 <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex items-end gap-6">
                   <div className="flex-1">
                     <button
-                      onClick={() => setSelectedAlbum(null)}
+                      onClick={() => setSelectedAlbumId(null)}
                       className="inline-flex items-center text-xs font-semibold text-white/60 hover:text-white transition-colors mb-4 uppercase tracking-wider"
                     >
                       <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -565,7 +656,10 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
                       </svg>
                       {t.backToAlbums}
                     </button>
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight mb-2">{selectedAlbum}</h2>
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight mb-2">{selectedAlbum._locTitle}</h2>
+                    {selectedAlbum._locDescription ? (
+                      <p className="text-white/70 text-sm max-w-2xl mb-2">{selectedAlbum._locDescription}</p>
+                    ) : null}
                     <p className="text-white/60 text-sm">{filtered.length} {t.mediaCount}</p>
                   </div>
                 </div>
@@ -669,6 +763,12 @@ export default function GalleryView({ lang, initialMedias = [] }: GalleryViewPro
               </h2>
               <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
                 {t.emptyDesc}
+              </p>
+            </div>
+          ) : selectedAlbumId && filtered.length === 0 ? (
+            <div className="max-w-xl mx-auto text-center py-12 sm:py-16">
+              <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                {t.emptyAlbum}
               </p>
             </div>
           ) : gridItems.length === 0 ? (

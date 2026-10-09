@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
+import DOMPurify from "dompurify"
 import { resendCandidateEmailAction } from "@/lib/actions"
 
 export interface EmailLogItem {
@@ -33,6 +34,23 @@ export default function EmailViewModal({
   const [resending, setResending] = useState(false)
   const [resendStatus, setResendStatus] = useState<"idle" | "success" | "error">("idle")
   const [resendError, setResendError] = useState<string | null>(null)
+
+  // Sécurisation du rendu : le HTML stocké (y compris les anciens EmailLog)
+  // provient de champs utilisateurs ou administrateurs. On l'assainit au rendu
+  // (DOMPurify) pour neutraliser scripts / gestionnaires d'événements / URLs
+  // javascript: tout en conservant la mise en forme éditoriale légitime.
+  const sanitizedBodyHtml = useMemo(() => {
+    if (!emailLog) return ""
+    if (typeof window === "undefined") return emailLog.bodyHtml
+    const rewritten = emailLog.bodyHtml.replace(
+      /src="https?:\/\/(localhost|127\.0\.0\.1|aptic-rural\.org)[^"]*?logo-aptic\.png"/gi,
+      'src="/logo-aptic.png"'
+    )
+    return DOMPurify.sanitize(rewritten, {
+      USE_PROFILES: { html: true },
+      FORBID_TAGS: ["form", "input", "button", "select", "textarea", "option"],
+    })
+  }, [emailLog])
 
   if (!isOpen || !emailLog) return null
 
@@ -195,10 +213,7 @@ export default function EmailViewModal({
               <div
                 className="email-render-preview"
                 dangerouslySetInnerHTML={{
-                  __html: emailLog.bodyHtml.replace(
-                    /src="https?:\/\/(localhost|127\.0\.0\.1|aptic-rural\.org)[^"]*?logo-aptic\.png"/gi,
-                    'src="/logo-aptic.png"'
-                  ),
+                  __html: sanitizedBodyHtml,
                 }}
               />
             </div>

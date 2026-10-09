@@ -49,6 +49,50 @@ export function interpolateVariables(template: string, context: EmailVariableCon
 }
 
 /**
+ * Échappe les caractères HTML d'une chaîne pour neutraliser toute injection
+ * (balises, attributs, scripts) lorsque la valeur provient d'un utilisateur.
+ */
+export function escapeHtml(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) return ""
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
+/**
+ * Remplace toutes les occurrences de {{clé}} dans le texte par la valeur
+ * correspondante, en échappant préalablement le HTML de la valeur (sécurité
+ * injection). Le HTML de la table de remplacement attendue (lien d'entretien,
+ * boutons, etc.) doit donc être placé hors des variables.
+ */
+export function interpolateVariablesEscaped(template: string, context: EmailVariableContext): string {
+  if (!template) return ""
+
+  const escapedContext: Record<string, string> = {}
+  for (const key of Object.keys(context)) {
+    escapedContext[key] = escapeHtml(context[key])
+  }
+
+  return template.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_, key) => {
+    const val = escapedContext[key]
+    if (val !== undefined && val !== null) {
+      return String(val)
+    }
+    // Si interviewLocation est demandé et qu'interviewLink existe, repli intelligent
+    if (key === "interviewLocation" && escapedContext.interviewLink) {
+      return escapedContext.interviewLink
+    }
+    if (key === "interviewLink" && escapedContext.interviewLocation) {
+      return escapedContext.interviewLocation
+    }
+    return ""
+  })
+}
+
+/**
  * Transforme un texte brut avec sauts de lignes en paragraphes HTML sûrs.
  * Rend les URLs et e-mails cliquables et formate élégamment le bloc de signature.
  */

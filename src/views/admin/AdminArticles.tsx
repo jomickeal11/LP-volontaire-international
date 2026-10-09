@@ -62,6 +62,7 @@ export default function AdminArticles() {
   const [translatingField, setTranslatingField] = useState<string | null>(null)
   const confirm = useConfirm()
   const [translationNotice, setTranslationNotice] = useState("")
+  const [translationNoticeTone, setTranslationNoticeTone] = useState<"success" | "warning">("success")
   const [showTranslationHelp, setShowTranslationHelp] = useState(true)
   const [error, setError] = useState("")
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
@@ -221,19 +222,23 @@ export default function AdminArticles() {
       })
 
       if (res.success) {
+        const t = (lang: "EN" | "DE", key: string, fallback: string) => {
+          const field = res.translations[lang]?.[key]
+          return field && field.status !== "failed" ? field.text : fallback
+        }
         setFormData((prev) => ({
           ...prev,
-          titleEn: res.translations.EN.title || prev.titleEn,
-          excerptEn: res.translations.EN.excerpt || prev.excerptEn,
-          contentEn: res.translations.EN.content || prev.contentEn,
-          titleDe: res.translations.DE.title || prev.titleDe,
-          excerptDe: res.translations.DE.excerpt || prev.excerptDe,
-          contentDe: res.translations.DE.content || prev.contentDe,
+          titleEn: t("EN", "title", prev.titleEn),
+          excerptEn: t("EN", "excerpt", prev.excerptEn),
+          contentEn: t("EN", "content", prev.contentEn),
+          titleDe: t("DE", "title", prev.titleDe),
+          excerptDe: t("DE", "excerpt", prev.excerptDe),
+          contentDe: t("DE", "content", prev.contentDe),
         }))
-        const providerName = res.providerUsed === "deepl" ? "DeepL API" : "Traducteur automatique"
-        setTranslationNotice(`Traduction terminée (${providerName}).`)
+        setTranslationNoticeTone(res.outcome.level === "success" ? "success" : "warning")
+        setTranslationNotice(res.outcome.message)
       } else {
-        setError(res.error || "Erreur lors de la traduction automatique.")
+        setError(res.error || res.outcome.message)
       }
     } catch (err: any) {
       setError(err.message || "Erreur de connexion lors de la traduction")
@@ -262,15 +267,19 @@ export default function AdminArticles() {
         sourceLang: "FR",
         targetLangs: [targetLang],
       })
-      if (res.success && res.translations?.[targetLang]?.[field]) {
-        const val = res.translations[targetLang][field]
+      const result = res.translations?.[targetLang]?.[field]
+      if (res.success && result && result.status !== "failed") {
         const stateKey = targetLang === "EN"
           ? (field === "title" ? "titleEn" : field === "excerpt" ? "excerptEn" : "contentEn")
           : (field === "title" ? "titleDe" : field === "excerpt" ? "excerptDe" : "contentDe")
-        setFormData((prev) => ({ ...prev, [stateKey]: val }))
-        setTranslationNotice(`Champ « ${field} » traduit vers ${targetLang === "EN" ? "l'anglais" : "l'allemand"}.`)
+        setFormData((prev) => ({ ...prev, [stateKey]: result.text }))
+        setTranslationNoticeTone(result.provider === "deepl" ? "success" : "warning")
+        setTranslationNotice(
+          `Champ « ${field} » traduit vers ${targetLang === "EN" ? "l'anglais" : "l'allemand"} (${result.provider === "deepl" ? "DeepL" : "moteur de secours"}).`
+        )
+        setError("")
       } else {
-        setError(res.error || "Erreur lors de la traduction du champ.")
+        setError(res.error || res.outcome.message || "Erreur lors de la traduction du champ.")
       }
     } catch (err: any) {
       setError(err.message || "Erreur de connexion.")
@@ -626,12 +635,22 @@ export default function AdminArticles() {
 
             {/* Translation notice banner */}
             {translationNotice && (
-              <div className="inline-flex w-fit max-w-full p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold items-center justify-between gap-3">
+              <div
+                className={`inline-flex w-fit max-w-full p-2.5 rounded-xl border text-xs font-semibold items-center justify-between gap-3 ${
+                  translationNoticeTone === "success"
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                    : "bg-amber-50 border-amber-200 text-amber-800"
+                }`}
+              >
                 <span>{translationNotice}</span>
                 <button
                   type="button"
                   onClick={() => setTranslationNotice("")}
-                  className="text-emerald-700 hover:text-emerald-900 font-bold ml-2 cursor-pointer"
+                  className={`font-bold ml-2 cursor-pointer ${
+                    translationNoticeTone === "success"
+                      ? "text-emerald-700 hover:text-emerald-900"
+                      : "text-amber-700 hover:text-amber-900"
+                  }`}
                 >
                   ✕
                 </button>

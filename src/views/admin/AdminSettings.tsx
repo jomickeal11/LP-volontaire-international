@@ -1847,25 +1847,23 @@ export default function AdminSettings() {
       if (res.success && res.translations?.[targetLang]) {
         const proposal: Record<string, string> = {}
 
-        Object.entries(res.translations[targetLang]).forEach(([key, text]) => {
-          proposal[`${key}_${targetLang.toLowerCase()}`] = text
+        Object.entries(res.translations[targetLang]).forEach(([key, field]) => {
+          if (field.status === "failed") return
+          proposal[`${key}_${targetLang.toLowerCase()}`] = field.text
         })
 
         setValues((prev) => ({ ...prev, ...proposal }))
 
-        const providerLabel =
-          res.providerUsed === "deepl" ? "DeepL Pro" : "moteur libre"
-
         setNewsNotice({
-          type: "info",
+          type: res.outcome.level === "success" ? "success" : "info",
 
-          text: `Proposition de traduction ${newsLangLabel(targetLang)} générée via ${providerLabel} (${Object.keys(proposal).length} champ(s)). Vérifiez et ajustez les textes, puis cliquez sur « Enregistrer » pour les valider.`,
+          text: `${res.outcome.message} ${Object.keys(proposal).length} champ(s) prérempli(s) en ${newsLangLabel(targetLang)}. Vérifiez et ajustez les textes, puis cliquez sur « Enregistrer » pour les valider.`,
         })
       } else {
         setNewsNotice({
           type: "error",
 
-          text: res.error || "Erreur lors de la traduction automatique.",
+          text: res.error || res.outcome.message || "Erreur lors de la traduction automatique.",
         })
       }
     } catch (err: any) {

@@ -67,6 +67,7 @@ export default function AdminProjects() {
   const [translating, setTranslating] = useState(false)
   const [translatingField, setTranslatingField] = useState<string | null>(null)
   const [translationNotice, setTranslationNotice] = useState("")
+  const [translationNoticeTone, setTranslationNoticeTone] = useState<"success" | "warning">("success")
   const [showTranslationHelp, setShowTranslationHelp] = useState(true)
   const [activeLangTab, setActiveLangTab] = useState<"FR" | "EN" | "DE">("FR")
   const [error, setError] = useState("")
@@ -184,27 +185,31 @@ export default function AdminProjects() {
       })
 
       if (res.success) {
+        const t = (lang: "EN" | "DE", key: string, fallback: string) => {
+          const field = res.translations[lang]?.[key]
+          return field && field.status !== "failed" ? field.text : fallback
+        }
         setFormData((prev) => ({
           ...prev,
           publishedEn: true,
           publishedDe: true,
-          titleEn: res.translations.EN.title || prev.titleEn,
-          summaryEn: res.translations.EN.summary || prev.summaryEn,
-          descriptionEn: res.translations.EN.description || prev.descriptionEn,
-          objectivesEn: res.translations.EN.objectives || prev.objectivesEn,
-          actionsEn: res.translations.EN.actions || prev.actionsEn,
-          resultsEn: res.translations.EN.results || prev.resultsEn,
-          titleDe: res.translations.DE.title || prev.titleDe,
-          summaryDe: res.translations.DE.summary || prev.summaryDe,
-          descriptionDe: res.translations.DE.description || prev.descriptionDe,
-          objectivesDe: res.translations.DE.objectives || prev.objectivesDe,
-          actionsDe: res.translations.DE.actions || prev.actionsDe,
-          resultsDe: res.translations.DE.results || prev.resultsDe,
+          titleEn: t("EN", "title", prev.titleEn),
+          summaryEn: t("EN", "summary", prev.summaryEn),
+          descriptionEn: t("EN", "description", prev.descriptionEn),
+          objectivesEn: t("EN", "objectives", prev.objectivesEn),
+          actionsEn: t("EN", "actions", prev.actionsEn),
+          resultsEn: t("EN", "results", prev.resultsEn),
+          titleDe: t("DE", "title", prev.titleDe),
+          summaryDe: t("DE", "summary", prev.summaryDe),
+          descriptionDe: t("DE", "description", prev.descriptionDe),
+          objectivesDe: t("DE", "objectives", prev.objectivesDe),
+          actionsDe: t("DE", "actions", prev.actionsDe),
+          resultsDe: t("DE", "results", prev.resultsDe),
         }))
-        const providerName = res.providerUsed === "deepl" ? "DeepL API" : "Traducteur automatique"
-        setTranslationNotice(`Traduction terminée (${providerName}).`)
+        setTranslationNoticeTone(res.outcome.level === "success" ? "success" : "warning")
+        setTranslationNotice(res.outcome.message)
       } else {
-        setError(res.error || "Erreur lors de la traduction automatique.")
+        setError(res.error || res.outcome.message)
       }
     } catch (err: any) {
       setError(err.message || "Erreur de connexion lors de la traduction")
@@ -239,15 +244,19 @@ export default function AdminProjects() {
         sourceLang: "FR",
         targetLangs: [targetLang],
       })
-      if (res.success && res.translations?.[targetLang]?.[field]) {
-        const val = res.translations[targetLang][field]
+      const result = res.translations?.[targetLang]?.[field]
+      if (res.success && result && result.status !== "failed") {
         const stateKey = targetLang === "EN"
           ? (`${field}En` as keyof typeof formData)
           : (`${field}De` as keyof typeof formData)
-        setFormData((prev) => ({ ...prev, [stateKey]: val }))
-        setTranslationNotice(`Champ « ${field} » traduit vers ${targetLang === "EN" ? "l'anglais" : "l'allemand"}.`)
+        setFormData((prev) => ({ ...prev, [stateKey]: result.text }))
+        setTranslationNoticeTone(result.provider === "deepl" ? "success" : "warning")
+        setTranslationNotice(
+          `Champ « ${field} » traduit vers ${targetLang === "EN" ? "l'anglais" : "l'allemand"} (${result.provider === "deepl" ? "DeepL" : "moteur de secours"}).`
+        )
+        setError("")
       } else {
-        setError(res.error || "Erreur lors de la traduction du champ.")
+        setError(res.error || res.outcome.message || "Erreur lors de la traduction du champ.")
       }
     } catch (err: any) {
       setError(err.message || "Erreur de connexion.")
@@ -746,12 +755,22 @@ export default function AdminProjects() {
 
             {/* Translation notice banner */}
             {translationNotice && (
-              <div className="inline-flex w-fit max-w-full p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold items-center justify-between gap-3">
+              <div
+                className={`inline-flex w-fit max-w-full p-2.5 rounded-xl border text-xs font-semibold items-center justify-between gap-3 ${
+                  translationNoticeTone === "success"
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                    : "bg-amber-50 border-amber-200 text-amber-800"
+                }`}
+              >
                 <span>{translationNotice}</span>
                 <button
                   type="button"
                   onClick={() => setTranslationNotice("")}
-                  className="text-emerald-700 hover:text-emerald-900 font-bold ml-2 cursor-pointer"
+                  className={`font-bold ml-2 cursor-pointer ${
+                    translationNoticeTone === "success"
+                      ? "text-emerald-700 hover:text-emerald-900"
+                      : "text-amber-700 hover:text-amber-900"
+                  }`}
                 >
                   ✕
                 </button>

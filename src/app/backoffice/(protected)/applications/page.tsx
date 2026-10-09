@@ -1,10 +1,13 @@
 import AdminApplicationsClientWrapper from "./AdminApplicationsClientWrapper"
 import prisma from "@/lib/prisma"
+import { requireAccount } from "@/lib/account"
 import { cookies } from "next/headers"
 
 export const dynamic = "force-dynamic"
 
 export default async function AdminApplicationsPage() {
+  await requireAccount()
+
   const cookieStore = await cookies()
   const lang = cookieStore.get("NEXT_LOCALE")?.value || "fr"
 

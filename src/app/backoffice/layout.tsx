@@ -1,6 +1,4 @@
 import type { Metadata } from "next"
-import AdminClientLayout from "./AdminClientLayout"
-import { getCurrentAccount } from "@/lib/account"
 import "../globals.css"
 
 export const metadata: Metadata = {
@@ -21,20 +19,15 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function BackofficeLayoutRoute({
+export default function BackofficeLayoutRoute({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const account = await getCurrentAccount()
-  const user = account
-    ? { name: account.name, email: account.email, role: account.role }
-    : null
-
   return (
     <html lang="fr" className="scroll-smooth">
       <body className="antialiased min-h-screen flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
-        <AdminClientLayout user={user}>{children}</AdminClientLayout>
+        {children}
       </body>
     </html>
   )

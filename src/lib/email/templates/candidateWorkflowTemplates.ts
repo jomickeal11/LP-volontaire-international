@@ -10,7 +10,7 @@
  */
 
 import { wrapEmailHtml, renderEmailTextFooter } from "./emailTheme"
-import { interpolateVariables, formatTextToHtml, type EmailVariableContext } from "../variableEngine"
+import { interpolateVariablesEscaped, formatTextToHtml, type EmailVariableContext } from "../variableEngine"
 
 export type WorkflowStatusKey =
   | "NEW"
@@ -522,8 +522,10 @@ export function renderCandidateWorkflowEmail(params: {
   const rawBody = params.customBody || def?.bodyTemplate || "Bonjour {{firstName}},\n\nVotre candidature a été mise à jour."
 
   // 1. Interpolation des variables
-  const subject = interpolateVariables(rawSubject, params.context).trim()
-  const textBody = interpolateVariables(rawBody, params.context).trim()
+  //    Les valeurs issues de données utilisateur ({{firstName}}, etc.) sont échappées
+  //    pour neutraliser toute injection HTML dans le corps archivé (EmailLog) et l'e-mail final.
+  const subject = interpolateVariablesEscaped(rawSubject, params.context).trim()
+  const textBody = interpolateVariablesEscaped(rawBody, params.context).trim()
 
   // Détection de présence de signature dans le texte
   const alreadyHasSignature =

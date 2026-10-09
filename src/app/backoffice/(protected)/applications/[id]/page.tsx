@@ -1,5 +1,6 @@
 import AdminCandidateDetailWrapper from "./AdminCandidateDetailWrapper"
 import prisma from "@/lib/prisma"
+import { requireAccount } from "@/lib/account"
 import { notFound } from "next/navigation"
 import { cookies } from "next/headers"
 
@@ -10,6 +11,8 @@ export default async function CandidateDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  await requireAccount()
+
   const resolvedParams = await params
   const cookieStore = await cookies()
   const lang = cookieStore.get("NEXT_LOCALE")?.value || "fr"

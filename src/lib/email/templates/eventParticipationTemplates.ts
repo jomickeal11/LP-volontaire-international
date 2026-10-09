@@ -1,5 +1,5 @@
 import { wrapEmailHtml, renderEmailTextFooter } from "./emailTheme"
-import { formatTextToHtml } from "../variableEngine"
+import { formatTextToHtml, escapeHtml } from "../variableEngine"
 
 /** Statuts qui déclenchent une notification au demandeur. */
 export type EventParticipationDecision = "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"
@@ -34,6 +34,17 @@ export function renderEventParticipationEmail({
   rejectionReason,
 }: EventParticipationEmailParams): { subject: string; html: string; text: string } {
   const currentLang = (lang || "FR").toUpperCase() as "FR" | "EN" | "DE"
+
+  // Champs issus de formulaires publics ou de saisies libres : échappés avant
+  // interpolation, car le corps HTML est archivé dans EmailLog puis relu dans le
+  // back-office (XSS stocké). L'échappement n'altère pas l'affichage légitime.
+  firstName = escapeHtml(firstName)
+  lastName = escapeHtml(lastName)
+  eventTitle = escapeHtml(eventTitle)
+  eventDate = escapeHtml(eventDate)
+  eventLocation = eventLocation ? escapeHtml(eventLocation) : null
+  rejectionReason = rejectionReason ? escapeHtml(rejectionReason) : null
+
   const who = `${firstName} ${lastName}`.trim()
   const locationLine = eventLocation?.trim() ? `\n• Lieu : ${eventLocation.trim()}` : ""
 

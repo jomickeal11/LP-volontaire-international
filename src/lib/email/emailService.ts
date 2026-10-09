@@ -431,8 +431,18 @@ export class EmailService {
         ? fromAddress.match(/<([^>]+)>/)?.[1] || "aptic.rural19@gmail.com"
         : fromAddress
 
+      // Le nom d'affichage provient d'un formulaire public : neutralisation des
+      // retours-chariot (injection d'en-têtes SMTP), guillemets et autres caractères de contrôle.
+      const safeSenderName = (input.name || "Visiteur")
+        .replace(/[\r\n]+/g, " ")
+        .replace(/[\x00-\x1f\x7f]+/g, "")
+        .replace(/["\\]/g, "'")
+        .replace(/\s{2,}/g, " ")
+        .trim()
+        .slice(0, 90)
+
       const res = await provider.sendEmail({
-        from: `"${input.name} (via APTIC-R)" <${cleanSenderEmail}>`,
+        from: `"${safeSenderName} (via APTIC-R)" <${cleanSenderEmail}>`,
         to: input.routedTo,
         replyTo: input.email,
         subject: template.subject,

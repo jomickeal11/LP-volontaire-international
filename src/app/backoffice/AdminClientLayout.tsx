@@ -99,6 +99,8 @@ export default function AdminClientLayout({
     currentPage = "admin-applications"
   else if (pathname?.includes("/temoignages"))
     currentPage = "admin-temoignages"
+  else if (pathname?.includes("/albums"))
+    currentPage = "admin-albums"
   else if (pathname?.includes("/medias"))
     currentPage = "admin-medias"
   else if (pathname?.includes("/settings"))
@@ -142,6 +144,9 @@ export default function AdminClientLayout({
         break
       case "admin-temoignages":
         router.push("/backoffice/temoignages")
+        break
+      case "admin-albums":
+        router.push("/backoffice/albums")
         break
       case "admin-medias":
         router.push("/backoffice/medias")

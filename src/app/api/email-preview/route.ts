@@ -6,8 +6,10 @@ import { renderAdminDirectEmail } from "@/lib/email/templates/adminDirectEmail"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const type = searchParams.get("type") || "candidate"
-  const theme = searchParams.get("theme") || "light"
+  const rawType = searchParams.get("type") || "candidate"
+  const type = ["candidate", "partner", "admin", "direct"].includes(rawType) ? rawType : "candidate"
+  const rawTheme = searchParams.get("theme") || "light"
+  const theme = rawTheme === "dark" ? "dark" : "light"
 
   let email: { subject: string; html: string; text: string }
 

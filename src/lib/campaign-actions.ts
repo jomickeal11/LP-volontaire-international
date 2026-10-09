@@ -42,6 +42,11 @@ export interface CreateCampaignLinkResult {
 export async function createCampaignLink(
   input: CreateCampaignLinkInput,
 ): Promise<CreateCampaignLinkResult> {
+  const session = await verifySession()
+  if (!session?.userId) {
+    return { success: false, error: "Authentification requise." }
+  }
+
   const parsed = CreateLinkSchema.safeParse(input)
   if (!parsed.success) {
     return { success: false, error: "Données invalides." }
@@ -121,6 +126,10 @@ export interface SavedCampaignLink {
 
 export async function getSavedCampaignLinks(limit = 50): Promise<SavedCampaignLink[]> {
   try {
+    const session = await verifySession()
+    if (!session?.userId) {
+      return []
+    }
     const rows = await (prisma as any).lienCampagne.findMany({
       orderBy: { createdAt: "desc" },
       take: limit,

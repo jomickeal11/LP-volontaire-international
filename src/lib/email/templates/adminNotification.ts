@@ -1,5 +1,5 @@
 import { wrapEmailHtml, renderEmailTextFooter } from "./emailTheme"
-import { formatTextToHtml } from "../variableEngine"
+import { formatTextToHtml, escapeHtml } from "../variableEngine"
 import { getSiteUrl } from "@/lib/seo"
 
 interface AdminCandidateAlertParams {
@@ -32,6 +32,19 @@ export function renderAdminNotificationEmail(params: AdminAlertParams): {
   const isCandidate = params.type === "CANDIDATE"
   const siteUrl = getSiteUrl()
 
+  // Données issues de formulaires publics : échappées avant intégration au HTML.
+  const handledReferenceNumber = escapeHtml(params.referenceNumber)
+  const handledEmail = escapeHtml(params.email)
+  const handledCountry = escapeHtml(params.country)
+  const handledName = isCandidate ? escapeHtml(params.name) : ""
+  const handledProfession = isCandidate ? escapeHtml(params.profession) : ""
+  const handledSkills = isCandidate && params.skills?.length
+    ? escapeHtml(params.skills.join(", "))
+    : ""
+  const handledOrgName = isCandidate ? "" : escapeHtml(params.orgName)
+  const handledContactPerson = isCandidate ? "" : escapeHtml(params.contactPerson)
+  const handledOrgType = isCandidate ? "" : escapeHtml(params.orgType)
+
   const subject = isCandidate
     ? `APTIC-R — Nouvelle candidature — ${params.referenceNumber}`
     : `APTIC-R — Demande de partenariat — ${params.referenceNumber}`
@@ -46,10 +59,10 @@ export function renderAdminNotificationEmail(params: AdminAlertParams): {
 Une nouvelle candidature a été soumise sur le portail de volontariat international APTIC-R.
 
 Coordonnées & détails du candidat :
-• Nom : ${params.name}
-• Email : ${params.email}
-• Pays : ${params.country}${params.profession ? `\n• Profession : ${params.profession}` : ""}${params.skills && params.skills.length > 0 ? `\n• Compétences : ${params.skills.join(", ")}` : ""}
-• Référence : ${params.referenceNumber}
+• Nom : ${handledName}
+• Email : ${handledEmail}
+• Pays : ${handledCountry}${handledProfession ? `\n• Profession : ${handledProfession}` : ""}${handledSkills ? `\n• Compétences : ${handledSkills}` : ""}
+• Référence : ${handledReferenceNumber}
 
 Lien d'accès au dossier dans le Back-office :
 ${backofficeUrl}
@@ -60,12 +73,12 @@ Vous pouvez consulter et gérer ce dossier directement depuis l'espace d'adminis
 Une nouvelle demande de partenariat a été enregistrée sur le portail APTIC-R.
 
 Détails de l'organisation :
-• Organisation : ${params.orgName}
-• Contact référent : ${params.contactPerson}
-• Email : ${params.email}
-• Pays : ${params.country}
-• Type de structure : ${params.orgType}
-• Référence : ${params.referenceNumber}
+• Organisation : ${handledOrgName}
+• Contact référent : ${handledContactPerson}
+• Email : ${handledEmail}
+• Pays : ${handledCountry}
+• Type de structure : ${handledOrgType}
+• Référence : ${handledReferenceNumber}
 
 Lien d'accès à la demande dans le Back-office :
 ${backofficeUrl}

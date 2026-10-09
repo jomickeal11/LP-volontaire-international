@@ -33,6 +33,7 @@ export class ResendEmailProvider implements EmailProvider {
         body: JSON.stringify({
           from: fromAddress,
           to: Array.isArray(payload.to) ? payload.to : [payload.to],
+          ...(payload.replyTo ? { reply_to: payload.replyTo } : {}),
           subject: payload.subject,
           html: payload.html,
           text: payload.text,

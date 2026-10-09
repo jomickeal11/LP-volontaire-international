@@ -10,6 +10,7 @@ import {
   teamMemberReorderSchema,
 } from "./cms-validations"
 import { verifySession } from "./auth"
+import { escapeHtml } from "./email/variableEngine"
 import { randomBytes } from "crypto"
 import { revalidatePath } from "next/cache"
 import type { LanguageCode } from "@prisma/client"
@@ -37,6 +38,27 @@ function generateMemberReference(): string {
   const year = new Date().getFullYear()
   const randomStr = randomBytes(2).toString("hex").toUpperCase()
   return `MBR-${year}-${randomStr}`
+}
+
+// ─── GARDE D'AUTORISATION ────────────────────────────────────────────────────
+// Toutes les actions de mutation du back-office vérifient la session côté
+// serveur. Le middleware ne suffit pas : une Server Action peut être invoquée
+// depuis n'importe quel chemin public avec un identifiant d'action connu.
+const UNAUTHORIZED_ACTION = "Action non autorisée : connexion administrateur requise."
+
+async function isAdminSession(): Promise<boolean> {
+  const session = await verifySession()
+  return Boolean(session?.userId)
+}
+
+// Identifiants non fiables côté client : on vérifie toujours l'existence
+// d'un album en base avant d'associer un média.
+async function albumExists(id: string): Promise<boolean> {
+  const found = await (prisma as any).album.findUnique({
+    where: { id },
+    select: { id: true },
+  })
+  return Boolean(found)
 }
 
 // ─── 1. MEMBRES (Demande d'adhésion & Répertoire) ─────────────────────────────
@@ -471,6 +493,9 @@ export async function getArticleCategories() {
 
 export async function createArticleCategory(nameFr: string, nameEn?: string, nameDe?: string) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const trimmed = nameFr.trim()
     if (!trimmed) {
       return { success: false, error: "Le nom de la catégorie est obligatoire." }
@@ -634,7 +659,239 @@ export async function getResources(options?: {
   }
 }
 
-// ─── 8. GALERIE MÉDIAS ────────────────────────────────────────────────────────
+// ─── 8. ALBUMS ───────────────────────────────────────────────────────────────
+
+export async function getPublishedAlbums() {
+  try {
+    return await (prisma as any).album.findMany({
+      where: { published: true },
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+    })
+  } catch (error) {
+    console.error("Error fetching published albums:", error)
+    return []
+  }
+}
+
+export async function getAllAlbums() {
+  try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION, items: [] }
+    }
+    const items = await (prisma as any).album.findMany({
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+      include: {
+        _count: { select: { medias: true } },
+      },
+    })
+    return { success: true, items }
+  } catch (error: any) {
+    console.error("Error fetching all albums:", error)
+    return { success: false, error: error.message || "Erreur lors de la récupération des albums.", items: [] }
+  }
+}
+
+export async function getAlbumById(id: string) {
+  try {
+    return await (prisma as any).album.findUnique({
+      where: { id },
+      include: {
+        medias: {
+          orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+        },
+        _count: { select: { medias: true } },
+      },
+    })
+  } catch (error) {
+    console.error("Error fetching album by id:", error)
+    return null
+  }
+}
+
+export async function createAlbum(data: {
+  slug: string
+  titleFr: string
+  titleEn?: string | null
+  titleDe?: string | null
+  descriptionFr?: string | null
+  descriptionEn?: string | null
+  descriptionDe?: string | null
+  coverImage?: string | null
+  published?: boolean
+  order?: number
+}) {
+  try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
+    if (!data.titleFr?.trim()) {
+      return { success: false, error: "Le titre (FR) est requis." }
+    }
+    if (!data.slug?.trim()) {
+      return { success: false, error: "Le slug est requis." }
+    }
+    if (data.titleFr.trim().length > 200) {
+      return { success: false, error: "Le titre (FR) ne doit pas dépasser 200 caractères." }
+    }
+    if ((data.titleEn?.trim().length ?? 0) > 200 || (data.titleDe?.trim().length ?? 0) > 200) {
+      return { success: false, error: "Les titres traduits ne doivent pas dépasser 200 caractères." }
+    }
+    if ((data.descriptionFr?.length ?? 0) > 3000 || (data.descriptionEn?.length ?? 0) > 3000 || (data.descriptionDe?.length ?? 0) > 3000) {
+      return { success: false, error: "Les descriptions ne doivent pas dépasser 3000 caractères." }
+    }
+    if (data.slug.trim().length > 120) {
+      return { success: false, error: "Le slug ne doit pas dépasser 120 caractères." }
+    }
+
+    const existing = await (prisma as any).album.findUnique({ where: { slug: data.slug.trim() } })
+    if (existing) {
+      return { success: false, error: "Ce slug est déjà utilisé par un autre album." }
+    }
+
+    const album = await (prisma as any).album.create({
+      data: {
+        slug: data.slug.trim(),
+        titleFr: data.titleFr.trim(),
+        titleEn: data.titleEn?.trim() || null,
+        titleDe: data.titleDe?.trim() || null,
+        descriptionFr: data.descriptionFr?.trim() || null,
+        descriptionEn: data.descriptionEn?.trim() || null,
+        descriptionDe: data.descriptionDe?.trim() || null,
+        coverImage: data.coverImage?.trim() || null,
+        published: data.published ?? true,
+        order: data.order ?? 0,
+      },
+    })
+
+    safeRevalidatePath("/backoffice/albums")
+    safeRevalidatePath("/backoffice/medias")
+    safeRevalidatePath("/[lang]/galerie")
+    return { success: true, album, message: "Album créé." }
+  } catch (error: any) {
+    console.error("Error creating album:", error)
+    return { success: false, error: error.message || "Erreur lors de la création de l'album." }
+  }
+}
+
+export async function updateAlbum(id: string, data: {
+  slug?: string
+  titleFr?: string
+  titleEn?: string | null
+  titleDe?: string | null
+  descriptionFr?: string | null
+  descriptionEn?: string | null
+  descriptionDe?: string | null
+  coverImage?: string | null
+  published?: boolean
+  order?: number
+}) {
+  try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
+    if (data.titleFr !== undefined && !data.titleFr.trim()) {
+      return { success: false, error: "Le titre (FR) est requis." }
+    }
+    if (data.titleFr !== undefined && data.titleFr.trim().length > 200) {
+      return { success: false, error: "Le titre (FR) ne doit pas dépasser 200 caractères." }
+    }
+    if ((data.titleEn?.trim().length ?? 0) > 200 || (data.titleDe?.trim().length ?? 0) > 200) {
+      return { success: false, error: "Les titres traduits ne doivent pas dépasser 200 caractères." }
+    }
+    if ((data.descriptionFr?.length ?? 0) > 3000 || (data.descriptionEn?.length ?? 0) > 3000 || (data.descriptionDe?.length ?? 0) > 3000) {
+      return { success: false, error: "Les descriptions ne doivent pas dépasser 3000 caractères." }
+    }
+    if (data.slug !== undefined) {
+      if (!data.slug.trim()) {
+        return { success: false, error: "Le slug est requis." }
+      }
+      if (data.slug.trim().length > 120) {
+        return { success: false, error: "Le slug ne doit pas dépasser 120 caractères." }
+      }
+      const existing = await (prisma as any).album.findFirst({
+        where: { slug: data.slug.trim(), NOT: { id } },
+      })
+      if (existing) {
+        return { success: false, error: "Ce slug est déjà utilisé par un autre album." }
+      }
+    }
+
+    const updateData: any = {}
+    if (data.slug !== undefined) updateData.slug = data.slug.trim()
+    if (data.titleFr !== undefined) updateData.titleFr = data.titleFr.trim()
+    if (data.titleEn !== undefined) updateData.titleEn = data.titleEn?.trim() || null
+    if (data.titleDe !== undefined) updateData.titleDe = data.titleDe?.trim() || null
+    if (data.descriptionFr !== undefined) updateData.descriptionFr = data.descriptionFr?.trim() || null
+    if (data.descriptionEn !== undefined) updateData.descriptionEn = data.descriptionEn?.trim() || null
+    if (data.descriptionDe !== undefined) updateData.descriptionDe = data.descriptionDe?.trim() || null
+    if (data.coverImage !== undefined) updateData.coverImage = data.coverImage?.trim() || null
+    if (data.published !== undefined) updateData.published = Boolean(data.published)
+    if (data.order !== undefined) updateData.order = Number(data.order)
+
+    const album = await (prisma as any).album.update({ where: { id }, data: updateData })
+
+    safeRevalidatePath("/backoffice/albums")
+    safeRevalidatePath("/backoffice/medias")
+    safeRevalidatePath("/[lang]/galerie")
+    return { success: true, album, message: "Album mis à jour." }
+  } catch (error: any) {
+    console.error("Error updating album:", error)
+    return { success: false, error: error.message || "Erreur lors de la mise à jour de l'album." }
+  }
+}
+
+export async function deleteAlbum(id: string) {
+  try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
+    // Unlink medias before deleting album
+    await (prisma as any).media.updateMany({
+      where: { albumId: id },
+      data: { albumId: null },
+    })
+    await (prisma as any).album.delete({ where: { id } })
+
+    safeRevalidatePath("/backoffice/albums")
+    safeRevalidatePath("/backoffice/medias")
+    safeRevalidatePath("/[lang]/galerie")
+    return { success: true, message: "Album supprimé." }
+  } catch (error: any) {
+    console.error("Error deleting album:", error)
+    return { success: false, error: error.message || "Erreur lors de la suppression de l'album." }
+  }
+}
+
+export async function linkMediaToAlbum(mediaId: string, albumId: string | null) {
+  try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
+    if (!mediaId) {
+      return { success: false, error: "Média introuvable." }
+    }
+    const media = await (prisma as any).media.findUnique({ where: { id: mediaId }, select: { id: true } })
+    if (!media) {
+      return { success: false, error: "Média introuvable." }
+    }
+    if (albumId && !(await albumExists(albumId))) {
+      return { success: false, error: "Album introuvable." }
+    }
+    await (prisma as any).media.update({
+      where: { id: mediaId },
+      data: { albumId: albumId || null },
+    })
+    safeRevalidatePath("/backoffice/medias")
+    safeRevalidatePath("/backoffice/albums")
+    safeRevalidatePath("/[lang]/galerie")
+    return { success: true }
+  } catch (error: any) {
+    console.error("Error linking media to album:", error)
+    return { success: false, error: error.message || "Erreur lors de la liaison." }
+  }
+}
+
+// ─── 9. GALERIE MÉDIAS ────────────────────────────────────────────────────────
 
 export async function getMedia(options?: {
   album?: string
@@ -668,6 +925,9 @@ export async function getMedia(options?: {
 
 export async function getAllMedias() {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION, items: [] }
+    }
     const items = await (prisma as any).media.findMany({
       orderBy: [{ featured: "desc" }, { order: "asc" }, { createdAt: "desc" }],
     })
@@ -680,6 +940,9 @@ export async function getAllMedias() {
 
 export async function createMedia(data: any) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     if (!data.titleFr?.trim()) {
       return { success: false, error: "Le titre (FR) est requis." }
     }
@@ -691,6 +954,10 @@ export async function createMedia(data: any) {
     // Le contrôle réel se fera via Zod et dans le front, mais on bloque ici aussi.
     const allowedTypes = ["PHOTO", "VIDEO"]
     const type = allowedTypes.includes(data.type) ? data.type : "PHOTO"
+
+    if (data.albumId && !(await albumExists(data.albumId))) {
+      return { success: false, error: "Album introuvable." }
+    }
 
     const urlLower = data.url.toLowerCase()
     if (type === "PHOTO") {
@@ -715,6 +982,7 @@ export async function createMedia(data: any) {
         thumbnailUrl: data.thumbnailUrl || null,
         type,
         album: data.album || null,
+        albumId: data.albumId || null,
         category: data.category || null,
         featured: data.featured || false,
         order: data.order !== undefined ? Number(data.order) : 0,
@@ -733,6 +1001,9 @@ export async function createMedia(data: any) {
 
 export async function updateMedia(id: string, data: any) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const updateData: any = {}
     if (data.titleFr !== undefined) updateData.titleFr = data.titleFr.trim()
     if (data.titleEn !== undefined) updateData.titleEn = data.titleEn?.trim() || null
@@ -763,6 +1034,12 @@ export async function updateMedia(id: string, data: any) {
        }
     }
 
+    if (data.albumId !== undefined) {
+      if (data.albumId && !(await albumExists(data.albumId))) {
+        return { success: false, error: "Album introuvable." }
+      }
+      updateData.albumId = data.albumId || null
+    }
     if (data.album !== undefined) updateData.album = data.album || null
     if (data.category !== undefined) updateData.category = data.category || null
     if (data.featured !== undefined) updateData.featured = Boolean(data.featured)
@@ -785,6 +1062,9 @@ export async function updateMedia(id: string, data: any) {
 
 export async function deleteMedia(id: string) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     await (prisma as any).media.delete({
       where: { id },
     })
@@ -837,6 +1117,12 @@ export async function getMemberApplications(options?: {
   skip?: number
 }) {
   try {
+    if (!(await isAdminSession())) {
+      return {
+        applications: [],
+        counts: { total: 0, pending: 0, approved: 0, rejected: 0 },
+      }
+    }
     const where: any = {}
 
     if (options?.status && options.status !== "ALL") {
@@ -903,6 +1189,9 @@ export async function approveMemberApplication(
   adminNote?: string
 ) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const application = await prisma.demandeAdhesion.findUnique({
       where: { id: applicationId },
       include: { member: true },
@@ -1007,7 +1296,7 @@ export async function approveMemberApplication(
           recipient: member.email,
           recipientName: `${member.firstName} ${member.lastName}`,
           subject: `Bienvenue au sein d'APTIC-R - Adhésion confirmée (${member.referenceNumber})`,
-          bodyHtml: `<p>Bonjour ${member.firstName},</p><p>Nous avons le plaisir de vous informer que votre demande d'adhésion a été validée. Votre référence membre officielle est <strong>${member.referenceNumber}</strong>.</p>`,
+          bodyHtml: `<p>Bonjour ${escapeHtml(member.firstName)},</p><p>Nous avons le plaisir de vous informer que votre demande d'adhésion a été validée. Votre référence membre officielle est <strong>${escapeHtml(member.referenceNumber)}</strong>.</p>`,
           status: "SENT",
           actionType: "MEMBER_CONFIRMATION",
           templateKey: "MEMBER_WELCOME",
@@ -1044,6 +1333,9 @@ export async function rejectMemberApplication(
   adminNote?: string
 ) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const application = await prisma.demandeAdhesion.findUnique({
       where: { id: applicationId },
     })
@@ -1093,6 +1385,9 @@ export async function resetMemberApplicationToPending(
   reason: string
 ) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     if (!reason || !reason.trim()) {
       return { success: false, error: "Le motif du retour en attente est obligatoire." }
     }
@@ -1167,6 +1462,9 @@ export async function revokeMembership(
   reason: string
 ) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     if (!reason || !reason.trim()) {
       return { success: false, error: "Le motif officiel de la révocation est obligatoire." }
     }
@@ -1233,6 +1531,9 @@ export async function revokeMembershipDirect(
   reason: string
 ) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     if (!reason || !reason.trim()) {
       return { success: false, error: "Le motif officiel de la révocation est obligatoire." }
     }
@@ -1311,6 +1612,9 @@ export async function updateMemberDetails(
   adminName: string = "Admin APTIC-R"
 ) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const existing = await prisma.membre.findUnique({
       where: { id: memberId },
     })
@@ -1385,6 +1689,9 @@ export async function updateMemberApplicationData(
   adminName: string = "Admin APTIC-R"
 ) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const existing = await prisma.demandeAdhesion.findUnique({
       where: { id: applicationId },
       include: { member: true },
@@ -1474,6 +1781,9 @@ export async function setMemberApplicationPending(
   adminNote?: string
 ) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const application = await prisma.demandeAdhesion.findUnique({
       where: { id: applicationId },
     })
@@ -1526,6 +1836,12 @@ export async function getMembersDirectory(options?: {
   skip?: number
 }) {
   try {
+    if (!(await isAdminSession())) {
+      return {
+        members: [],
+        stats: { activeMembers: 0, countriesCount: 0, domainsCount: 0, newThisMonth: 0 },
+      }
+    }
     const where: any = {}
 
     // Par défaut, le répertoire des membres n'affiche QUE les membres actifs
@@ -1624,6 +1940,9 @@ export async function getMembersDirectory(options?: {
 
 export async function getMemberHistory(memberId: string) {
   try {
+    if (!(await isAdminSession())) {
+      return []
+    }
     return await prisma.historiqueAdhesion.findMany({
       where: { memberId },
       orderBy: { createdAt: "desc" },
@@ -1636,6 +1955,9 @@ export async function getMemberHistory(memberId: string) {
 
 export async function getApplicationHistory(applicationId: string) {
   try {
+    if (!(await isAdminSession())) {
+      return []
+    }
     return await prisma.historiqueAdhesion.findMany({
       where: { applicationId },
       orderBy: { createdAt: "desc" },
@@ -1701,6 +2023,9 @@ export async function createArticle(data: {
   metaDescription?: string
 }) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const baseSlug = slugify(data.titleFr)
     let slug = baseSlug
     let counter = 1
@@ -1770,6 +2095,9 @@ export async function updateArticle(
   }>
 ) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const existing = await prisma.article.findUnique({ where: { id } })
     if (!existing) {
       return { success: false, error: "Article introuvable." }
@@ -1804,6 +2132,9 @@ export async function updateArticle(
 
 export async function toggleArticleFeatured(id: string, isFeatured: boolean) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const existing = await prisma.article.findUnique({ where: { id } })
     if (!existing) {
       return { success: false, error: "Article introuvable." }
@@ -1839,6 +2170,9 @@ export async function toggleArticleFeatured(id: string, isFeatured: boolean) {
 
 export async function deleteArticle(id: string) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     await prisma.article.delete({ where: { id } })
     revalidatePath("/backoffice/articles")
     revalidatePath("/[lang]/actualites", "page")
@@ -1885,6 +2219,9 @@ export async function createProject(data: {
   featuredImage?: string
 }) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const baseSlug = slugify(data.titleFr)
     let slug = baseSlug
     let counter = 1
@@ -1949,6 +2286,9 @@ export async function createProject(data: {
 
 export async function updateProject(id: string, data: any) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     if (data.isFeatured) {
       await prisma.projet.updateMany({
         where: { id: { not: id } },
@@ -1972,6 +2312,9 @@ export async function updateProject(id: string, data: any) {
 
 export async function deleteProject(id: string) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     await prisma.projet.delete({ where: { id } })
     revalidatePath("/backoffice/projects")
     return { success: true }
@@ -2002,6 +2345,9 @@ export async function createEvent(data: {
   [key: string]: any
 }) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION, errors: [] as string[] }
+    }
     const baseSlug = slugify(data.titleFr)
     let slug = baseSlug
     let counter = 1
@@ -2041,6 +2387,9 @@ export async function createEvent(data: {
 
 export async function updateEvent(id: string, data: any) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION, errors: [] as string[] }
+    }
     const event = await prisma.evenement.update({
       where: { id },
       data,
@@ -2055,6 +2404,9 @@ export async function updateEvent(id: string, data: any) {
 
 export async function deleteEvent(id: string) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     await prisma.evenement.delete({ where: { id } })
     revalidatePath("/backoffice/events")
     return { success: true }
@@ -2072,6 +2424,9 @@ export async function getNewsletterSubscribers(filters?: {
   active?: boolean
 }) {
   try {
+    if (!(await isAdminSession())) {
+      return []
+    }
     const where: any = {}
     if (filters?.search) {
       where.OR = [
@@ -2098,6 +2453,9 @@ export async function getNewsletterSubscribers(filters?: {
 
 export async function toggleNewsletterSubscriberStatus(id: string) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const subscriber = await prisma.newsletterAbonne.findUnique({ where: { id } })
     if (!subscriber) return { success: false, error: "Abonné introuvable" }
 
@@ -2119,6 +2477,9 @@ export async function toggleNewsletterSubscriberStatus(id: string) {
 
 export async function deleteNewsletterSubscriber(id: string) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     await prisma.newsletterAbonne.delete({ where: { id } })
     revalidatePath("/backoffice/newsletter")
     return { success: true }
@@ -2135,6 +2496,9 @@ export async function adminAddNewsletterSubscriber(data: {
   consent?: boolean
 }) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const normalizedEmail = data.email.toLowerCase().trim()
     const existing = await prisma.newsletterAbonne.findUnique({
       where: { email: normalizedEmail },
@@ -2218,6 +2582,9 @@ export async function updateSiteSettings(
   entries: { key: string; value: string; group?: string; description?: string }[],
   groupHint: string[] = [],
 ) {
+  if (!(await isAdminSession())) {
+    return { success: false, error: UNAUTHORIZED_ACTION, savedCount: 0 }
+  }
   const startedAt = performance.now()
   let transactionMs = 0
   let revalidationMs = 0
@@ -2344,6 +2711,9 @@ export async function updateSiteSettings(
 
 export async function seedAboutPageSettings(force = false) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const existing = await (prisma as any).parametreSite.findUnique({
       where: { key: "about_title_fr" },
     })
@@ -2368,6 +2738,9 @@ export async function seedAboutPageSettings(force = false) {
 
 export async function seedSupportPageSettings(force = false) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     let settings = Object.entries(INITIAL_SUPPORT_SETTINGS)
 
     if (!force) {
@@ -2868,6 +3241,9 @@ export async function createDomaine(data: {
   active?: boolean
 }) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const baseSlug = slugify(data.nameFr)
     let slug = baseSlug
     let counter = 1
@@ -2955,6 +3331,9 @@ export async function updateDomaine(
   }>
 ) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const updateData: any = { ...data }
     if (data.order !== undefined) updateData.order = Number(data.order)
     if (data.active !== undefined) updateData.active = Boolean(data.active)
@@ -2978,6 +3357,9 @@ export async function updateDomaine(
 
 export async function toggleDomaineActive(id: string, active: boolean) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const domaine = await (prisma as any).domaine.update({
       where: { id },
       data: { active },
@@ -2996,6 +3378,9 @@ export async function toggleDomaineActive(id: string, active: boolean) {
 
 export async function deleteDomaine(id: string) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     // Vérifier si des projets sont liés
     const projectCount = await (prisma as any).projet.count({
       where: { domaineId: id },
@@ -3025,6 +3410,9 @@ export async function deleteDomaine(id: string) {
 
 export async function reorderDomainesAction(orderedIds: string[]) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const updates = orderedIds.map((id, index) =>
       (prisma as any).domaine.update({
         where: { id },
@@ -3045,6 +3433,9 @@ export async function reorderDomainesAction(orderedIds: string[]) {
 
 export async function duplicateDomaineAction(id: string) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const source = await (prisma as any).domaine.findUnique({
       where: { id },
     })
@@ -3168,6 +3559,9 @@ export async function createRessource(data: {
   published?: boolean
 }) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     if (!data.title?.trim()) {
       return { success: false, error: "Le titre de la ressource est requis." }
     }
@@ -3224,6 +3618,9 @@ export async function updateRessource(
   }>
 ) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const updateData: any = {}
     if (data.title !== undefined) {
       updateData.titleFr = data.title.trim()
@@ -3262,6 +3659,9 @@ export async function updateRessource(
 
 export async function toggleRessourcePublished(id: string, published: boolean) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const ressource = await (prisma as any).ressource.update({
       where: { id },
       data: { published },
@@ -3279,6 +3679,9 @@ export async function toggleRessourcePublished(id: string, published: boolean) {
 
 export async function deleteRessource(id: string) {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     await (prisma as any).ressource.delete({
       where: { id },
     })
@@ -3474,6 +3877,9 @@ export async function adminCreateMember(data: {
 }) {
   "use server"
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     if (!data.firstName?.trim() || !data.lastName?.trim() || !data.email?.trim() || !data.country?.trim()) {
       return { success: false, error: "Prénom, nom, email et pays sont obligatoires." }
     }
@@ -3542,6 +3948,9 @@ export async function adminCreateCandidate(data: {
 }) {
   "use server"
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     if (!data.firstName?.trim() || !data.lastName?.trim() || !data.email?.trim() || !data.country?.trim() || !data.dateOfBirth) {
       return { success: false, error: "Prénom, nom, email, pays et date de naissance sont obligatoires." }
     }
@@ -3635,6 +4044,9 @@ export async function adminCreatePartner(data: {
 }) {
   "use server"
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     if (!data.orgName?.trim() || !data.country?.trim() || !data.contactPerson?.trim() || !data.email?.trim()) {
       return { success: false, error: "Nom de l'organisation, pays, personne de contact et email sont obligatoires." }
     }
@@ -3682,6 +4094,9 @@ export async function adminCreatePartner(data: {
 export async function getSkills() {
   "use server"
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION, skills: [] }
+    }
     const skills = await prisma.competence.findMany({
       orderBy: { nameFr: 'asc' }
     })
@@ -3702,6 +4117,9 @@ export async function exportNewsletterSubscribersCsv(options: {
 }): Promise<{ success: true; csv: string; filename: string; count: number } | { success: false; error: string }> {
   "use server"
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const where: { active?: boolean; lang?: LanguageCode } = {}
     if (options.activeOnly) where.active = true
     if (options.lang && options.lang !== "ALL") where.lang = options.lang as LanguageCode
@@ -3739,6 +4157,9 @@ export async function exportNewsletterByLanguageZip(options: {
 }): Promise<{ success: true; base64: string; filename: string; files: string[] } | { success: false; error: string }> {
   "use server"
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION }
+    }
     const where: { active?: boolean } = {}
     if (options.activeOnly) where.active = true
 
@@ -3798,6 +4219,9 @@ export async function exportNewsletterByLanguageZip(options: {
 
 export async function getTeamCategories() {
   try {
+    if (!(await isAdminSession())) {
+      return []
+    }
     const categories = await prisma.categorieEquipe.findMany({
       orderBy: { order: "asc" },
     })
@@ -3830,6 +4254,7 @@ export async function createTeamCategory(data: { nameFr: string; nameEn?: string
     ? { nameFr: data }
     : data
   try {
+    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
     if (!normalized.nameFr?.trim()) return { success: false, error: "Le nom (FR) est obligatoire." }
     const slug = normalized.nameFr.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").toUpperCase()
     const category = await prisma.categorieEquipe.create({
@@ -3854,6 +4279,7 @@ export async function updateTeamCategory(id: string, data: { nameFr?: string; na
       ? { nameFr: data, name: data }
       : { ...data, name: (data as any).name ?? data.nameFr }
   try {
+    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
     const updateData: { name?: string; order?: number } = {}
     if (normalized.nameFr !== undefined && normalized.nameFr.trim()) {
       updateData.name = normalized.nameFr.trim()
@@ -3878,6 +4304,7 @@ export async function updateTeamCategory(id: string, data: { nameFr?: string; na
 export async function deleteTeamCategory(id: string) {
   "use server"
   try {
+    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
     await prisma.categorieEquipe.delete({ where: { id } })
     safeRevalidatePath("/backoffice/settings")
     return { success: true, message: "Catégorie supprimée." }
@@ -3890,6 +4317,9 @@ export async function deleteTeamCategory(id: string) {
 
 export async function getAllTemoignages() {
   try {
+    if (!(await isAdminSession())) {
+      return { success: false, error: UNAUTHORIZED_ACTION, items: [] }
+    }
     const items = await (prisma as any).temoignage.findMany({
       orderBy: [{ featured: "desc" }, { order: "asc" }, { createdAt: "desc" }],
     })
@@ -3903,6 +4333,7 @@ export async function getAllTemoignages() {
 export async function createTemoignage(data: any) {
   "use server"
   try {
+    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
     if (!data.authorName?.trim()) return { success: false, error: "Le nom de l'auteur est obligatoire." }
     if (!data.quoteFr?.trim()) return { success: false, error: "Le témoignage en français est obligatoire." }
 
@@ -3933,6 +4364,7 @@ export async function createTemoignage(data: any) {
 export async function updateTemoignage(id: string, data: any) {
   "use server"
   try {
+    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
     const updateData: any = {}
     if (data.authorName !== undefined) updateData.authorName = data.authorName.trim()
     if (data.authorRole !== undefined) updateData.authorRole = data.authorRole.trim()
@@ -3959,6 +4391,7 @@ export async function updateTemoignage(id: string, data: any) {
 export async function deleteTemoignage(id: string) {
   "use server"
   try {
+    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
     await (prisma as any).temoignage.delete({ where: { id } })
     safeRevalidatePath("/backoffice/temoignages")
     safeRevalidatePath("/[lang]")

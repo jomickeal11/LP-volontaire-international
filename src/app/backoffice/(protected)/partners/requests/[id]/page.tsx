@@ -1,5 +1,6 @@
 import AdminPartnerRequestDetailWrapper from "./AdminPartnerRequestDetailWrapper"
 import prisma from "@/lib/prisma"
+import { requireAccount } from "@/lib/account"
 import { formatDate } from "@/lib/dateUtils"
 import { notFound } from "next/navigation"
 import { cookies } from "next/headers"
@@ -11,6 +12,8 @@ export default async function PartnerRequestDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  await requireAccount()
+
   const resolvedParams = await params
   const { id } = resolvedParams
   const cookieStore = await cookies()

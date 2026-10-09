@@ -2,6 +2,7 @@
 
 import prisma from "./prisma"
 import { z } from "zod"
+import { verifySession } from "./auth"
 import { EmailService } from "./email"
 
 const contactMessageSchema = z.object({
@@ -29,8 +30,8 @@ const contactMessageSchema = z.object({
 
 export type ContactFormSubmissionInput = z.infer<typeof contactMessageSchema>
 
-/** Resolves the single recipient configured for the contact form. */
-export async function getContactFormRecipient(): Promise<string | null> {
+/** Resolves the single recipient configured for the contact form (interne uniquement). */
+async function getContactFormRecipient(): Promise<string | null> {
   try {
     const settings = await prisma.parametreSite.findMany({
       where: {
@@ -155,6 +156,16 @@ export async function getContactMessagesAction(params?: {
   error?: string
 }> {
   try {
+    const session = await verifySession()
+    if (!session?.userId) {
+      return {
+        success: false,
+        messages: [],
+        total: 0,
+        unreadCount: 0,
+        error: "Authentification requise.",
+      }
+    }
     const page = params?.page || 1
     const limit = params?.limit || 50
     const skip = (page - 1) * limit
@@ -210,6 +221,10 @@ export async function updateContactMessageStatusAction(
   notes?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const session = await verifySession()
+    if (!session?.userId) {
+      return { success: false, error: "Authentification requise." }
+    }
     const updateData: any = { status }
     if (notes !== undefined) updateData.notes = notes
     if (status === "REPLIED") updateData.repliedAt = new Date()
@@ -230,6 +245,10 @@ export async function deleteContactMessageAction(
   id: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const session = await verifySession()
+    if (!session?.userId) {
+      return { success: false, error: "Authentification requise." }
+    }
     await (prisma as any).messageContact.delete({
       where: { id },
     })
@@ -249,6 +268,10 @@ export async function getContactMessagesStatsAction(): Promise<{
   archived: number
 }> {
   try {
+    const session = await verifySession()
+    if (!session?.userId) {
+      return { success: false, total: 0, unread: 0, replied: 0, archived: 0 }
+    }
     const [total, unread, replied, archived] = await Promise.all([
       (prisma as any).messageContact.count(),
       (prisma as any).messageContact.count({ where: { status: "UNREAD" } }),

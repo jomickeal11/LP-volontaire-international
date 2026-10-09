@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef, useMemo } from "react"
-import { getAllMedias, createMedia, updateMedia, deleteMedia, getProjectsForSelect } from "@/lib/cms-actions"
+import { getAllMedias, createMedia, updateMedia, deleteMedia, getProjectsForSelect, getAllAlbums } from "@/lib/cms-actions"
 import { uploadMediaFile } from "@/lib/upload-client"
 import { useConfirm } from "@/components/admin/ConfirmProvider"
 
@@ -17,6 +17,7 @@ interface MediaItem {
   thumbnailUrl?: string | null
   type: string
   album?: string | null
+  albumId?: string | null
   category?: string | null
   order: number
   featured: boolean
@@ -39,7 +40,7 @@ const EMPTY_FORM = {
   url: "",
   thumbnailUrl: "",
   type: "PHOTO",
-  album: "",
+  albumId: "",
   category: "",
   order: "",
   featured: false,
@@ -74,10 +75,20 @@ export default function AdminMedias() {
   }, [feedback])
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [projects, setProjects] = useState<{ id: string; titleFr: string; slug: string }[]>([])
+  const [albums, setAlbums] = useState<{ id: string; titleFr: string; slug: string; published?: boolean }[]>([])
 
-  const existingAlbums = useMemo(() => {
-    return Array.from(new Set(items.map((i) => i.album).filter(Boolean))).sort() as string[]
-  }, [items])
+  const albumTitleById = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const album of albums) map.set(album.id, album.titleFr)
+    return map
+  }, [albums])
+
+  const getAlbumLabel = (item: MediaItem) => {
+    if (item.albumId && albumTitleById.has(item.albumId)) {
+      return albumTitleById.get(item.albumId) as string
+    }
+    return item.album?.trim() || ""
+  }
 
   const loadData = async () => {
     setLoading(true)
@@ -87,6 +98,10 @@ export default function AdminMedias() {
     }
     const proj = await getProjectsForSelect()
     setProjects(proj)
+    const albRes = await getAllAlbums()
+    if (albRes.success && albRes.items) {
+      setAlbums(albRes.items as { id: string; titleFr: string; slug: string }[])
+    }
     setLoading(false)
   }
 
@@ -138,7 +153,7 @@ export default function AdminMedias() {
       url: item.url || "",
       thumbnailUrl: item.thumbnailUrl || "",
       type: item.type || "PHOTO",
-      album: item.album || "",
+      albumId: item.albumId || "",
       category: item.category || "",
       order: item.order != null ? String(item.order) : "",
       featured: !!item.featured,
@@ -169,7 +184,8 @@ export default function AdminMedias() {
       url: form.url,
       thumbnailUrl: form.thumbnailUrl || null,
       type: form.type,
-      album: form.album || null,
+      albumId: form.albumId || null,
+      album: form.albumId ? albumTitleById.get(form.albumId) || null : null,
       category: form.category || null,
       featured: form.featured,
       projetId: form.projetId || null,
@@ -326,7 +342,7 @@ export default function AdminMedias() {
                     <td className="py-2.5 px-4 text-slate-600">
                       {MEDIA_TYPES[item.type] || item.type}
                     </td>
-                    <td className="py-2.5 px-4 text-slate-500">{item.album || "—"}</td>
+                    <td className="py-2.5 px-4 text-slate-500">{getAlbumLabel(item) || "—"}</td>
                     <td className="py-2.5 px-4 font-mono text-slate-400 text-[11px]">
                       {item.order}
                     </td>
@@ -435,21 +451,21 @@ export default function AdminMedias() {
                   <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
                     Album
                   </label>
-                  <input
-                    type="text"
-                    list="album-suggestions"
-                    value={form.album}
-                    onChange={(e) => setForm({ ...form, album: e.target.value })}
+                  <select
+                    value={form.albumId}
+                    onChange={(e) => setForm({ ...form, albumId: e.target.value })}
                     className={inputClass}
-                    placeholder="Sélectionner ou créer..."
-                  />
-                  <datalist id="album-suggestions">
-                    {existingAlbums.map((a) => (
-                      <option key={a as string} value={a as string} />
+                  >
+                    <option value="">— Aucun album —</option>
+                    {albums.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.titleFr}{a.published === false ? " (brouillon)" : ""}
+                      </option>
                     ))}
-                  </datalist>
+                  </select>
                   <p className="text-[11px] text-slate-400 leading-relaxed">
-                    Collection de médias liée à un événement ou une mission (ex : « Formation Arduino 2026 »). Plusieurs médias peuvent appartenir au même album.
+                    Rattaché à un album de la galerie (facultatif). Un média peut rester indépendant et lié à un projet institutionnel.
+                    Gérez les albums depuis le menu « Albums ».
                   </p>
                 </div>
                 <div className="space-y-1.5">
@@ -484,44 +500,20 @@ export default function AdminMedias() {
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                  {form.type === "VIDEO" ? "Vidéo *" : "Fichier *"}
+                  {form.type === "VIDEO" ? "URL de la vidéo *" : "Fichier image *"}
                 </label>
                 {form.type === "VIDEO" ? (
-                  /* ── Vidéo : fichier MP4/WebM OU URL externe ──────────── */
-                  <div className="space-y-3">
-                    {/* Option 1 : téléverser un fichier vidéo */}
-                    <div className="flex flex-wrap items-center gap-3">
-                      <button
-                        type="button"
-                        disabled={uploading}
-                        onClick={() => fileInputRef.current?.click()}
-                        className="px-4 py-2 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-600 hover:border-[#003366] hover:text-[#003366] transition-colors disabled:opacity-50"
-                      >
-                        {uploading ? "Téléversement…" : "Téléverser un fichier vidéo (.mp4 / .webm)"}
-                      </button>
-                      {form.url && form.url.startsWith("/") && (
-                        <span className="text-[11px] font-mono text-slate-400 truncate max-w-[280px]">
-                          {form.url}
-                        </span>
-                      )}
+                  /* ── Vidéo : intégration par URL externe uniquement ──────────── */
+                  <div className="space-y-2">
+                    <div className="p-3 bg-blue-50/70 border border-blue-200/80 rounded-lg text-xs text-[#003366]">
+                      <p className="font-semibold mb-0.5">Ajout de vidéo par URL externe</p>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Le téléversement direct de fichiers vidéo n&apos;est pas supporté. Les vidéos doivent être ajoutées via une URL externe (lien YouTube, Vimeo ou URL directe hébergée .mp4 / .webm).
+                      </p>
                     </div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="video/mp4,video/webm,video/ogg"
-                      className="hidden"
-                      onChange={handleFileUpload}
-                    />
-                    {/* Séparateur OU */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-px bg-slate-200" />
-                      <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">ou</span>
-                      <div className="flex-1 h-px bg-slate-200" />
-                    </div>
-                    {/* Option 2 : URL externe (YouTube / Vimeo / directe) */}
                     <input
                       type="text"
-                      required={!form.url || !form.url.startsWith("/")}
+                      required
                       value={form.url}
                       onChange={(e) => setForm({ ...form, url: e.target.value })}
                       placeholder="https://www.youtube.com/watch?v=… ou https://vimeo.com/…"
@@ -529,7 +521,7 @@ export default function AdminMedias() {
                     />
                     <p className="text-[11px] text-slate-400 leading-relaxed">
                       Coller un lien YouTube, Vimeo ou une URL directe (.mp4 / .webm).
-                      Ajoutez une miniature ci-dessous pour l&apos;aperçu dans la galerie.
+                      Ajoutez une URL de miniature ci-dessous pour l&apos;aperçu dans la galerie.
                     </p>
                   </div>
                 ) : (

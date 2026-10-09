@@ -777,7 +777,30 @@ model Ressource {
   @@index([projetId])
 }
 
-// ─── 17. CMS : GALERIE MÉDIAS ─────────────────────────────────────────────────
+// ─── 17. CMS : GALERIE MÉDIAS & ALBUMS ────────────────────────────────────────
+model Album {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  titleFr     String
+  titleEn     String?
+  titleDe     String?
+  descriptionFr String? @db.Text
+  descriptionEn String? @db.Text
+  descriptionDe String? @db.Text
+  coverImage  String?
+  published   Boolean  @default(true)
+  order       Int      @default(0)
+
+  medias      Media[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([published])
+  @@index([order])
+  @@index([slug])
+}
+
 model Media {
   id           String   @id @default(cuid())
   titleFr      String
@@ -789,10 +812,13 @@ model Media {
   url          String
   thumbnailUrl String?
   type         String   @default("PHOTO") // PHOTO, VIDEO
-  album        String?  // Formations 2025, Agbélouvé FabLab, etc.
+  album        String?  // Legacy text name (kept for backwards compatibility)
   category     String?  // TERRAIN, ATELIER, EQUIPE, COMMUNAUTE
   order        Int      @default(0)
   featured     Boolean  @default(false)
+
+  albumId      String?
+  albumRel     Album?   @relation(fields: [albumId], references: [id], onDelete: SetNull)
 
   projetId     String?
   projet       Projet?  @relation(fields: [projetId], references: [id], onDelete: SetNull)
@@ -801,6 +827,7 @@ model Media {
   updatedAt    DateTime @updatedAt
 
   @@index([album])
+  @@index([albumId])
   @@index([category])
   @@index([featured])
   @@index([projetId])

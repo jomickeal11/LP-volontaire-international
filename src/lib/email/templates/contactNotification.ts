@@ -1,5 +1,5 @@
 import { wrapEmailHtml, renderEmailTextFooter } from "./emailTheme"
-import { formatTextToHtml } from "../variableEngine"
+import { formatTextToHtml, escapeHtml } from "../variableEngine"
 import { getSiteUrl } from "@/lib/seo"
 
 export interface ContactNotificationParams {
@@ -36,17 +36,25 @@ export function renderContactNotificationEmail(params: ContactNotificationParams
   const siteUrl = getSiteUrl()
   const backofficeUrl = `${siteUrl}/backoffice/messages`
 
+  // Données issues du formulaire (non fiables) → échappées avant intégration au HTML
+  const handledName = escapeHtml(params.name)
+  const handledEmail = escapeHtml(params.email)
+  const handledPhone = escapeHtml(params.phone)
+  const handledOrg = escapeHtml(params.organization)
+  const handledSubjectText = escapeHtml(subjectText)
+  const handledMessage = escapeHtml(params.message)
+
   const bodyContent = `Bonjour,
 
-Vous avez reçu un nouveau message de ${params.name} depuis le formulaire de contact du site APTIC-R.
+Vous avez reçu un nouveau message de ${handledName} depuis le formulaire de contact du site APTIC-R.
 
 Coordonnées de l'expéditeur :
-• Nom : ${params.name}
-• Email : ${params.email}${params.phone ? `\n• Téléphone / WhatsApp : ${params.phone}` : ""}${params.organization ? `\n• Organisation : ${params.organization}` : ""}
-• Objet : ${subjectText}
+• Nom : ${handledName}
+• Email : ${handledEmail}${handledPhone ? `\n• Téléphone / WhatsApp : ${handledPhone}` : ""}${handledOrg ? `\n• Organisation : ${handledOrg}` : ""}
+• Objet : ${handledSubjectText}
 
 Message :
-${params.message}
+${handledMessage}
 
 Lien d'accès aux messages dans le Back-office :
 ${backofficeUrl}

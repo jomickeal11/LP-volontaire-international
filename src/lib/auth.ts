@@ -1,44 +1,36 @@
-import { SignJWT } from "jose/jwt/sign"
-import { jwtVerify } from "jose/jwt/verify"
 import { cookies } from "next/headers"
+import { decrypt, encrypt } from "./jwt"
+import { prisma } from "./prisma"
 
-let cachedEncodedKey: Uint8Array | null = null
+export { decrypt, encrypt } from "./jwt"
+
+const SESSION_COOKIE = "session"
+
+export interface VerifiedSession {
+  isAuth: true
+  userId: string
+  role: string
+}
 
 /**
- * Clé de signature de la session. Aucun secret par défaut n'est utilisé :
- * un secret absent fait échouer explicitement plutôt que de signer avec
- * une valeur connue de tous.
+ * Cache mémoire strictement NÉGATIF : un identifiant de compte confirmé
+ * absent de la base reste signalé pendant quelques minutes. Cela évite de
+ * marteler la base avec les JWT restés valides d'un compte supprimé.
+ *
+ * Le résultat positif (compte existant) n'est JAMAIS mis en cache : la
+ * suppression ou la modification d'un compte prend ainsi effet immédiatement.
  */
-function getEncodedKey(): Uint8Array {
-  if (!cachedEncodedKey) {
-    const secret = process.env.NEXTAUTH_SECRET
-    if (!secret) {
-      throw new Error(
-        "NEXTAUTH_SECRET manquant : définissez-le dans les variables d'environnement (aucun secret par défaut n'est accepté)."
-      )
+interface NegativeCacheEntry {
+  expiresAt: number
+}
+const negativeUserCache = new Map<string, NegativeCacheEntry>()
+const NEGATIVE_CACHE_TTL_MS = 10 * 60 * 1000
+
+function pruneNegativeCache(now: number = Date.now()) {
+  for (const [userId, entry] of negativeUserCache.entries()) {
+    if (entry.expiresAt <= now) {
+      negativeUserCache.delete(userId)
     }
-    cachedEncodedKey = new TextEncoder().encode(secret)
-  }
-  return cachedEncodedKey
-}
-
-export async function encrypt(payload: any) {
-  return await new SignJWT(payload)
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(getEncodedKey())
-}
-
-export async function decrypt(session: string | undefined = "") {
-  const encodedKey = getEncodedKey()
-  try {
-    const { payload } = await jwtVerify(session, encodedKey, {
-      algorithms: ["HS256"],
-    })
-    return payload
-  } catch (error) {
-    return null
   }
 }
 
@@ -47,7 +39,7 @@ export async function createSession(userId: string, role: string) {
   const session = await encrypt({ userId, role, expiresAt })
   const cookieStore = await cookies()
 
-  cookieStore.set("session", session, {
+  cookieStore.set(SESSION_COOKIE, session, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     expires: expiresAt,
@@ -56,19 +48,67 @@ export async function createSession(userId: string, role: string) {
   })
 }
 
-export async function verifySession() {
+export async function deleteSession() {
   const cookieStore = await cookies()
-  const cookie = cookieStore.get("session")?.value
-  const session = await decrypt(cookie)
+  cookieStore.delete(SESSION_COOKIE)
+}
 
-  if (!session?.userId) {
+/**
+ * Vérifie la session courante : signature et expiration du JWT, puis
+ * existence réelle (et rôle actuel) du compte en base. Un JWT correctement
+ * signé mais émis pour un compte supprimé est refusé ici : on ne se fie
+ * jamais uniquement à la signature et à l'expiration.
+ *
+ * Pendant une indisponibilité de la base, l'accès est refusé (échec fermé)
+ * sans supprimer le cookie, pour ne pas déconnecter tous les administrateurs
+ * lors d'un redémarrage à froid, tout en ne laissant passer personne.
+ */
+export async function verifySession(): Promise<VerifiedSession | null> {
+  const cookieStore = await cookies()
+  const cookie = cookieStore.get(SESSION_COOKIE)?.value
+  if (!cookie) {
     return null
   }
 
-  return { isAuth: true, userId: session.userId as string, role: session.role as string }
+  const session = await decrypt(cookie)
+  const userId =
+    typeof session?.userId === "string" && session.userId ? session.userId : null
+  if (!userId) {
+    return null
+  }
+
+  const now = Date.now()
+  const cached = negativeUserCache.get(userId)
+  if (cached && cached.expiresAt > now) {
+    await clearSessionSilently()
+    return null
+  }
+
+  let user: { id: string; role: string } | null
+  try {
+    user = await prisma.utilisateur.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true },
+    })
+  } catch (error: unknown) {
+    return null
+  }
+
+  if (!user) {
+    pruneNegativeCache(now)
+    negativeUserCache.set(userId, { expiresAt: now + NEGATIVE_CACHE_TTL_MS })
+    await clearSessionSilently()
+    return null
+  }
+
+  return { isAuth: true, userId: user.id, role: user.role }
 }
 
-export async function deleteSession() {
-  const cookieStore = await cookies()
-  cookieStore.delete("session")
+async function clearSessionSilently() {
+  try {
+    await deleteSession()
+  } catch (error: unknown) {
+    // Contexte en lecture seule (page ou layout rendu côté serveur) :
+    // la suppression du cookie est ignorée, l'accès reste refusé.
+  }
 }

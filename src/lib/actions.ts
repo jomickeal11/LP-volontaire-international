@@ -708,11 +708,23 @@ export async function submitCandidateApplicationFormData(
 }
 
 export async function getApplicationsCount() {
-  return await prisma.candidature.count()
+  try {
+    const session = await verifySession()
+    if (!session || !session.userId) {
+      return 0
+    }
+    return await prisma.candidature.count()
+  } catch {
+    return 0
+  }
 }
 
 export async function getPartnerRequestsCount() {
   try {
+    const session = await verifySession()
+    if (!session || !session.userId) {
+      return 0
+    }
     return await (prisma as any).demandePartenariat.count()
   } catch {
     return 0

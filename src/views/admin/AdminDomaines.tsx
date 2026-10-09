@@ -69,6 +69,7 @@ export default function AdminDomaines() {
   const [translating, setTranslating] = useState(false)
   const [translatingField, setTranslatingField] = useState<string | null>(null)
   const [translationNotice, setTranslationNotice] = useState("")
+  const [translationNoticeTone, setTranslationNoticeTone] = useState<"success" | "warning">("success")
   const [showTranslationHelp, setShowTranslationHelp] = useState(true)
   const [activeLangTab, setActiveLangTab] = useState<"FR" | "EN" | "DE">("FR")
   const [error, setError] = useState("")
@@ -101,28 +102,32 @@ export default function AdminDomaines() {
       })
 
       if (res.success) {
+        const t = (lang: "EN" | "DE", key: string, fallback: string) => {
+          const field = res.translations[lang]?.[key]
+          return field && field.status !== "failed" ? field.text : fallback
+        }
         setFormData((prev) => ({
           ...prev,
-          nameEn: res.translations.EN.name || prev.nameEn,
-          subtitleEn: res.translations.EN.subtitle || prev.subtitleEn,
-          descEn: res.translations.EN.desc || prev.descEn,
-          objectivesEnText: res.translations.EN.objectives || prev.objectivesEnText,
-          actionsEnText: res.translations.EN.actions || prev.actionsEnText,
-          targetAudienceEn: res.translations.EN.targetAudience || prev.targetAudienceEn,
-          imageCaptionEn: res.translations.EN.imageCaption || prev.imageCaptionEn,
+          nameEn: t("EN", "name", prev.nameEn),
+          subtitleEn: t("EN", "subtitle", prev.subtitleEn),
+          descEn: t("EN", "desc", prev.descEn),
+          objectivesEnText: t("EN", "objectives", prev.objectivesEnText),
+          actionsEnText: t("EN", "actions", prev.actionsEnText),
+          targetAudienceEn: t("EN", "targetAudience", prev.targetAudienceEn),
+          imageCaptionEn: t("EN", "imageCaption", prev.imageCaptionEn),
 
-          nameDe: res.translations.DE.name || prev.nameDe,
-          subtitleDe: res.translations.DE.subtitle || prev.subtitleDe,
-          descDe: res.translations.DE.desc || prev.descDe,
-          objectivesDeText: res.translations.DE.objectives || prev.objectivesDeText,
-          actionsDeText: res.translations.DE.actions || prev.actionsDeText,
-          targetAudienceDe: res.translations.DE.targetAudience || prev.targetAudienceDe,
-          imageCaptionDe: res.translations.DE.imageCaption || prev.imageCaptionDe,
+          nameDe: t("DE", "name", prev.nameDe),
+          subtitleDe: t("DE", "subtitle", prev.subtitleDe),
+          descDe: t("DE", "desc", prev.descDe),
+          objectivesDeText: t("DE", "objectives", prev.objectivesDeText),
+          actionsDeText: t("DE", "actions", prev.actionsDeText),
+          targetAudienceDe: t("DE", "targetAudience", prev.targetAudienceDe),
+          imageCaptionDe: t("DE", "imageCaption", prev.imageCaptionDe),
         }))
-        const providerName = res.providerUsed === "deepl" ? "DeepL API" : "Traducteur automatique"
-        setTranslationNotice(`Traduction terminée (${providerName}).`)
+        setTranslationNoticeTone(res.outcome.level === "success" ? "success" : "warning")
+        setTranslationNotice(res.outcome.message)
       } else {
-        setError(res.error || "Erreur lors de la traduction automatique.")
+        setError(res.error || res.outcome.message)
       }
     } catch (err: any) {
       setError(err.message || "Erreur réseau lors de la traduction")
@@ -158,8 +163,8 @@ export default function AdminDomaines() {
         sourceLang: "FR",
         targetLangs: [targetLang],
       })
-      if (res.success && res.translations?.[targetLang]?.[field]) {
-        const val = res.translations[targetLang][field]
+      const result = res.translations?.[targetLang]?.[field]
+      if (res.success && result && result.status !== "failed") {
         const stateKeyMap: Record<string, string> = {
           name_EN: "nameEn",
           name_DE: "nameDe",
@@ -177,10 +182,14 @@ export default function AdminDomaines() {
           imageCaption_DE: "imageCaptionDe",
         }
         const stateKey = stateKeyMap[`${field}_${targetLang}`]
-        setFormData((prev) => ({ ...prev, [stateKey]: val }))
-        setTranslationNotice(`Champ « ${field} » traduit vers ${targetLang === "EN" ? "l'anglais" : "l'allemand"}.`)
+        setFormData((prev) => ({ ...prev, [stateKey]: result.text }))
+        setTranslationNoticeTone(result.provider === "deepl" ? "success" : "warning")
+        setTranslationNotice(
+          `Champ « ${field} » traduit vers ${targetLang === "EN" ? "l'anglais" : "l'allemand"} (${result.provider === "deepl" ? "DeepL" : "moteur de secours"}).`
+        )
+        setError("")
       } else {
-        setError(res.error || "Erreur lors de la traduction du champ.")
+        setError(res.error || res.outcome.message || "Erreur lors de la traduction du champ.")
       }
     } catch (err: any) {
       setError(err.message || "Erreur réseau.")
@@ -1006,12 +1015,22 @@ export default function AdminDomaines() {
 
               {/* Translation notice banner */}
               {translationNotice && (
-                <div className="inline-flex w-fit max-w-full p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold items-center justify-between gap-3">
+                <div
+                  className={`inline-flex w-fit max-w-full p-2.5 rounded-xl border text-xs font-semibold items-center justify-between gap-3 ${
+                    translationNoticeTone === "success"
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                      : "bg-amber-50 border-amber-200 text-amber-800"
+                  }`}
+                >
                   <span>{translationNotice}</span>
                   <button
                     type="button"
                     onClick={() => setTranslationNotice("")}
-                    className="text-emerald-700 hover:text-emerald-900 font-bold ml-2 cursor-pointer"
+                    className={`font-bold ml-2 cursor-pointer ${
+                      translationNoticeTone === "success"
+                        ? "text-emerald-700 hover:text-emerald-900"
+                        : "text-amber-700 hover:text-amber-900"
+                    }`}
                   >
                     ✕
                   </button>

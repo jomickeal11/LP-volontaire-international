@@ -1,5 +1,5 @@
 import { wrapEmailHtml, renderEmailTextFooter } from "./emailTheme"
-import { formatTextToHtml } from "../variableEngine"
+import { formatTextToHtml, escapeHtml } from "../variableEngine"
 
 interface PartnerEmailParams {
   orgName: string
@@ -19,6 +19,13 @@ export function renderPartnerConfirmationEmail({
   lang = "FR",
 }: PartnerEmailParams): { subject: string; html: string; text: string } {
   const currentLang = (lang || "FR").toUpperCase() as "FR" | "EN" | "DE"
+
+  // Échappement des champs issus du formulaire public de partenariat.
+  orgName = escapeHtml(orgName)
+  contactPerson = escapeHtml(contactPerson)
+  referenceNumber = escapeHtml(referenceNumber)
+  country = country ? escapeHtml(country) : country
+  orgType = orgType ? escapeHtml(orgType) : orgType
 
   const contentMap = {
     FR: {

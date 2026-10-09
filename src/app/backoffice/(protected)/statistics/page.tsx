@@ -1,5 +1,6 @@
 import AdminAnalyticsClientWrapper from "./AdminAnalyticsClientWrapper"
 import { getAnalyticsPageStats } from "@/lib/dashboard"
+import { requireAccount } from "@/lib/account"
 import { cookies } from "next/headers"
 
 export const dynamic = "force-dynamic"
@@ -17,6 +18,8 @@ export default async function AdminAnalyticsPage({
 }: {
   searchParams: Promise<{ period?: string | string[] }>
 }) {
+  await requireAccount()
+
   const cookieStore = await cookies()
   const lang = cookieStore.get("NEXT_LOCALE")?.value || "fr"
   const params = await searchParams

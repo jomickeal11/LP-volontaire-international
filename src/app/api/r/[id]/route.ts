@@ -9,11 +9,16 @@ export async function GET(
 ) {
   const { id } = await params
 
-  const link = await prisma.lienCampagne.findUnique({ where: { id } })
+  try {
+    const link = await prisma.lienCampagne.findUnique({ where: { id } })
 
-  const destination = new URL(link?.destinationPath || "/", request.url)
+    // Lien inconnu (ou identifiant invalide) : retour à l'accueil sans erreur 500.
+    if (!link) {
+      return NextResponse.redirect(new URL("/", request.url), { status: 307 })
+    }
 
-  if (link) {
+    const destination = new URL(link.destinationPath, request.url)
+
     destination.searchParams.set("utm_source", link.utmSource)
     destination.searchParams.set("utm_medium", link.utmMedium)
     destination.searchParams.set("utm_campaign", link.utmCampaign)
@@ -29,7 +34,10 @@ export async function GET(
     } catch (error) {
       console.error("Erreur comptage clic lien de campagne:", error)
     }
-  }
 
-  return NextResponse.redirect(destination, { status: 307 })
+    return NextResponse.redirect(destination, { status: 307 })
+  } catch (error) {
+    console.error("Erreur lecture lien de campagne:", error)
+    return NextResponse.redirect(new URL("/", request.url), { status: 307 })
+  }
 }

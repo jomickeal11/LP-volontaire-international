@@ -1,5 +1,5 @@
 import { wrapEmailHtml, renderEmailTextFooter } from "./emailTheme"
-import { formatTextToHtml } from "../variableEngine"
+import { formatTextToHtml, escapeHtml } from "../variableEngine"
 
 interface AdminDirectEmailParams {
   candidateName: string
@@ -18,10 +18,15 @@ export function renderAdminDirectEmail({
 }: AdminDirectEmailParams): { subject: string; html: string; text: string } {
   const currentLang = (lang || "FR").toUpperCase() as "FR" | "EN" | "DE"
 
+  // Le nom du candidat peut contenir du HTML saisi via le formulaire public :
+  // il est échappé. Le message reste un contenu éditorial admin (HTML conservé).
+  const safeCandidateName = escapeHtml(candidateName)
+  const safeAdminName = escapeHtml(adminName)
+
   const greeting = {
-    FR: `Bonjour ${candidateName},`,
-    EN: `Dear ${candidateName},`,
-    DE: `Guten Tag ${candidateName},`,
+    FR: `Bonjour ${safeCandidateName},`,
+    EN: `Dear ${safeCandidateName},`,
+    DE: `Guten Tag ${safeCandidateName},`,
   }[currentLang]
 
   const bodyContent = `${greeting}\n\n${message}`
@@ -29,7 +34,7 @@ export function renderAdminDirectEmail({
   const html = wrapEmailHtml(formatTextToHtml(bodyContent), currentLang)
   const textFooter = renderEmailTextFooter({
     lang: currentLang,
-    customNote: `Message direct transmis par ${adminName}.`,
+    customNote: `Message direct transmis par ${safeAdminName}.`,
   })
   const text = `${bodyContent}\n\n${textFooter}`.trim()
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { decrypt } from "./lib/auth"
+import { decrypt } from "./lib/jwt"
 
 const locales = ["fr", "en", "de"]
 const defaultLocale = "fr"
@@ -99,12 +99,20 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // If going to login page but already authenticated, redirect to dashboard
+  // If going to login page but already authenticated, redirect to dashboard.
+  // Le marqueur `session=invalid` (posé par le layout de protection lorsque le
+  // compte n'existe plus en base) doit afficher la page de connexion même si
+  // le cookie JWT reste techniquement valide : sans ce skip, on entrerait
+  // dans une boucle de redirection login <-> dashboard.
   if (isBackofficeLogin) {
-    const sessionCookie = request.cookies.get("session")?.value
-    const session = await decrypt(sessionCookie)
-    if (session?.userId) {
-      return NextResponse.redirect(new URL("/backoffice/dashboard", request.url))
+    const sessionInvalid =
+      request.nextUrl.searchParams.get("session") === "invalid"
+    if (!sessionInvalid) {
+      const sessionCookie = request.cookies.get("session")?.value
+      const session = await decrypt(sessionCookie)
+      if (session?.userId) {
+        return NextResponse.redirect(new URL("/backoffice/dashboard", request.url))
+      }
     }
   }
 

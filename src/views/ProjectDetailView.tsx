@@ -345,22 +345,60 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
   }
 
   // Gallery items from relation `medias` or fallback `gallery` JSON
-  let galleryItems: { url: string; caption?: string }[] = []
+  // Strict multilingual isolation aligned with GalleryView:
+  // FR uses titleFr/captionFr, EN uses titleEn/captionEn, DE uses titleDe/captionDe.
+  // If the media has no title in the current language, it is excluded (no fallback EN/DE -> FR).
+  let galleryItems: { url: string; title: string; caption?: string }[] = []
   if (Array.isArray(project.medias) && project.medias.length > 0) {
-    galleryItems = project.medias.map((m: any) => {
-      const locCaption = lang === "EN" ? m.captionEn : lang === "DE" ? m.captionDe : m.captionFr
-      return {
-        url: m.url,
-        caption: locCaption ?? "",
-      }
-    })
+    galleryItems = project.medias
+      .map((m: any) => {
+        let locTitle = ""
+        let locCaption = ""
+
+        if (lang === "EN") {
+          locTitle = m.titleEn || ""
+          locCaption = m.captionEn || ""
+        } else if (lang === "DE") {
+          locTitle = m.titleDe || ""
+          locCaption = m.captionDe || ""
+        } else {
+          locTitle = m.titleFr || ""
+          locCaption = m.captionFr || ""
+        }
+
+        return {
+          url: m.url,
+          title: locTitle.trim(),
+          caption: locCaption.trim(),
+        }
+      })
+      .filter((item: { url: string; title: string; caption?: string }) => item.title.length > 0)
   } else if (project.gallery) {
     try {
       const parsed = JSON.parse(project.gallery)
       if (Array.isArray(parsed)) {
-        galleryItems = parsed.map((item: any) =>
-          typeof item === "string" ? { url: item } : { url: item.url, caption: item.caption }
-        )
+        galleryItems = parsed
+          .map((item: any) => {
+            if (typeof item === "string") return null
+            let locTitle = ""
+            let locCaption = ""
+            if (lang === "EN") {
+              locTitle = item.titleEn || ""
+              locCaption = item.captionEn || ""
+            } else if (lang === "DE") {
+              locTitle = item.titleDe || ""
+              locCaption = item.captionDe || ""
+            } else {
+              locTitle = item.titleFr || item.title || ""
+              locCaption = item.captionFr || item.caption || ""
+            }
+            return {
+              url: item.url,
+              title: locTitle.trim(),
+              caption: locCaption.trim(),
+            }
+          })
+          .filter((item): item is { url: string; title: string; caption: string } => Boolean(item && item.title.length > 0))
       }
     } catch {
       // Ignored
@@ -765,14 +803,14 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
                       >
                         <img
                           src={item.url}
-                          alt={item.caption || `${title} - photo ${idx + 1}`}
+                          alt={item.caption || item.title || `${title} - photo ${idx + 1}`}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           loading="lazy"
                           decoding="async"
                         />
-                        {item.caption && (
+                        {(item.caption || item.title) && (
                           <div className="absolute inset-x-0 bottom-0 p-2.5 bg-black/60 text-white text-[11px] leading-tight opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs">
-                            {item.caption}
+                            {item.caption || item.title}
                           </div>
                         )}
                       </div>

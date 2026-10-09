@@ -1,11 +1,14 @@
 import AdminCandidatesClientWrapper from "./AdminCandidatesClientWrapper"
 import prisma from "@/lib/prisma"
+import { requireAccount } from "@/lib/account"
 import { formatDate } from "@/lib/dateUtils"
 import { cookies } from "next/headers"
 
 export const dynamic = "force-dynamic"
 
 export default async function AdminCandidatesPage() {
+  await requireAccount()
+
   const cookieStore = await cookies()
   const lang = cookieStore.get("NEXT_LOCALE")?.value || "fr"
 

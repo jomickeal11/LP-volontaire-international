@@ -38,6 +38,7 @@ export type Page =
   | "admin-messages"
   | "admin-temoignages"
   | "admin-medias"
+  | "admin-albums"
   | "admin-settings"
   | "admin-account"
 

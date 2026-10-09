@@ -213,6 +213,10 @@ export default function AdminEvents() {
   const [translating, setTranslating] = useState(false)
   const [translatingField, setTranslatingField] = useState<string | null>(null)
   const [showTranslationHelp, setShowTranslationHelp] = useState(false)
+  const [translationNotice, setTranslationNotice] = useState<{
+    tone: "success" | "warning"
+    text: string
+  } | null>(null)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [activeLangTab, setActiveLangTab] = useState<Lang>("FR")
   const [errors, setErrors] = useState<string[]>([])
@@ -472,6 +476,8 @@ export default function AdminEvents() {
     }
 
     setTranslating(true)
+    setErrors([])
+    setTranslationNotice(null)
     try {
       const res = await translateCmsFieldsAction({
         texts: {
@@ -484,17 +490,25 @@ export default function AdminEvents() {
       })
 
       if (res.success) {
+        const t = (lang: "EN" | "DE", key: string, fallback: string) => {
+          const field = res.translations[lang]?.[key]
+          return field && field.status !== "failed" ? field.text : fallback
+        }
         setFormData((prev) => ({
           ...prev,
-          titleEn: res.translations.EN.title || prev.titleEn,
-          descriptionEn: res.translations.EN.description || prev.descriptionEn,
-          programmeEn: res.translations.EN.programme || prev.programmeEn,
-          titleDe: res.translations.DE.title || prev.titleDe,
-          descriptionDe: res.translations.DE.description || prev.descriptionDe,
-          programmeDe: res.translations.DE.programme || prev.programmeDe,
+          titleEn: t("EN", "title", prev.titleEn),
+          descriptionEn: t("EN", "description", prev.descriptionEn),
+          programmeEn: t("EN", "programme", prev.programmeEn),
+          titleDe: t("DE", "title", prev.titleDe),
+          descriptionDe: t("DE", "description", prev.descriptionDe),
+          programmeDe: t("DE", "programme", prev.programmeDe),
         }))
+        setTranslationNotice({
+          tone: res.outcome.level === "success" ? "success" : "warning",
+          text: res.outcome.message,
+        })
       } else {
-        setErrors([`Erreur lors de la traduction : ${res.error || "Service indisponible"}`])
+        setErrors([res.error || res.outcome.message || "Service indisponible"])
       }
     } catch (err: any) {
       setErrors([`Erreur de connexion lors de la traduction : ${err.message || "inconnue"}`])
@@ -514,20 +528,26 @@ export default function AdminEvents() {
     }
 
     setTranslatingField(`${field}_${targetLang}`)
+    setErrors([])
+    setTranslationNotice(null)
     try {
       const res = await translateCmsFieldsAction({
         texts: { [field]: source },
         sourceLang: "FR",
         targetLangs: [targetLang],
       })
-      if (res.success && res.translations?.[targetLang]?.[field]) {
-        const val = res.translations[targetLang][field]
+      const result = res.translations?.[targetLang]?.[field]
+      if (res.success && result && result.status !== "failed") {
         setFormData((prev) => ({
           ...prev,
-          [`${field}${targetLang}`]: val,
+          [`${field}${targetLang}`]: result.text,
         }))
+        setTranslationNotice({
+          tone: result.provider === "deepl" ? "success" : "warning",
+          text: `Champ « ${field} » traduit vers ${targetLang === "EN" ? "l'anglais" : "l'allemand"} (${result.provider === "deepl" ? "DeepL" : "moteur de secours"}).`,
+        })
       } else {
-        setErrors([res.error || "Erreur lors de la traduction."])
+        setErrors([res.error || res.outcome.message || "Erreur lors de la traduction."])
       }
     } catch (err: any) {
       setErrors([err.message || "Erreur de connexion."])
@@ -1106,6 +1126,25 @@ export default function AdminEvents() {
                         d&apos;une traduction. Un événement publié en anglais ou allemand exige donc un
                         titre <em>et</em> une description dans cette langue.
                       </p>
+                    </div>
+                  )}
+
+                  {translationNotice && (
+                    <div
+                      className={`inline-flex w-fit max-w-full items-center justify-between gap-3 p-2.5 rounded-xl border text-xs font-semibold ${
+                        translationNotice.tone === "success"
+                          ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                          : "bg-amber-50 border-amber-200 text-amber-800"
+                      }`}
+                    >
+                      <span>{translationNotice.text}</span>
+                      <button
+                        type="button"
+                        onClick={() => setTranslationNotice(null)}
+                        className="font-bold cursor-pointer"
+                      >
+                        ✕
+                      </button>
                     </div>
                   )}
 
