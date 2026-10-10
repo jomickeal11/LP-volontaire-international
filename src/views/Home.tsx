@@ -937,7 +937,7 @@ function WeekWithAptic({
               </div>
               
               {/* Activity details */}
-              <div className="w-full md:w-3/4 md:border-l md:border-[#EAF0F4] md:pl-12">
+              <div className="w-full md:w-3/4">
                 <h4 className="text-xl md:text-2xl lg:text-3xl font-['DM_Serif_Display'] mb-2 md:mb-4 text-[#003366] md:group-hover:text-[#28A745] transition-colors">
                   {d.activity}
                 </h4>
@@ -1246,7 +1246,7 @@ function ApplicationProcess({
           </p>
         </div>
 
-        <div className="relative border-l-4 border-[#28A745]/30 ml-4 sm:ml-8 lg:ml-12 py-4 flex flex-col gap-10 sm:gap-14">
+        <div className="relative ml-4 sm:ml-8 lg:ml-12 py-4 flex flex-col gap-10 sm:gap-14">
           {steps.map((s, i) => (
             <div key={s.title} className="relative group">
               <div className="absolute -left-[14px] top-1 w-6 h-6 rounded-full border-4 border-[#FFFFFF] bg-[#28A745] transition-transform duration-500 group-hover:scale-125 shadow-sm" />
@@ -1623,4 +1623,3 @@ export default function Home({ lang, navigate, initialSettings = {} }: HomeProps
     </main>
   )
 }
-

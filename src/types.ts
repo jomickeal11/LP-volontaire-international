@@ -9,6 +9,7 @@ export type Page =
   | "events"                      // Événements & Formations
   | "contact"                     // Contact
   | "resources"                   // Ressources
+  | "search"                      // Recherche globale
   | "gallery"                     // Galerie
   // Mobilisation pages
   | "volunteering"                // Portail volontariat (ancienne landing)
@@ -26,6 +27,7 @@ export type Page =
   | "admin-analytics"
   | "admin-partner-requests"
   | "admin-partner-request-detail"
+  | "admin-project-proposals"
   | "admin-partners"
   | "admin-member-applications"
   | "admin-members"
@@ -61,6 +63,7 @@ export const PAGE_ROUTES: Record<string, Record<string, string>> = {
   events:        { fr: "evenements",       en: "evenements",       de: "evenements"         },
   contact:       { fr: "contact",          en: "contact",          de: "contact"            },
   resources:     { fr: "ressources",       en: "ressources",       de: "ressources"         },
+  search:        { fr: "recherche",         en: "search",           de: "suche"              },
   gallery:       { fr: "galerie",          en: "galerie",          de: "galerie"            },
   volunteering:  { fr: "volontariat",      en: "volontariat",      de: "volontariat"        },
   apply:         { fr: "volontariat/postuler", en: "volontariat/postuler", de: "volontariat/postuler" },

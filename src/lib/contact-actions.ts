@@ -72,8 +72,7 @@ export async function submitContactMessageAction(rawInput: ContactFormSubmission
     )
 
     // 1. Enregistrement persistant en base de données pour l'historique du back-office
-    try {
-      await (prisma as any).messageContact.create({
+    const contactMessage = await (prisma as any).messageContact.create({
         data: {
           name: validated.name,
           email: validated.email,
@@ -91,12 +90,10 @@ export async function submitContactMessageAction(rawInput: ContactFormSubmission
           utmTerm: validated.utmTerm || null,
         },
       })
-    } catch (dbErr) {
-      console.error("⚠️ [Contact Form] Impossible d'enregistrer le message en DB :", dbErr)
-    }
 
     // 2. Envoi de l'e-mail de notification
     const sendResult = await EmailService.sendContactMessageNotification({
+      notificationKey: `contact-message:${contactMessage.id}:admin`,
       name: validated.name,
       email: validated.email,
       organization: validated.organization,

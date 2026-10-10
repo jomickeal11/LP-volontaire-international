@@ -12,7 +12,7 @@ import { verifyMagicBytes } from "./security"
  * génération des clés et URLs publiques.
  */
 
-export type UploadKind = "image" | "resource-pdf" | "candidate-doc" | "partner-doc"
+export type UploadKind = "image" | "resource-pdf" | "candidate-doc" | "partner-doc" | "project-proposal-doc"
 export type UploadBucket = "media" | "documents"
 
 export interface UploadKindPolicy {
@@ -56,6 +56,13 @@ export const UPLOAD_POLICIES: Record<UploadKind, UploadKindPolicy> = {
     allowedExtensions: PRIVATE_DOC_EXTENSIONS,
     publicPrefix: null,
     label: "le document",
+  },
+  "project-proposal-doc": {
+    bucket: "documents",
+    maxSizeBytes: 15 * MB,
+    allowedExtensions: PRIVATE_DOC_EXTENSIONS,
+    publicPrefix: null,
+    label: "le document de présentation",
   },
 }
 
@@ -117,6 +124,9 @@ export function buildStorageKey(kind: UploadKind, fileName: string, ext: string)
     const base = path.basename(fileName, path.extname(fileName)).replace(/[^a-zA-Z0-9_\-\.]/g, "_")
     return `${base}_${Date.now()}_${randomUUID().slice(0, 6)}.${ext}`
   }
+  if (kind === "project-proposal-doc") {
+    return `project-proposals/${randomUUID()}.${ext}`
+  }
   return `${randomUUID()}.${ext}`
 }
 
@@ -154,7 +164,10 @@ export async function validateStoredDocument(
   const policy = UPLOAD_POLICIES[kind]
   const key = descriptor.storageKey
 
-  if (!STORAGE_KEY_PATTERN.test(key)) {
+  const validStorageKey = kind === "project-proposal-doc"
+    ? /^project-proposals\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]{2,5}$/.test(key)
+    : STORAGE_KEY_PATTERN.test(key)
+  if (!validStorageKey) {
     return { valid: false, error: `Clé de fichier invalide pour "${descriptor.originalName}".` }
   }
 

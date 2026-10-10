@@ -133,7 +133,7 @@ export async function uploadMediaFile(
  */
 export async function uploadPrivateFile(
   file: File,
-  kind: "candidate-doc" | "partner-doc"
+  kind: "candidate-doc" | "partner-doc" | "project-proposal-doc"
 ): Promise<PrivateUploadResult> {
   const result = await uploadDirect(file, kind)
   if (!result.success) return result

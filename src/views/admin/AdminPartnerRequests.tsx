@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import type { Page } from "../../types"
+import { retryFailedNotificationEmailAction } from "@/lib/actions"
 
 export type PartnerRequestStatus = "NEW" | "REVIEW" | "APPROVED" | "REJECTED" | "ARCHIVED"
 
@@ -39,7 +40,16 @@ interface Props {
   requests: PartnerRequestUI[]
   navigate: (p: Page) => void
   onSelectRequest: (id: string) => void
-  onStatusChange: (id: string, status: PartnerRequestStatus) => void
+  onStatusChange: (
+    id: string,
+    status: PartnerRequestStatus
+  ) => Promise<{
+    success: boolean
+    notificationRequired?: boolean
+    emailSent?: boolean
+    emailLogId?: string
+    error?: string
+  }>
   initialSearch?: string
 }
 
@@ -60,6 +70,36 @@ export default function AdminPartnerRequests({
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [selected, setSelected] = useState<string[]>([])
   const [page, setPage] = useState(1)
+  const [statusFeedback, setStatusFeedback] = useState("")
+  const [failedEmailLogId, setFailedEmailLogId] = useState("")
+  const [retryingEmail, setRetryingEmail] = useState(false)
+
+  const changeStatus = async (id: string, status: PartnerRequestStatus) => {
+    setStatusFeedback("")
+    setFailedEmailLogId("")
+    const result = await onStatusChange(id, status)
+    if (!result.success) {
+      setStatusFeedback(result.error || "Le statut n’a pas pu être modifié.")
+      return
+    }
+    if (!result.notificationRequired) {
+      setStatusFeedback("Statut enregistré.")
+    } else if (result.emailSent) {
+      setStatusFeedback("Statut enregistré et e-mail envoyé.")
+    } else {
+      setStatusFeedback("Statut enregistré, mais l’e-mail au partenaire n’a pas pu être envoyé.")
+      setFailedEmailLogId(result.emailLogId || "")
+    }
+  }
+
+  const retryEmail = async () => {
+    if (!failedEmailLogId) return
+    setRetryingEmail(true)
+    const result = await retryFailedNotificationEmailAction(failedEmailLogId)
+    setStatusFeedback(result.success ? "E-mail de décision envoyé." : result.error || "Échec de la relance.")
+    if (result.success) setFailedEmailLogId("")
+    setRetryingEmail(false)
+  }
 
   const countries = [...new Set(requests.map((r) => r.country).filter(Boolean))].sort()
   const orgTypes = [...new Set(requests.map((r) => r.orgType).filter(Boolean))].sort()
@@ -156,6 +196,22 @@ export default function AdminPartnerRequests({
             Suivi et évaluation des organisations souhaitant accueillir ou envoyer des volontaires avec APTIC-R.
           </p>
         </div>
+
+        {statusFeedback && (
+          <p role="status" className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+            {statusFeedback}
+            {failedEmailLogId && (
+              <button
+                type="button"
+                onClick={retryEmail}
+                disabled={retryingEmail}
+                className="ml-3 font-semibold text-[#007BFF] underline disabled:opacity-60"
+              >
+                {retryingEmail ? "Nouvel essai…" : "Réessayer l’e-mail"}
+              </button>
+            )}
+          </p>
+        )}
 
         <div className="flex items-center gap-2.5">
           <button
@@ -431,7 +487,7 @@ export default function AdminPartnerRequests({
                         <div className="relative inline-block text-left">
                           <select
                             value={r.status}
-                            onChange={(e) => onStatusChange(r.id, e.target.value as PartnerRequestStatus)}
+                            onChange={(e) => void changeStatus(r.id, e.target.value as PartnerRequestStatus)}
                             className="text-xs font-semibold px-2.5 py-1 rounded-full border cursor-pointer focus:outline-none"
                             style={{
                               backgroundColor: cfg.bg,

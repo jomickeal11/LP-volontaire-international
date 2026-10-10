@@ -320,6 +320,8 @@ model Utilisateur {
   statusChanges        HistoriqueCandidature[]
   notes                NoteCandidature[]
   authoredArticles     Article[]               @relation("ArticleAuthor")
+  projectProposalNotes DocumentPropositionNote[]
+  projectProposalStatusChanges HistoriquePropositionProjet[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -400,6 +402,7 @@ model Domaine {
 model DemandeAdhesion {
   id                String    @id @default(cuid())
   referenceNumber   String    @unique // Ex: ADH-2026-XXXX
+  lang              LanguageCode @default(FR)
   firstName         String
   lastName          String
   email             String
@@ -549,6 +552,8 @@ model Article {
 model Projet {
   id            String    @id @default(cuid())
   slug          String    @unique
+  sourceProposalId String?             @unique
+  sourceProposal   PropositionProjet?  @relation(fields: [sourceProposalId], references: [id], onDelete: SetNull)
 
   // Publication distincte par langue (stricte étanchéité multilingue)
   publishedFr   Boolean   @default(true)
@@ -996,4 +1001,78 @@ model LienCampagne {
   @@index([utmCampaign])
   @@index([channel])
   @@index([createdAt])
+}
+
+model PropositionProjet {
+  id              String   @id @default(cuid())
+  referenceNumber String   @unique
+  lang            LanguageCode @default(FR)
+  proposerName    String
+  organization    String?
+  email           String
+  country         String
+  title           String
+  domain          String
+  description     String   @db.Text
+  objectives      String   @db.Text
+  targetAudience  String   @db.Text
+  expectedResults String   @db.Text
+  collaboration  String
+  timeline        String
+  budget          String?  @db.Text
+  message         String?  @db.Text
+  consent         Boolean  @default(false)
+  status          String   @default("NOUVEAU")
+  document        DocumentPropositionProjet?
+  notes           DocumentPropositionNote[]
+  statusHistory   HistoriquePropositionProjet[]
+  convertedProject Projet?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+}
+
+model DocumentPropositionNote {
+  id         String            @id @default(cuid())
+  proposalId String
+  proposal   PropositionProjet @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  authorId   String?
+  author     Utilisateur?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorName String
+  content    String            @db.Text
+  createdAt  DateTime          @default(now())
+
+  @@index([proposalId, createdAt])
+  @@index([authorId])
+}
+
+model HistoriquePropositionProjet {
+  id            String            @id @default(cuid())
+  proposalId    String
+  proposal      PropositionProjet @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  fromStatus    String?
+  toStatus      String
+  changedById   String?
+  changedBy     Utilisateur?      @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  changedByName String
+  createdAt     DateTime          @default(now())
+
+  @@index([proposalId, createdAt])
+  @@index([changedById])
+}
+
+model DocumentPropositionProjet {
+  id           String           @id @default(cuid())
+  proposalId   String           @unique
+  proposal     PropositionProjet @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  originalName String
+  storageKey   String
+  mimeType     String
+  size         Int
+  createdAt    DateTime         @default(now())
+
+  @@index([proposalId])
 }

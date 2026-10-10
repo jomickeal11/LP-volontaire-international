@@ -18,6 +18,7 @@ export type WorkflowStatusKey =
   | "SELECTED"
   | "RETENU"
   | "CHOSEN"
+  | "REJECTED"
   | "PREPARATION"
   | "ARRIVED"
   | "COMPLETED"
@@ -93,6 +94,16 @@ Nous avons le plaisir de vous confirmer que votre candidature a été officielle
 Toute l'équipe se réjouit de votre future contribution aux projets de développement rural et d'inclusion numérique portés par l'association à Agbélouvé.
 
 La prochaine étape consistera à finaliser votre cadre d'engagement et à préparer les étapes préalables à votre mission. Nous prendrons contact avec vous très rapidement.`,
+    },
+    REJECTED: {
+      subject: "APTIC-R — Suite donnée à votre candidature — {{reference}}",
+      bodyTemplate: `Bonjour {{firstName}},
+
+Après examen de votre dossier, nous ne sommes pas en mesure de retenir votre candidature pour cette mission.
+
+Nous vous remercions de l'intérêt porté au programme de volontariat international d'APTIC-R et vous souhaitons le meilleur pour la suite.
+
+L'équipe APTIC-R`,
     },
     PREPARATION: {
       subject: "APTIC-R — Mise à jour de votre candidature — {{reference}}",
@@ -188,6 +199,16 @@ The entire team looks forward to your contribution to our rural development and 
 
 The next step will be to finalize your engagement agreement and coordinate departure preparation. We will get in touch with you very shortly.`,
     },
+    REJECTED: {
+      subject: "APTIC-R — Update on your application — {{reference}}",
+      bodyTemplate: `Dear {{firstName}},
+
+After reviewing your application, we are unable to select you for this mission.
+
+Thank you for your interest in the APTIC-R International Volunteer Program. We wish you every success in your future plans.
+
+The APTIC-R team`,
+    },
     PREPARATION: {
       subject: "APTIC-R — Application update — {{reference}}",
       bodyTemplate: `Dear {{firstName}},
@@ -282,6 +303,16 @@ Das gesamte Team freut sich auf Ihre zukünftige Mitwirkung an unseren Projekten
 
 Als nächstes werden wir gemeinsam Ihre Einsatzvereinbarung finalisieren und die Vorbereitungen treffen. Wir melden uns sehr bald bei Ihnen.`,
     },
+    REJECTED: {
+      subject: "APTIC-R — Rückmeldung zu Ihrer Bewerbung — {{reference}}",
+      bodyTemplate: `Guten Tag {{firstName}},
+
+Nach Prüfung Ihrer Unterlagen können wir Sie für diesen Einsatz leider nicht auswählen.
+
+Vielen Dank für Ihr Interesse am internationalen Freiwilligenprogramm von APTIC-R. Für Ihren weiteren Weg wünschen wir Ihnen alles Gute.
+
+Das APTIC-R-Team`,
+    },
     PREPARATION: {
       subject: "APTIC-R — Aktualisierung Ihrer Bewerbung — {{reference}}",
       bodyTemplate: `Guten Tag {{firstName}},
@@ -327,6 +358,7 @@ export const STATUS_EMAIL_SUPPORTED = [
   "SELECTED",
   "RETENU",
   "CHOSEN",
+  "REJECTED",
   "PREPARATION",
   "ARRIVED",
   "COMPLETED",

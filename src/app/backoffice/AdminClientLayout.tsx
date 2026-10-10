@@ -91,6 +91,8 @@ export default function AdminClientLayout({
     currentPage = "admin-messages"
   else if (pathname?.includes("/partners/requests"))
     currentPage = "admin-partner-requests"
+  else if (pathname?.includes("/project-proposals"))
+    currentPage = "admin-project-proposals"
   else if (pathname?.includes("/partners"))
     currentPage = "admin-partners"
   else if (pathname?.includes("/candidates"))
@@ -162,6 +164,9 @@ export default function AdminClientLayout({
         break
       case "admin-partner-requests":
         router.push("/backoffice/partners/requests")
+        break
+      case "admin-project-proposals":
+        router.push("/backoffice/project-proposals")
         break
       case "admin-partners":
         router.push("/backoffice/partners")

@@ -736,7 +736,7 @@ export default function ProjectDetailView({ project, lang }: ProjectDetailViewPr
                     {t.actionsTitle}
                   </h2>
 
-                  <div className="relative border-l-2 border-slate-200 ml-4 pl-6 sm:pl-8 space-y-6">
+                  <div className="relative ml-4 pl-6 sm:pl-8 space-y-6">
                     {actions.map((act, i) => (
                       <div key={i} className="relative group">
                         {/* Numéro jalonneur 01, 02... */}

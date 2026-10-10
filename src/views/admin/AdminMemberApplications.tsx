@@ -230,7 +230,7 @@ export default function AdminMemberApplications({}: AdminMemberApplicationsProps
     setActionLoading(app.id)
     setModalError("")
     try {
-      let res: { success: boolean; message?: string; error?: string }
+      let res: { success: boolean; message?: string; error?: string; notificationSent?: boolean }
 
       if (type === "RESET_TO_PENDING") {
         res = await resetMemberApplicationToPending(app.id, "Admin APTIC-R", modalReason.trim())
@@ -248,7 +248,9 @@ export default function AdminMemberApplications({}: AdminMemberApplicationsProps
       if (res.success) {
         setFeedbackMessage({
           type: "success",
-          text: "Opération effectuée.",
+          text: res.notificationSent === false
+            ? "Décision enregistrée, mais l’e-mail au demandeur n’a pas pu être envoyé."
+            : "Opération effectuée.",
         })
         setActionModal(null)
         setModalReason("")

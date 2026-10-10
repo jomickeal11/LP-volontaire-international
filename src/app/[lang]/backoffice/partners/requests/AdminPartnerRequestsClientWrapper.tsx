@@ -49,8 +49,9 @@ export default function AdminPartnerRequestsClientWrapper({
   }
 
   const handleStatusChange = async (id: string, status: PartnerRequestStatus) => {
-    await updatePartnerRequestStatus(id, status)
+    const result = await updatePartnerRequestStatus(id, status)
     router.refresh()
+    return result
   }
 
   return (

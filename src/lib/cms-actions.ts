@@ -13,8 +13,10 @@ import { verifySession } from "./auth"
 import { escapeHtml } from "./email/variableEngine"
 import { randomBytes } from "crypto"
 import { revalidatePath } from "next/cache"
-import type { LanguageCode } from "@prisma/client"
+import type { LanguageCode, Prisma } from "@prisma/client"
 import type { TeamMemberDTO } from "./cms-types"
+import { EmailService } from "./email/emailService"
+import { getProjectProposalAdmin } from "./project-proposal-access"
 
 function safeRevalidatePath(path: string, type?: "page" | "layout") {
   try {
@@ -48,7 +50,10 @@ const UNAUTHORIZED_ACTION = "Action non autorisée : connexion administrateur re
 
 async function isAdminSession(): Promise<boolean> {
   const session = await verifySession()
-  return Boolean(session?.userId)
+  return Boolean(
+    session?.userId &&
+    ["SUPERADMIN", "ADMIN", "COORDINATOR", "CONTENT_MANAGER"].includes(session.role)
+  )
 }
 
 // Identifiants non fiables côté client : on vérifie toujours l'existence
@@ -63,7 +68,10 @@ async function albumExists(id: string): Promise<boolean> {
 
 // ─── 1. MEMBRES (Demande d'adhésion & Répertoire) ─────────────────────────────
 
-export async function submitMemberApplication(formData: unknown) {
+export async function submitMemberApplication(
+  formData: unknown,
+  lang: "FR" | "EN" | "DE" = "FR"
+) {
   try {
     const parsed = memberApplicationSchema.safeParse(formData)
     if (!parsed.success) {
@@ -123,6 +131,7 @@ export async function submitMemberApplication(formData: unknown) {
     const application = await prisma.demandeAdhesion.create({
       data: {
         referenceNumber,
+        lang: lang as LanguageCode,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: cleanEmail,
@@ -146,6 +155,21 @@ export async function submitMemberApplication(formData: unknown) {
           },
         },
       },
+    })
+
+    await EmailService.sendAdminSubmissionNotification({
+      notificationKey: `membership-submission:${application.id}:admin`,
+      formName: "MEMBERSHIP_APPLICATION",
+      subject: `Nouvelle demande d’adhésion — ${application.referenceNumber}`,
+      details: [
+        `Référence : ${application.referenceNumber}`,
+        `Nom : ${application.firstName} ${application.lastName}`,
+        `E-mail : ${application.email}`,
+        `Pays : ${application.country}`,
+      ].join("\n"),
+      lang,
+      replyTo: application.email,
+      recipientName: `${application.firstName} ${application.lastName}`,
     })
 
     return {
@@ -177,7 +201,11 @@ export async function subscribeNewsletter(formData: unknown) {
     const { email, firstName, lang, consent } = parsed.data
     const normalizedEmail = email.toLowerCase().trim()
 
-    await prisma.newsletterAbonne.upsert({
+    const existing = await prisma.newsletterAbonne.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true, active: true },
+    })
+    const subscriber = await prisma.newsletterAbonne.upsert({
       where: { email: normalizedEmail },
       create: {
         email: normalizedEmail,
@@ -190,8 +218,19 @@ export async function subscribeNewsletter(formData: unknown) {
         firstName: firstName?.trim() || undefined,
         lang: lang as LanguageCode,
         active: true,
+        subscribedAt: new Date(),
       },
     })
+
+    if (!existing || !existing.active) {
+      await EmailService.sendAdminSubmissionNotification({
+        notificationKey: `newsletter-subscription:${subscriber.id}:${subscriber.subscribedAt.toISOString()}:admin`,
+        formName: "NEWSLETTER_SUBSCRIPTION",
+        subject: "Nouvelle inscription à la lettre d’information APTIC-R",
+        details: `Adresse e-mail : ${subscriber.email}`,
+        lang,
+      })
+    }
 
     return {
       success: true,
@@ -656,6 +695,165 @@ export async function getResources(options?: {
   } catch (error) {
     console.error("Error fetching resources:", error)
     return []
+  }
+}
+
+function normalizeSearchValue(value?: string | null): string {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+}
+
+function localizedTextForRecord<T extends Record<string, any>>(record: T, lang: string, keys: string[]): string {
+  const languageKey = (lang || "FR").toUpperCase()
+  const match = languageKey === "EN"
+    ? keys[1]
+    : languageKey === "DE"
+      ? keys[2]
+      : keys[0]
+
+  return String(record?.[match] ?? "")
+}
+
+function matchesQuery(value: string | null | undefined, normalizedQuery: string): boolean {
+  if (!normalizedQuery) return true
+  return normalizeSearchValue(value).includes(normalizedQuery)
+}
+
+export type SearchPublicContentResult = {
+  articles: Array<{
+    id: string
+    title: string
+    description: string
+    url: string
+    category: string
+    date?: string | null
+  }>
+  projects: Array<{
+    id: string
+    title: string
+    description: string
+    url: string
+    category: string
+    date?: string | null
+  }>
+  resources: Array<{
+    id: string
+    title: string
+    description: string
+    url: string
+    category: string
+    date?: string | null
+  }>
+  total: number
+  query: string
+  error?: string
+}
+
+export async function searchPublicContent({
+  lang,
+  query,
+}: {
+  lang?: string
+  query?: string | string[]
+}): Promise<SearchPublicContentResult> {
+  const normalizedLang = ((lang || "FR").toUpperCase() as "FR" | "EN" | "DE")
+  const rawQuery = Array.isArray(query) ? query[0] ?? "" : query ?? ""
+  const trimmedQuery = rawQuery.trim()
+
+  if (!trimmedQuery) {
+    return { articles: [], projects: [], resources: [], total: 0, query: "" }
+  }
+
+  if (trimmedQuery.length > 80) {
+    return {
+      articles: [],
+      projects: [],
+      resources: [],
+      total: 0,
+      query: trimmedQuery,
+      error: "SEARCH_QUERY_TOO_LONG",
+    }
+  }
+
+  const normalizedQuery = normalizeSearchValue(trimmedQuery)
+
+  try {
+    const [articles, projects, resources] = await Promise.all([
+      getArticles({ publishedOnly: true, lang: normalizedLang }),
+      getProjects({ lang: normalizedLang }),
+      getResources({}),
+    ])
+
+    const filteredArticles = articles.filter((article: any) => {
+      const content = [
+        localizedTextForRecord(article, normalizedLang, ["titleFr", "titleEn", "titleDe"]),
+        localizedTextForRecord(article, normalizedLang, ["excerptFr", "excerptEn", "excerptDe"]),
+        localizedTextForRecord(article, normalizedLang, ["contentFr", "contentEn", "contentDe"]),
+      ].join(" ")
+      return matchesQuery(content, normalizedQuery)
+    }).map((article: any) => ({
+      id: article.id,
+      title: localizedTextForRecord(article, normalizedLang, ["titleFr", "titleEn", "titleDe"]),
+      description: localizedTextForRecord(article, normalizedLang, ["excerptFr", "excerptEn", "excerptDe"]) || "",
+      url: `/${normalizedLang.toLowerCase()}/actualites/${article.slug}`,
+      category: article.category?.nameFr || article.category?.nameEn || article.category?.nameDe || "Article",
+      date: article.publishedAt ? new Date(article.publishedAt).toISOString() : null,
+    }))
+
+    const filteredProjects = projects.filter((project: any) => {
+      const content = [
+        localizedTextForRecord(project, normalizedLang, ["titleFr", "titleEn", "titleDe"]),
+        localizedTextForRecord(project, normalizedLang, ["summaryFr", "summaryEn", "summaryDe"]),
+        localizedTextForRecord(project, normalizedLang, ["descriptionFr", "descriptionEn", "descriptionDe"]),
+      ].join(" ")
+      return matchesQuery(content, normalizedQuery)
+    }).map((project: any) => ({
+      id: project.id,
+      title: localizedTextForRecord(project, normalizedLang, ["titleFr", "titleEn", "titleDe"]),
+      description: localizedTextForRecord(project, normalizedLang, ["summaryFr", "summaryEn", "summaryDe"]) || "",
+      url: `/${normalizedLang.toLowerCase()}/projets/${project.slug}`,
+      category: project.domaine?.nameFr || project.domaine?.nameEn || project.domaine?.nameDe || "Projet",
+      date: project.createdAt ? new Date(project.createdAt).toISOString() : null,
+    }))
+
+    const filteredResources = resources.filter((resource: any) => {
+      const content = [
+        localizedTextForRecord(resource, normalizedLang, ["titleFr", "titleEn", "titleDe"]),
+        localizedTextForRecord(resource, normalizedLang, ["descriptionFr", "descriptionEn", "descriptionDe"]),
+        resource.type,
+      ].join(" ")
+      return matchesQuery(content, normalizedQuery)
+    }).map((resource: any) => ({
+      id: resource.id,
+      title: localizedTextForRecord(resource, normalizedLang, ["titleFr", "titleEn", "titleDe"]),
+      description: localizedTextForRecord(resource, normalizedLang, ["descriptionFr", "descriptionEn", "descriptionDe"]) || resource.type || "",
+      url: resource.fileUrl || `/${normalizedLang.toLowerCase()}/ressources`,
+      category: resource.type || "Resource",
+      date: resource.createdAt ? new Date(resource.createdAt).toISOString() : null,
+    }))
+
+    const results = {
+      articles: filteredArticles,
+      projects: filteredProjects,
+      resources: filteredResources,
+      total: filteredArticles.length + filteredProjects.length + filteredResources.length,
+      query: trimmedQuery,
+    }
+
+    return results
+  } catch (error) {
+    console.error("Error searching public content:", error)
+    return {
+      articles: [],
+      projects: [],
+      resources: [],
+      total: 0,
+      query: trimmedQuery,
+      error: "SEARCH_FAILED",
+    }
   }
 }
 
@@ -1289,27 +1487,17 @@ export async function approveMemberApplication(
       },
     })
 
-    // Enregistrer l'événement de communication dans EmailLog pour traçabilité
-    try {
-      await prisma.emailLog.create({
-        data: {
-          recipient: member.email,
-          recipientName: `${member.firstName} ${member.lastName}`,
-          subject: `Bienvenue au sein d'APTIC-R - Adhésion confirmée (${member.referenceNumber})`,
-          bodyHtml: `<p>Bonjour ${escapeHtml(member.firstName)},</p><p>Nous avons le plaisir de vous informer que votre demande d'adhésion a été validée. Votre référence membre officielle est <strong>${escapeHtml(member.referenceNumber)}</strong>.</p>`,
-          status: "SENT",
-          actionType: "MEMBER_CONFIRMATION",
-          templateKey: "MEMBER_WELCOME",
-          metadata: {
-            applicationId: application.id,
-            memberId: member.id,
-            memberReference: member.referenceNumber,
-            applicationReference: application.referenceNumber,
-          },
-        },
-      })
-    } catch (logErr) {
-      console.warn("Could not log member welcome email in EmailLog:", logErr)
+    const notification = await EmailService.sendMembershipDecisionEmail({
+      notificationKey: `membership-decision:${application.id}:${application.updatedAt.toISOString()}:APPROVED`,
+      email: application.email,
+      firstName: application.firstName,
+      referenceNumber: application.referenceNumber,
+      memberReference: member.referenceNumber,
+      status: "APPROVED",
+      lang: application.lang,
+    })
+    if (!notification.success) {
+      console.error("Membership approval notification failed:", notification.error)
     }
 
     safeRevalidatePath("/backoffice/members")
@@ -1319,6 +1507,9 @@ export async function approveMemberApplication(
       success: true,
       member,
       application: updatedApplication,
+      notificationSent: notification.success,
+      notificationError: notification.error,
+      notificationEmailLogId: notification.emailLogId,
       message: `Demande validée avec succès. Membre officiel ${member.referenceNumber} créé et actif.`,
     }
   } catch (error: any) {
@@ -1343,6 +1534,9 @@ export async function rejectMemberApplication(
     if (!application) {
       return { success: false, error: "Demande d'adhésion introuvable." }
     }
+    if (application.status === "REJECTED") {
+      return { success: true, application, message: "Cette demande a déjà été refusée." }
+    }
 
     const noteText = adminNote?.trim() || "Demande d'adhésion refusée."
 
@@ -1365,12 +1559,27 @@ export async function rejectMemberApplication(
       },
     })
 
+    const notification = await EmailService.sendMembershipDecisionEmail({
+      notificationKey: `membership-decision:${application.id}:${application.updatedAt.toISOString()}:REJECTED`,
+      email: application.email,
+      firstName: application.firstName,
+      referenceNumber: application.referenceNumber,
+      status: "REJECTED",
+      lang: application.lang,
+    })
+    if (!notification.success) {
+      console.error("Membership rejection notification failed:", notification.error)
+    }
+
     safeRevalidatePath("/backoffice/members")
     safeRevalidatePath("/backoffice/members/applications")
 
     return {
       success: true,
       application: updated,
+      notificationSent: notification.success,
+      notificationError: notification.error,
+      notificationEmailLogId: notification.emailLogId,
       message: "La demande d'adhésion a été refusée et reste consignée dans l'historique.",
     }
   } catch (error: any) {
@@ -2185,6 +2394,64 @@ export async function deleteArticle(id: string) {
 
 // ─── 13. CMS : GESTION PROJETS ───────────────────────────────────────────────
 
+export async function getProjectProposalForConversion(proposalId: string) {
+  try {
+    if (!(await getProjectProposalAdmin())) {
+      return { success: false as const, error: UNAUTHORIZED_ACTION }
+    }
+    if (typeof proposalId !== "string" || proposalId.length < 1 || proposalId.length > 100) {
+      return { success: false as const, error: "Identifiant de proposition invalide." }
+    }
+
+    const proposal = await prisma.propositionProjet.findUnique({
+      where: { id: proposalId },
+      select: {
+        id: true,
+        referenceNumber: true,
+        proposerName: true,
+        organization: true,
+        email: true,
+        country: true,
+        title: true,
+        domain: true,
+        description: true,
+        objectives: true,
+        targetAudience: true,
+        expectedResults: true,
+        collaboration: true,
+        timeline: true,
+        budget: true,
+        message: true,
+        status: true,
+        convertedProject: {
+          select: { id: true, titleFr: true, slug: true },
+        },
+      },
+    })
+    if (!proposal) {
+      return { success: false as const, error: "Proposition introuvable." }
+    }
+
+    const normalizedDomain = proposal.domain.trim().toLocaleLowerCase()
+    const domains = await prisma.domaine.findMany({
+      select: { id: true, slug: true, nameFr: true, nameEn: true, nameDe: true },
+    })
+    const matchingDomain = domains.find((domain) =>
+      [domain.slug, domain.nameFr, domain.nameEn, domain.nameDe]
+        .some((value) => value?.trim().toLocaleLowerCase() === normalizedDomain)
+    )
+
+    return {
+      success: true as const,
+      proposal,
+      suggestedDomainId: matchingDomain?.id || null,
+    }
+  } catch (error) {
+    console.error("getProjectProposalForConversion error:", error)
+    return { success: false as const, error: "Impossible de charger la proposition." }
+  }
+}
+
 export async function createProject(data: {
   titleFr: string
   titleEn?: string
@@ -2217,10 +2484,23 @@ export async function createProject(data: {
   isFeatured?: boolean
   displayOrder?: number
   featuredImage?: string
+  sourceProposalId?: string
 }) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await getProjectProposalAdmin())) {
       return { success: false, error: UNAUTHORIZED_ACTION }
+    }
+    if (data.sourceProposalId !== undefined &&
+        (typeof data.sourceProposalId !== "string" || data.sourceProposalId.length < 1 || data.sourceProposalId.length > 100)) {
+      return { success: false, error: "Identifiant de proposition invalide." }
+    }
+    if (data.sourceProposalId && [
+      data.titleFr,
+      data.summaryFr,
+      data.descriptionFr,
+      data.location,
+    ].some((value) => typeof value !== "string" || !value.trim())) {
+      return { success: false, error: "Le titre, le résumé, la description et le lieu du projet sont obligatoires." }
     }
     const baseSlug = slugify(data.titleFr)
     let slug = baseSlug
@@ -2230,9 +2510,28 @@ export async function createProject(data: {
       counter++
     }
 
-    const projet = await prisma.projet.create({
-      data: {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      if (data.sourceProposalId) {
+        const proposal = await tx.propositionProjet.findUnique({
+          where: { id: data.sourceProposalId },
+          select: {
+            status: true,
+            convertedProject: { select: { id: true, titleFr: true, slug: true } },
+          },
+        })
+        if (!proposal) throw new Error("Proposition introuvable.")
+        if (proposal.convertedProject) {
+          return { alreadyConverted: proposal.convertedProject }
+        }
+        if (proposal.status !== "ACCEPTE_COLLABORATION") {
+          throw new Error("La proposition doit être acceptée avant de créer un projet.")
+        }
+      }
+
+      const projet = await tx.projet.create({
+        data: {
         slug,
+        sourceProposalId: data.sourceProposalId || null,
         titleFr: data.titleFr.trim(),
         titleEn: data.titleEn?.trim() || null,
         titleDe: data.titleDe?.trim() || null,
@@ -2251,9 +2550,15 @@ export async function createProject(data: {
         resultsFr: data.resultsFr?.trim() || null,
         resultsEn: data.resultsEn?.trim() || null,
         resultsDe: data.resultsDe?.trim() || null,
-        publishedFr: data.publishedFr !== undefined ? Boolean(data.publishedFr) : true,
-        publishedEn: data.publishedEn !== undefined ? Boolean(data.publishedEn) : false,
-        publishedDe: data.publishedDe !== undefined ? Boolean(data.publishedDe) : false,
+        publishedFr: data.sourceProposalId
+          ? Boolean(data.publishedFr)
+          : data.publishedFr !== undefined ? Boolean(data.publishedFr) : true,
+        publishedEn: data.sourceProposalId
+          ? Boolean(data.publishedEn)
+          : data.publishedEn !== undefined ? Boolean(data.publishedEn) : false,
+        publishedDe: data.sourceProposalId
+          ? Boolean(data.publishedDe)
+          : data.publishedDe !== undefined ? Boolean(data.publishedDe) : false,
         location: data.location.trim(),
         country: data.country || "Togo",
         status: data.status || "IN_PROGRESS",
@@ -2264,21 +2569,45 @@ export async function createProject(data: {
         isFeatured: Boolean(data.isFeatured),
         displayOrder: data.displayOrder || 0,
         featuredImage: data.featuredImage || null,
-      },
+        },
+      })
+
+      if (data.isFeatured) {
+        await tx.projet.updateMany({
+          where: { id: { not: projet.id } },
+          data: { isFeatured: false },
+        })
+      }
+      return { project: projet }
     })
 
-    if (data.isFeatured) {
-      await prisma.projet.updateMany({
-        where: { id: { not: projet.id } },
-        data: { isFeatured: false },
-      })
+    if ("alreadyConverted" in result) {
+      return {
+        success: false,
+        error: "Cette proposition a déjà été convertie en projet.",
+        existingProject: result.alreadyConverted,
+      }
     }
 
     revalidatePath("/backoffice/projects")
+    revalidatePath("/backoffice/project-proposals")
     revalidatePath("/[lang]/projets", "page")
-    revalidatePath(`/[lang]/projets/${slug}`, "page")
-    return { success: true, project: projet }
+    revalidatePath(`/[lang]/projets/${result.project.slug}`, "page")
+    return { success: true, project: result.project }
   } catch (error: any) {
+    if (error?.code === "P2002" && data.sourceProposalId) {
+      const existingProject = await prisma.projet.findUnique({
+        where: { sourceProposalId: data.sourceProposalId },
+        select: { id: true, titleFr: true, slug: true },
+      })
+      if (existingProject) {
+        return {
+          success: false,
+          error: "Cette proposition a déjà été convertie en projet.",
+          existingProject,
+        }
+      }
+    }
     console.error("Error creating project:", error)
     return { success: false, error: error.message || "Erreur lors de la création du projet." }
   }
@@ -4401,6 +4730,3 @@ export async function deleteTemoignage(id: string) {
     return { success: false, error: error.message || "Erreur lors de la suppression." }
   }
 }
-
-
-

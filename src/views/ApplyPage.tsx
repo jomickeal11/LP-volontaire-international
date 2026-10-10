@@ -2397,7 +2397,7 @@ export default function ApplyPage({ lang, navigate, setLang }: ApplyPageProps) {
                 </div>
 
                 {/* Liste verticale avec ligne continue bien visible */}
-                <div className="relative pl-6 before:absolute before:left-[11px] before:top-2 before:bottom-3 before:w-[2px] before:bg-[#D8E2E9] space-y-3.5">
+                <div className="relative pl-6 space-y-3.5">
                   {STEPS_CONFIG.map((s) => {
                     const isCompleted = s.num < step
                     const isCurrent = s.num === step

@@ -1,13 +1,17 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import {
   getCandidateApplicationSchema,
   getPartnerRequestSchema,
+  projectProposalSchema,
   formatZodError,
   candidateApplicationSchema,
   partnerRequestSchema,
   updateStatusSchema,
   addNoteSchema,
+  projectProposalStatusSchema,
+  projectProposalInternalNoteSchema,
   type CandidateApplicationInput,
   type PartnerRequestInput,
 } from "./validations"
@@ -19,6 +23,29 @@ import type { CandidateStatus, LanguageCode } from "@prisma/client"
 import { randomBytes, randomUUID } from "crypto"
 import { files } from "./storage"
 import { EmailService } from "./email"
+import { getProjectProposalAdmin } from "./project-proposal-access"
+
+async function notifyCandidateApplication(application: any): Promise<void> {
+  await EmailService.sendCandidateApplicationEmails({
+    applicationId: application.id,
+    firstName: application.candidate.firstName,
+    lastName: application.candidate.lastName,
+    email: application.candidate.email,
+    referenceNumber: application.referenceNumber,
+    country: application.candidate.country,
+    profession: application.profession || undefined,
+    skills: application.skills.map((skill: any) => skill.skill.nameFr || skill.skill.nameEn),
+    arrivalDate: application.arrivalDate
+      ? new Intl.DateTimeFormat("fr-FR").format(new Date(application.arrivalDate))
+      : undefined,
+    duration: application.duration === "SIX_MONTHS"
+      ? "6 mois"
+      : application.duration === "NINE_MONTHS"
+        ? "9 mois"
+        : "12 mois",
+    lang: (application.communicationLanguage || application.lang || "FR") as "FR" | "EN" | "DE",
+  })
+}
 
 // Sécurité des fichiers téléversés
 const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15 Mo max
@@ -63,7 +90,15 @@ function generateReferenceNumber(): string {
 
 export async function submitCandidateApplication(
   data: CandidateApplicationInput,
-  lang: "FR" | "EN" | "DE" = "FR"
+  lang: "FR" | "EN" | "DE" = "FR",
+  sendNotifications = true,
+  documents: Array<{
+    type: "CV" | "MOTIVATION_LETTER" | "PORTFOLIO"
+    originalName: string
+    storageKey: string
+    mimeType: string
+    size: number
+  }> = []
 ) {
   try {
     const schema = getCandidateApplicationSchema(lang)
@@ -163,28 +198,25 @@ export async function submitCandidateApplication(
           skills: { include: { skill: true } }
         }
       })
+
+      if (documents.length > 0) {
+        await tx.documentCandidature.createMany({
+          data: documents.map((document) => ({
+            ...document,
+            applicationId: newApp.id,
+          })),
+        })
+      }
       
       return newApp
     })
 
-    // Envoi des e-mails transactionnels (candidat + alerte équipe APTIC-R)
-    // Awaited to prevent Vercel Serverless from killing the background task (especially due to the 1.1s Mailtrap delay)
-    try {
-      await EmailService.sendCandidateApplicationEmails({
-        applicationId: application.id,
-        firstName: application.candidate.firstName,
-        lastName: application.candidate.lastName,
-        email: application.candidate.email,
-        referenceNumber: application.referenceNumber,
-        country: application.candidate.country,
-        profession: application.profession || undefined,
-        skills: application.skills.map((s: any) => s.skill.nameFr || s.skill.nameEn),
-        arrivalDate: application.arrivalDate ? new Intl.DateTimeFormat("fr-FR").format(new Date(application.arrivalDate)) : undefined,
-        duration: application.duration === "SIX_MONTHS" ? "6 mois" : application.duration === "NINE_MONTHS" ? "9 mois" : "12 mois",
-        lang: (application.communicationLanguage || validated.communicationLanguage || lang) as "FR" | "EN" | "DE",
-      })
-    } catch (e) {
-      console.warn("Emails failed to send, but application was saved:", e)
+    if (sendNotifications) {
+      try {
+        await notifyCandidateApplication(application)
+      } catch (error) {
+        console.warn("Emails failed to send, but application was saved:", error)
+      }
     }
 
     return { success: true as const, data: application }
@@ -197,7 +229,14 @@ export async function submitCandidateApplication(
 
 export async function submitPartnerRequest(
   data: PartnerRequestInput,
-  lang: "FR" | "EN" | "DE" = "FR"
+  lang: "FR" | "EN" | "DE" = "FR",
+  sendNotifications = true,
+  document?: {
+    originalName: string
+    storageKey: string
+    mimeType: string
+    size: number
+  }
 ) {
   try {
     const schema = getPartnerRequestSchema(lang)
@@ -244,22 +283,24 @@ export async function submitPartnerRequest(
         utmCampaign: validated.utmCampaign || null,
         utmContent: validated.utmContent || null,
         utmTerm: validated.utmTerm || null,
+        documents: document ? { create: document } : undefined,
       }
     })
 
-    // Envoi des e-mails transactionnels (partenaire + alerte équipe APTIC-R)
-    try {
-      await EmailService.sendPartnerRequestEmails({
-        orgName: partnerRequest.orgName,
-        contactPerson: partnerRequest.contactPerson,
-        email: partnerRequest.email,
-        referenceNumber: partnerRequest.referenceNumber || refNum,
-        country: partnerRequest.country,
-        orgType: partnerRequest.orgType,
-        lang: (partnerRequest.communicationLanguage || validated.communicationLanguage || lang) as "FR" | "EN" | "DE",
-      })
-    } catch (e) {
-      console.warn("Partner emails failed to send, but request was saved:", e)
+    if (sendNotifications) {
+      try {
+        await EmailService.sendPartnerRequestEmails({
+          orgName: partnerRequest.orgName,
+          contactPerson: partnerRequest.contactPerson,
+          email: partnerRequest.email,
+          referenceNumber: partnerRequest.referenceNumber || refNum,
+          country: partnerRequest.country,
+          orgType: partnerRequest.orgType,
+          lang: (partnerRequest.communicationLanguage || validated.communicationLanguage || lang) as "FR" | "EN" | "DE",
+        })
+      } catch (error) {
+        console.warn("Partner emails failed to send, but request was saved:", error)
+      }
     }
 
     return { success: true as const, data: partnerRequest }
@@ -335,19 +376,27 @@ export async function submitPartnerRequestFormData(
       }
     }
 
-    const result = await submitPartnerRequest(data as PartnerRequestInput, lang)
+    const result = await submitPartnerRequest(
+      data as PartnerRequestInput,
+      lang,
+      false,
+      uploadedFile || undefined
+    )
 
-    if (result.success && result.data && uploadedFile) {
-      // Create DocumentPartenaire entry linked to the partner request
-      await (prisma as any).documentPartenaire.create({
-        data: {
-          partnerRequestId: result.data.id,
-          originalName: uploadedFile.originalName,
-          storageKey: uploadedFile.storageKey,
-          mimeType: uploadedFile.mimeType,
-          size: uploadedFile.size,
-        }
-      })
+    if (result.success && result.data) {
+      try {
+        await EmailService.sendPartnerRequestEmails({
+          orgName: result.data.orgName,
+          contactPerson: result.data.contactPerson,
+          email: result.data.email,
+          referenceNumber: result.data.referenceNumber,
+          country: result.data.country,
+          orgType: result.data.orgType,
+          lang: (result.data.communicationLanguage || result.data.lang || lang) as "FR" | "EN" | "DE",
+        })
+      } catch (error) {
+        console.warn("Partner emails failed to send after request persistence:", error)
+      }
     }
 
     return result
@@ -355,6 +404,270 @@ export async function submitPartnerRequestFormData(
     console.error("submitPartnerRequestFormData error:", err)
     const message = err instanceof Error ? err.message : "Erreur lors de la soumission du dossier"
     return { success: false, error: message }
+  }
+}
+
+export async function submitProjectProposalFormData(
+  formData: FormData,
+  lang: "FR" | "EN" | "DE" = "FR"
+): Promise<{ success: true; referenceNumber: string } | { success: false; error: string }> {
+  try {
+    if (!["FR", "EN", "DE"].includes(lang)) {
+      return { success: false, error: "Langue invalide." }
+    }
+    if (String(formData.get("website") || "").trim()) {
+      return { success: false, error: "Soumission invalide." }
+    }
+
+    const ip = await getClientIp()
+    const rateCheck = checkRateLimit(`submit-project-proposal:${ip}`, 5, 10 * 60 * 1000)
+    if (!rateCheck.allowed) {
+      return { success: false, error: "Trop de soumissions depuis cette adresse. Veuillez patienter quelques minutes avant de réessayer." }
+    }
+
+    const rawData: Record<string, unknown> = Object.fromEntries(
+      [...formData.entries()].filter(([key]) => key !== "document" && key !== "website")
+    )
+    rawData.consent = formData.get("consent") === "true"
+    const data = projectProposalSchema.parse(rawData)
+
+    let uploadedDocument: {
+      originalName: string
+      storageKey: string
+      mimeType: string
+      size: number
+    } | undefined
+    const documentValue = formData.get("document")
+    if (typeof documentValue === "string" && documentValue) {
+      let parsedDescriptor: unknown
+      try {
+        parsedDescriptor = JSON.parse(documentValue)
+      } catch {
+        return { success: false, error: "Le document joint est invalide. Veuillez le téléverser à nouveau." }
+      }
+      if (!parsedDescriptor || typeof parsedDescriptor !== "object") {
+        return { success: false, error: "Le document joint est incomplet. Veuillez le téléverser à nouveau." }
+      }
+      const descriptor = parsedDescriptor as Record<string, unknown>
+      if (typeof descriptor.storageKey !== "string" || typeof descriptor.originalName !== "string") {
+        return { success: false, error: "Le document joint est incomplet. Veuillez le téléverser à nouveau." }
+      }
+      const check = await validateStoredDocument("project-proposal-doc", {
+        storageKey: descriptor.storageKey,
+        originalName: descriptor.originalName,
+        mimeType: typeof descriptor.mimeType === "string" ? descriptor.mimeType : undefined,
+      })
+      if (!check.valid) {
+        return { success: false, error: check.error || "Document non autorisé." }
+      }
+      uploadedDocument = {
+        originalName: descriptor.originalName.slice(0, 255),
+        storageKey: descriptor.storageKey,
+        mimeType: check.mimeType || "application/octet-stream",
+        size: check.size || 0,
+      }
+    } else if (documentValue) {
+      return { success: false, error: "Le document joint est invalide." }
+    }
+
+    const recentDuplicate = await prisma.propositionProjet.findFirst({
+      where: {
+        email: data.email,
+        title: data.title,
+        createdAt: { gte: new Date(Date.now() - 10 * 60 * 1000) },
+      },
+      select: { referenceNumber: true },
+    })
+    if (recentDuplicate) {
+      return { success: false, error: "Une proposition identique vient d'être envoyée avec cette adresse e-mail." }
+    }
+
+    const referenceNumber = `PROJ-${new Date().getFullYear()}-${randomBytes(3).toString("hex").toUpperCase()}`
+    const proposal = await prisma.propositionProjet.create({
+      data: {
+        ...data,
+        organization: data.organization || null,
+        budget: data.budget || null,
+        message: data.message || null,
+        lang: lang as LanguageCode,
+        referenceNumber,
+        status: "NOUVEAU",
+        document: uploadedDocument ? { create: uploadedDocument } : undefined,
+        statusHistory: {
+          create: {
+            fromStatus: null,
+            toStatus: "NOUVEAU",
+            changedByName: "APTIC-R — système",
+          },
+        },
+      },
+      select: { id: true, referenceNumber: true },
+    })
+
+    const notification = [
+      `Référence : ${referenceNumber}`,
+      `Pays : ${data.country}`,
+      `Domaine : ${data.domain}`,
+      `Type de collaboration : ${data.collaboration}`,
+      `Durée / calendrier : ${data.timeline}`,
+      "",
+      `Description :\n${data.description}`,
+      `Objectifs :\n${data.objectives}`,
+      `Public cible :\n${data.targetAudience}`,
+      `Résultats attendus :\n${data.expectedResults}`,
+      data.budget ? `Budget / financement :\n${data.budget}` : "",
+      data.message ? `Message complémentaire :\n${data.message}` : "",
+      uploadedDocument ? `Document joint : ${uploadedDocument.originalName}` : "Aucun document joint.",
+    ].filter(Boolean).join("\n\n")
+
+    const emailResult = await EmailService.sendContactMessageNotification({
+      notificationKey: `project-proposal-submission:${proposal.id}:admin`,
+      name: data.proposerName,
+      email: data.email,
+      organization: data.organization || undefined,
+      subject: `Nouvelle proposition de projet — ${data.title} (${referenceNumber})`,
+      message: `Titre : ${data.title}\n\n${notification}`,
+      routedTo: process.env.MAIL_ADMIN || "aptic.rural19@gmail.com",
+      lang,
+    })
+    if (!emailResult.emailSent) {
+      console.error("Project proposal saved but team notification failed:", emailResult.error)
+    }
+
+    return { success: true, referenceNumber: proposal.referenceNumber }
+  } catch (err: unknown) {
+    console.error("submitProjectProposalFormData error:", err)
+    const error = formatZodError(err, lang)
+    return { success: false, error: error || "Erreur lors de l'envoi de la proposition." }
+  }
+}
+
+export async function updateProjectProposalStatus(
+  proposalId: string,
+  inputStatus: string,
+  adminMessage = ""
+) {
+  try {
+    const admin = await getProjectProposalAdmin()
+    if (!admin) return { success: false, error: "Action non autorisée." }
+    const parsedStatus = projectProposalStatusSchema.safeParse(inputStatus)
+    if (!proposalId || !parsedStatus.success) {
+      return { success: false, error: "Statut ou proposition invalide." }
+    }
+    const status = parsedStatus.data
+    const safeAdminMessage = adminMessage.trim()
+    if (status === "INFORMATIONS_COMPLEMENTAIRES" && (safeAdminMessage.length < 2 || safeAdminMessage.length > 3000)) {
+      return { success: false, error: "Veuillez préciser les informations demandées (2 à 3 000 caractères)." }
+    }
+    const result = await prisma.$transaction(async (tx) => {
+      const current = await tx.propositionProjet.findUnique({ where: { id: proposalId } })
+      if (!current) return { missing: true as const }
+      if (current.status === status) {
+        return { missing: false as const, unchanged: true as const, fromStatus: current.status }
+      }
+      const now = new Date()
+      const updateResult = await tx.propositionProjet.updateMany({
+        where: { id: proposalId, status: current.status },
+        data: { status },
+      })
+      if (updateResult.count === 0) {
+        return { missing: false as const, unchanged: true as const }
+      }
+      const history = await tx.historiquePropositionProjet.create({
+        data: {
+          proposalId,
+          fromStatus: current.status,
+          toStatus: status,
+          changedById: admin.id,
+          changedByName: admin.name,
+          createdAt: now,
+        },
+      })
+      return {
+        missing: false as const,
+        unchanged: false as const,
+        previousStatus: current.status,
+        history: {
+          id: history.id,
+          fromStatus: history.fromStatus,
+          toStatus: history.toStatus,
+          changedByName: history.changedByName,
+          createdAt: history.createdAt.toISOString(),
+        },
+        notification: {
+          notificationKey: `project-proposal-status:${history.id}`,
+          email: current.email,
+          proposerName: current.proposerName,
+          title: current.title,
+          referenceNumber: current.referenceNumber,
+          lang: current.lang as "FR" | "EN" | "DE",
+          status,
+          adminMessage: safeAdminMessage || undefined,
+        },
+      }
+    })
+    if (result.missing) return { success: false, error: "Proposition introuvable." }
+    if (result.unchanged) return { success: true, unchanged: true as const }
+
+    const notificationRequired = [
+      "INFORMATIONS_COMPLEMENTAIRES",
+      "ACCEPTE_COLLABORATION",
+      "REFUSE",
+    ].includes(status)
+    const emailResult = notificationRequired
+      ? await EmailService.sendProjectProposalStatusEmail(result.notification)
+      : undefined
+    revalidatePath("/backoffice/project-proposals")
+    return {
+      success: true,
+      unchanged: false as const,
+      history: result.history,
+      notificationRequired,
+      emailSent: emailResult?.success,
+      emailError: emailResult?.error,
+      emailLogId: emailResult?.emailLogId,
+    }
+  } catch (err: unknown) {
+    console.error("updateProjectProposalStatus error:", err)
+    return { success: false, error: err instanceof Error ? err.message : "Erreur de mise à jour du statut." }
+  }
+}
+
+export async function addProjectProposalInternalNote(proposalId: string, content: string) {
+  try {
+    const admin = await getProjectProposalAdmin()
+    if (!admin) return { success: false, error: "Action non autorisée." }
+    const parsed = projectProposalInternalNoteSchema.safeParse({ proposalId, content })
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message || "Note invalide." }
+    }
+    const proposalExists = await prisma.propositionProjet.findUnique({
+      where: { id: parsed.data.proposalId },
+      select: { id: true },
+    })
+    if (!proposalExists) return { success: false, error: "Proposition introuvable." }
+
+    const note = await prisma.documentPropositionNote.create({
+      data: {
+        proposalId: parsed.data.proposalId,
+        authorId: admin.id,
+        authorName: admin.name,
+        content: parsed.data.content,
+      },
+    })
+    revalidatePath("/backoffice/project-proposals")
+    return {
+      success: true,
+      note: {
+        id: note.id,
+        authorName: note.authorName,
+        content: note.content,
+        createdAt: note.createdAt.toISOString(),
+      },
+    }
+  } catch (err: unknown) {
+    console.error("addProjectProposalInternalNote error:", err)
+    return { success: false, error: err instanceof Error ? err.message : "Impossible d'enregistrer la note." }
   }
 }
 
@@ -373,6 +686,12 @@ export interface UpdateStatusEmailOptions {
   }
 }
 
+const CANDIDATE_EMAIL_STATUSES = new Set<CandidateStatus>([
+  "INTERVIEW",
+  "CHOSEN",
+  "REJECTED",
+])
+
 export async function updateCandidateStatus(
   applicationId: string,
   newStatus: CandidateStatus,
@@ -386,11 +705,21 @@ export async function updateCandidateStatus(
 }> {
   try {
     const session = await verifySession()
-    if (!session || !session.userId) {
+    if (
+      !session?.userId ||
+      !["SUPERADMIN", "ADMIN", "COORDINATOR", "CONTENT_MANAGER"].includes(session.role)
+    ) {
       return { success: false, error: "Action non autorisée. Session administrateur requise." }
     }
 
     updateStatusSchema.parse({ candidateId: applicationId, newStatus })
+    if (
+      newStatus === "INTERVIEW" &&
+      emailOptions?.sendEmail &&
+      (emailOptions.interviewDetails?.additionalMessage?.trim().length || 0) < 2
+    ) {
+      return { success: false, error: "Les instructions de l’entretien doivent être précisées avant l’envoi." }
+    }
 
     const adminUser = await prisma.utilisateur.findUnique({
       where: { id: session.userId },
@@ -400,6 +729,8 @@ export async function updateCandidateStatus(
 
     let targetAppWithCandidate: any = null
     let previousStatus: CandidateStatus | null = null
+    let statusHistoryId: string | null = null
+    let statusChanged = false
 
     await prisma.$transaction(async (tx) => {
       const currentApp = await tx.candidature.findUnique({
@@ -415,17 +746,18 @@ export async function updateCandidateStatus(
       previousStatus = currentApp.status
 
       if (currentApp.status === newStatus) {
-        return { success: true } // Already at this status
+        return
       }
 
-      const app = await tx.candidature.update({
-        where: { id: applicationId },
+      const statusUpdate = await tx.candidature.updateMany({
+        where: { id: applicationId, status: currentApp.status },
         data: { status: newStatus as any },
       })
+      if (statusUpdate.count === 0) return
 
-      await tx.historiqueCandidature.create({
+      const history = await tx.historiqueCandidature.create({
         data: {
-          applicationId: app.id,
+          applicationId,
           fromStatus: currentApp.status,
           toStatus: newStatus as any,
           note: noteContent,
@@ -433,11 +765,13 @@ export async function updateCandidateStatus(
           changedByName: adminName,
         },
       })
+      statusHistoryId = history.id
+      statusChanged = true
 
       if (noteContent) {
         await tx.noteCandidature.create({
           data: {
-            applicationId: app.id,
+            applicationId,
             authorId: session.userId,
             authorName: adminName,
             content: noteContent,
@@ -450,19 +784,31 @@ export async function updateCandidateStatus(
     let emailSent = false
     let emailError: string | undefined
 
-    if (emailOptions?.sendEmail && targetAppWithCandidate) {
+    const notificationRequired =
+      newStatus === "CHOSEN" ||
+      newStatus === "REJECTED" ||
+      (newStatus === "INTERVIEW" && Boolean(emailOptions?.sendEmail))
+
+    if (
+      notificationRequired &&
+      statusChanged &&
+      statusHistoryId &&
+      targetAppWithCandidate &&
+      CANDIDATE_EMAIL_STATUSES.has(newStatus)
+    ) {
       try {
         const candidate = targetAppWithCandidate.candidate
         const emailRes = await EmailService.sendCandidateStatusEmail({
           applicationId: targetAppWithCandidate.id,
+          notificationKey: `candidate-status:${statusHistoryId}`,
           candidateEmail: candidate.email,
           candidateName: `${candidate.firstName} ${candidate.lastName}`.trim(),
           referenceNumber: targetAppWithCandidate.referenceNumber,
           status: newStatus,
           fromStatus: previousStatus || undefined,
-          customSubject: emailOptions.customSubject,
-          customBody: emailOptions.customBody,
-          interviewDetails: emailOptions.interviewDetails,
+          customSubject: emailOptions?.customSubject,
+          customBody: emailOptions?.customBody,
+          interviewDetails: emailOptions?.interviewDetails,
           lang: ((targetAppWithCandidate.communicationLanguage || targetAppWithCandidate.lang || "FR") as "FR" | "EN" | "DE"),
         })
 
@@ -534,8 +880,8 @@ export async function updatePartnerRequestCommunicationLanguage(
  */
 export async function resendCandidateEmailAction(emailLogId: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const session = await verifySession()
-    if (!session || !session.userId) {
+    const admin = await getProjectProposalAdmin()
+    if (!admin) {
       return { success: false, error: "Action non autorisée. Session administrateur requise." }
     }
     return await EmailService.resendLoggedEmail(emailLogId)
@@ -544,13 +890,27 @@ export async function resendCandidateEmailAction(emailLogId: string): Promise<{ 
   }
 }
 
+export async function retryFailedNotificationEmailAction(emailLogId: string): Promise<{
+  success: boolean
+  error?: string
+}> {
+  try {
+    const admin = await getProjectProposalAdmin()
+    if (!admin) return { success: false, error: "Action non autorisée." }
+    return EmailService.resendLoggedEmail(emailLogId)
+  } catch (error: unknown) {
+    console.error("retryFailedNotificationEmailAction error:", error)
+    return { success: false, error: error instanceof Error ? error.message : "Échec de la relance." }
+  }
+}
+
 /**
  * Consulter les détails d'un email envoyé (pour le modal « Voir l'email »).
  */
 export async function getCandidateEmailLogDetails(emailLogId: string) {
   try {
-    const session = await verifySession()
-    if (!session || !session.userId) {
+    const admin = await getProjectProposalAdmin()
+    if (!admin) {
       return { success: false, error: "Action non autorisée. Session administrateur requise." }
     }
     const log = await prisma.emailLog.findUnique({
@@ -647,7 +1007,7 @@ export async function submitCandidateApplicationFormData(
           }
           const docType = allowedTypes.has(descriptor?.type) ? descriptor.type : "CV"
           documentsToCreate.push({
-            type: docType as any,
+            type: docType as "CV" | "MOTIVATION_LETTER" | "PORTFOLIO",
             originalName: descriptor.originalName,
             storageKey: descriptor.storageKey,
             mimeType: check.mimeType || "application/octet-stream",
@@ -687,17 +1047,12 @@ export async function submitCandidateApplicationFormData(
       }
     }
 
-    const result = await submitCandidateApplication(data as CandidateApplicationInput, lang)
-    
-    if (result.success && result.data && documentsToCreate.length > 0) {
-      // Add documents to the created application
-      await prisma.documentCandidature.createMany({
-        data: documentsToCreate.map(doc => ({
-          ...doc,
-          applicationId: result.data.id
-        }))
-      })
-    }
+    const result = await submitCandidateApplication(
+      data as CandidateApplicationInput,
+      lang,
+      true,
+      documentsToCreate
+    )
     
     return result
   } catch (err: unknown) {
@@ -736,27 +1091,35 @@ export async function updatePartnerRequestStatus(
   newStatus: "NEW" | "REVIEW" | "APPROVED" | "REJECTED" | "ARCHIVED"
 ) {
   try {
-    const session = await verifySession()
-    if (!session || !session.userId) {
+    const admin = await getProjectProposalAdmin()
+    if (!admin) {
       return { success: false, error: "Action non autorisée. Session administrateur requise." }
     }
 
-    const updated = await (prisma as any).demandePartenariat.update({
-      where: { id: requestId },
-      data: { status: newStatus },
-      include: { partner: true, documents: true },
-    })
+    const transition = await prisma.$transaction(async (tx) => {
+      const current = await (tx as any).demandePartenariat.findUnique({
+        where: { id: requestId },
+      })
+      if (!current) return { missing: true as const }
+      if (current.status === newStatus) return { missing: false as const, unchanged: true as const }
 
-    // If APPROVED, ensure or link to a Partenaire entry in the database
-    if (newStatus === "APPROVED" && !updated.partnerId) {
-      // Check if partner with same name exists or create one
-      const existingPartner = await (prisma as any).partenaire.findFirst({
-        where: { orgName: updated.orgName },
+      const statusUpdate = await (tx as any).demandePartenariat.updateMany({
+        where: { id: requestId, status: current.status },
+        data: { status: newStatus },
+      })
+      if (statusUpdate.count === 0) {
+        return { missing: false as const, unchanged: true as const }
+      }
+      const updated = await (tx as any).demandePartenariat.findUnique({
+        where: { id: requestId },
+        include: { partner: true, documents: true },
       })
 
-      let partner = existingPartner
-      if (!partner) {
-        partner = await (prisma as any).partenaire.create({
+      if (newStatus === "APPROVED" && !updated.partnerId) {
+        const existingPartner = await (tx as any).partenaire.findFirst({
+          where: { orgName: updated.orgName },
+        })
+        const partner = existingPartner || await (tx as any).partenaire.create({
           data: {
             orgName: updated.orgName,
             country: updated.country,
@@ -764,14 +1127,46 @@ export async function updatePartnerRequestStatus(
             orgType: updated.orgType,
           },
         })
+        await (tx as any).demandePartenariat.update({
+          where: { id: requestId },
+          data: { partnerId: partner.id },
+        })
       }
 
-      await (prisma as any).demandePartenariat.update({
-        where: { id: requestId },
-        data: { partnerId: partner.id },
+      return {
+        missing: false as const,
+        unchanged: false as const,
+        notification: {
+          notificationKey: `partner-status:${requestId}:${current.updatedAt.toISOString()}:${newStatus}`,
+          email: current.email,
+          firstName: current.contactPerson,
+          organization: current.orgName,
+          referenceNumber: current.referenceNumber || requestId,
+          lang: (current.communicationLanguage || current.lang || "FR") as "FR" | "EN" | "DE",
+        },
+      }
+    })
+
+    if (transition.missing) return { success: false, error: "Demande de partenariat introuvable." }
+    if (transition.unchanged) return { success: true, unchanged: true }
+
+    if (newStatus === "APPROVED" || newStatus === "REJECTED") {
+      const mailResult = await EmailService.sendPartnerDecisionEmail({
+        ...transition.notification,
+        status: newStatus,
+        organization: transition.notification.organization,
       })
+      revalidatePath("/backoffice/partners/requests")
+      return {
+        success: true,
+        notificationRequired: true,
+        emailSent: mailResult.success,
+        emailError: mailResult.error,
+        emailLogId: mailResult.emailLogId,
+      }
     }
 
+    revalidatePath("/backoffice/partners/requests")
     return { success: true }
   } catch (err: unknown) {
     console.error("updatePartnerRequestStatus error:", err)
@@ -824,8 +1219,8 @@ export async function sendCandidateDirectEmail({
   message: string
 }): Promise<{ success: boolean; error?: string }> {
   try {
-    const session = await verifySession()
-    if (!session || !session.userId) {
+    const admin = await getProjectProposalAdmin()
+    if (!admin) {
       return { success: false, error: "Action non autorisée. Session administrateur requise." }
     }
 
@@ -836,17 +1231,11 @@ export async function sendCandidateDirectEmail({
     const { renderAdminDirectEmail } = await import("./email/templates/adminDirectEmail")
     const { getEmailProvider } = await import("./email")
 
-    const adminUser = await prisma.utilisateur.findUnique({
-      where: { id: session.userId },
-      select: { name: true },
-    })
-    const adminName = adminUser?.name || "Coordination APTIC-R"
-
     const emailTemplate = renderAdminDirectEmail({
       candidateName: recipientName,
       subject: subject.trim(),
       message: message.trim(),
-      adminName,
+      adminName: admin.name,
     })
 
     const provider = getEmailProvider()
@@ -866,8 +1255,8 @@ export async function sendCandidateDirectEmail({
       data: {
         applicationId: candidateId,
         content: `E-mail envoyé au candidat : "${subject.trim()}"\n\n${message.trim()}`,
-        authorId: session.userId,
-        authorName: adminName,
+        authorId: admin.id,
+        authorName: admin.name,
       },
     })
 
@@ -896,8 +1285,8 @@ export async function sendPartnerDirectEmail({
   message: string
 }): Promise<{ success: boolean; error?: string }> {
   try {
-    const session = await verifySession()
-    if (!session || !session.userId) {
+    const admin = await getProjectProposalAdmin()
+    if (!admin) {
       return { success: false, error: "Action non autorisée. Session administrateur requise." }
     }
 
@@ -908,17 +1297,11 @@ export async function sendPartnerDirectEmail({
     const { renderAdminDirectEmail } = await import("./email/templates/adminDirectEmail")
     const { getEmailProvider } = await import("./email")
 
-    const adminUser = await prisma.utilisateur.findUnique({
-      where: { id: session.userId },
-      select: { name: true },
-    })
-    const adminName = adminUser?.name || "Coordination APTIC-R"
-
     const emailTemplate = renderAdminDirectEmail({
       candidateName: recipientName,
       subject: subject.trim(),
       message: message.trim(),
-      adminName,
+      adminName: admin.name,
     })
 
     const provider = getEmailProvider()
@@ -940,5 +1323,3 @@ export async function sendPartnerDirectEmail({
     return { success: false, error: errorMessage }
   }
 }
-
-

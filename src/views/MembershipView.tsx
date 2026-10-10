@@ -693,7 +693,7 @@ export default function MembershipView({ lang }: MembershipViewProps) {
         availability: formData.availability,
         motivation: formData.motivation,
         consentData: formData.consentData,
-      })
+      }, lang)
 
       if (res.success && res.referenceNumber) {
         setReferenceNumber(res.referenceNumber)

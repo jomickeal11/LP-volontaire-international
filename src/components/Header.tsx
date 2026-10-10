@@ -290,6 +290,23 @@ xl:gap-2 min-h-[40px]">
             ))}
           </div>
 
+          {/* Search button */}
+          <button
+            type="button"
+            onClick={() => {
+              const target = `/${lang.toLowerCase()}/${PAGE_ROUTES.search?.[lang.toLowerCase()] || "recherche"}`
+              router.push(target)
+            }}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(0,51,102,0.12)] bg-[#F5F7F9] text-[#003366] transition hover:bg-[#EAF0F4] cursor-pointer"
+            aria-label={lang === "DE" ? "Suche" : lang === "EN" ? "Search" : "Recherche"}
+            title={lang === "DE" ? "Suche" : lang === "EN" ? "Search" : "Recherche"}
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="6" />
+              <path d="M20 20L16.65 16.65" />
+            </svg>
+          </button>
+
           {/* Primary CTA (Desktop only) */}
           {(() => {
             const isVolunteering = currentPage === "volunteering"

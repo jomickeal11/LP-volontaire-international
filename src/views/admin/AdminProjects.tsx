@@ -2,7 +2,14 @@
 
 import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { getProjects, getDomaines, createProject, deleteProject, updateProject } from "@/lib/cms-actions"
+import {
+  getProjects,
+  getDomaines,
+  createProject,
+  deleteProject,
+  updateProject,
+  getProjectProposalForConversion,
+} from "@/lib/cms-actions"
 import { uploadMediaFile } from "@/lib/upload-client"
 import { translateCmsFieldsAction } from "@/lib/translator"
 import { ExternalLink, Star } from "lucide-react"
@@ -55,6 +62,25 @@ interface DomaineItem {
   nameFr: string
 }
 
+type ConversionProposal = {
+  id: string
+  referenceNumber: string
+  proposerName: string
+  organization: string | null
+  email: string
+  country: string
+  title: string
+  domain: string
+  description: string
+  objectives: string
+  targetAudience: string
+  expectedResults: string
+  collaboration: string
+  timeline: string
+  budget: string | null
+  message: string | null
+}
+
 export default function AdminProjects() {
   const confirm = useConfirm()
   const [projects, setProjects] = useState<ProjectItem[]>([])
@@ -72,6 +98,22 @@ export default function AdminProjects() {
   const [activeLangTab, setActiveLangTab] = useState<"FR" | "EN" | "DE">("FR")
   const [error, setError] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const handledSourceProposal = useRef<string | null>(null)
+  const handledEditProject = useRef<string | null>(null)
+  const [conversionProposal, setConversionProposal] = useState<ConversionProposal | null>(null)
+  const [conversionSourceId, setConversionSourceId] = useState("")
+  const [conversionExistingProject, setConversionExistingProject] = useState<{
+    id: string
+    titleFr: string
+    slug: string
+  } | null>(null)
+  const [conversionSuccessProject, setConversionSuccessProject] = useState<{
+    id: string
+    titleFr: string
+    slug: string
+  } | null>(null)
+  const [conversionLoading, setConversionLoading] = useState(false)
+  const [conversionError, setConversionError] = useState("")
 
   const [formData, setFormData] = useState({
     publishedFr: true,
@@ -134,6 +176,91 @@ export default function AdminProjects() {
   useEffect(() => {
     loadData()
   }, [])
+
+  useEffect(() => {
+    if (loading) return
+    const sourceProposalId = new URLSearchParams(window.location.search).get("sourceProposal")
+    if (!sourceProposalId || handledSourceProposal.current === sourceProposalId) return
+    handledSourceProposal.current = sourceProposalId
+    setConversionLoading(true)
+    setConversionError("")
+    void getProjectProposalForConversion(sourceProposalId)
+      .then((result) => {
+        if (!result.success) {
+          setConversionError(result.error)
+          return
+        }
+        if (result.proposal.convertedProject) {
+          setConversionExistingProject(result.proposal.convertedProject)
+          return
+        }
+        if (result.proposal.status !== "ACCEPTE_COLLABORATION") {
+          setConversionError("Seules les propositions acceptées peuvent être converties en projet.")
+          return
+        }
+
+        const proposal = result.proposal
+        setConversionProposal(proposal)
+        setConversionSourceId(proposal.id)
+        setActiveLangTab("FR")
+        setEditingId(null)
+        setFormData((previous) => ({
+          ...previous,
+          publishedFr: false,
+          publishedEn: false,
+          publishedDe: false,
+          titleFr: proposal.title,
+          titleEn: "",
+          titleDe: "",
+          domaineId: result.suggestedDomainId || "",
+          summaryFr: proposal.description || proposal.objectives,
+          summaryEn: "",
+          summaryDe: "",
+          descriptionFr: proposal.description,
+          descriptionEn: "",
+          descriptionDe: "",
+          objectivesFr: proposal.objectives,
+          objectivesEn: "",
+          objectivesDe: "",
+          actionsFr: "",
+          actionsEn: "",
+          actionsDe: "",
+          resultsFr: proposal.expectedResults,
+          resultsEn: "",
+          resultsDe: "",
+          location: proposal.country || previous.location,
+          country: proposal.country || previous.country,
+          status: "PLANNED",
+          startDate: "",
+          endDate: "",
+          beneficiaries: proposal.targetAudience,
+          featuredImage: "",
+          isFeatured: false,
+        }))
+        setModalOpen(true)
+      })
+      .catch((conversionActionError) => {
+        console.error("Unable to load proposal for project conversion:", conversionActionError)
+        setConversionError("Impossible de charger cette proposition.")
+      })
+      .finally(() => setConversionLoading(false))
+  }, [loading])
+
+  useEffect(() => {
+    if (loading) return
+    const editProjectId = new URLSearchParams(window.location.search).get("editProject")
+    if (!editProjectId || handledEditProject.current === editProjectId) return
+    const project = projects.find((item) => item.id === editProjectId)
+    if (!project) {
+      if (projects.length || !loading) {
+        handledEditProject.current = editProjectId
+        setConversionError("Le projet associé est introuvable dans le CMS.")
+      }
+      return
+    }
+    handledEditProject.current = editProjectId
+    handleOpenModal(project)
+  }, [loading, projects])
 
   const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -268,6 +395,7 @@ export default function AdminProjects() {
   const handleOpenModal = (project?: ProjectItem) => {
     setError("")
     setTranslationNotice("")
+    setConversionError("")
     setActiveLangTab("FR")
     if (project) {
       setEditingId(project.id)
@@ -346,6 +474,12 @@ export default function AdminProjects() {
     setModalOpen(true)
   }
 
+  const handleCloseModal = () => {
+    setModalOpen(false)
+    setConversionProposal(null)
+    setConversionSourceId("")
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.titleFr.trim() || !formData.summaryFr.trim()) {
@@ -407,6 +541,7 @@ export default function AdminProjects() {
         featuredImage: formData.featuredImage || undefined,
         isFeatured: formData.isFeatured,
         displayOrder: Number(formData.displayOrder) || 1,
+        sourceProposalId: !editingId ? conversionSourceId || undefined : undefined,
       }
 
       const res = editingId
@@ -417,8 +552,35 @@ export default function AdminProjects() {
         setModalOpen(false)
         setEditingId(null)
         setActiveLangTab("FR")
+        if (!editingId && conversionSourceId && "project" in res && res.project) {
+          setConversionSuccessProject({
+            id: res.project.id,
+            titleFr: res.project.titleFr,
+            slug: res.project.slug,
+          })
+          setConversionProposal(null)
+          setConversionSourceId("")
+        }
         await loadData()
       } else {
+        const existingProject = "existingProject" in res ? res.existingProject : undefined
+        if (
+          existingProject &&
+          typeof existingProject === "object" &&
+          "id" in existingProject &&
+          typeof existingProject.id === "string" &&
+          "titleFr" in existingProject &&
+          typeof existingProject.titleFr === "string" &&
+          "slug" in existingProject &&
+          typeof existingProject.slug === "string"
+        ) {
+          setConversionExistingProject({
+            id: existingProject.id,
+            titleFr: existingProject.titleFr,
+            slug: existingProject.slug,
+          })
+          setModalOpen(false)
+        }
         setError(res.error || (editingId ? "Erreur lors de la mise à jour" : "Erreur lors de la création"))
       }
     } catch (err: any) {
@@ -479,6 +641,8 @@ export default function AdminProjects() {
           onClick={() => {
             setActiveLangTab("FR")
             setEditingId(null)
+            setConversionProposal(null)
+            setConversionSourceId("")
             const maxOrder = projects.reduce((max, p) => Math.max(max, p.displayOrder || 0), 0)
             setFormData({
               publishedFr: true,
@@ -523,6 +687,35 @@ export default function AdminProjects() {
           <span>Nouveau Projet</span>
         </button>
       </div>
+
+      {conversionLoading && (
+        <p role="status" className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-[#003366]">
+          Chargement sécurisé de la proposition…
+        </p>
+      )}
+      {conversionError && (
+        <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          {conversionError}
+        </p>
+      )}
+      {(conversionExistingProject || conversionSuccessProject) && (() => {
+        const project = conversionExistingProject || conversionSuccessProject!
+        return (
+          <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+            {conversionSuccessProject ? "Projet créé et associé à la proposition." : "Cette proposition est déjà associée à un projet."}{" "}
+            <button
+              type="button"
+              onClick={() => {
+                handledEditProject.current = null
+                window.location.href = `/backoffice/projects?editProject=${encodeURIComponent(project.id)}`
+              }}
+              className="font-semibold text-[#003366] underline underline-offset-2"
+            >
+              Ouvrir « {project.titleFr} »
+            </button>
+          </p>
+        )
+      })()}
 
       {/* ── Projects Table ── */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -698,7 +891,7 @@ export default function AdminProjects() {
       {modalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
-          onClick={() => setModalOpen(false)}
+          onClick={handleCloseModal}
         >
           <div
             className="bg-white rounded-3xl p-6 sm:p-8 max-w-4xl w-full shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto space-y-6"
@@ -714,12 +907,34 @@ export default function AdminProjects() {
                 </p>
               </div>
               <button
-                onClick={() => setModalOpen(false)}
+                onClick={handleCloseModal}
                 className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-sm font-bold cursor-pointer"
               >
                 ✕
               </button>
             </div>
+
+            {conversionProposal && (
+              <section className="rounded-xl border border-blue-200 bg-blue-50/70 p-4 text-sm">
+                <h3 className="font-bold text-[#003366]">Références de la proposition source</h3>
+                <p className="mt-1 text-xs text-slate-600">
+                  Ces informations servent de référence et ne seront pas enregistrées comme champs publics du projet.
+                </p>
+                <dl className="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2">
+                  <Reference label="Référence" value={conversionProposal.referenceNumber} />
+                  <Reference label="Porteur" value={conversionProposal.proposerName} />
+                  <Reference label="Organisation" value={conversionProposal.organization || "Non renseignée"} />
+                  <Reference label="E-mail" value={conversionProposal.email} />
+                  <Reference label="Domaine proposé" value={conversionProposal.domain} />
+                  <Reference label="Collaboration souhaitée" value={conversionProposal.collaboration} />
+                  <Reference label="Calendrier / durée" value={conversionProposal.timeline} />
+                  <Reference label="Budget estimatif" value={conversionProposal.budget || "Non renseigné"} />
+                  {conversionProposal.message && (
+                    <Reference label="Message complémentaire" value={conversionProposal.message} />
+                  )}
+                </dl>
+              </section>
+            )}
 
             {error && (
               <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
@@ -1131,6 +1346,7 @@ export default function AdminProjects() {
                       onChange={(e) => setFormData({ ...formData, domaineId: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#174F7A] outline-none bg-white"
                     >
+                      <option value="">Sélectionner un domaine</option>
                       {domaines.map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.nameFr}
@@ -1285,7 +1501,7 @@ export default function AdminProjects() {
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setModalOpen(false)}
+                  onClick={handleCloseModal}
                   className="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
                 >
                   Annuler
@@ -1306,6 +1522,15 @@ export default function AdminProjects() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function Reference({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{label}</dt>
+      <dd className="mt-0.5 whitespace-pre-wrap break-words text-sm text-slate-700">{value}</dd>
     </div>
   )
 }

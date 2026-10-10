@@ -187,6 +187,24 @@ const NAV_ITEMS = [
         ),
       },
       {
+        page: "admin-project-proposals" as Page,
+        label: "Propositions de projets",
+        icon: (
+          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" width={18} height={18}>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 5v14m-7-7h14M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
+          </svg>
+        ),
+      },
+      {
+        page: "admin-project-proposals" as Page,
+        label: "Propositions de projets",
+        icon: (
+          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" width={18} height={18}>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 5v14m-7-7h14M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
+          </svg>
+        ),
+      },
+      {
         page: "admin-partners" as Page,
         label: "Partenaires",
         icon: (
@@ -612,6 +630,19 @@ export default function AdminLayout({
           ),
         },
         {
+          page: "admin-project-proposals" as Page,
+          label: lang.toLowerCase() === "en"
+            ? "Project proposals"
+            : lang.toLowerCase() === "de"
+              ? "Projektvorschläge"
+              : "Propositions de projets",
+          icon: (
+            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" width={18} height={18}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 5v14m-7-7h14M5 3h14a2 2 0 012 2v14a2 2 0 01-2-2V5a2 2 0 012-2z" />
+            </svg>
+          ),
+        },
+        {
           page: "admin-partners" as Page,
           label: t.nav.partnersList,
           icon: (
@@ -951,7 +982,9 @@ export default function AdminLayout({
             >
               {group.group}
             </div>
-            {group.items.map((item) => {
+            {group.items
+              .filter((item) => item.page !== "admin-project-proposals" || ["SUPERADMIN", "ADMIN", "COORDINATOR", "CONTENT_MANAGER"].includes(user?.role || ""))
+              .map((item) => {
               const active = currentPage === item.page
               return (
                 <button
@@ -992,7 +1025,7 @@ export default function AdminLayout({
                   </div>
                 </button>
               )
-            })}
+              })}
           </div>
         ))}
       </nav>
@@ -1104,6 +1137,14 @@ export default function AdminLayout({
         return [{ label: t.nav.analytics }]
       case "admin-partner-requests":
         return [{ label: t.nav.partnerRequests }]
+      case "admin-project-proposals":
+        return [{
+          label: lang.toLowerCase() === "en"
+            ? "Project proposals"
+            : lang.toLowerCase() === "de"
+              ? "Projektvorschläge"
+              : "Propositions de projets",
+        }]
       case "admin-partners":
         return [{ label: t.nav.partnersList }]
       case "admin-resources":

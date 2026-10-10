@@ -54,6 +54,7 @@ const I18N = {
     eyebrow: "NOS PROJETS",
     title: "Des initiatives concrètes,\nau service des territoires ruraux.",
     subtitle: "Découvrez les projets menés ou accompagnés par l’APTIC-R au Togo.",
+    proposeProject: "Proposer un projet",
     filterAllStatus: "Tous",
     filterAllDomains: "Tous les domaines",
     statusInProgress: "En cours",
@@ -71,6 +72,7 @@ const I18N = {
     eyebrow: "OUR PROJECTS",
     title: "Concrete initiatives,\nserving rural territories.",
     subtitle: "Discover the projects led or supported by APTIC-R in Togo.",
+    proposeProject: "Propose a project",
     filterAllStatus: "All",
     filterAllDomains: "All domains",
     statusInProgress: "In progress",
@@ -88,6 +90,7 @@ const I18N = {
     eyebrow: "UNSERE PROJEKTE",
     title: "Konkrete Initiativen,\nim Dienste ländlicher Gebiete.",
     subtitle: "Entdecken Sie die Projekte, die von APTIC-R in Togo geleitet oder unterstützt werden.",
+    proposeProject: "Projekt vorschlagen",
     filterAllStatus: "Alle",
     filterAllDomains: "Alle Bereiche",
     statusInProgress: "Laufend",
@@ -274,6 +277,12 @@ export default function ProjectsView({ lang }: ProjectsViewProps) {
             <p className="text-base sm:text-lg text-[#5E6B76] max-w-2xl leading-relaxed">
               {t.subtitle}
             </p>
+            <Link
+              href={`/${lang.toLowerCase()}/projets/proposer`}
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#007BFF] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#003366]"
+            >
+              {t.proposeProject} <span aria-hidden="true">→</span>
+            </Link>
           </div>
         </section>
 

@@ -239,6 +239,37 @@ export function getPartnerRequestSchema(lang: SupportedLanguage = "FR") {
   })
 }
 
+export const projectProposalSchema = z.object({
+  proposerName: z.string().trim().min(2).max(120),
+  organization: z.string().trim().max(160).optional().or(z.literal("")),
+  email: z.string().trim().email().max(254),
+  country: z.string().trim().min(2).max(100),
+  title: z.string().trim().min(3).max(180),
+  domain: z.string().trim().min(2).max(120),
+  description: z.string().trim().min(30).max(8000),
+  objectives: z.string().trim().min(10).max(5000),
+  targetAudience: z.string().trim().min(5).max(3000),
+  expectedResults: z.string().trim().min(10).max(3000),
+  collaboration: z.string().trim().min(2).max(160),
+  timeline: z.string().trim().min(2).max(160),
+  budget: z.string().trim().max(2000).optional().or(z.literal("")),
+  message: z.string().trim().max(4000).optional().or(z.literal("")),
+  consent: z.literal(true),
+})
+
+export const projectProposalStatusSchema = z.enum([
+  "NOUVEAU",
+  "EN_EXAMEN",
+  "INFORMATIONS_COMPLEMENTAIRES",
+  "ACCEPTE_COLLABORATION",
+  "REFUSE",
+])
+
+export const projectProposalInternalNoteSchema = z.object({
+  proposalId: z.string().min(1).max(100),
+  content: z.string().trim().min(2).max(5000),
+})
+
 // Schémas par défaut en français pour la rétro-compatibilité
 export const candidateApplicationSchema = getCandidateApplicationSchema("FR")
 export type CandidateApplicationInput = z.infer<typeof candidateApplicationSchema>

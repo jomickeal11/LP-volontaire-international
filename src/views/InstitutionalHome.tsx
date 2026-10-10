@@ -1272,7 +1272,7 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
               { val: c.impact.stat3Val, lbl: c.impact.stat3Lbl, sub: c.impact.stat3Sub },
               { val: c.impact.stat4Val, lbl: c.impact.stat4Lbl, sub: c.impact.stat4Sub },
             ].map((s, i) => (
-              <div key={i} className={`p-6 ${i > 0 ? "lg:border-l border-white/15" : ""}`}>
+              <div key={i} className="p-6">
                 <div className="text-5xl sm:text-7xl lg:text-[80px] font-black font-mono tracking-tight text-white leading-none">
                   {s.val}
                 </div>

@@ -1055,7 +1055,7 @@ export default function PartnerLandingView({ lang, navigate, initialSettings = {
               </p>
             </div>
 
-            <div className="relative border-l-4 border-[#28A745]/30 ml-4 sm:ml-8 lg:ml-12 py-4 flex flex-col gap-10 sm:gap-14">
+            <div className="relative ml-4 sm:ml-8 lg:ml-12 py-4 flex flex-col gap-10 sm:gap-14">
               {processSteps.map((s, i) => (
                 <div key={i} className="relative group">
                   <div className="absolute -left-[14px] top-1 w-6 h-6 rounded-full border-4 border-[#FFFFFF] bg-[#28A745] transition-transform duration-500 group-hover:scale-125 shadow-sm" />

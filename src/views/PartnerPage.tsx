@@ -1791,7 +1791,7 @@ export default function PartnerPage({ navigate, lang, setLang }: PartnerPageProp
                   </span>
                 </div>
 
-                <div className="relative pl-6 before:absolute before:left-[11px] before:top-2 before:bottom-3 before:w-[2px] before:bg-[#D8E2E9] space-y-3.5">
+                <div className="relative pl-6 space-y-3.5">
                   {STEPS.map((s) => {
                     const isCompleted = s.num < step
                     const isCurrent = s.num === step

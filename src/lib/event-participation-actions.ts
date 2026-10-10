@@ -116,11 +116,9 @@ export async function submitEventParticipationRequest(
     // demandes en attente : elles doivent refléter la nouvelle demande.
     revalidateEventPaths(result.event.slug)
 
-    // Accusé de réception facultatif : un échec SMTP n'invalide pas la demande
-    // et n'en bloque pas l'affichage.
-    void EmailService.sendEventParticipationEmails({
+    // Les courriels ne partent qu'après l'enregistrement réussi de la demande.
+    const notification = {
       requestId: result.requestId,
-      decision: "PENDING",
       firstName: parsed.data.firstName.trim(),
       lastName: parsed.data.lastName.trim(),
       email: parsed.data.email.trim(),
@@ -128,7 +126,11 @@ export async function submitEventParticipationRequest(
       eventDate: result.notification.eventDate,
       eventLocation: result.notification.eventLocation,
       lang: parsed.data.lang,
-    })
+    } as const
+    await Promise.all([
+      EmailService.sendEventParticipationEmails({ ...notification, decision: "PENDING" }),
+      EmailService.sendEventParticipationAdminNotification(notification),
+    ])
 
     return {
       success: true,
@@ -222,7 +224,6 @@ export async function cancelEventParticipationRequest(
     }
 
     revalidateEventPaths(result.slug)
-    await notify(result.notification, "CANCELLED")
 
     return { success: true, stats: result.stats }
   } catch (error) {

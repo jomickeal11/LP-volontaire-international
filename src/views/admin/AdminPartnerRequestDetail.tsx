@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import type { Page } from "../../types"
 import { partnerStatusConfig, type PartnerRequestStatus } from "./AdminPartnerRequests"
 import { useAdminHeader } from "../../lib/AdminHeaderContext"
-import { sendPartnerDirectEmail } from "@/lib/actions"
+import { retryFailedNotificationEmailAction, sendPartnerDirectEmail } from "@/lib/actions"
 
 interface DocumentUI {
   id: string
@@ -44,7 +44,17 @@ export interface PartnerRequestDetailData {
 interface Props {
   data: PartnerRequestDetailData
   navigate: (p: Page) => void
-  onStatusChange: (id: string, status: PartnerRequestStatus) => void
+  onStatusChange: (
+    id: string,
+    status: PartnerRequestStatus
+  ) => Promise<{
+    success: boolean
+    notificationRequired?: boolean
+    emailSent?: boolean
+    emailError?: string
+    emailLogId?: string
+    error?: string
+  }>
 }
 
 export default function AdminPartnerRequestDetail({
@@ -54,6 +64,9 @@ export default function AdminPartnerRequestDetail({
 }: Props) {
   const [currentStatus, setCurrentStatus] = useState<PartnerRequestStatus>(data.status)
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
+  const [statusFeedback, setStatusFeedback] = useState("")
+  const [failedStatusEmailId, setFailedStatusEmailId] = useState("")
+  const [retryingStatusEmail, setRetryingStatusEmail] = useState(false)
   const { setBreadcrumb } = useAdminHeader()
 
   useEffect(() => {
@@ -78,10 +91,36 @@ export default function AdminPartnerRequestDetail({
 
   const cfg = partnerStatusConfig[currentStatus] || partnerStatusConfig.NEW
 
-  const handleStatusSelect = (st: PartnerRequestStatus) => {
-    setCurrentStatus(st)
+  const handleStatusSelect = async (st: PartnerRequestStatus) => {
     setStatusDropdownOpen(false)
-    onStatusChange(data.id, st)
+    if (st === currentStatus) return
+    setStatusFeedback("")
+    setFailedStatusEmailId("")
+    const result = await onStatusChange(data.id, st)
+    if (!result.success) {
+      setStatusFeedback(result.error || "Le statut n’a pas pu être modifié.")
+      return
+    }
+    setCurrentStatus(st)
+    if (result.notificationRequired && !result.emailSent) {
+      setStatusFeedback("Statut enregistré, mais l’e-mail au partenaire n’a pas pu être envoyé.")
+      setFailedStatusEmailId(result.emailLogId || "")
+    } else if (result.notificationRequired) {
+      setStatusFeedback("Statut enregistré et e-mail envoyé.")
+    } else {
+      setStatusFeedback("Statut enregistré.")
+    }
+  }
+
+  const retryStatusEmail = async () => {
+    if (!failedStatusEmailId) return
+    setRetryingStatusEmail(true)
+    const result = await retryFailedNotificationEmailAction(failedStatusEmailId)
+    setStatusFeedback(result.success
+      ? "E-mail de décision envoyé."
+      : result.error || "L’e-mail n’a pas pu être réexpédié.")
+    if (result.success) setFailedStatusEmailId("")
+    setRetryingStatusEmail(false)
   }
 
   const handleSendEmail = async () => {
@@ -135,6 +174,22 @@ export default function AdminPartnerRequestDetail({
           Demandes de partenariat
         </button>
       </div>
+
+      {statusFeedback && (
+        <p role="status" className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+          {statusFeedback}
+          {failedStatusEmailId && (
+            <button
+              type="button"
+              onClick={retryStatusEmail}
+              disabled={retryingStatusEmail}
+              className="ml-3 font-semibold text-[#007BFF] underline disabled:opacity-60"
+            >
+              {retryingStatusEmail ? "Nouvel essai…" : "Réessayer l’e-mail"}
+            </button>
+          )}
+        </p>
+      )}
 
       {/* Main Header Card */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-6">
