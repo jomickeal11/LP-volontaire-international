@@ -19,8 +19,8 @@ export const memberApplicationSchema = z.object({
 export type MemberApplicationInput = z.infer<typeof memberApplicationSchema>
 
 export const newsletterSubscriptionSchema = z.object({
-  email: z.string().email("Adresse email invalide"),
-  firstName: z.string().trim().min(1, "Le prénom est obligatoire"),
+  email: z.string().trim().max(254, "Adresse email trop longue").email("Adresse email invalide"),
+  firstName: z.string().trim().min(1, "Le prénom est obligatoire").max(80, "Le prénom est trop long"),
   lang: z.enum(["FR", "EN", "DE"]).default("FR"),
   consent: z.boolean().refine(val => val === true, "Le consentement est obligatoire"),
 
@@ -33,6 +33,36 @@ export const newsletterSubscriptionSchema = z.object({
 })
 
 export type NewsletterSubscriptionInput = z.infer<typeof newsletterSubscriptionSchema>
+
+export const adminNewsletterSubscriberSchema = z.object({
+  email: z.string().trim().max(254, "Adresse email trop longue").email("Adresse email invalide"),
+  firstName: z.string().trim().max(80, "Le prénom est trop long").optional(),
+  lang: z.enum(["FR", "EN", "DE"]).default("FR"),
+  consent: z.boolean().refine(val => val === true, "Le consentement explicite est obligatoire"),
+})
+
+export type AdminNewsletterSubscriberInput = z.infer<typeof adminNewsletterSubscriberSchema>
+
+export const newsletterCampaignSchema = z.object({
+  id: z.string().trim().min(1).optional(),
+  name: z.string().trim().min(1, "Le nom de la campagne est obligatoire").max(120),
+  lang: z.enum(["FR", "EN", "DE"]),
+  subjectFr: z.string().trim().max(200).refine((value) => !/[\r\n]/.test(value), "Le sujet ne peut contenir de retour à la ligne"),
+  subjectEn: z.string().trim().max(200).refine((value) => !/[\r\n]/.test(value), "Le sujet ne peut contenir de retour à la ligne"),
+  subjectDe: z.string().trim().max(200).refine((value) => !/[\r\n]/.test(value), "Le sujet ne peut contenir de retour à la ligne"),
+  contentFr: z.string().max(30_000),
+  contentEn: z.string().max(30_000),
+  contentDe: z.string().max(30_000),
+})
+
+export const newsletterCampaignTestEmailSchema = z.object({
+  campaignId: z.string().trim().min(1),
+  recipient: z.string().trim().max(254).email("Adresse email invalide"),
+})
+
+export const newsletterCampaignLaunchSchema = z.object({ campaignId: z.string().trim().min(1) })
+
+export type NewsletterCampaignInput = z.infer<typeof newsletterCampaignSchema>
 
 export const institutionalContactSchema = z.object({
   name: z.string().min(2, "Le nom doit comporter au moins 2 caractères"),

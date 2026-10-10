@@ -4,6 +4,10 @@ import prisma from "./prisma"
 import {
   memberApplicationSchema,
   newsletterSubscriptionSchema,
+  adminNewsletterSubscriberSchema,
+  newsletterCampaignSchema,
+  newsletterCampaignTestEmailSchema,
+  newsletterCampaignLaunchSchema,
   institutionalContactSchema,
   teamMemberCreateSchema,
   teamMemberUpdateSchema,
@@ -11,12 +15,27 @@ import {
 } from "./cms-validations"
 import { verifySession } from "./auth"
 import { escapeHtml } from "./email/variableEngine"
-import { randomBytes } from "crypto"
+import { wrapEmailHtml } from "./email/templates/emailTheme"
+import { createHash, randomBytes } from "crypto"
 import { revalidatePath } from "next/cache"
 import type { LanguageCode, Prisma } from "@prisma/client"
 import type { TeamMemberDTO } from "./cms-types"
 import { EmailService } from "./email/emailService"
 import { getProjectProposalAdmin } from "./project-proposal-access"
+import {
+  isNewsletterConsentVerifiable,
+  isNewsletterEligibleForCampaign,
+  createNewsletterUnsubscribeToken,
+  newsletterUnsubscribePath,
+  registerNewsletterSubscriber,
+  processNewsletterUnsubscribe,
+} from "./newsletter-consent"
+import {
+  buildNewsletterCampaignSendPayload,
+  buildNewsletterCampaignTestPayload,
+  selectEligibleNewsletterRecipients,
+} from "./newsletter-campaign"
+import { getSiteUrl } from "./seo"
 
 function safeRevalidatePath(path: string, type?: "page" | "layout") {
   try {
@@ -198,42 +217,45 @@ export async function subscribeNewsletter(formData: unknown) {
       }
     }
 
-    const { email, firstName, lang, consent } = parsed.data
-    const normalizedEmail = email.toLowerCase().trim()
+    const { lang } = parsed.data
+    const now = new Date()
+    const registration = await prisma.$transaction((tx) =>
+      registerNewsletterSubscriber(
+        {
+          findByEmail: (email) => tx.newsletterAbonne.findUnique({ where: { email } }),
+          createSubscriber: (data) => tx.newsletterAbonne.create({ data }),
+          reactivateSubscriber: (id, data) => tx.newsletterAbonne.update({ where: { id }, data }),
+          addUnsubscribeToken: async (subscriberId, tokenHash) => {
+            await tx.newsletterUnsubscribeToken.create({ data: { subscriberId, tokenHash } })
+          },
+        },
+        parsed.data,
+        "PUBLIC_FORM",
+        now,
+      ),
+    )
 
-    const existing = await prisma.newsletterAbonne.findUnique({
-      where: { email: normalizedEmail },
-      select: { id: true, active: true },
-    })
-    const subscriber = await prisma.newsletterAbonne.upsert({
-      where: { email: normalizedEmail },
-      create: {
-        email: normalizedEmail,
-        firstName: firstName?.trim() || null,
-        lang: lang as LanguageCode,
-        consent,
-        active: true,
-      },
-      update: {
-        firstName: firstName?.trim() || undefined,
-        lang: lang as LanguageCode,
-        active: true,
-        subscribedAt: new Date(),
-      },
-    })
-
-    if (!existing || !existing.active) {
-      await EmailService.sendAdminSubmissionNotification({
-        notificationKey: `newsletter-subscription:${subscriber.id}:${subscriber.subscribedAt.toISOString()}:admin`,
-        formName: "NEWSLETTER_SUBSCRIPTION",
-        subject: "Nouvelle inscription à la lettre d’information APTIC-R",
-        details: `Adresse e-mail : ${subscriber.email}`,
-        lang,
-      })
+    if (!registration.success) return registration
+    if (registration.alreadySubscribed) {
+      return {
+        success: true,
+        alreadySubscribed: true,
+        message: "Cette adresse est déjà inscrite à la newsletter APTIC-R.",
+      }
     }
+
+    await EmailService.sendAdminSubmissionNotification({
+      notificationKey: `newsletter-subscription:${registration.subscriberId}:${now.toISOString()}:admin`,
+      formName: "NEWSLETTER_SUBSCRIPTION",
+      subject: "Nouvelle inscription à la lettre d’information APTIC-R",
+      details: "Une inscription à la newsletter a été enregistrée.",
+      lang,
+    })
 
     return {
       success: true,
+      alreadySubscribed: false,
+      unsubscribePath: registration.unsubscribePath,
       message: "Merci pour votre inscription à la lettre d'information APTIC-R !",
     }
   } catch (error) {
@@ -246,6 +268,320 @@ export async function subscribeNewsletter(formData: unknown) {
 }
 
 // ─── 4. PROJETS ───────────────────────────────────────────────────────────────
+
+export async function getNewsletterCampaigns() {
+  try {
+    if (!(await isAdminSession())) return []
+    const campaigns = await prisma.newsletterCampagne.findMany({ orderBy: { updatedAt: "desc" } })
+    if (!campaigns.length) return []
+    const grouped = await prisma.newsletterCampagneDestinataire.groupBy({
+      by: ["campaignId", "status"],
+      where: { campaignId: { in: campaigns.map((campaign) => campaign.id) } },
+      _count: { _all: true },
+    })
+    const counts = new Map<string, Record<string, number>>()
+    for (const row of grouped) {
+      const rowCounts = counts.get(row.campaignId) || {}
+      rowCounts[row.status] = row._count._all
+      counts.set(row.campaignId, rowCounts)
+    }
+    return campaigns.map((campaign) => ({
+      ...campaign,
+      deliveryCounts: {
+        sent: counts.get(campaign.id)?.SENT || 0,
+        failed: counts.get(campaign.id)?.FAILED || 0,
+        pending: counts.get(campaign.id)?.PENDING || 0,
+        sending: counts.get(campaign.id)?.SENDING || 0,
+      },
+    }))
+  } catch (error) {
+    console.error("Error fetching newsletter campaigns:", error)
+    return []
+  }
+}
+
+export async function saveNewsletterCampaign(input: unknown) {
+  try {
+    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
+    const parsed = newsletterCampaignSchema.safeParse(input)
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message || "Données de campagne invalides." }
+    }
+
+    const { id, ...data } = parsed.data
+    const campaign = id
+      ? await prisma.newsletterCampagne.updateMany({ where: { id, status: "DRAFT" }, data })
+          .then(async (result) => result.count ? prisma.newsletterCampagne.findUnique({ where: { id } }) : null)
+      : await prisma.newsletterCampagne.create({ data: { ...data, status: "DRAFT" } })
+    if (!campaign) return { success: false, error: "Brouillon introuvable ou non modifiable." }
+
+    revalidatePath("/backoffice/newsletter/campaigns")
+    return { success: true, campaign }
+  } catch (error) {
+    console.error("Error saving newsletter campaign:", error)
+    return { success: false, error: "Impossible d’enregistrer le brouillon." }
+  }
+}
+
+export async function deleteNewsletterCampaign(id: unknown) {
+  try {
+    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
+    if (typeof id !== "string" || !id.trim()) return { success: false, error: "Campagne invalide." }
+    const result = await prisma.newsletterCampagne.deleteMany({ where: { id, status: "DRAFT" } })
+    if (!result.count) return { success: false, error: "Seuls les brouillons peuvent être supprimés." }
+    revalidatePath("/backoffice/newsletter/campaigns")
+    return { success: true }
+  } catch (error) {
+    console.error("Error deleting newsletter campaign:", error)
+    return { success: false, error: "Impossible de supprimer ce brouillon." }
+  }
+}
+
+export async function sendNewsletterCampaignTestEmail(input: unknown) {
+  try {
+    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
+    const parsed = newsletterCampaignTestEmailSchema.safeParse(input)
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message || "Adresse de test invalide." }
+    }
+    const campaign = await prisma.newsletterCampagne.findUnique({ where: { id: parsed.data.campaignId } })
+    if (!campaign || campaign.status !== "DRAFT") return { success: false, error: "Brouillon introuvable." }
+
+    const testPayload = buildNewsletterCampaignTestPayload(campaign, campaign.lang)
+    const contentField = `content${campaign.lang[0]}${campaign.lang.slice(1).toLowerCase()}` as "contentFr" | "contentEn" | "contentDe"
+    if (!testPayload.subject.replace(/^\[TEST\]\s*/, "").trim() || !campaign[contentField].trim()) {
+      return { success: false, error: "Renseignez le sujet et le contenu dans la langue choisie avant le test." }
+    }
+
+    const result = await EmailService.sendTrackedEmail({
+      notificationKey: `newsletter-campaign-test:${campaign.id}:${parsed.data.recipient.toLowerCase()}:${randomBytes(16).toString("hex")}`,
+      actionType: "NEWSLETTER_CAMPAIGN_TEST",
+      templateKey: "NEWSLETTER_CAMPAIGN_TEST",
+      metadata: { campaignId: campaign.id, lang: campaign.lang },
+      payload: {
+        to: parsed.data.recipient,
+        subject: testPayload.subject,
+        html: wrapEmailHtml(testPayload.htmlContent, campaign.lang),
+        text: testPayload.text,
+      },
+    })
+    if (!result.success) return { success: false, error: result.error || "Le fournisseur email a refusé le test." }
+
+    await prisma.newsletterCampagne.update({ where: { id: campaign.id }, data: { lastTestSentAt: new Date() } })
+    revalidatePath("/backoffice/newsletter/campaigns")
+    return { success: true, message: "Email de test envoyé à l’adresse indiquée." }
+  } catch (error) {
+    console.error("Error sending newsletter campaign test:", error)
+    return { success: false, error: "Impossible d’envoyer l’email de test." }
+  }
+}
+
+const NEWSLETTER_DELIVERY_BATCH_SIZE = 3
+const STALE_NEWSLETTER_DELIVERY_MS = 15 * 60 * 1000
+
+async function newsletterCampaignCounts(campaignId: string) {
+  const [sentCount, failedCount, pendingCount, sendingCount] = await Promise.all([
+    prisma.newsletterCampagneDestinataire.count({ where: { campaignId, status: "SENT" } }),
+    prisma.newsletterCampagneDestinataire.count({ where: { campaignId, status: "FAILED" } }),
+    prisma.newsletterCampagneDestinataire.count({ where: { campaignId, status: "PENDING" } }),
+    prisma.newsletterCampagneDestinataire.count({ where: { campaignId, status: "SENDING" } }),
+  ])
+  return { sentCount, failedCount, pendingCount, sendingCount }
+}
+
+async function reconcileStaleNewsletterDeliveries(campaignId: string) {
+  const cutoff = new Date(Date.now() - STALE_NEWSLETTER_DELIVERY_MS)
+  const stale = await prisma.newsletterCampagneDestinataire.findMany({
+    where: { campaignId, status: "SENDING", lastAttemptAt: { lt: cutoff } },
+    select: { id: true, emailLogId: true },
+    take: 50,
+  })
+
+  for (const delivery of stale) {
+    const log = delivery.emailLogId
+      ? await prisma.emailLog.findUnique({ where: { id: delivery.emailLogId }, select: { status: true, sentAt: true } })
+      : null
+
+    if (!log) {
+      await prisma.newsletterCampagneDestinataire.updateMany({
+        where: { id: delivery.id, status: "SENDING" },
+        data: { status: "PENDING", error: null },
+      })
+    } else if (log.status === "SENT") {
+      await prisma.newsletterCampagneDestinataire.updateMany({
+        where: { id: delivery.id, status: "SENDING" },
+        data: { status: "SENT", sentAt: log.sentAt, error: null },
+      })
+    } else {
+      // Never resend an ambiguous provider attempt automatically.
+      await prisma.newsletterCampagneDestinataire.updateMany({
+        where: { id: delivery.id, status: "SENDING" },
+        data: { status: "FAILED", error: "DELIVERY_RESULT_UNKNOWN" },
+      })
+    }
+  }
+}
+
+async function processNewsletterCampaignBatchInternal(campaignId: string) {
+  const campaign = await prisma.newsletterCampagne.findUnique({ where: { id: campaignId } })
+  if (!campaign || campaign.status !== "SENDING") {
+    return { success: false as const, error: "Cette campagne n’est pas en cours d’envoi." }
+  }
+
+  await reconcileStaleNewsletterDeliveries(campaignId)
+  const pending = await prisma.newsletterCampagneDestinataire.findMany({
+    where: { campaignId, status: "PENDING", subscriberId: { not: null } },
+    orderBy: { createdAt: "asc" },
+    take: NEWSLETTER_DELIVERY_BATCH_SIZE,
+  })
+
+  for (const delivery of pending) {
+    const claimed = await prisma.newsletterCampagneDestinataire.updateMany({
+      where: { id: delivery.id, status: "PENDING" },
+      data: { status: "SENDING", attempts: { increment: 1 }, lastAttemptAt: new Date(), error: null },
+    })
+    if (!claimed.count || !delivery.subscriberId) continue
+
+    const subscriber = await prisma.newsletterAbonne.findUnique({ where: { id: delivery.subscriberId } })
+    if (!subscriber || !isNewsletterEligibleForCampaign(subscriber)) {
+      await prisma.newsletterCampagneDestinataire.update({
+        where: { id: delivery.id },
+        data: { status: "FAILED", error: "SUBSCRIBER_NOT_ELIGIBLE" },
+      })
+      continue
+    }
+
+    const lang = subscriber.lang
+    const localized = buildNewsletterCampaignSendPayload(campaign, lang, "")
+    if (!localized.subject.trim() || !localized.text.trim()) {
+      await prisma.newsletterCampagneDestinataire.update({
+        where: { id: delivery.id },
+        data: { status: "FAILED", error: `MISSING_CONTENT_${lang}` },
+      })
+      continue
+    }
+
+    const { token, tokenHash } = createNewsletterUnsubscribeToken()
+    await prisma.newsletterUnsubscribeToken.create({ data: { subscriberId: subscriber.id, tokenHash } })
+    const unsubscribeUrl = new URL(newsletterUnsubscribePath(lang, token), getSiteUrl()).toString()
+    const actualPayload = buildNewsletterCampaignSendPayload(campaign, lang, unsubscribeUrl)
+    const notificationKey = `newsletter-campaign:${campaign.id}:${delivery.id}`
+    const emailLogId = `notification_${createHash("sha256").update(notificationKey).digest("hex")}`
+    await prisma.newsletterCampagneDestinataire.update({ where: { id: delivery.id }, data: { emailLogId } })
+
+    const result = await EmailService.sendTrackedEmail({
+      notificationKey,
+      actionType: "NEWSLETTER_CAMPAIGN",
+      templateKey: "NEWSLETTER_CAMPAIGN",
+      metadata: { campaignId: campaign.id, deliveryId: delivery.id, lang },
+      redactValues: [token, unsubscribeUrl],
+      payload: {
+        to: subscriber.email,
+        subject: actualPayload.subject,
+        html: wrapEmailHtml(actualPayload.htmlContent, lang),
+        text: actualPayload.text,
+      },
+      // The raw unsubscribe token remains only in the outbound message, not in EmailLog.
+      logPayload: {
+        to: subscriber.email,
+        subject: actualPayload.subject,
+        html: wrapEmailHtml(localized.logHtmlContent, lang),
+        text: localized.logText,
+      },
+    })
+
+    await prisma.newsletterCampagneDestinataire.update({
+      where: { id: delivery.id },
+      data: result.success
+        ? { status: "SENT", sentAt: new Date(), error: null }
+        : { status: "FAILED", error: "PROVIDER_REJECTED" },
+    })
+  }
+
+  const counts = await newsletterCampaignCounts(campaignId)
+  const complete = counts.pendingCount === 0 && counts.sendingCount === 0
+  const campaignStatus = complete
+    ? counts.failedCount > 0 ? "COMPLETED_WITH_ERRORS" : "SENT"
+    : "SENDING"
+
+  await prisma.newsletterCampagne.updateMany({
+    where: { id: campaignId, status: "SENDING" },
+    data: {
+      sentCount: counts.sentCount,
+      failedCount: counts.failedCount,
+      ...(complete ? { status: campaignStatus, completedAt: new Date() } : {}),
+    },
+  })
+
+  return { success: true as const, complete, stalled: counts.sendingCount > 0, status: campaignStatus, ...counts }
+}
+
+export async function launchNewsletterCampaign(input: unknown) {
+  try {
+    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
+    const parsed = newsletterCampaignLaunchSchema.safeParse(input)
+    if (!parsed.success) return { success: false, error: "Campagne invalide." }
+
+    const campaign = await prisma.newsletterCampagne.findUnique({ where: { id: parsed.data.campaignId } })
+    if (!campaign || campaign.status !== "DRAFT") {
+      return { success: false, error: "Seul un brouillon peut être lancé; cet envoi ne peut pas être relancé." }
+    }
+
+    const candidates = await prisma.newsletterAbonne.findMany({
+      where: {
+        active: true,
+        consent: true,
+        consentAt: { not: null },
+        consentSource: { not: null },
+        consentVersion: { not: null },
+      },
+      select: { id: true, email: true, lang: true, firstName: true, active: true, consent: true, consentAt: true, consentSource: true, consentVersion: true },
+    })
+    const eligible = selectEligibleNewsletterRecipients(candidates)
+    if (eligible.length === 0) return { success: false, error: "Aucun abonné actif avec consentement vérifiable." }
+
+    const missingLanguages = [...new Set(eligible.map((subscriber) => subscriber.lang))].filter((lang) => {
+      const content = buildNewsletterCampaignSendPayload(campaign, lang, "")
+      return !content.subject.trim() || !content.text.trim()
+    })
+    if (missingLanguages.length) {
+      return { success: false, error: `Sujet ou contenu manquant pour : ${missingLanguages.join(", ")}.` }
+    }
+
+    const startedAt = new Date()
+    const launched = await prisma.$transaction(async (tx) => {
+      const claimed = await tx.newsletterCampagne.updateMany({
+        where: { id: campaign.id, status: "DRAFT" },
+        data: { status: "SENDING", startedAt, completedAt: null, totalRecipients: eligible.length, sentCount: 0, failedCount: 0 },
+      })
+      if (!claimed.count) return false
+      await tx.newsletterCampagneDestinataire.createMany({
+        data: eligible.map((subscriber) => ({ campaignId: campaign.id, subscriberId: subscriber.id, lang: subscriber.lang, status: "PENDING" })),
+      })
+      return true
+    })
+    if (!launched) return { success: false, error: "Cette campagne a déjà été lancée." }
+
+    revalidatePath("/backoffice/newsletter/campaigns")
+    return await processNewsletterCampaignBatchInternal(campaign.id)
+  } catch (error) {
+    console.error("Error launching newsletter campaign.", error instanceof Error ? error.name : "unknown")
+    return { success: false, error: "Le lancement de la campagne a échoué." }
+  }
+}
+
+export async function processNewsletterCampaignBatch(campaignId: unknown) {
+  try {
+    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
+    if (typeof campaignId !== "string" || !campaignId.trim()) return { success: false, error: "Campagne invalide." }
+    const result = await processNewsletterCampaignBatchInternal(campaignId)
+    revalidatePath("/backoffice/newsletter/campaigns")
+    return result
+  } catch (error) {
+    console.error("Error processing newsletter campaign batch.", error instanceof Error ? error.name : "unknown")
+    return { success: false, error: "Le traitement du lot a échoué. Consultez les statuts avant toute reprise." }
+  }
+}
 
 /**
  * Validation linguistique stricte pour la publication d'un projet :
@@ -2770,10 +3106,15 @@ export async function getNewsletterSubscribers(filters?: {
       where.active = filters.active
     }
 
-    return await prisma.newsletterAbonne.findMany({
+    const subscribers = await prisma.newsletterAbonne.findMany({
       where,
       orderBy: { subscribedAt: "desc" },
     })
+    return subscribers.map((subscriber) => ({
+      ...subscriber,
+      consentVerifiable: isNewsletterConsentVerifiable(subscriber),
+      campaignEligible: isNewsletterEligibleForCampaign(subscriber),
+    }))
   } catch (error) {
     console.error("Error fetching newsletter subscribers:", error)
     return []
@@ -2788,11 +3129,18 @@ export async function toggleNewsletterSubscriberStatus(id: string) {
     const subscriber = await prisma.newsletterAbonne.findUnique({ where: { id } })
     if (!subscriber) return { success: false, error: "Abonné introuvable" }
 
+    if (!subscriber.active) {
+      return {
+        success: false,
+        error: "La réactivation exige un nouveau consentement explicite via le formulaire d’ajout.",
+      }
+    }
+
     const updated = await prisma.newsletterAbonne.update({
       where: { id },
       data: {
-        active: !subscriber.active,
-        unsubscribedAt: subscriber.active ? new Date() : null,
+        active: false,
+        unsubscribedAt: new Date(),
       },
     })
 
@@ -2818,50 +3166,45 @@ export async function deleteNewsletterSubscriber(id: string) {
   }
 }
 
-export async function adminAddNewsletterSubscriber(data: {
-  email: string
-  firstName?: string
-  lang?: LanguageCode
-  consent?: boolean
-}) {
+export async function adminAddNewsletterSubscriber(input: unknown) {
   try {
     if (!(await isAdminSession())) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
-    const normalizedEmail = data.email.toLowerCase().trim()
-    const existing = await prisma.newsletterAbonne.findUnique({
-      where: { email: normalizedEmail },
-    })
-
-    if (existing) {
-      if (!existing.active) {
-        await prisma.newsletterAbonne.update({
-          where: { id: existing.id },
-          data: {
-            active: true,
-            unsubscribedAt: null,
-            firstName: data.firstName?.trim() || existing.firstName,
-            lang: data.lang || existing.lang,
-          },
-        })
-        revalidatePath("/backoffice/newsletter")
-        return { success: true, message: "L'abonné existant a été réactivé." }
+    const parsed = adminNewsletterSubscriberSchema.safeParse(input)
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: parsed.error.issues[0]?.message || "Données d’inscription invalides.",
       }
+    }
+
+    const registration = await prisma.$transaction((tx) =>
+      registerNewsletterSubscriber(
+        {
+          findByEmail: (email) => tx.newsletterAbonne.findUnique({ where: { email } }),
+          createSubscriber: (data) => tx.newsletterAbonne.create({ data }),
+          reactivateSubscriber: (id, data) => tx.newsletterAbonne.update({ where: { id }, data }),
+          addUnsubscribeToken: async (subscriberId, tokenHash) => {
+            await tx.newsletterUnsubscribeToken.create({ data: { subscriberId, tokenHash } })
+          },
+        },
+        parsed.data,
+        "ADMIN_FORM",
+      ),
+    )
+
+    if (!registration.success) return registration
+    if (registration.alreadySubscribed) {
       return { success: false, error: "Cet email est déjà abonné." }
     }
 
-    await prisma.newsletterAbonne.create({
-      data: {
-        email: normalizedEmail,
-        firstName: data.firstName?.trim() || null,
-        lang: data.lang || "FR",
-        active: true,
-        consent: true,
-      },
-    })
-
     revalidatePath("/backoffice/newsletter")
-    return { success: true, message: "Abonné ajouté avec succès." }
+    return {
+      success: true,
+      message: "Abonné ajouté ou réactivé avec un nouveau consentement explicite.",
+      unsubscribePath: registration.unsubscribePath,
+    }
   } catch (error: any) {
     console.error("Error adding subscriber:", error)
     return { success: false, error: error.message || "Erreur lors de l'ajout de l'abonné." }
@@ -4456,14 +4799,40 @@ export async function exportNewsletterSubscribersCsv(options: {
     const subscribers = await prisma.newsletterAbonne.findMany({
       where,
       orderBy: [{ lang: "asc" }, { subscribedAt: "desc" }],
-      select: { email: true, firstName: true, lang: true, active: true, consent: true, subscribedAt: true },
+      select: {
+        email: true,
+        firstName: true,
+        lang: true,
+        active: true,
+        consent: true,
+        consentAt: true,
+        consentSource: true,
+        consentVersion: true,
+        subscribedAt: true,
+        unsubscribedAt: true,
+      },
     })
 
-    const header = "Email,Prénom,Langue,Actif,Consentement,Date d'abonnement"
+    const header = "Email,Prénom,Langue,Statut,Consentement déclaré,Consentement vérifiable,Éligible campagne,Date consentement,Source consentement,Version consentement,Date d'abonnement,Date de désinscription"
     const rows = subscribers.map((s) => {
       const date = s.subscribedAt ? new Date(s.subscribedAt).toISOString().split("T")[0] : ""
+      const consentDate = s.consentAt ? new Date(s.consentAt).toISOString().split("T")[0] : ""
+      const verifiable = isNewsletterConsentVerifiable(s)
       const esc = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`
-      return [esc(s.email), esc(s.firstName ?? ""), esc(s.lang), s.active ? "Oui" : "Non", s.consent ? "Oui" : "Non", date].join(",")
+      return [
+        esc(s.email),
+        esc(s.firstName ?? ""),
+        esc(s.lang),
+        esc(s.active ? "ACTIF" : "DÉSINSCRIT"),
+        esc(s.consent ? "Oui" : "Non"),
+        esc(verifiable ? "Oui" : "Non"),
+        esc(isNewsletterEligibleForCampaign(s) ? "Oui" : "Non"),
+        esc(consentDate),
+        esc(s.consentSource ?? ""),
+        esc(s.consentVersion ?? ""),
+        esc(date),
+        esc(s.unsubscribedAt ? new Date(s.unsubscribedAt).toISOString().split("T")[0] : ""),
+      ].join(",")
     })
 
     const csv = [header, ...rows].join("\r\n")
@@ -4495,7 +4864,18 @@ export async function exportNewsletterByLanguageZip(options: {
     const subscribers = await prisma.newsletterAbonne.findMany({
       where,
       orderBy: { subscribedAt: "desc" },
-      select: { email: true, firstName: true, lang: true, active: true, consent: true, subscribedAt: true },
+      select: {
+        email: true,
+        firstName: true,
+        lang: true,
+        active: true,
+        consent: true,
+        consentAt: true,
+        consentSource: true,
+        consentVersion: true,
+        subscribedAt: true,
+        unsubscribedAt: true,
+      },
     })
 
     // Regroupement par langue
@@ -4508,12 +4888,27 @@ export async function exportNewsletterByLanguageZip(options: {
     // Construction d'une archive ZIP simple sans dépendance native :
     // On retourne un JSON structuré encodé en base64 car jszip n'est pas disponible en RSC.
     // L'UI décode ce JSON et peut le traiter comme plusieurs fichiers CSV.
-    const header = "Email,Prénom,Langue,Actif,Consentement,Date d'abonnement"
+    const header = "Email,Prénom,Langue,Statut,Consentement déclaré,Consentement vérifiable,Éligible campagne,Date consentement,Source consentement,Version consentement,Date d'abonnement,Date de désinscription"
     const esc = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`
     const makeCsv = (rows: any[]) =>
       [header, ...rows.map((s) => {
         const date = s.subscribedAt ? new Date(s.subscribedAt).toISOString().split("T")[0] : ""
-        return [esc(s.email), esc(s.firstName ?? ""), esc(s.lang), s.active ? "Oui" : "Non", s.consent ? "Oui" : "Non", date].join(",")
+        const consentDate = s.consentAt ? new Date(s.consentAt).toISOString().split("T")[0] : ""
+        const verifiable = isNewsletterConsentVerifiable(s)
+        return [
+          esc(s.email),
+          esc(s.firstName ?? ""),
+          esc(s.lang),
+          esc(s.active ? "ACTIF" : "DÉSINSCRIT"),
+          esc(s.consent ? "Oui" : "Non"),
+          esc(verifiable ? "Oui" : "Non"),
+          esc(isNewsletterEligibleForCampaign(s) ? "Oui" : "Non"),
+          esc(consentDate),
+          esc(s.consentSource ?? ""),
+          esc(s.consentVersion ?? ""),
+          esc(date),
+          esc(s.unsubscribedAt ? new Date(s.unsubscribedAt).toISOString().split("T")[0] : ""),
+        ].join(",")
       })].join("\r\n")
 
     const dateSuffix = new Date().toISOString().slice(0, 10).replace(/-/g, "")

@@ -37,6 +37,7 @@ export type Page =
   | "admin-events"
   | "admin-resources"
   | "admin-newsletter"
+  | "admin-newsletter-campaigns"
   | "admin-messages"
   | "admin-temoignages"
   | "admin-medias"

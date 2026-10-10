@@ -383,6 +383,15 @@ const NAV_ITEMS = [
         ),
       },
       {
+        page: "admin-newsletter-campaigns" as Page,
+        label: "Campagnes newsletter",
+        icon: (
+          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" width={18} height={18}>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 5h18v14H3zM3 7l9 6 9-6" />
+          </svg>
+        ),
+      },
+      {
         page: "admin-settings" as Page,
         label: "Paramètres",
         icon: (
@@ -882,6 +891,15 @@ export default function AdminLayout({
               strokeWidth={1.75}
               d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
             />
+          </svg>
+        ),
+      },
+      {
+        page: "admin-newsletter-campaigns" as Page,
+        label: "Campagnes newsletter",
+        icon: (
+          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" width={18} height={18}>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 5h18v14H3zM3 7l9 6 9-6" />
           </svg>
         ),
       },

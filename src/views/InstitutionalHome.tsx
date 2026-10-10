@@ -861,13 +861,15 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
   /* Newsletter state */
   const [nlEmail, setNlEmail] = useState("")
   const [nlName, setNlName] = useState("")
-  const [nlConsent, setNlConsent] = useState(true)
+  const [nlConsent, setNlConsent] = useState(false)
+  const [nlUnsubscribePath, setNlUnsubscribePath] = useState<string | null>(null)
   const [nlSubmitting, setNlSubmitting] = useState(false)
   const [nlMessage, setNlMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null)
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setNlMessage(null)
+    setNlUnsubscribePath(null)
 
     if (!nlName.trim()) {
       setNlMessage({ type: "error", text: c.newsletter.errName })
@@ -897,8 +899,10 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
           setNlMessage({ type: "info", text: c.newsletter.alreadySubscribed })
         } else {
           setNlMessage({ type: "success", text: c.newsletter.success })
+          setNlUnsubscribePath("unsubscribePath" in res ? res.unsubscribePath ?? null : null)
           setNlEmail("")
           setNlName("")
+          setNlConsent(false)
           trackEvent("newsletter_subscribe", { lang: safeLang })
         }
       } else {
@@ -1713,6 +1717,14 @@ export default function InstitutionalHome({ lang, navigate }: InstitutionalHomeP
                 }}
               >
                 {nlMessage.text}
+              </p>
+            )}
+
+            {nlMessage?.type === "success" && nlUnsubscribePath && (
+              <p className="text-xs sm:text-[13px] leading-relaxed">
+                <a className="underline text-[#003366]" href={nlUnsubscribePath}>
+                  {safeLang === "EN" ? "Your personal unsubscribe link" : safeLang === "DE" ? "Ihr persönlicher Abmeldelink" : "Votre lien personnel de désinscription"}
+                </a>
               </p>
             )}
           </form>

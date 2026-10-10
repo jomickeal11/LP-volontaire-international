@@ -122,6 +122,10 @@ export class EmailService {
   static async sendTrackedEmail(input: {
     notificationKey: string
     payload: EmailPayload
+    /** Optional redacted copy stored in EmailLog; the provider still gets payload. */
+    logPayload?: EmailPayload
+    /** Values that must not escape through provider errors or application logs. */
+    redactValues?: string[]
     recipientName?: string
     actionType: string
     applicationId?: string
@@ -136,6 +140,7 @@ export class EmailService {
       return { success: false, error: "Adresse e-mail du destinataire invalide." }
     }
     const id = `notification_${createHash("sha256").update(input.notificationKey).digest("hex")}`
+    const logPayload = input.logPayload || input.payload
     let emailLogId = id
 
     try {
@@ -144,11 +149,11 @@ export class EmailService {
           id,
           applicationId: input.applicationId || null,
           eventParticipationRequestId: input.eventParticipationRequestId || null,
-          recipient: Array.isArray(input.payload.to) ? input.payload.to.join(", ") : input.payload.to,
+          recipient: Array.isArray(logPayload.to) ? logPayload.to.join(", ") : logPayload.to,
           recipientName: input.recipientName || null,
-          subject: input.payload.subject,
-          bodyHtml: input.payload.html,
-          bodyText: input.payload.text || null,
+          subject: logPayload.subject,
+          bodyHtml: logPayload.html,
+          bodyText: logPayload.text || null,
           status: "PENDING",
           actionType: input.actionType,
           fromStatus: input.fromStatus || null,
@@ -177,14 +182,22 @@ export class EmailService {
       }
     }
 
+    const redactError = (error: string | undefined) => {
+      if (!error) return error
+      return (input.redactValues || []).filter(Boolean).reduce(
+        (safe, value) => safe.split(value).join("[redacted]"),
+        error,
+      )
+    }
+
     let result: { success: boolean; error?: string }
     try {
       const sent = await getEmailProvider().sendEmail(input.payload)
-      result = { success: sent.success, error: sent.error }
+      result = { success: sent.success, error: redactError(sent.error) }
     } catch (error: unknown) {
       result = {
         success: false,
-        error: error instanceof Error ? error.message : "Erreur inattendue lors de l'envoi.",
+        error: redactError(error instanceof Error ? error.message : "Erreur inattendue lors de l'envoi."),
       }
     }
 

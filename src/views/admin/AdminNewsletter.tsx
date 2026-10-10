@@ -17,6 +17,11 @@ interface SubscriberItem {
   lang: string
   active: boolean
   consent: boolean
+  consentAt: Date | null
+  consentSource: string | null
+  consentVersion: string | null
+  consentVerifiable: boolean
+  campaignEligible: boolean
   subscribedAt: Date
   unsubscribedAt: Date | null
 }
@@ -58,7 +63,7 @@ export default function AdminNewsletter() {
   const [newEmail, setNewEmail] = useState("")
   const [newFirstName, setNewFirstName] = useState("")
   const [newLang, setNewLang] = useState<"FR" | "EN" | "DE">("FR")
-  const [newConsent, setNewConsent] = useState(true)
+  const [newConsent, setNewConsent] = useState(false)
   const [modalSubmitting, setModalSubmitting] = useState(false)
   const [modalError, setModalError] = useState("")
 
@@ -67,7 +72,11 @@ export default function AdminNewsletter() {
   const [exportLang, setExportLang] = useState<ExportLang>("ALL")
   const [exportStatus, setExportStatus] = useState<ExportStatus>("ACTIVE")
 
-  const [notification, setNotification] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [notification, setNotification] = useState<{
+    type: "success" | "error"
+    text: string
+    actionLink?: string
+  } | null>(null)
 
   const loadData = async () => {
     setLoading(true)
@@ -85,9 +94,9 @@ export default function AdminNewsletter() {
     loadData()
   }, [])
 
-  const notify = (type: "success" | "error", text: string) => {
-    setNotification({ type, text })
-    window.setTimeout(() => setNotification(null), 3000)
+  const notify = (type: "success" | "error", text: string, actionLink?: string) => {
+    setNotification({ type, text, actionLink })
+    window.setTimeout(() => setNotification(null), actionLink ? 12000 : 3000)
   }
 
   // Filtrage côté client : liste complète chargée une fois pour une synthèse exacte.
@@ -111,6 +120,7 @@ export default function AdminNewsletter() {
       total: subscribers.length,
       active,
       inactive: subscribers.length - active,
+      consentUnverified: subscribers.filter((s) => !s.consentVerifiable).length,
       fr: subscribers.filter((s) => s.lang === "FR").length,
       en: subscribers.filter((s) => s.lang === "EN").length,
       de: subscribers.filter((s) => s.lang === "DE").length,
@@ -208,8 +218,8 @@ export default function AdminNewsletter() {
         setNewEmail("")
         setNewFirstName("")
         setNewLang("FR")
-        setNewConsent(true)
-        notify("success", res.message || "Abonné ajouté.")
+        setNewConsent(false)
+        notify("success", res.message || "Abonné ajouté.", "unsubscribePath" in res ? res.unsubscribePath : undefined)
         await loadData()
       } else {
         setModalError(res.error || "Erreur lors de l'ajout.")
@@ -307,6 +317,11 @@ export default function AdminNewsletter() {
           }`}
         >
           <span>{notification.text}</span>
+          {notification.actionLink && (
+            <a className="font-semibold underline" href={notification.actionLink}>
+              Lien de désinscription
+            </a>
+          )}
           <button
             onClick={() => setNotification(null)}
             type="button"
@@ -350,11 +365,12 @@ export default function AdminNewsletter() {
       </div>
 
       {/* Synthèse compacte */}
-      <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
+      <div className="grid grid-cols-3 lg:grid-cols-7 gap-2">
         {[
           { label: "Abonnés", value: counts.total },
           { label: "Actifs", value: counts.active },
           { label: "Désinscrits", value: counts.inactive },
+          { label: "Consentement à vérifier", value: counts.consentUnverified },
           { label: "FR", value: counts.fr },
           { label: "EN", value: counts.en },
           { label: "DE", value: counts.de },
@@ -466,6 +482,7 @@ export default function AdminNewsletter() {
                     <th className="py-3.5 px-4">Email</th>
                     <th className="py-3.5 px-4">Langue</th>
                     <th className="py-3.5 px-4">Statut</th>
+                    <th className="py-3.5 px-4">Consentement</th>
                     <th className="py-3.5 px-4">Date d&apos;inscription</th>
                     <th className="py-3.5 px-6 text-right">Actions</th>
                   </tr>
@@ -501,12 +518,17 @@ export default function AdminNewsletter() {
                             </span>
                           )}
                         </td>
+                        <td className="py-4 px-4">
+                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold border ${item.consentVerifiable ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-800 border-amber-200"}`}>
+                            {item.consentVerifiable ? "Vérifiable" : "À confirmer"}
+                          </span>
+                        </td>
                         <td className="py-4 px-4 text-gray-500 font-mono text-[11px]">
                           {formatDate(item.subscribedAt)}
                         </td>
                         <td className="py-4 px-6 text-right">
                           <button
-                            disabled={isBusy}
+                            disabled={isBusy || !item.active}
                             onClick={() => handleToggle(item.id)}
                             className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg border transition-colors cursor-pointer ${
                               item.active
@@ -514,7 +536,7 @@ export default function AdminNewsletter() {
                                 : "bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50"
                             } disabled:opacity-50`}
                           >
-                            {item.active ? "Désactiver" : "Réactiver"}
+                            {item.active ? "Désactiver" : "Nouveau consentement requis"}
                           </button>
                         </td>
                       </tr>
@@ -551,9 +573,12 @@ export default function AdminNewsletter() {
                     <div className="flex items-center justify-between gap-3 mt-3">
                       <div className="text-[11px] font-mono text-gray-400">
                         {item.lang} · Inscrit le {formatDate(item.subscribedAt)}
+                        <span className={`ml-2 font-sans ${item.consentVerifiable ? "text-emerald-700" : "text-amber-700"}`}>
+                          {item.consentVerifiable ? "Consentement vérifiable" : "Consentement à confirmer"}
+                        </span>
                       </div>
                       <button
-                        disabled={isBusy}
+                        disabled={isBusy || !item.active}
                         onClick={() => handleToggle(item.id)}
                         className={`px-3 py-1.5 text-[11px] font-semibold rounded-lg border transition-colors cursor-pointer ${
                           item.active
@@ -561,7 +586,7 @@ export default function AdminNewsletter() {
                             : "bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50"
                         } disabled:opacity-50`}
                       >
-                        {item.active ? "Désactiver" : "Réactiver"}
+                        {item.active ? "Désactiver" : "Nouveau consentement requis"}
                       </button>
                     </div>
                   </div>
@@ -638,10 +663,13 @@ export default function AdminNewsletter() {
                   className="mt-0.5 w-4 h-4 accent-[#003366] cursor-pointer"
                 />
                 <span className="text-[11px] text-gray-600 leading-relaxed">
-                  L&apos;abonné a donné son consentement pour recevoir la lettre d&apos;information
+                  L&apos;abonné a donné son consentement explicite pour recevoir la lettre d&apos;information
                   APTIC-R. <span className="text-red-500">*</span>
                 </span>
               </label>
+              <p className="text-[11px] text-gray-500">
+                Une adresse désinscrite ne sera réactivée qu&apos;avec ce nouveau consentement.
+              </p>
 
               <div className="pt-2 flex items-center justify-end gap-3">
                 <button
