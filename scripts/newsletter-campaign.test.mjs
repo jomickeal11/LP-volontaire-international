@@ -20,6 +20,8 @@ const validDraft = {
 
 test("validation des brouillons trilingues et rejet des sujets avec retours de ligne", () => {
   assert.equal(newsletterCampaignSchema.safeParse(validDraft).success, true)
+  assert.equal(newsletterCampaignSchema.safeParse({ ...validDraft, contentDe: "  " }).success, false)
+  assert.equal(newsletterCampaignSchema.safeParse({ ...validDraft, subjectEn: "" }).success, false)
   assert.equal(newsletterCampaignSchema.safeParse({ ...validDraft, subjectFr: "Sujet\r\nBcc:x@example.test" }).success, false)
   assert.equal(newsletterCampaignSchema.safeParse({ ...validDraft, contentDe: "x".repeat(30001) }).success, false)
 })

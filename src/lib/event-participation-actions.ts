@@ -17,6 +17,7 @@
 import { revalidatePath } from "next/cache"
 import prisma from "./prisma"
 import { verifySession } from "./auth"
+import { hasAdminPermission } from "./admin-permissions"
 import { eventParticipationRequestSchema } from "./cms-validations"
 import {
   getEventCapacityStats,
@@ -366,7 +367,6 @@ export async function logEventParticipationContact(
 /* ─────────────────────────────── Helpers ───────────────────────────── */
 
 /** Rôles autorisés à traiter les demandes de participation. */
-const ADMIN_ROLES = new Set(["SUPERADMIN", "ADMIN", "COORDINATOR", "CONTENT_MANAGER"])
 
 /**
  * Vérifie la session ET le rôle.
@@ -384,7 +384,7 @@ async function requireAdmin(): Promise<ParticipationAdmin | null> {
     select: { id: true, name: true, role: true },
   })
   if (!user) return null
-  if (!ADMIN_ROLES.has(user.role)) return null
+  if (!hasAdminPermission(user.role, "requests:process")) return null
 
   return { userId: user.id, name: user.name }
 }

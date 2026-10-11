@@ -89,8 +89,12 @@ export async function middleware(request: NextRequest) {
   // Back-office route protection (no locale prefix)
   const isBackoffice = pathname.startsWith("/backoffice")
   const isBackofficeLogin = pathname === "/backoffice/login"
+  const isPublicAccountRecoveryPage =
+    pathname === "/backoffice/confirmer-email" ||
+    pathname === "/backoffice/reinitialiser-mot-de-passe" ||
+    pathname === "/backoffice/invitation"
 
-  if (isBackoffice && !isBackofficeLogin) {
+  if (isBackoffice && !isBackofficeLogin && !isPublicAccountRecoveryPage) {
     const sessionCookie = request.cookies.get("session")?.value
     const session = await decrypt(sessionCookie)
 

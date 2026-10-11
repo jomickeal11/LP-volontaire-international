@@ -1,3 +1,4 @@
+import { requireAdminPagePermission } from "@/lib/access-control"
 import AdminPartnerRequestDetailWrapper from "./AdminPartnerRequestDetailWrapper"
 import prisma from "@/lib/prisma"
 import { requireAccount } from "@/lib/account"
@@ -12,7 +13,7 @@ export default async function PartnerRequestDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  await requireAccount()
+  await requireAdminPagePermission("requests:read")
 
   const resolvedParams = await params
   const { id } = resolvedParams

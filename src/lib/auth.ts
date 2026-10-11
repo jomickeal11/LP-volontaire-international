@@ -10,6 +10,7 @@ export interface VerifiedSession {
   isAuth: true
   userId: string
   role: string
+  sessionVersion: number
 }
 
 /**
@@ -34,9 +35,9 @@ function pruneNegativeCache(now: number = Date.now()) {
   }
 }
 
-export async function createSession(userId: string, role: string) {
+export async function createSession(userId: string, role: string, sessionVersion = 0) {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  const session = await encrypt({ userId, role, expiresAt })
+  const session = await encrypt({ userId, role, sessionVersion, expiresAt })
   const cookieStore = await cookies()
 
   cookieStore.set(SESSION_COOKIE, session, {
@@ -76,6 +77,7 @@ export async function verifySession(): Promise<VerifiedSession | null> {
   if (!userId) {
     return null
   }
+  const tokenSessionVersion = typeof session?.sessionVersion === "number" ? session.sessionVersion : 0
 
   const now = Date.now()
   const cached = negativeUserCache.get(userId)
@@ -84,11 +86,11 @@ export async function verifySession(): Promise<VerifiedSession | null> {
     return null
   }
 
-  let user: { id: string; role: string } | null
+  let user: { id: string; role: string; sessionVersion: number; active: boolean } | null
   try {
     user = await prisma.utilisateur.findUnique({
       where: { id: userId },
-      select: { id: true, role: true },
+      select: { id: true, role: true, sessionVersion: true, active: true },
     })
   } catch (error: unknown) {
     return null
@@ -101,7 +103,12 @@ export async function verifySession(): Promise<VerifiedSession | null> {
     return null
   }
 
-  return { isAuth: true, userId: user.id, role: user.role }
+  if (!user.active || user.sessionVersion !== tokenSessionVersion) {
+    await clearSessionSilently()
+    return null
+  }
+
+  return { isAuth: true, userId: user.id, role: user.role, sessionVersion: user.sessionVersion }
 }
 
 async function clearSessionSilently() {

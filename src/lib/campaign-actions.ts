@@ -5,6 +5,7 @@ import { z } from "zod"
 import { randomUUID } from "node:crypto"
 import { revalidatePath } from "next/cache"
 import { verifySession } from "./auth"
+import { hasCurrentAdminPermission } from "./access-control"
 import {
   CHANNEL_MAP,
   normalizeCampaignSlug,
@@ -43,7 +44,7 @@ export async function createCampaignLink(
   input: CreateCampaignLinkInput,
 ): Promise<CreateCampaignLinkResult> {
   const session = await verifySession()
-  if (!session?.userId) {
+  if (!session?.userId || !(await hasCurrentAdminPermission("campaign-links:manage"))) {
     return { success: false, error: "Authentification requise." }
   }
 
@@ -127,7 +128,7 @@ export interface SavedCampaignLink {
 export async function getSavedCampaignLinks(limit = 50): Promise<SavedCampaignLink[]> {
   try {
     const session = await verifySession()
-    if (!session?.userId) {
+    if (!session?.userId || !(await hasCurrentAdminPermission("campaign-links:manage"))) {
       return []
     }
     const rows = await (prisma as any).lienCampagne.findMany({
@@ -175,7 +176,7 @@ export async function deleteLienCampagne(
     }
 
     const session = await verifySession()
-    if (!session?.userId) {
+    if (!session?.userId || !(await hasCurrentAdminPermission("campaign-links:manage"))) {
       return { success: false, error: "Authentification requise." }
     }
 

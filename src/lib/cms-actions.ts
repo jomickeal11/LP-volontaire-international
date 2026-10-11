@@ -36,6 +36,7 @@ import {
   selectEligibleNewsletterRecipients,
 } from "./newsletter-campaign"
 import { getSiteUrl } from "./seo"
+import { hasCurrentAdminPermission, type AdminPermission } from "./access-control"
 
 function safeRevalidatePath(path: string, type?: "page" | "layout") {
   try {
@@ -67,12 +68,8 @@ function generateMemberReference(): string {
 // depuis n'importe quel chemin public avec un identifiant d'action connu.
 const UNAUTHORIZED_ACTION = "Action non autorisée : connexion administrateur requise."
 
-async function isAdminSession(): Promise<boolean> {
-  const session = await verifySession()
-  return Boolean(
-    session?.userId &&
-    ["SUPERADMIN", "ADMIN", "COORDINATOR", "CONTENT_MANAGER"].includes(session.role)
-  )
+async function isAdminSession(permission: AdminPermission = "content:write"): Promise<boolean> {
+  return hasCurrentAdminPermission(permission)
 }
 
 // Identifiants non fiables côté client : on vérifie toujours l'existence
@@ -300,6 +297,48 @@ export async function getNewsletterCampaigns() {
   }
 }
 
+export async function previewNewsletterCampaignLaunch(campaignId: unknown) {
+  try {
+    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
+    if (typeof campaignId !== "string" || !campaignId.trim()) return { success: false, error: "Campagne invalide." }
+    const campaign = await prisma.newsletterCampagne.findUnique({ where: { id: campaignId } })
+    if (!campaign || campaign.status !== "DRAFT") return { success: false, error: "Seul un brouillon peut être préparé pour l’envoi." }
+
+    const candidates = await prisma.newsletterAbonne.findMany({
+      where: {
+        active: true,
+        consent: true,
+        consentAt: { not: null },
+        consentSource: { not: null },
+        consentVersion: { not: null },
+      },
+      select: { id: true, email: true, lang: true, firstName: true, active: true, consent: true, consentAt: true, consentSource: true, consentVersion: true },
+    })
+    const eligible = selectEligibleNewsletterRecipients(candidates)
+    const countsByLanguage = eligible.reduce((counts, subscriber) => {
+      counts[subscriber.lang] += 1
+      return counts
+    }, { FR: 0, EN: 0, DE: 0 })
+    const missingLanguages = (["FR", "EN", "DE"] as const).filter((lang) => {
+      if (!countsByLanguage[lang]) return false
+      const content = buildNewsletterCampaignSendPayload(campaign, lang, "")
+      return !content.subject.trim() || !content.text.trim()
+    })
+    return {
+      success: true,
+      campaignId: campaign.id,
+      campaignName: campaign.name,
+      eligibleCount: eligible.length,
+      countsByLanguage,
+      missingLanguages,
+      ready: eligible.length > 0 && missingLanguages.length === 0,
+    }
+  } catch (error) {
+    console.error("Error preparing newsletter campaign launch.", error instanceof Error ? error.name : "unknown")
+    return { success: false, error: "Impossible de préparer le lancement de cette campagne." }
+  }
+}
+
 export async function saveNewsletterCampaign(input: unknown) {
   try {
     if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
@@ -430,7 +469,7 @@ async function processNewsletterCampaignBatchInternal(campaignId: string) {
 
   await reconcileStaleNewsletterDeliveries(campaignId)
   const pending = await prisma.newsletterCampagneDestinataire.findMany({
-    where: { campaignId, status: "PENDING", subscriberId: { not: null } },
+    where: { campaignId, status: "PENDING" },
     orderBy: { createdAt: "asc" },
     take: NEWSLETTER_DELIVERY_BATCH_SIZE,
   })
@@ -440,7 +479,14 @@ async function processNewsletterCampaignBatchInternal(campaignId: string) {
       where: { id: delivery.id, status: "PENDING" },
       data: { status: "SENDING", attempts: { increment: 1 }, lastAttemptAt: new Date(), error: null },
     })
-    if (!claimed.count || !delivery.subscriberId) continue
+    if (!claimed.count) continue
+    if (!delivery.subscriberId) {
+      await prisma.newsletterCampagneDestinataire.update({
+        where: { id: delivery.id },
+        data: { status: "FAILED", error: "SUBSCRIBER_NOT_AVAILABLE" },
+      })
+      continue
+    }
 
     const subscriber = await prisma.newsletterAbonne.findUnique({ where: { id: delivery.subscriberId } })
     if (!subscriber || !isNewsletterEligibleForCampaign(subscriber)) {
@@ -518,7 +564,7 @@ async function processNewsletterCampaignBatchInternal(campaignId: string) {
 
 export async function launchNewsletterCampaign(input: unknown) {
   try {
-    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
+    if (!(await isAdminSession("newsletter:send"))) return { success: false, error: UNAUTHORIZED_ACTION }
     const parsed = newsletterCampaignLaunchSchema.safeParse(input)
     if (!parsed.success) return { success: false, error: "Campagne invalide." }
 
@@ -539,6 +585,10 @@ export async function launchNewsletterCampaign(input: unknown) {
     })
     const eligible = selectEligibleNewsletterRecipients(candidates)
     if (eligible.length === 0) return { success: false, error: "Aucun abonné actif avec consentement vérifiable." }
+
+    if (eligible.length !== parsed.data.expectedRecipientCount) {
+      return { success: false, error: `La liste des abonnés a changé depuis la confirmation (prévisualisation : ${parsed.data.expectedRecipientCount}, maintenant : ${eligible.length}). Prévisualisez à nouveau avant de lancer.` }
+    }
 
     const missingLanguages = [...new Set(eligible.map((subscriber) => subscriber.lang))].filter((lang) => {
       const content = buildNewsletterCampaignSendPayload(campaign, lang, "")
@@ -572,7 +622,7 @@ export async function launchNewsletterCampaign(input: unknown) {
 
 export async function processNewsletterCampaignBatch(campaignId: unknown) {
   try {
-    if (!(await isAdminSession())) return { success: false, error: UNAUTHORIZED_ACTION }
+    if (!(await isAdminSession("newsletter:send"))) return { success: false, error: UNAUTHORIZED_ACTION }
     if (typeof campaignId !== "string" || !campaignId.trim()) return { success: false, error: "Campagne invalide." }
     const result = await processNewsletterCampaignBatchInternal(campaignId)
     revalidatePath("/backoffice/newsletter/campaigns")
@@ -626,6 +676,11 @@ export async function getProjects(options?: {
 }) {
   try {
     const where: any = {}
+
+    const canReadDrafts = await hasCurrentAdminPermission("content:read")
+    if (!options?.lang && !canReadDrafts) {
+      where.OR = [{ publishedFr: true }, { publishedEn: true }, { publishedDe: true }]
+    }
 
     if (options?.status && options.status !== "ALL") {
       where.status = options.status
@@ -686,6 +741,7 @@ export async function getProjects(options?: {
 /** Version allégée pour les menus déroulants Admin (id + titre FR uniquement). */
 export async function getProjectsForSelect(): Promise<{ id: string; titleFr: string; slug: string }[]> {
   try {
+    if (!(await isAdminSession("content:read"))) return []
     const projects = await prisma.projet.findMany({
       select: { id: true, titleFr: true, slug: true },
       orderBy: { titleFr: "asc" },
@@ -714,6 +770,9 @@ export async function getProjectBySlug(slug: string, lang?: string) {
 
     if (!project) return null
 
+    if (!lang && !(await hasCurrentAdminPermission("content:read")) &&
+      ![project.publishedFr, project.publishedEn, project.publishedDe].some(Boolean)) return null
+
     // Stricte étanchéité multilingue si lang est spécifié
     if (lang && !isProjectPublishedForLang(project, lang)) {
       return null
@@ -738,7 +797,9 @@ export async function getArticles(options?: {
   try {
     const where: any = {}
     const lang = options?.lang?.toUpperCase()
-    if (options?.publishedOnly !== false) {
+    const canReadDrafts = await hasCurrentAdminPermission("content:read")
+    if (options?.publishedOnly === false && !canReadDrafts) where.published = true
+    if (options?.publishedOnly !== false || !canReadDrafts) {
       if (lang === "EN" || lang === "DE" || lang === "FR") {
         where[`published${lang[0]}${lang.slice(1).toLowerCase()}`] = true
       } else {
@@ -928,7 +989,7 @@ export async function getEvents(options?: {
 }) {
   try {
     const where: any = {}
-    const isPublicQuery = Boolean(options?.lang)
+    const isPublicQuery = Boolean(options?.lang) || !(await hasCurrentAdminPermission("content:read"))
 
     if (isPublicQuery) {
       // Publication globale : l'événement doit être publié dans au moins une langue.
@@ -1651,7 +1712,7 @@ export async function getMemberApplications(options?: {
   skip?: number
 }) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return {
         applications: [],
         counts: { total: 0, pending: 0, approved: 0, rejected: 0 },
@@ -1723,7 +1784,7 @@ export async function approveMemberApplication(
   adminNote?: string
 ) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
     const application = await prisma.demandeAdhesion.findUnique({
@@ -1860,7 +1921,7 @@ export async function rejectMemberApplication(
   adminNote?: string
 ) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
     const application = await prisma.demandeAdhesion.findUnique({
@@ -1930,7 +1991,7 @@ export async function resetMemberApplicationToPending(
   reason: string
 ) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
     if (!reason || !reason.trim()) {
@@ -2007,7 +2068,7 @@ export async function revokeMembership(
   reason: string
 ) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
     if (!reason || !reason.trim()) {
@@ -2076,7 +2137,7 @@ export async function revokeMembershipDirect(
   reason: string
 ) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
     if (!reason || !reason.trim()) {
@@ -2157,7 +2218,7 @@ export async function updateMemberDetails(
   adminName: string = "Admin APTIC-R"
 ) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
     const existing = await prisma.membre.findUnique({
@@ -2234,7 +2295,7 @@ export async function updateMemberApplicationData(
   adminName: string = "Admin APTIC-R"
 ) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
     const existing = await prisma.demandeAdhesion.findUnique({
@@ -2326,7 +2387,7 @@ export async function setMemberApplicationPending(
   adminNote?: string
 ) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
     const application = await prisma.demandeAdhesion.findUnique({
@@ -2381,7 +2442,7 @@ export async function getMembersDirectory(options?: {
   skip?: number
 }) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return {
         members: [],
         stats: { activeMembers: 0, countriesCount: 0, domainsCount: 0, newThisMonth: 0 },
@@ -2485,7 +2546,7 @@ export async function getMembersDirectory(options?: {
 
 export async function getMemberHistory(memberId: string) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return []
     }
     return await prisma.historiqueAdhesion.findMany({
@@ -2500,7 +2561,7 @@ export async function getMemberHistory(memberId: string) {
 
 export async function getApplicationHistory(applicationId: string) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return []
     }
     return await prisma.historiqueAdhesion.findMany({
@@ -2823,7 +2884,10 @@ export async function createProject(data: {
   sourceProposalId?: string
 }) {
   try {
-    if (!(await getProjectProposalAdmin())) {
+    const allowed = data.sourceProposalId
+      ? await isAdminSession("requests:process")
+      : await isAdminSession("content:write")
+    if (!allowed) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
     if (data.sourceProposalId !== undefined &&
@@ -3154,7 +3218,7 @@ export async function toggleNewsletterSubscriberStatus(id: string) {
 
 export async function deleteNewsletterSubscriber(id: string) {
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:delete"))) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
     await prisma.newsletterAbonne.delete({ where: { id } })
@@ -3217,6 +3281,9 @@ import { INITIAL_ABOUT_SETTINGS } from "./about-seed-data"
 import { INITIAL_SUPPORT_SETTINGS } from "./support-seed-data"
 
 export async function getSiteSettings(group?: string) {
+  if (!(await isAdminSession("content:read"))) {
+    return { success: false, settings: [], dict: {}, error: UNAUTHORIZED_ACTION }
+  }
   try {
     const where: any = {}
     if (group && group !== "ALL") {
@@ -3610,6 +3677,12 @@ function serializeTeamMembers(
 }
 
 export async function getTeamMembers(options?: { category?: string; activeOnly?: boolean }) {
+  if (!(await isAdminSession("content:read"))) {
+    return { success: false, members: [], error: UNAUTHORIZED_ACTION }
+  }
+  if (options?.activeOnly === false && !(await isAdminSession("content:read"))) {
+    return { success: false, members: [] }
+  }
   const maxRetries = 3
   let lastError: any = null
 
@@ -3658,7 +3731,7 @@ export async function getTeamMembers(options?: { category?: string; activeOnly?:
 export async function createTeamMember(data: unknown) {
   try {
     const session = await verifySession()
-    if (!session?.userId) {
+    if (!session?.userId || !(await hasCurrentAdminPermission("content:write"))) {
       return { success: false, error: "Vous devez être connecté pour ajouter un membre." }
     }
 
@@ -3704,7 +3777,7 @@ export async function createTeamMember(data: unknown) {
 export async function updateTeamMember(id: string, data: unknown) {
   try {
     const session = await verifySession()
-    if (!session?.userId) {
+    if (!session?.userId || !(await hasCurrentAdminPermission("content:write"))) {
       return { success: false, error: "Vous devez être connecté pour modifier un membre." }
     }
 
@@ -3749,7 +3822,7 @@ export async function updateTeamMember(id: string, data: unknown) {
 export async function deleteTeamMember(id: string) {
   try {
     const session = await verifySession()
-    if (!session?.userId) {
+    if (!session?.userId || !(await hasCurrentAdminPermission("content:write"))) {
       return { success: false, error: "Vous devez être connecté pour supprimer un membre." }
     }
 
@@ -3768,7 +3841,7 @@ export async function deleteTeamMember(id: string) {
 export async function reorderTeamMembersAction(orderedIds: string[]) {
   try {
     const session = await verifySession()
-    if (!session?.userId) {
+    if (!session?.userId || !(await hasCurrentAdminPermission("content:write"))) {
       return { success: false, error: "Vous devez être connecté pour réorganiser l'équipe." }
     }
 
@@ -3818,8 +3891,9 @@ function hasDomaineContentInLanguage(domaine: any, lang: string): boolean {
 
 export async function getDomaines(options?: { activeOnly?: boolean; lang?: string }) {
   try {
+    if (options?.activeOnly === false && !(await isAdminSession("content:read"))) return []
     const where: any = {}
-    if (options?.activeOnly) {
+    if (options?.activeOnly || !(await hasCurrentAdminPermission("content:read"))) {
       where.active = true
     }
     // Filtre de langue poussé en base (équivalent exact de
@@ -4186,6 +4260,7 @@ export async function getRessources(options?: {
   lang?: string
 }) {
   try {
+    if (options?.publishedOnly !== true && !(await isAdminSession("content:read"))) return []
     const where: any = {}
     if (options?.publishedOnly) {
       where.published = true
@@ -4549,7 +4624,7 @@ export async function adminCreateMember(data: {
 }) {
   "use server"
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
     if (!data.firstName?.trim() || !data.lastName?.trim() || !data.email?.trim() || !data.country?.trim()) {
@@ -4620,7 +4695,7 @@ export async function adminCreateCandidate(data: {
 }) {
   "use server"
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
     if (!data.firstName?.trim() || !data.lastName?.trim() || !data.email?.trim() || !data.country?.trim() || !data.dateOfBirth) {
@@ -4716,7 +4791,7 @@ export async function adminCreatePartner(data: {
 }) {
   "use server"
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return { success: false, error: UNAUTHORIZED_ACTION }
     }
     if (!data.orgName?.trim() || !data.country?.trim() || !data.contactPerson?.trim() || !data.email?.trim()) {
@@ -4766,7 +4841,7 @@ export async function adminCreatePartner(data: {
 export async function getSkills() {
   "use server"
   try {
-    if (!(await isAdminSession())) {
+    if (!(await isAdminSession("requests:process"))) {
       return { success: false, error: UNAUTHORIZED_ACTION, skills: [] }
     }
     const skills = await prisma.competence.findMany({
@@ -4942,6 +5017,9 @@ export async function exportNewsletterByLanguageZip(options: {
 // ─── TEAM CATEGORIES ─────────────────────────────────────────────────────────
 
 export async function getTeamCategories() {
+  if (!(await isAdminSession("content:read"))) {
+    return []
+  }
   try {
     if (!(await isAdminSession())) {
       return []

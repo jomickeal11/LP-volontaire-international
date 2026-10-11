@@ -73,12 +73,7 @@ export function renderEmailHead(): string {
 export function getPublicLogoUrl(customUrl?: string): string {
   if (customUrl) return customUrl
 
-  // 1. Variable d'environnement explicite pour le logo d'e-mail si définie
-  if (process.env.EMAIL_LOGO_URL) {
-    return process.env.EMAIL_LOGO_URL
-  }
-
-  // 2. URL de site configurée si elle est publique et résoluble (non localhost / non fictive)
+  // Resolve the public host while always using the current official logo asset.
   const siteUrl = (
     process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.NEXTAUTH_URL ||
@@ -92,11 +87,10 @@ export function getPublicLogoUrl(customUrl?: string): string {
     !siteUrl.includes("127.0.0.1") &&
     !siteUrl.includes("aptic-rural.org")
   ) {
-    return `${siteUrl}/logo-aptic.png`
+    return `${siteUrl}/logo-aptic-official-clean.png`
   }
 
-  // 3. URL CDN HTTPS officielle et certifiée, accessible par tous les clients e-mails (Mailtrap, Gmail, Outlook, etc.)
-  return "https://raw.githubusercontent.com/jomickeal11/LP-volontaire-international/main/public/logo-aptic.png"
+  return "https://lp-volontaire-international.vercel.app/logo-aptic-official-clean.png"
 }
 
 /**

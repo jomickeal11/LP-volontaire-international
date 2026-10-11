@@ -24,6 +24,7 @@ import { randomBytes, randomUUID } from "crypto"
 import { files } from "./storage"
 import { EmailService } from "./email"
 import { getProjectProposalAdmin } from "./project-proposal-access"
+import { hasCurrentAdminPermission } from "./access-control"
 
 async function notifyCandidateApplication(application: any): Promise<void> {
   await EmailService.sendCandidateApplicationEmails({
@@ -707,7 +708,7 @@ export async function updateCandidateStatus(
     const session = await verifySession()
     if (
       !session?.userId ||
-      !["SUPERADMIN", "ADMIN", "COORDINATOR", "CONTENT_MANAGER"].includes(session.role)
+      !(await hasCurrentAdminPermission("requests:process"))
     ) {
       return { success: false, error: "Action non autorisée. Session administrateur requise." }
     }
@@ -840,7 +841,7 @@ export async function updateCandidateCommunicationLanguage(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const session = await verifySession()
-    if (!session || !session.userId) {
+    if (!session || !session.userId || !(await hasCurrentAdminPermission("requests:process"))) {
       return { success: false, error: "Action non autorisée. Session administrateur requise." }
     }
     await prisma.candidature.update({
@@ -862,7 +863,7 @@ export async function updatePartnerRequestCommunicationLanguage(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const session = await verifySession()
-    if (!session || !session.userId) {
+    if (!session || !session.userId || !(await hasCurrentAdminPermission("requests:process"))) {
       return { success: false, error: "Action non autorisée. Session administrateur requise." }
     }
     await (prisma as any).demandePartenariat.update({
@@ -884,6 +885,11 @@ export async function resendCandidateEmailAction(emailLogId: string): Promise<{ 
     if (!admin) {
       return { success: false, error: "Action non autorisée. Session administrateur requise." }
     }
+    const candidateLog = await prisma.emailLog.findFirst({
+      where: { id: emailLogId, applicationId: { not: null } },
+      select: { id: true },
+    })
+    if (!candidateLog) return { success: false, error: "Journal d'email introuvable." }
     return await EmailService.resendLoggedEmail(emailLogId)
   } catch (err: unknown) {
     return { success: false, error: err instanceof Error ? err.message : "Erreur lors de la réexpédition" }
@@ -897,6 +903,15 @@ export async function retryFailedNotificationEmailAction(emailLogId: string): Pr
   try {
     const admin = await getProjectProposalAdmin()
     if (!admin) return { success: false, error: "Action non autorisée." }
+    const log = await prisma.emailLog.findUnique({ where: { id: emailLogId }, select: { actionType: true } })
+    const requestEmailTypes = new Set([
+      "ADMIN_SUBMISSION_NOTIFICATION", "APPLICATION_CONFIRMATION", "STATUS_CHANGE", "INTERVIEW_INVITATION",
+      "PARTNER_CONFIRMATION", "PARTNER_STATUS_CHANGE", "PROJECT_PROPOSAL_STATUS", "MEMBERSHIP_DECISION",
+      "CONTACT_NOTIFICATION", "EVENT_PARTICIPATION_REQUEST", "EVENT_PARTICIPATION_DECISION",
+    ])
+    if (!log || !requestEmailTypes.has(log.actionType)) {
+      return { success: false, error: "Journal d'email introuvable." }
+    }
     return EmailService.resendLoggedEmail(emailLogId)
   } catch (error: unknown) {
     console.error("retryFailedNotificationEmailAction error:", error)
@@ -916,7 +931,7 @@ export async function getCandidateEmailLogDetails(emailLogId: string) {
     const log = await prisma.emailLog.findUnique({
       where: { id: emailLogId },
     })
-    if (!log) {
+    if (!log || !log.applicationId) {
       return { success: false, error: "Journal d'email introuvable." }
     }
     return { success: true, data: log }
@@ -932,7 +947,7 @@ export async function addCandidateNote(
 ) {
   try {
     const session = await verifySession()
-    if (!session || !session.userId) {
+    if (!session || !session.userId || !(await hasCurrentAdminPermission("requests:process"))) {
       return { success: false, error: "Action non autorisée. Session administrateur requise." }
     }
 
@@ -955,7 +970,7 @@ export async function addCandidateNote(
 export async function deleteCandidateNote(noteId: string) {
   try {
     const session = await verifySession()
-    if (!session || !session.userId) {
+    if (!session || !session.userId || !(await hasCurrentAdminPermission("requests:delete"))) {
       return { success: false, error: "Action non autorisée. Session administrateur requise." }
     }
 
@@ -1065,7 +1080,7 @@ export async function submitCandidateApplicationFormData(
 export async function getApplicationsCount() {
   try {
     const session = await verifySession()
-    if (!session || !session.userId) {
+    if (!session || !session.userId || !(await hasCurrentAdminPermission("requests:read"))) {
       return 0
     }
     return await prisma.candidature.count()
@@ -1077,7 +1092,7 @@ export async function getApplicationsCount() {
 export async function getPartnerRequestsCount() {
   try {
     const session = await verifySession()
-    if (!session || !session.userId) {
+    if (!session || !session.userId || !(await hasCurrentAdminPermission("requests:read"))) {
       return 0
     }
     return await (prisma as any).demandePartenariat.count()

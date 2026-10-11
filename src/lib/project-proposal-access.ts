@@ -1,12 +1,8 @@
 import { verifySession } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import { hasAdminPermission } from "@/lib/access-control"
 
-export const PROJECT_PROPOSAL_ADMIN_ROLES = new Set([
-  "SUPERADMIN",
-  "ADMIN",
-  "COORDINATOR",
-  "CONTENT_MANAGER",
-])
+export const PROJECT_PROPOSAL_ADMIN_ROLES = new Set(["SUPER_ADMIN", "REQUEST_MANAGER", "SUPERADMIN", "ADMIN", "COORDINATOR", "REVIEWER"])
 
 export async function getProjectProposalAdmin() {
   const session = await verifySession()
@@ -16,7 +12,7 @@ export async function getProjectProposalAdmin() {
     where: { id: session.userId },
     select: { id: true, name: true, role: true },
   })
-  if (!user || !PROJECT_PROPOSAL_ADMIN_ROLES.has(user.role)) return null
+  if (!user || !hasAdminPermission(user.role, "requests:read")) return null
 
   return user
 }

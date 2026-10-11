@@ -38,7 +38,7 @@ export async function loginAction(email?: string, password?: string) {
       })
     )
 
-    if (!user) {
+    if (!user || !user.active) {
       return { error: "Adresse e-mail ou mot de passe incorrect." }
     }
 
@@ -48,7 +48,7 @@ export async function loginAction(email?: string, password?: string) {
       return { error: "Adresse e-mail ou mot de passe incorrect." }
     }
 
-    await createSession(user.id, user.role)
+    await createSession(user.id, user.role, user.sessionVersion)
     return { success: true }
   } catch (error: unknown) {
     console.error("Login error:", error)

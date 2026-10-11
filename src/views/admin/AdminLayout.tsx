@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import type { Page } from "../../types"
 import { useAdminHeader, type BreadcrumbItem } from "../../lib/AdminHeaderContext"
 import { getAdminTranslations } from "../../i18n/adminTranslations"
+import { canRoleSeeAdminPage } from "../../lib/admin-navigation"
 
 interface AdminLayoutProps {
   currentPage: Page
@@ -934,6 +935,21 @@ export default function AdminLayout({
     },
   ]
 
+  NAV_ITEMS_I18N.push({
+    group: lang.toLowerCase() === "en" ? "Administration" : lang.toLowerCase() === "de" ? "Verwaltung" : "Administration",
+    groupKey: "administration",
+    items: [{
+      page: "admin-users" as Page,
+      label: lang.toLowerCase() === "en" ? "Administrator accounts" : lang.toLowerCase() === "de" ? "Administratorkonten" : "Gestion des administrateurs",
+      icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" width={18} height={18}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2m16 0v-2a4 4 0 00-3-3.87M14 3.13a4 4 0 010 7.75M14 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
+    }],
+  })
+
+  const visibleNav = NAV_ITEMS_I18N.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => canRoleSeeAdminPage(user?.role, item.page)),
+  })).filter((group) => group.items.length > 0)
+
   const desktopNavRef = useRef<HTMLElement>(null)
 
   // Restaurer le scroll de la sidebar à chaque changement de page
@@ -992,7 +1008,7 @@ export default function AdminLayout({
         onScroll={handleNavScroll}
         className="flex-1 overflow-y-auto px-3 py-4"
       >
-        {NAV_ITEMS_I18N.map((group) => (
+        {visibleNav.map((group) => (
           <div key={group.groupKey} className="mb-5">
             <div
               className="text-xs font-bold uppercase tracking-widest px-3 mb-1.5"
@@ -1000,9 +1016,7 @@ export default function AdminLayout({
             >
               {group.group}
             </div>
-            {group.items
-              .filter((item) => item.page !== "admin-project-proposals" || ["SUPERADMIN", "ADMIN", "COORDINATOR", "CONTENT_MANAGER"].includes(user?.role || ""))
-              .map((item) => {
+            {group.items.map((item) => {
               const active = currentPage === item.page
               return (
                 <button

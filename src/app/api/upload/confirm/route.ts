@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { verifySession } from "@/lib/auth"
+import { hasAdminPermission } from "@/lib/admin-permissions"
 import { checkRateLimit, getClientIp } from "@/lib/security"
 import {
   UPLOAD_POLICIES,
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     const session = await verifySession()
     const requiresAuth = ADMIN_KINDS.includes(kind)
-    if (requiresAuth && (!session || !session.userId)) {
+    if (requiresAuth && (!session || !session.userId || !hasAdminPermission(session.role, "uploads:content"))) {
       return errorResponse(401, "Authentification requise.")
     }
 

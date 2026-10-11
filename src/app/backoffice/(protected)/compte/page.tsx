@@ -17,6 +17,11 @@ export default async function BackofficeAccountPage() {
         email: account.email,
         role: account.role,
         createdAt: account.createdAt.toISOString(),
+        pendingEmailChange: account.emailChangeRequest ? {
+          email: account.emailChangeRequest.newEmail,
+          status: account.emailChangeRequest.status,
+          expiresAt: account.emailChangeRequest.expiresAt.toISOString(),
+        } : null,
       }}
       lang={lang}
     />

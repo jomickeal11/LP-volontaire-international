@@ -1,3 +1,4 @@
+import { requireAdminPagePermission } from "@/lib/access-control"
 import AdminCandidateDetailWrapper from "./AdminCandidateDetailWrapper"
 import prisma from "@/lib/prisma"
 import { requireAccount } from "@/lib/account"
@@ -11,7 +12,7 @@ export default async function CandidateDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  await requireAccount()
+  await requireAdminPagePermission("requests:read")
 
   const resolvedParams = await params
   const cookieStore = await cookies()

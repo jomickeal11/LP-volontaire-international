@@ -1,3 +1,4 @@
+import { requireAdminPagePermission } from "@/lib/access-control"
 import AdminCandidatesClientWrapper from "./AdminCandidatesClientWrapper"
 import prisma from "@/lib/prisma"
 import { requireAccount } from "@/lib/account"
@@ -7,7 +8,7 @@ import { cookies } from "next/headers"
 export const dynamic = "force-dynamic"
 
 export default async function AdminCandidatesPage() {
-  await requireAccount()
+  await requireAdminPagePermission("requests:read")
 
   const cookieStore = await cookies()
   const lang = cookieStore.get("NEXT_LOCALE")?.value || "fr"

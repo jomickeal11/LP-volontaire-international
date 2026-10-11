@@ -1,5 +1,7 @@
+import { requireAdminPagePermission } from "@/lib/access-control"
 import AdminSettings from "@/views/admin/AdminSettings"
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  await requireAdminPagePermission("content:read")
   return <AdminSettings />
 }

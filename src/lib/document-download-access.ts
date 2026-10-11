@@ -1,9 +1,6 @@
-export const DOCUMENT_DOWNLOAD_ADMIN_ROLES = new Set([
-  "SUPERADMIN",
-  "ADMIN",
-  "COORDINATOR",
-  "CONTENT_MANAGER",
-])
+import { hasAdminPermission } from "./admin-permissions"
+
+export const DOCUMENT_DOWNLOAD_ADMIN_ROLES = new Set(["SUPER_ADMIN", "REQUEST_MANAGER", "SUPERADMIN", "ADMIN", "COORDINATOR", "REVIEWER"])
 
 export interface DocumentDownloadSession {
   userId: string
@@ -34,7 +31,7 @@ export async function authorizeDocumentDownload<T>(input: {
   createSignedUrl: (document: T) => Promise<string>
 }): Promise<DocumentDownloadDecision<T>> {
   if (!input.session?.userId) return { kind: "unauthenticated" }
-  if (!DOCUMENT_DOWNLOAD_ADMIN_ROLES.has(input.session.role)) return { kind: "forbidden" }
+  if (!hasAdminPermission(input.session.role, "requests:read")) return { kind: "forbidden" }
 
   const document = await input.findDocument()
   if (!document || !input.isAssociatedWithRecord(document)) return { kind: "not-found" }

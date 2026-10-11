@@ -9,6 +9,7 @@ import { getEventsUnreadParticipationCounts } from "@/lib/event-participation-ac
 import { useEffect, useState } from "react"
 import { AdminHeaderProvider } from "@/lib/AdminHeaderContext"
 import { ConfirmProvider } from "@/components/admin/ConfirmProvider"
+import { hasAdminPermission } from "@/lib/admin-permissions"
 
 export default function AdminClientLayout({
   user,
@@ -38,9 +39,11 @@ export default function AdminClientLayout({
   }
 
   useEffect(() => {
-    getApplicationsCount().then(setAppCount).catch(console.error)
-    refreshUnread()
-  }, [])
+    if (hasAdminPermission(user?.role, "requests:read")) {
+      getApplicationsCount().then(setAppCount).catch(console.error)
+      refreshUnread()
+    }
+  }, [user?.role])
 
   // Le compteur est relu au retour de focus et dès qu'un écran signale qu'une
   // liste de demandes vient d'être consultée (les demandes sont alors marquées
@@ -109,6 +112,8 @@ export default function AdminClientLayout({
     currentPage = "admin-medias"
   else if (pathname?.includes("/settings"))
     currentPage = "admin-settings"
+  else if (pathname?.includes("/administrateurs"))
+    currentPage = "admin-users"
   else if (pathname?.includes("/login")) return <>{children}</>
 
   const handleNavigate = (page: Page) => {
@@ -178,6 +183,9 @@ export default function AdminClientLayout({
         break
       case "admin-settings":
         router.push("/backoffice/settings")
+        break
+      case "admin-users":
+        router.push("/backoffice/administrateurs")
         break
       case "admin-account":
         router.push("/backoffice/compte")

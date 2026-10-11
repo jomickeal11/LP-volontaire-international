@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { verifySession } from "@/lib/auth"
+import { hasAdminPermission } from "@/lib/access-control"
 
 /**
  * Compte réellement connecté, lu depuis la session signée (cookie JWT)
@@ -14,6 +15,12 @@ export interface CurrentAccount {
   role: string
   createdAt: Date
   updatedAt: Date
+  emailChangeRequest: {
+    newEmail: string
+    status: string
+    expiresAt: Date
+    lastAttemptAt: Date | null
+  } | null
 }
 
 export async function getCurrentAccount(): Promise<CurrentAccount | null> {
@@ -29,6 +36,9 @@ export async function getCurrentAccount(): Promise<CurrentAccount | null> {
       role: true,
       createdAt: true,
       updatedAt: true,
+      emailChangeRequest: {
+        select: { newEmail: true, status: true, expiresAt: true, lastAttemptAt: true },
+      },
     },
   })
 }
@@ -47,6 +57,9 @@ export async function requireAccount(): Promise<CurrentAccount> {
   const account = await getCurrentAccount()
   if (!account) {
     redirect("/backoffice/login?session=invalid")
+  }
+  if (!hasAdminPermission(account.role, "backoffice:access")) {
+    redirect("/backoffice/forbidden")
   }
   return account
 }

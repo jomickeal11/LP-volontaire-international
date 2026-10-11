@@ -3,6 +3,7 @@
 import prisma from "./prisma"
 import { z } from "zod"
 import { verifySession } from "./auth"
+import { hasCurrentAdminPermission } from "./access-control"
 import { EmailService } from "./email"
 
 const contactMessageSchema = z.object({
@@ -154,7 +155,7 @@ export async function getContactMessagesAction(params?: {
 }> {
   try {
     const session = await verifySession()
-    if (!session?.userId) {
+    if (!session?.userId || !(await hasCurrentAdminPermission("contact:manage"))) {
       return {
         success: false,
         messages: [],
@@ -219,7 +220,7 @@ export async function updateContactMessageStatusAction(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const session = await verifySession()
-    if (!session?.userId) {
+    if (!session?.userId || !(await hasCurrentAdminPermission("contact:manage"))) {
       return { success: false, error: "Authentification requise." }
     }
     const updateData: any = { status }
@@ -243,7 +244,7 @@ export async function deleteContactMessageAction(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const session = await verifySession()
-    if (!session?.userId) {
+    if (!session?.userId || !(await hasCurrentAdminPermission("requests:delete"))) {
       return { success: false, error: "Authentification requise." }
     }
     await (prisma as any).messageContact.delete({
@@ -266,7 +267,7 @@ export async function getContactMessagesStatsAction(): Promise<{
 }> {
   try {
     const session = await verifySession()
-    if (!session?.userId) {
+    if (!session?.userId || !(await hasCurrentAdminPermission("contact:manage"))) {
       return { success: false, total: 0, unread: 0, replied: 0, archived: 0 }
     }
     const [total, unread, replied, archived] = await Promise.all([

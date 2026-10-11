@@ -1,3 +1,4 @@
+import { requireAdminPagePermission } from "@/lib/access-control"
 import AdminAnalyticsClientWrapper from "./AdminAnalyticsClientWrapper"
 import { getAnalyticsPageStats } from "@/lib/dashboard"
 import { requireAccount } from "@/lib/account"
@@ -18,7 +19,7 @@ export default async function AdminAnalyticsPage({
 }: {
   searchParams: Promise<{ period?: string | string[] }>
 }) {
-  await requireAccount()
+  await requireAdminPagePermission("analytics:read")
 
   const cookieStore = await cookies()
   const lang = cookieStore.get("NEXT_LOCALE")?.value || "fr"

@@ -53,6 +53,12 @@ export const newsletterCampaignSchema = z.object({
   contentFr: z.string().max(30_000),
   contentEn: z.string().max(30_000),
   contentDe: z.string().max(30_000),
+}).superRefine((campaign, context) => {
+  for (const [field, value] of Object.entries(campaign)) {
+    if (field !== "name" && field !== "lang" && field !== "id" && typeof value === "string" && !value.trim()) {
+      context.addIssue({ code: "custom", path: [field], message: `${field} est obligatoire` })
+    }
+  }
 })
 
 export const newsletterCampaignTestEmailSchema = z.object({
@@ -60,7 +66,10 @@ export const newsletterCampaignTestEmailSchema = z.object({
   recipient: z.string().trim().max(254).email("Adresse email invalide"),
 })
 
-export const newsletterCampaignLaunchSchema = z.object({ campaignId: z.string().trim().min(1) })
+export const newsletterCampaignLaunchSchema = z.object({
+  campaignId: z.string().trim().min(1),
+  expectedRecipientCount: z.number().int().nonnegative(),
+})
 
 export type NewsletterCampaignInput = z.infer<typeof newsletterCampaignSchema>
 

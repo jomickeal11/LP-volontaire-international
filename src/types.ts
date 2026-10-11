@@ -44,6 +44,7 @@ export type Page =
   | "admin-albums"
   | "admin-settings"
   | "admin-account"
+  | "admin-users"
 
 export type Language = "FR" | "EN" | "DE"
 

@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import { loginAction } from "@/actions/auth"
+import { requestPasswordResetAction } from "@/actions/password-reset"
 import ApticLogo from "@/components/ApticLogo"
 
 // ─── Inline SVG Icons (private to this component) ──────────────────────────────
@@ -103,7 +104,25 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [forgotSent, setForgotSent] = useState(false)
+  const [forgotLoading, setForgotLoading] = useState(false)
   const [showForgot, setShowForgot] = useState(false)
+
+  const handlePasswordResetRequest = async () => {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("Veuillez saisir une adresse e-mail valide.")
+      return
+    }
+    setError("")
+    setForgotLoading(true)
+    try {
+      await requestPasswordResetAction(email)
+    } catch {
+      // Keep the public response identical for known, unknown, and failed requests.
+    } finally {
+      setForgotSent(true)
+      setForgotLoading(false)
+    }
+  }
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -208,7 +227,7 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
             <div className="flex justify-end mb-5">
               <button
                 type="button"
-                onClick={() => setShowForgot(true)}
+              onClick={() => { setShowForgot(true); setError("") }}
                 className="text-xs text-[#003366] hover:text-[#002244] transition-colors cursor-pointer"
               >
                 Mot de passe oublié ?
@@ -237,7 +256,7 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
           <div>
             <button
               type="button"
-              onClick={() => setShowForgot(false)}
+              onClick={() => { setShowForgot(false); setForgotSent(false); setError("") }}
               className="flex items-center gap-1.5 text-sm text-[#4A5A6A] hover:text-[#1A2B3C] transition-colors mb-6 cursor-pointer"
             >
               ← Retour à la connexion
@@ -246,13 +265,14 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
               Réinitialiser le mot de passe
             </h2>
             <p className="text-sm text-[#4A5A6A] mb-6">
-              Saisissez votre adresse e-mail et nous vous enverrons un lien de réinitialisation.
+              Saisissez votre adresse e-mail. Si un compte existe et que le service est disponible, un lien pourra être envoyé.
             </p>
+            {error && <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
             {forgotSent ? (
               <div className="flex items-center gap-3 px-4 py-4 rounded-lg bg-[#E6F4EC] border-[1.5px] border-[#A7D9BC]">
                 <CheckCircle className="flex-shrink-0 text-[#2E7D52]" />
                 <span className="text-sm text-[#2E7D52]">
-                  Lien envoyé à <strong>{email}</strong>
+                  Si cette adresse correspond à un compte, un lien pourra être envoyé si le service e-mail est disponible.
                 </span>
               </div>
             ) : (
@@ -267,6 +287,7 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
                   <input
                     id="forgot-email"
                     type="email"
+                    required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="login-input"
@@ -276,10 +297,11 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setForgotSent(true)}
-                  className="login-btn"
+                  onClick={handlePasswordResetRequest}
+                  disabled={forgotLoading}
+                  className="login-btn disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Envoyer le lien
+                  {forgotLoading ? "Envoi en cours..." : "Envoyer le lien"}
                 </button>
               </>
             )}

@@ -1,10 +1,22 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import {
+import { readFile } from "node:fs/promises"
+import ts from "typescript"
+
+const permissionSource = await readFile(new URL("../src/lib/admin-permissions.ts", import.meta.url), "utf8")
+const permissionJs = ts.transpileModule(permissionSource, {
+  compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
+}).outputText
+const permissionUrl = `data:text/javascript;base64,${Buffer.from(permissionJs).toString("base64")}`
+const accessSource = await readFile(new URL("../src/lib/document-download-access.ts", import.meta.url), "utf8")
+const accessJs = ts.transpileModule(accessSource.replace('from "./admin-permissions"', `from "${permissionUrl}"`), {
+  compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
+}).outputText
+const {
   authorizeDocumentDownload,
   isCandidateDocumentAssociatedWithApplication,
   isPartnerDocumentAssociatedWithRecord,
-} from "../src/lib/document-download-access.ts"
+} = await import(`data:text/javascript;base64,${Buffer.from(accessJs).toString("base64")}`)
 
 const adminSession = { userId: "admin-test", role: "ADMIN" }
 
@@ -91,4 +103,25 @@ test("un document inexistant ou sans enregistrement associé ne reçoit jamais d
   assert.deepEqual(unattachedApplicationDoc, { kind: "not-found" })
   assert.deepEqual(unattachedPartnerDoc, { kind: "not-found" })
   assert.equal(signedCount, 0)
+})
+
+test("REQUEST_MANAGER peut obtenir un document de dossier et CONTENT_ADMIN en est refusé", async () => {
+  const document = { id: "document-test", applicationId: "application-test", storageKey: "candidate-test.pdf" }
+  const requestManager = await authorizeDocumentDownload({
+    session: { userId: "request-test", role: "REQUEST_MANAGER" },
+    findDocument: async () => document,
+    isAssociatedWithRecord: isCandidateDocumentAssociatedWithApplication,
+    createSignedUrl: async () => "https://storage.test/signed",
+  })
+  assert.equal(requestManager.kind, "ready")
+
+  let signed = false
+  const contentAdmin = await authorizeDocumentDownload({
+    session: { userId: "content-test", role: "CONTENT_ADMIN" },
+    findDocument: async () => document,
+    isAssociatedWithRecord: isCandidateDocumentAssociatedWithApplication,
+    createSignedUrl: async () => { signed = true; return "https://storage.test/signed" },
+  })
+  assert.equal(contentAdmin.kind, "forbidden")
+  assert.equal(signed, false)
 })
